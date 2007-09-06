@@ -21,5 +21,5 @@ INSTALL(TARGETS ${libname}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
 
-INSTALL(FILES <%= task_files.join(" ") %> <%= include_files.join(" ") %>
+INSTALL(FILES <%= include_files.join(" ") %>
     DESTINATION include/orocos/<%= component.name.downcase %>)
