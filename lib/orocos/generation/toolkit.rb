@@ -63,14 +63,29 @@ module Typelib
 	    end
 	end
 
-	def to_orocos_toolkit(result)
-	    type_info = Generation.load_template("type_info.cpp")
+	# Generates the code for the toolkit plugin which handles the types
+	# found in +registry+, and returns it as header, source. The corresponding
+	# header file is supposed to be named ${toolkit_name}Toolkit.hpp
+	def to_orocos_toolkit(toolkit_name)
+	    header_h  = Generation.load_template("toolkit/header.hpp")
+	    header_c  = Generation.load_template("toolkit/header.cpp")
+	    type_info = Generation.load_template("toolkit/type_info.cpp")
+	    toolkit   = Generation.load_template("toolkit/toolkit.cpp")
 
+	    header, source = "", ""
+	    source << header_c.result(binding)
+
+	    generated_types = []
 	    each_type do |type|
 		if type < CompoundType
-		    result << type_info.result(binding)
+		    generated_types << type
+		    source << type_info.result(binding)
 		end
 	    end
+
+	    source << toolkit.result(binding)
+	    header << header_h.result(binding)
+	    return header, source
 	end
     end
 end
@@ -85,7 +100,7 @@ module Generation
 	if template = templates[name]
 	    template
 	else
-	    template_basedir = File.expand_path('templates', File.dirname(__FILE__))
+	    template_basedir = File.expand_path('../templates', File.dirname(__FILE__))
 	    template_data    = File.open(File.join(template_basedir, name))
 	    templates[name] = ERB.new(template_data.read)
 	end
