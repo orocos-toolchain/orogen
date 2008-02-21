@@ -1,5 +1,5 @@
-require 'erb'
 require 'typelib'
+require 'orocos/generation/base'
 
 module Typelib
     class Type
@@ -67,10 +67,10 @@ module Typelib
 	# found in +registry+, and returns it as header, source. The corresponding
 	# header file is supposed to be named ${toolkit_name}Toolkit.hpp
 	def to_orocos_toolkit(toolkit_name)
-	    header_h  = Generation.load_template("toolkit/header.hpp")
-	    header_c  = Generation.load_template("toolkit/header.cpp")
-	    type_info = Generation.load_template("toolkit/type_info.cpp")
-	    toolkit   = Generation.load_template("toolkit/toolkit.cpp")
+	    header_h  = Orocos::Generation.load_template("toolkit/header.hpp")
+	    header_c  = Orocos::Generation.load_template("toolkit/header.cpp")
+	    type_info = Orocos::Generation.load_template("toolkit/type_info.cpp")
+	    toolkit   = Orocos::Generation.load_template("toolkit/toolkit.cpp")
 
 	    header, source = "", ""
 	    source << header_c.result(binding)
@@ -90,26 +90,55 @@ module Typelib
     end
 end
 
-module Generation
-    @templates = Hash.new
-    class << self
-	attr_reader :templates
-    end
+module Orocos::Generation
+    class Toolkit
+	attr_reader :name, :imports, :loads
+	attr_reader :registry
+	def self.validate_name(name)
+	    if !name || name.empty?
+		raise "empty toolkit name"
+	    elsif name !~ /^\w+$/
+		raise "toolkit names can only contain alphanumeric characters and _"
+	    end
 
-    def self.load_template(name)
-	if template = templates[name]
-	    template
-	else
-	    template_basedir = File.expand_path('../templates', File.dirname(__FILE__))
-	    template_data    = File.open(File.join(template_basedir, name))
-	    templates[name] = ERB.new(template_data.read)
+	    # TODO: check that this toolkit name is not already used ?
+	end
+
+	def initialize(name)
+	    Toolkit.validate_name name
+	    @name = name
+
+	    @imports, @loads = [], []
+	    @registry = Typelib::Registry.new
+	end
+
+	def load(file)
+	    file = File.expand_path(file)
+	    loads << file
+	    registry.import(file)
+	end
+
+	def import(other_toolkit)
+	    raise NotImplementedError
+	end
+
+	def to_code
+	    template = Orocos::Generation.load_template('toolkit', 'types.hpp')
+	    type_header = template.result(binding)
+	    hpp, cpp = registry.to_orocos_toolkit(name)
+
+	    return type_header, hpp, cpp
 	end
     end
 
-    def self.to_orocos_toolkit(header)
-	registry = Typelib::Registry.new
-	registry.import(header)
-	puts registry.to_orocos_toolkit("")
+    def self.toolkit(name, &block)
+	toolkit = Toolkit.new(name)
+	toolkit.instance_eval(&block)
+
+	types, hpp, cpp = toolkit.to_code
+	save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
+	save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
+	save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
     end
 end
 

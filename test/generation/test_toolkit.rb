@@ -1,17 +1,9 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'test/unit'
+require 'orocos/generation/test'
 require 'orocos/generation/toolkit'
 
-class TC_Generation < Test::Unit::TestCase
-    TEST_DATA_DIR = File.join( File.dirname(__FILE__), 'data' )
-
-    def test_load_template
-	erb = nil
-	assert_nothing_raised { erb = Generation.load_template('toolkit/type_info.cpp') }
-	assert_kind_of(ERB, erb)
-
-	assert_same(erb, Generation.load_template('toolkit/type_info.cpp'))
-    end
+class TC_GenerationToolkit < Test::Unit::TestCase
+    include Orocos::Generation::Test
+    TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
 
     def test_orocos_type_equivalence
 	registry = Typelib::Registry.new
@@ -35,8 +27,19 @@ class TC_Generation < Test::Unit::TestCase
 	assert(! header.empty?)
 	assert(! source.empty?)
 	assert( source =~ /SimpleTypeInfo/ )
+    end
 
-	STDERR.puts header
-	STDERR.puts source
+    def test_toolkit_generation
+	copy_in_wc File.join(TEST_DATA_DIR, 'type_info_generation.h')
+	in_wc do
+	    Generation.toolkit('Test') do
+		load 'type_info_generation.h'
+	    end
+
+	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.hpp')))
+	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.cpp')))
+	end
+	compile_wc('Test')
     end
 end
+

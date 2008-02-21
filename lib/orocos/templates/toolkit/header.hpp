@@ -1,13 +1,21 @@
-#ifndef <%= toolkit_name %>_TOOLKIT_PLUGIN_HPP
-#define <%= toolkit_name %>_TOOLKIT_PLUGIN_HPP
+#ifndef <%= toolkit_name.upcase %>_TOOLKIT_PLUGIN_HPP
+#define <%= toolkit_name.upcase %>_TOOLKIT_PLUGIN_HPP
 
-class <%= toolkit_name %>ToolkitPlugin
-    : public RTT::ToolkitPlugin
-{
-    bool loadTypes();
-};
+#include <rtt/Toolkit.hpp>
 
-extern <%= toolkit_name %> ToolkitPlugin <%= toolkit_name >Toolkit;
+namespace <%= toolkit_name %> {
+    class <%= toolkit_name %>ToolkitPlugin
+	: public RTT::ToolkitPlugin
+    {
+	bool loadTypes();
+	std::string getName();
+
+	bool loadOperators();
+	bool loadConstructors();
+    };
+
+    extern <%= toolkit_name %>ToolkitPlugin <%= toolkit_name %>Toolkit;
+}
 
 #endif
 

@@ -1,0 +1,3 @@
+ADD_LIBRARY(<%= component_name %>-toolkit-${OROCOS_TARGET}
+    <%= component_name %>Toolkit.cpp)
+

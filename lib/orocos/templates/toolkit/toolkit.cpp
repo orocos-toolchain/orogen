@@ -6,4 +6,7 @@ bool <%= toolkit_name %>ToolkitPlugin::loadTypes()
     return true;
 }
 
-<%= toolkit_name %> ToolkitPlugin <%= toolkit_name >Toolkit;
+bool <%= toolkit_name %>loadOperators() { return true; }
+bool <%= toolkit_name %>loadConstructors() { return true; }
+
+<%= toolkit_name %>ToolkitPlugin <%= toolkit_name %>::<%= toolkit_name %>Toolkit;

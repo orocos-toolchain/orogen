@@ -1,0 +1,27 @@
+# Locate KDL install directory
+
+# This module defines
+# KDL_INSTALL where to find include, lib, bin, etc.
+# KDL_FOUND, is set to true
+
+FIND_PACKAGE( PkgConfig REQUIRED )
+
+MESSAGE( STATUS "Detecting KDL" )
+
+SET(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${KDL_INSTALL}/lib/pkgconfig/")
+MESSAGE( "Looking for KDL in: $ENV{PKG_CONFIG_PATH}")
+PKGCONFIG( "orocos-kdl >= 0.2" KDL_FOUND KDL_INCLUDE_DIRS KDL_DEFINES KDL_LINK_DIRS KDL_LIBS )
+
+IF( KDL_FOUND )
+    MESSAGE("   Includes in: ${KDL_INCLUDE_DIRS}")
+    MESSAGE("   Libraries in: ${KDL_LINK_DIRS}")
+    MESSAGE("   Libraries: ${KDL_LIBS}")
+    MESSAGE("   Defines: ${KDL_DEFINES}")
+
+    PKGCONFIG( "orocos-kdltk >= 0.2" KDLTK_FOUND KDLTK_INCLUDE_DIRS KDLTK_DEFINES KDLTK_LINK_DIRS KDLTK_LIBS )
+    IF(KDLTK_FOUND)
+	INCLUDE_DIRECTORIES( ${KDL_INCLUDE_DIRS} ${KDLTK_INCLUDE_DIRS} )
+	LINK_DIRECTORIES( ${KDL_LINK_DIRS} ${KDLTK_LINK_DIRS})
+    ENDIF ( KDLTK_FOUND )
+ENDIF ( KDL_FOUND )
+
