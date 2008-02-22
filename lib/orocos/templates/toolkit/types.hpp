@@ -3,7 +3,7 @@
 
 namespace <%= name %> {
     <% for file in loads %>
-	<%= File.read(file) %>
+<%= File.read(file) %>
     <% end %>
 }
 

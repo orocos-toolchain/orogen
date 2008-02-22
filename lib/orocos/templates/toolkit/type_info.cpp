@@ -1,22 +1,23 @@
 
-struct <%= type.basename %>TypeInfo :
-  public RTT::TemplateTypeInfo<<%= type.basename %>>
-{
-  <%= type.basename %>TypeInfo()
-    : RTT::TemplateTypeInfo<<%= type.basename %>>("<%= type.basename %>") {}
+    struct <%= type.basename %>TypeInfo :
+	public RTT::TemplateTypeInfo<<%= type.basename %>>
+    {
+        <%= type.basename %>TypeInfo()
+	    : RTT::TemplateTypeInfo<<%= type.basename %>>("<%= type.basename %>") {}
 
-  bool decomposeTypeImpl(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) const {
-    int i; // index for array convertions
-    target_bag.setType("<%= type.basename %>");
+	bool decomposeTypeImpl(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) const {
+	    int i; // index for array convertions
+	    target_bag.setType("<%= type.basename %>");
 <%= result = ""
-      type.to_orocos_decomposition(result, "") 
-      result
-    %> 
-    return true;
-  }
+	    type.to_orocos_decomposition(result, "", " " * 12) 
+	    result
+	    %> 
+	    return true;
+	}
 
-  bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-    <%= type.to_orocos_composition %>
-  }
-};
+	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
+	    <%= type.to_orocos_composition %>
+	    return false;
+	}
+    };
 

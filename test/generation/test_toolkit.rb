@@ -31,6 +31,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
     def test_toolkit_generation
 	copy_in_wc File.join(TEST_DATA_DIR, 'type_info_generation.h')
+	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
 	in_wc do
 	    Generation.toolkit('Test') do
 		load 'type_info_generation.h'
@@ -39,7 +40,25 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.hpp')))
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.cpp')))
 	end
-	compile_wc('Test')
+	compile_wc('Test') do
+	    File.open('CMakeLists.txt', 'a') do |io|
+		io << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
+		io << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
+		io << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
+		io << "\n"
+	    end
+	end
+
+	in_wc do
+	    output = nil
+	    Dir.chdir("build") do
+		assert(system("./test_toolkit"))
+		output = File.read('test_toolkit.xml')
+	    end
+
+	    expected = File.read(File.join(TEST_DATA_DIR, 'simple_value.xml'))
+	    assert_equal(expected, output)
+	end
     end
 end
 

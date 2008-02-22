@@ -4,7 +4,7 @@
 #include <rtt/Toolkit.hpp>
 
 namespace <%= toolkit_name %> {
-    class <%= toolkit_name %>ToolkitPlugin
+    class ToolkitPlugin
 	: public RTT::ToolkitPlugin
     {
 	bool loadTypes();
@@ -14,7 +14,7 @@ namespace <%= toolkit_name %> {
 	bool loadConstructors();
     };
 
-    extern <%= toolkit_name %>ToolkitPlugin <%= toolkit_name %>Toolkit;
+    extern ToolkitPlugin Toolkit;
 }
 
 #endif

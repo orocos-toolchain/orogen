@@ -7,24 +7,46 @@ module Typelib
 	    orocos_type = registry.orocos_equivalent(self).basename
 	    result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{path}\", \"\", value#{path}) );"
 	end
+
+	def self.code_to_corba(result, path = "", indent = "    ")
+	    result << indent << "result#{path} = value#{path};"
+	end
+	def self.code_from_corba(result, path = "", indent = "    ")
+	    code_to_corba(result, path, indent)
+	end
+
 	def self.to_orocos_composition
 	end
     end
     class CompoundType
-	def self.to_orocos_decomposition(result, path, indent = "    ")
+	def self.convertion_code_helper(method, result, path, indent)
 	    each_field do |name, type|
-		type.to_orocos_decomposition(result, "#{path}.#{name}", indent) << "\n"
+		type.send(method, result, "#{path}.#{name}", indent) << "\n"
 	    end
 	end
+	def self.to_orocos_decomposition(result, path, indent = "    ")
+	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
+	end
+	def self.code_to_corba(result, path = "", indent = "    ")
+	    convertion_code_helper(:code_to_corba, result, path, indent)
+	end
+
 	def self.to_orocos_composition
 	end
     end
     class ArrayType
-	def self.to_orocos_decomposition(result, path, indent = "    ")
-	    result << indent << "for(i = 0; i < #{length}; ++i) {\n" 
-	    deference.to_orocos_decomposition(result, path + "[i]", indent + "  ") << "\n"
+	def self.convertion_code_helper(method, result, path, indent)
+	    result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
+	    deference.send(method, result, path + "[i]", indent + "    ") << "\n"
 	    result << indent << "}"
 	end
+	def self.to_orocos_decomposition(result, path, indent = "    ")
+	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
+	end
+	def self.code_to_corba(result, path = "", indent = "    ")
+	    convertion_code_helper(:code_to_corba, result, path, indent)
+	end
+
 	def self.to_orocos_composition
 	end
     end
@@ -67,78 +89,73 @@ module Typelib
 	# found in +registry+, and returns it as header, source. The corresponding
 	# header file is supposed to be named ${toolkit_name}Toolkit.hpp
 	def to_orocos_toolkit(toolkit_name)
-	    header_h  = Orocos::Generation.load_template("toolkit/header.hpp")
-	    header_c  = Orocos::Generation.load_template("toolkit/header.cpp")
-	    type_info = Orocos::Generation.load_template("toolkit/type_info.cpp")
-	    toolkit   = Orocos::Generation.load_template("toolkit/toolkit.cpp")
-
-	    header, source = "", ""
-	    source << header_c.result(binding)
-
 	    generated_types = []
 	    each_type do |type|
 		if type < CompoundType
 		    generated_types << type
-		    source << type_info.result(binding)
 		end
 	    end
 
-	    source << toolkit.result(binding)
-	    header << header_h.result(binding)
-	    return header, source
+	    corba  = Orocos::Generation.render_template 'toolkit/corba.hpp', binding
+	    header = Orocos::Generation.render_template "toolkit/header.hpp", binding
+	    source = Orocos::Generation.render_template "toolkit/toolkit.cpp", binding
+
+	    return corba, header, source
 	end
     end
 end
 
-module Orocos::Generation
-    class Toolkit
-	attr_reader :name, :imports, :loads
-	attr_reader :registry
-	def self.validate_name(name)
-	    if !name || name.empty?
-		raise "empty toolkit name"
-	    elsif name !~ /^\w+$/
-		raise "toolkit names can only contain alphanumeric characters and _"
+module Orocos
+    module Generation
+	class Toolkit
+	    attr_reader :name, :imports, :loads
+	    attr_reader :registry
+	    def self.validate_name(name)
+		if !name || name.empty?
+		    raise "empty toolkit name"
+		elsif name !~ /^\w+$/
+		    raise "toolkit names can only contain alphanumeric characters and _"
+		end
+
+		# TODO: check that this toolkit name is not already used ?
 	    end
 
-	    # TODO: check that this toolkit name is not already used ?
+	    def initialize(name)
+		Toolkit.validate_name name
+		@name = name
+
+		@imports, @loads = [], []
+		@registry = Typelib::Registry.new
+	    end
+
+	    def load(file)
+		file = File.expand_path(file)
+		loads << file
+		registry.import(file)
+	    end
+
+	    def import(other_toolkit)
+		raise NotImplementedError
+	    end
+
+	    def to_code
+		type_header = Orocos::Generation.render_template('toolkit/types.hpp', binding)
+		corba, hpp, cpp = registry.to_orocos_toolkit(name)
+
+		return type_header, corba, hpp, cpp
+	    end
 	end
 
-	def initialize(name)
-	    Toolkit.validate_name name
-	    @name = name
+	def self.toolkit(name, &block)
+	    toolkit = Toolkit.new(name)
+	    toolkit.instance_eval(&block)
 
-	    @imports, @loads = [], []
-	    @registry = Typelib::Registry.new
+	    types, corba, hpp, cpp = toolkit.to_code
+	    save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
+	    save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
+	    save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
+	    save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
 	end
-
-	def load(file)
-	    file = File.expand_path(file)
-	    loads << file
-	    registry.import(file)
-	end
-
-	def import(other_toolkit)
-	    raise NotImplementedError
-	end
-
-	def to_code
-	    template = Orocos::Generation.load_template('toolkit', 'types.hpp')
-	    type_header = template.result(binding)
-	    hpp, cpp = registry.to_orocos_toolkit(name)
-
-	    return type_header, hpp, cpp
-	end
-    end
-
-    def self.toolkit(name, &block)
-	toolkit = Toolkit.new(name)
-	toolkit.instance_eval(&block)
-
-	types, hpp, cpp = toolkit.to_code
-	save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
-	save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
-	save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
     end
 end
 
