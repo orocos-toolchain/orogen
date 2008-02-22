@@ -14,13 +14,11 @@ module Orocos
 	    # for which there is a template in build/
 	    Dir.new('.orocos').each do |dir|
 		template = begin
-			       STDERR.puts dir
 			       load_template 'build', "#{dir}-CMakeLists.txt"
 			   rescue ArgumentError
 			       next
 			   end
 
-		STDERR.puts "found cmakelists for #{dir}"
 		save_automatic dir, 'CMakeLists.txt', template.result(binding)
 	    end
 	end
