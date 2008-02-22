@@ -23,8 +23,13 @@ module Orocos
 				      raise ArgumentError, "template #{File.join(*path)} does not exist"
 				  end
 
-		templates[path] = ERB.new(template_data.read)
+		templates[path] = ERB.new(template_data.read, nil, nil, path.join('_').gsub(/[\/\.-]/, '_'))
 	    end
+	end
+
+	def self.render_template(name, binding)
+	    template = load_template name
+	    template.result(binding)
 	end
 
 	def self.save_automatic(*args)
