@@ -49,6 +49,7 @@ module Orocos
 	    def compile_wc(component_name)
 		in_wc do
 		    Generation.build_system(component_name)
+		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
 			if !system("cmake ..")
