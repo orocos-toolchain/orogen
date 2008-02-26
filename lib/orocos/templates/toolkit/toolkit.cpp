@@ -4,6 +4,10 @@
 #include <rtt/Toolkit.hpp>
 #include "<%= name %>Toolkit.hpp"
 #include "<%= name %>ToolkitTypes.hpp"
+<% if corba_enabled? %>
+#include <rtt/corba/CorbaTemplateProtocol.hpp>
+#include "<%= name %>ToolkitCorba.hpp"
+<% end %>
 
 using namespace <%= name %>;
 using RTT::Property;
@@ -19,8 +23,13 @@ namespace <%= name %> {
 std::string ToolkitPlugin::getName() { return "<%= name %>"; }
 bool ToolkitPlugin::loadTypes()
 {
-    TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
-    <% generated_types.each do |type| %>ti->addType( new <%= type.basename %>TypeInfo() );<% end %>
+    TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
+    RTT::TypeInfo* ti;
+
+    <% generated_types.each do |type| %>ti = new <%= type.basename %>TypeInfo();
+	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= name %>::<%= type.basename %> >());<% end %>
+	ti_repository->addType( ti );<% end %>
+	
     return true;
 }
 

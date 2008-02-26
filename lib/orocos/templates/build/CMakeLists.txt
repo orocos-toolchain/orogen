@@ -2,7 +2,9 @@
 
 PROJECT(<%= component_name %>)
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/.orocos/config")
+
 INCLUDE(OrocosComponent)
+
 
 # FIND_PACKAGE(KDL)
 # FIND_PACKAGE(OCL)

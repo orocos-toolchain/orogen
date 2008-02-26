@@ -1,7 +1,7 @@
 template<>
-struct AnyConvertion< <%= name %>::<%= type.basename %> >
+struct AnyConversion< <%= name %>::<%= type.basename %> >
 {
-    typedef <%= name %>::CORBA::<%= type.basename %> CorbaType;
+    typedef <%= name %>::Corba::<%= type.basename %> CorbaType;
     typedef <%= name %>::<%= type.basename %> BaseType;
 
     static CorbaType* toAny(const BaseType& value) {
@@ -12,21 +12,21 @@ struct AnyConvertion< <%= name %>::<%= type.basename %> >
 	    type.code_to_corba(result, "", " " * 8)
 	    result 
 	%>
-	return result;
+	return _result;
     }
 
     static BaseType get(const CorbaType* _value) {
 	BaseType   result;
-	CorbaType& value = *_value;
+	CorbaType const& value = *_value;
 	int i;
 <%= result = ""
 	    type.code_from_corba(result, "", " " * 8)
 	    result 
 	%>
-	return ret;
+	return result;
     }
 
-    static bool update(const CORBA::Any& any, BaseType& _value) {
+    static bool update(const CORBA::Any& any, BaseType& value) {
 	CorbaType* result;
 	if ( any >>= result ) {
 	    value = get(result);

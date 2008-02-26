@@ -23,23 +23,3 @@ INCLUDE( DependentOption )
 #   ENDIF(CMAKE_C_COMPILER_VERSION MATCHES ".*4\\.[0-9]\\.[0-9]")
 # ENDIF (  ${CMAKE_C_COMPILER} MATCHES gcc )
 
-
-#
-# Check for Doxygen and enable documentation building
-#
-FIND_PACKAGE( Doxygen )
-IF ( DOXYGEN )
-  MESSAGE( "Found Doxygen -- documentation can be built" )
-
-ELSE ( DOXYGEN )
-  MESSAGE( "Doxygen not found -- unable to build documentation" )
-ENDIF ( DOXYGEN )
-
-DEPENDENT_OPTION( DOC_GENERATE_API "Build API Documentation" OFF "DOXYGEN" OFF )
-
-
-#
-# An option for tests, to make it easy to turn off all tests
-#
-OPTION( BUILD_TESTS "Turn me off to disable compilation of all tests" OFF )
-

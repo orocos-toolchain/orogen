@@ -2,6 +2,7 @@
 #define OROCOS_<%= name.upcase %>_CORBA_HPP
 
 #include "<%= name %>ToolkitC.h"
+#include <rtt/corba/CorbaConversion.hpp>
 
 namespace RTT {
     <% generated_types.each do |type| %>
