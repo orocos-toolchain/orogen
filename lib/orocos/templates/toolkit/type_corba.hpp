@@ -1,8 +1,8 @@
 template<>
-struct AnyConvertion< <%= type.basename %> >
+struct AnyConvertion< <%= name %>::<%= type.basename %> >
 {
-    typedef <%= toolkit_name %>::CORBA::<%= type.basename %> CorbaType;
-    typedef <%= toolkit_name %>::<%= type.basename %> BaseType;
+    typedef <%= name %>::CORBA::<%= type.basename %> CorbaType;
+    typedef <%= name %>::<%= type.basename %> BaseType;
 
     static CorbaType* toAny(const BaseType& value) {
 	CorbaType* _result = new CorbaType();

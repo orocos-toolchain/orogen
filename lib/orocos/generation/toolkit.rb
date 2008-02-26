@@ -84,24 +84,6 @@ module Typelib
 		raise TypeError, "#{user_type.name} does not have an equivalent in the Orocos RTT toolkit"
 	    end
 	end
-
-	# Generates the code for the toolkit plugin which handles the types
-	# found in +registry+, and returns it as header, source. The corresponding
-	# header file is supposed to be named ${toolkit_name}Toolkit.hpp
-	def to_orocos_toolkit(toolkit_name)
-	    generated_types = []
-	    each_type do |type|
-		if type < CompoundType
-		    generated_types << type
-		end
-	    end
-
-	    corba  = Orocos::Generation.render_template 'toolkit/corba.hpp', binding
-	    header = Orocos::Generation.render_template "toolkit/header.hpp", binding
-	    source = Orocos::Generation.render_template "toolkit/toolkit.cpp", binding
-
-	    return corba, header, source
-	end
     end
 end
 
@@ -124,6 +106,7 @@ module Orocos
 		Toolkit.validate_name name
 		@name = name
 
+		@corba_enabled = true
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
 	    end
@@ -138,11 +121,30 @@ module Orocos
 		raise NotImplementedError
 	    end
 
+	    def corba_enabled?; @corba_enabled end
+
+	    def disable_corba
+		@corba_enabled = false
+	    end
+
 	    def to_code
 		type_header = Orocos::Generation.render_template('toolkit/types.hpp', binding)
-		corba, hpp, cpp = registry.to_orocos_toolkit(name)
 
-		return type_header, corba, hpp, cpp
+		generated_types = []
+		registry.each_type do |type|
+		    if type < Typelib::CompoundType
+			generated_types << type
+		    end
+		end
+
+		if corba_enabled?
+		    corba  = Orocos::Generation.render_template 'toolkit/corba.hpp', binding
+		    idl    = Orocos::Generation.render_template "toolkit/corba.idl", binding
+		end
+		header = Orocos::Generation.render_template "toolkit/header.hpp", binding
+		source = Orocos::Generation.render_template "toolkit/toolkit.cpp", binding
+
+		return type_header, header, source, corba, idl
 	    end
 	end
 
@@ -150,11 +152,17 @@ module Orocos
 	    toolkit = Toolkit.new(name)
 	    toolkit.instance_eval(&block)
 
-	    types, corba, hpp, cpp = toolkit.to_code
+	    types, hpp, cpp, corba, idl = toolkit.to_code
+	    if toolkit.corba_enabled?
+		save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
+		save_automatic("toolkit", "#{name}Toolkit.idl", idl)
+	    end
 	    save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
-	    save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
 	    save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
 	    save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
+
+	    cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
+	    save_automatic("toolkit", "CMakeLists.txt", cmake)
 	end
     end
 end

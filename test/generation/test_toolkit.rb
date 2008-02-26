@@ -23,20 +23,28 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	registry.import File.join(TEST_DATA_DIR, 'type_info_generation.h')
 
 	header, source = nil
-	assert_nothing_raised { header, source = registry.to_orocos_toolkit("Test") }
+	assert_nothing_raised { corba, header, source = registry.to_orocos_toolkit("Test") }
 	assert(! header.empty?)
 	assert(! source.empty?)
 	assert( source =~ /SimpleTypeInfo/ )
     end
 
-    def test_toolkit_generation
+    def test_toolkit_generation(with_corba = true)
 	copy_in_wc File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
 	in_wc do
 	    Generation.toolkit('Test') do
 		load 'type_info_generation.h'
+		disable_corba unless with_corba
 	    end
 
+	    if with_corba
+		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkitCorba.hpp')))
+		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.idl')))
+	    else
+		assert(!File.file?( File.join('.orocos', 'toolkit', 'TestToolkitCorba.hpp')))
+		assert(!File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.idl')))
+	    end
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.hpp')))
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.cpp')))
 	end
@@ -60,5 +68,6 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	    assert_equal(expected, output)
 	end
     end
+    def test_disable_corba; test_toolkit_generation(false) end
 end
 

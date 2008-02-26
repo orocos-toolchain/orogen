@@ -1,9 +1,9 @@
-#ifndef <%= toolkit_name.upcase %>_TOOLKIT_PLUGIN_HPP
-#define <%= toolkit_name.upcase %>_TOOLKIT_PLUGIN_HPP
+#ifndef <%= name.upcase %>_TOOLKIT_PLUGIN_HPP
+#define <%= name.upcase %>_TOOLKIT_PLUGIN_HPP
 
 #include <rtt/Toolkit.hpp>
 
-namespace <%= toolkit_name %> {
+namespace <%= name %> {
     class ToolkitPlugin
 	: public RTT::ToolkitPlugin
     {

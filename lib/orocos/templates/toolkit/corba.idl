@@ -1,0 +1,1 @@
+<%= registry.export 'idl', :namespace_prefix => name, :namespace_suffix => 'CORBA' %>

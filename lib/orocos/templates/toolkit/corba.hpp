@@ -1,5 +1,7 @@
-#ifndef OROCOS_<%= toolkit_name.upcase %>_CORBA_HPP
-#define OROCOS_<%= toolkit_name.upcase %>_CORBA_HPP
+#ifndef OROCOS_<%= name.upcase %>_CORBA_HPP
+#define OROCOS_<%= name.upcase %>_CORBA_HPP
+
+#include "<%= name %>ToolkitC.h"
 
 namespace RTT {
     <% generated_types.each do |type| %>
