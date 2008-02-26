@@ -1,4 +1,4 @@
-<bag type="Simple">
+<bag type="Test::Simple">
 <int id=".a" description="">10</int>
 <char id=".b[i]" description="">a</char>
 <char id=".b[i]" description="">b</char>
