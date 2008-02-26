@@ -17,6 +17,7 @@ using std::endl;
 
 int ORO_main(int argc, char** argv)
 {
+    log().setLogLevel( Logger::Debug );
     RTT::Toolkit::Import( Test::Toolkit );
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
