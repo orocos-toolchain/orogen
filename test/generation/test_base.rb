@@ -57,5 +57,11 @@ class TC_GenerationBase < Test::Unit::TestCase
 	target_file = File.join(working_directory, '.orocos', 'subdir', 'test.cpp')
 	assert_equal("bloblo", File.read(target_file))
     end
+
+    def test_adapt_namespace
+	assert_equal("    }\n", Generation.adapt_namespace('/A/B', '/A'))
+	assert_equal("        }\n    }\n    namespace D {\n", Generation.adapt_namespace('/A/B/C', '/A/D'))
+	assert_equal("", Generation.adapt_namespace('/A/B/C', '/A/B/C'))
+    end
 end
 

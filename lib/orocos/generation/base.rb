@@ -49,6 +49,33 @@ module Orocos
 		io.write data
 	    end
 	end
+
+	# Returns the C++ code which changes the current namespace from +old+
+	# to +new+
+	def self.adapt_namespace(old, new, indent_size = 4)
+	    old = old.split('/').delete_if { |v| v.empty? }
+	    new = new.split('/').delete_if { |v| v.empty? }
+	    indent = old.size * indent_size
+
+	    result = ""
+
+	    while !old.empty? && old.first == new.first
+		old.shift
+		new.shift
+	    end
+	    while !old.empty?
+		indent -= indent_size
+		result << " " * indent + "}\n"
+		old.shift
+	    end
+	    while !new.empty?
+		result << "#{" " * indent}namespace #{new.first} {\n"
+		indent += indent_size
+		new.shift
+	    end
+
+	    result
+	end
     end
 end
 
