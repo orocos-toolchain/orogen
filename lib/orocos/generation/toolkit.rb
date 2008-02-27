@@ -167,6 +167,9 @@ module Orocos
 
 	    cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
 	    Generation.save_automatic("toolkit", "CMakeLists.txt", cmake)
+
+	    pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
+	    Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
 	end
     end
 end

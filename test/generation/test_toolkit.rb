@@ -18,17 +18,6 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	assert_raises(TypeError) { registry.orocos_equivalent(registry.get('int64_t')) }
     end
 
-    def test_to_orocos_toolkit
-	registry = Typelib::Registry.new
-	registry.import File.join(TEST_DATA_DIR, 'type_info_generation.h')
-
-	header, source = nil
-	assert_nothing_raised { corba, header, source = registry.to_orocos_toolkit("Test") }
-	assert(! header.empty?)
-	assert(! source.empty?)
-	assert( source =~ /SimpleTypeInfo/ )
-    end
-
     def test_toolkit_generation(with_corba = true)
 	copy_in_wc File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
