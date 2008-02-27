@@ -90,6 +90,7 @@ end
 module Orocos
     class Generation
 	class Toolkit
+	    attr_reader :component
 	    attr_reader :name, :imports, :loads
 	    attr_reader :registry
 	    def self.validate_name(name)
@@ -102,8 +103,9 @@ module Orocos
 		# TODO: check that this toolkit name is not already used ?
 	    end
 
-	    def initialize(name)
+	    def initialize(component, name)
 		Toolkit.validate_name name
+		@component = component
 		@name = name
 
 		@corba_enabled = true
@@ -128,6 +130,8 @@ module Orocos
 	    end
 
 	    def to_code
+		toolkit = self
+
 		type_header = Orocos::Generation.render_template('toolkit/types.hpp', binding)
 
 		generated_types = []
@@ -149,13 +153,32 @@ module Orocos
 	    end
 	end
 
+	# call-seq:
+	#   component.toolkit(toolkit_name = component.name) do
+	#      ... toolkit setup ...
+	#   end => toolkit
+	#
+	#   component.toolkit => current toolkit or nil
+	#
+	# The first form defines the type toolkit this component defines and
+	# builds a Toolkit object based what the code block does. The given
+	# code block should call Toolkit instance methods to set up that new
+	# object
+	#
+	# The second form returns a Toolkit object if one is defined, and nil
+	# otherwise.
 	def toolkit(toolkit_name = name, &block)
+	    if !block
+		return @toolkit
+	    end
+
 	    toolkit_name = toolkit_name.to_s
 	    self.name(toolkit_name) unless self.name
 
-	    toolkit = Toolkit.new(toolkit_name)
-	    toolkit.instance_eval(&block)
+	    @toolkit = Toolkit.new(self, toolkit_name)
+	    @toolkit.instance_eval(&block)
 
+	    component = self
 	    types, hpp, cpp, corba, idl = toolkit.to_code
 	    if toolkit.corba_enabled?
 		Generation.save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
@@ -170,6 +193,8 @@ module Orocos
 
 	    pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 	    Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
+
+	    @toolkit
 	end
     end
 end

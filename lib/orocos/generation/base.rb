@@ -2,6 +2,31 @@ require 'logger'
 require 'fileutils'
 require 'erb'
 
+class Module
+    def dsl_attribute(name, &block)
+	assignation = if block
+			  validator_iv = "@dsl_attribute_#{name}_validator"
+			  instance_variable_set(validator_iv, block)
+			  "@#{name} = self.class.instance_variable_get(#{validator_iv}).call(value.first)"
+		      else
+			  "@#{name} = value.first"
+		      end
+
+	class_eval <<-EOD
+	def #{name}(*value)
+	    if value.empty?
+		@#{name}
+	    elsif value.size > 1
+		raise ArgumentError, "expected 0 or 1 argument (got \#{value.size})"
+	    else
+		#{assignation}
+	    end
+	end
+	EOD
+    end
+end
+
+
 module Orocos
     class Generation
 	class << self
@@ -10,16 +35,14 @@ module Orocos
 	@logger = Logger.new(STDOUT)
 	logger.level = Logger::WARN
 
+	attr_reader :tasks
 	def initialize(&block)
+	    @tasks = []
 
 	    instance_eval(&block)
 	end
 
-	def name(new_name = nil)
-	    if new_name then @name = new_name.to_s
-	    else @name
-	    end
-	end
+	dsl_attribute :name
 
 	@templates = Hash.new
 	class << self
@@ -56,11 +79,10 @@ module Orocos
 	    end
 
 	    data      = args.pop
-	    file_name = args.pop
-	    dir_name  = File.expand_path(File.join(*args))
+	    file_path = File.expand_path(File.join(*args))
+	    dir_name  = File.dirname(file_path)
 	    FileUtils.mkdir_p(dir_name)
 
-	    file_path = File.join(dir_name, file_name)
 	    if File.exists?(file_path)
 		if File.read(file_path) != data
 		    if overwrite
@@ -84,6 +106,10 @@ module Orocos
 
 	def self.save_automatic(*args)
 	    save_generated true, '.orocos', *args
+	end
+
+	def self.save_public_automatic(*args)
+	    save_generated true, *args
 	end
 
 	def self.save_user(*args)

@@ -4,23 +4,18 @@ module Orocos
     class Generation
 	def build_system
 	    FileUtils.mkdir_p('.orocos')
-	    FileUtils.cp_r Generation.template_path('build', 'config'), '.orocos'
+	    FileUtils.cp_r Generation.template_path('config'), '.orocos'
+
+	    component = self
 
 	    # Generate the toplevel CMakeLists.txt
-	    template = Generation.load_template 'build', 'CMakeLists.txt'
-	    Generation.save_user 'CMakeLists.txt', template.result(binding)
+	    root_cmake = Generation.render_template 'CMakeLists.txt', binding
+	    Generation.save_public_automatic 'CMakeLists.txt', root_cmake
 
-	    # Now, generate a CMakeLists.txt for all subdirectories of .orocos
-	    # for which there is a template in build/
-	    Dir.new('.orocos').each do |dir|
-		template = begin
-			       Generation.load_template 'build', "#{dir}-CMakeLists.txt"
-			   rescue ArgumentError
-			       next
-			   end
-
-		Generation.save_automatic dir, 'CMakeLists.txt', template.result(binding)
-	    end
+	    # Generate the main.cpp file, which includes the ORO_main entry
+	    # point
+	    main = Generation.render_template 'main.cpp', binding
+	    Generation.save_automatic 'main.cpp', main
 	end
     end
 end
