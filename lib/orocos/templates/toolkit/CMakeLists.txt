@@ -5,7 +5,8 @@ IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %
 
     SET(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= toolkit.name %>ToolkitC.cpp)
     ADD_CUSTOM_COMMAND(OUTPUT ${CORBA_FILES}
-	COMMAND ${TAO_IDL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TestToolkit.idl)
+	COMMAND ${OrocosCORBA_TAO_IDL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TestToolkit.idl
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/TestToolkit.idl)
 
     ADD_DEFINITIONS(${OrocosCORBA_Toolkit_DEFINES})
     INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
