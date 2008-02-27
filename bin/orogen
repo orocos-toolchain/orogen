@@ -1,0 +1,18 @@
+#! /usr/bin/env ruby
+
+require 'orocos/generation'
+require 'optparse'
+
+Orocos::Generation.new do |gen|
+    parser = OptionParser.new do |opt|
+	opt.on("--verbose") { Orocos::Generation.logger.level = Logger::INFO }
+	opt.on("--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
+    end
+    files = parser.parse! ARGV
+
+    files.each do |name|
+	Kernel.eval(File.read(name), binding)
+    end
+    build_system
+end
+

@@ -1,6 +1,6 @@
 #CMAKE_MINIMUM_REQUIRED(VERSION 2.2.2)
 
-PROJECT(<%= component_name %>)
+PROJECT(<%= name %>)
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/.orocos/config")
 
 INCLUDE(OrocosComponent)

@@ -1,8 +1,26 @@
+require 'logger'
 require 'fileutils'
 require 'erb'
 
 module Orocos
-    module Generation
+    class Generation
+	class << self
+	    attr_reader :logger
+	end
+	@logger = Logger.new(STDOUT)
+	logger.level = Logger::WARN
+
+	def initialize(&block)
+
+	    instance_eval(&block)
+	end
+
+	def name(new_name = nil)
+	    if new_name then @name = new_name.to_s
+	    else @name
+	    end
+	end
+
 	@templates = Hash.new
 	class << self
 	    attr_reader :templates
@@ -32,11 +50,7 @@ module Orocos
 	    template.result(binding)
 	end
 
-	def self.save_automatic(*args)
-	    save_user '.orocos', *args
-	end
-
-	def self.save_user(*args)
+	def self.save_generated(overwrite, *args)
 	    if args.size < 2
 		raise ArgumentError, "expected at least 2 arguments, got #{args.size}"
 	    end
@@ -45,9 +59,35 @@ module Orocos
 	    file_name = args.pop
 	    dir_name  = File.expand_path(File.join(*args))
 	    FileUtils.mkdir_p(dir_name)
-	    File.open(File.join(dir_name, file_name), 'w') do |io|
+
+	    file_path = File.join(dir_name, file_name)
+	    if File.exists?(file_path)
+		if File.read(file_path) != data
+		    if overwrite
+			logger.info "  overwriting #{file_path}"
+		    else
+			logger.info "  will not overwrite #{file_path}"
+			return
+		    end
+		else
+		    logger.debug "  #{file_path} has not changed"
+		    return
+		end
+	    else
+		logger.info "  creating #{file_path}"
+	    end
+
+	    File.open(file_path, 'w') do |io|
 		io.write data
 	    end
+	end
+
+	def self.save_automatic(*args)
+	    save_generated true, '.orocos', *args
+	end
+
+	def self.save_user(*args)
+	    save_generated false, *args
 	end
 
 	# Returns the C++ code which changes the current namespace from +old+

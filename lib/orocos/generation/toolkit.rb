@@ -88,7 +88,7 @@ module Typelib
 end
 
 module Orocos
-    module Generation
+    class Generation
 	class Toolkit
 	    attr_reader :name, :imports, :loads
 	    attr_reader :registry
@@ -149,21 +149,24 @@ module Orocos
 	    end
 	end
 
-	def self.toolkit(name, &block)
-	    toolkit = Toolkit.new(name)
+	def toolkit(toolkit_name = name, &block)
+	    toolkit_name = toolkit_name.to_s
+	    self.name(toolkit_name) unless self.name
+
+	    toolkit = Toolkit.new(toolkit_name)
 	    toolkit.instance_eval(&block)
 
 	    types, hpp, cpp, corba, idl = toolkit.to_code
 	    if toolkit.corba_enabled?
-		save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
-		save_automatic("toolkit", "#{name}Toolkit.idl", idl)
+		Generation.save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
+		Generation.save_automatic("toolkit", "#{name}Toolkit.idl", idl)
 	    end
-	    save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
-	    save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
-	    save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
+	    Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
+	    Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
+	    Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
 
 	    cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
-	    save_automatic("toolkit", "CMakeLists.txt", cmake)
+	    Generation.save_automatic("toolkit", "CMakeLists.txt", cmake)
 	end
     end
 end

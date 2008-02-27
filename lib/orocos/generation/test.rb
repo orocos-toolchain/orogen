@@ -3,7 +3,7 @@ require 'orocos/generation/build'
 require 'fileutils'
 
 module Orocos
-    module Generation
+    class Generation
 	module Test
 	    include Orocos
 
@@ -46,9 +46,9 @@ module Orocos
 		Dir.chdir(working_directory, &block)
 	    end
 
-	    def compile_wc(component_name)
+	    def compile_wc(generation)
 		in_wc do
-		    Generation.build_system(component_name)
+		    generation.build_system
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
