@@ -1,4 +1,12 @@
-typedef struct Simple {
+struct Simple {
     int a;
     char b[20];
-} Simple;
+};
+
+namespace Test {
+    struct Simple {
+	int a;
+	char b[20];
+    };
+}
+

@@ -142,6 +142,7 @@ module Orocos
 		    idl    = Orocos::Generation.render_template "toolkit/corba.idl", binding
 		end
 		header = Orocos::Generation.render_template "toolkit/header.hpp", binding
+		namespace = '/'
 		source = Orocos::Generation.render_template "toolkit/toolkit.cpp", binding
 
 		return type_header, header, source, corba, idl

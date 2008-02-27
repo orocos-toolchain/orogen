@@ -9,31 +9,35 @@
 #include "<%= name %>ToolkitCorba.hpp"
 <% end %>
 
-using namespace <%= name %>;
 using RTT::Property;
 using RTT::PropertyBag;
 using RTT::TypeInfoRepository;
 
-namespace <%= name %> {
-    <% generated_types.each do |type| %>
+<% generated_types.each do |type| 
+      code = Generation.adapt_namespace(namespace, type.namespace)
+      namespace = type.namespace %>
+<%= code %>
 <%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
-    <% end %>
-}
+<% end %>
 
-std::string ToolkitPlugin::getName() { return "<%= name %>"; }
-bool ToolkitPlugin::loadTypes()
-{
-    TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
-    RTT::TypeInfo* ti;
+<%= Generation.adapt_namespace(namespace, '/') %>
 
-    <% generated_types.each do |type| %>ti = new <%= type.basename %>TypeInfo();
-	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= name %>::<%= type.basename %> >());<% end %>
+namespace <%= name %> {
+    std::string ToolkitPlugin::getName() { return "<%= name %>"; }
+    bool ToolkitPlugin::loadTypes()
+    {
+	TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
+	RTT::TypeInfo* ti;
+
+	<% generated_types.each do |type| %>ti = new <%= type.full_name('::') %>TypeInfo();
+	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.full_name('::') %> >());<% end %>
 	ti_repository->addType( ti );<% end %>
-	
-    return true;
+	    
+	return true;
+    }
+
+    bool ToolkitPlugin::loadOperators() { return true; }
+    bool ToolkitPlugin::loadConstructors() { return true; }
+
+    ToolkitPlugin Toolkit;
 }
-
-bool ToolkitPlugin::loadOperators() { return true; }
-bool ToolkitPlugin::loadConstructors() { return true; }
-
-ToolkitPlugin <%= name %>::Toolkit;
