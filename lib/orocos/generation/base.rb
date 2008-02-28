@@ -3,6 +3,40 @@ require 'fileutils'
 require 'erb'
 
 class Module
+    # call-seq:
+    #   dsl_attribute(name)
+    #   dsl_attribute(name) { |value| ... }
+    #
+    # This defines a +name+ instance method on the given class which accepts zero or one argument
+    #
+    # Without any argument, it acts as a getter for the +@name+ attribute. With
+    # one argument, it acts instead as a setter for the same attribute and
+    # returns self. If a block has been given to +dsl_attribute+, any new value
+    # is passed to the block, whose return value is actually saved in the
+    # instance variable.  This block can therefore both filter the value
+    # (convert it to a desired form) and validate it.
+    #
+    # The goal of this method is to have a nicer way to handle attribute in DSLs: instead
+    # of 
+    #
+    #    model = create_model do
+    #	    self.my_model_attribute = 'bla'
+    #
+    #	    if (my_model_attribute)
+    #		<do something>
+    #	    end
+    #	 end
+    #
+    # (or worse, using set_ and get_ prefixes), we can do
+    #
+    #    model = create_model do
+    #	    my_model_attribute 'bla'
+    #
+    #	    if (my_model_attribute)
+    #		<do something>
+    #	    end
+    #	 end
+    #
     def dsl_attribute(name, &block)
 	assignation = if block
 			  validator_iv = "@dsl_attribute_#{name}_validator"
@@ -20,6 +54,7 @@ class Module
 		raise ArgumentError, "expected 0 or 1 argument (got \#{value.size})"
 	    else
 		#{assignation}
+		self
 	    end
 	end
 	EOD
@@ -34,26 +69,54 @@ module Orocos
 	end
 	@logger = Logger.new(STDOUT)
 	logger.level = Logger::WARN
-
+ 
+	# The set of tasks defined for this generation
 	attr_reader :tasks
+
+	# The Typelib::Registry object holding all known
+	# types defined in this component
+	attr_reader :registry
+
 	def initialize(&block)
 	    @tasks = []
 
 	    instance_eval(&block)
 	end
 
+	# call-seq:
+	#   name(new_name) => new_name
+	#
+	# Sets the component name for this generation
+	
 	dsl_attribute :name
 
 	@templates = Hash.new
 	class << self
+	    # The set of templates already loaded as a path => ERB object hash
 	    attr_reader :templates
 	end
 
+	# call-seq:
+	#   template_path(path1, path2, ..., file_name)
+	#
+	# Returns the full path for the template path1/path2/.../file_name.
+	# Templates names are the path relative to the template base directory,
+	# which is the orocos/templates directory directly in Orocos.rb
+	# sources.
 	def self.template_path(*path)
 	    reldir = File.join('..', 'templates', *path)
 	    File.expand_path(reldir, File.dirname(__FILE__))
 	end
 
+	# call-seq:
+	#   load_template path1, path2, ..., file_name => erb object
+	#
+	# Loads the template file located at
+	# template_dir/path1/path2/.../file_name and return the ERB object
+	# generated from it. template_dir is the templates/ directory located
+	# in Orocos.rb sources.
+	#
+	# A template is only loaded once. See Generation.templates.
 	def self.load_template(*path)
 	    if template = templates[path]
 		template
@@ -73,7 +136,7 @@ module Orocos
 	    template.result(binding)
 	end
 
-	def self.save_generated(overwrite, *args)
+	def self.save_generated(overwrite, *args) # :nodoc:
 	    if args.size < 2
 		raise ArgumentError, "expected at least 2 arguments, got #{args.size}"
 	    end
@@ -88,7 +151,7 @@ module Orocos
 		    if overwrite
 			logger.info "  overwriting #{file_path}"
 		    else
-			logger.info "  will not overwrite #{file_path}"
+			logger.warn "  will not overwrite #{file_path}"
 			return
 		    end
 		else
@@ -104,20 +167,38 @@ module Orocos
 	    end
 	end
 
+	# call-seq:
+	#   save_automatic path1, path2, ..., file_name, data
+	#
+	# Save the provided data in the path1/path2/.../file_name file of the
+	# automatically-generated part of the component (i.e. under .orocos)
 	def self.save_automatic(*args)
 	    save_generated true, '.orocos', *args
 	end
-
+	
+	# call-seq:
+	#   save_public_automatic path1, path2, ..., file_name, data
+	#
+	# Save the provided data in the path1/path2/file_name file of the
+	# user-written part of the component. It differs from save_user because
+	# it will happily overwrite an existing file.
 	def self.save_public_automatic(*args)
 	    save_generated true, *args
 	end
-
+	
+	# call-seq:
+	#   save_user path1, path2, ..., file_name, data
+	#
+	# Save the provided data in the path1/path2/file_name file of the
+	# user-written part of the component, if the said file does
+	# not exist yet
 	def self.save_user(*args)
 	    save_generated false, *args
 	end
 
 	# Returns the C++ code which changes the current namespace from +old+
-	# to +new+
+	# to +new+. +indent_size+ is the count of indent spaces between
+	# namespaces.
 	def self.adapt_namespace(old, new, indent_size = 4)
 	    old = old.split('/').delete_if { |v| v.empty? }
 	    new = new.split('/').delete_if { |v| v.empty? }
