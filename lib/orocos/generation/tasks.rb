@@ -90,6 +90,10 @@ module Orocos
 	end
 
 	def task_context(name, &block)
+	    if tasks.find { |t| t.name == name }
+		raise ArgumentError, "there is already a #{name} task"
+	    end
+
 	    new_task = TaskContext.new(self, name, &block)
 	    new_task.generate
 	    tasks << new_task
