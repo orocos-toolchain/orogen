@@ -7,7 +7,7 @@ class Module
 	assignation = if block
 			  validator_iv = "@dsl_attribute_#{name}_validator"
 			  instance_variable_set(validator_iv, block)
-			  "@#{name} = self.class.instance_variable_get(#{validator_iv}).call(value.first)"
+			  "@#{name} = self.class.instance_variable_get(\"#{validator_iv}\").call(value.first)"
 		      else
 			  "@#{name} = value.first"
 		      end

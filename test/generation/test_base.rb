@@ -63,5 +63,44 @@ class TC_GenerationBase < Test::Unit::TestCase
 	assert_equal("        }\n    }\n    namespace D {\n", Generation.adapt_namespace('/A/B/C', '/A/D'))
 	assert_equal("", Generation.adapt_namespace('/A/B/C', '/A/B/C'))
     end
+
+    def test_dsl_attribute
+	cl = Class.new
+
+	cl.dsl_attribute :no_filter
+	obj = cl.new
+	assert(obj.respond_to?(:no_filter))
+	assert_equal(nil, obj.no_filter)
+	obj.no_filter 10
+	assert_equal(10, obj.no_filter)
+	assert_raises(ArgumentError) { obj.no_filter :bla, :blo }
+
+	cl.dsl_attribute :filter_integer do |value|
+	    Integer(value)
+	end
+	cl.dsl_attribute :filter_string do |value|
+	    if value.respond_to?(:to_str)
+		value.to_str
+	    else
+		raise
+	    end
+	end
+
+	obj = cl.new
+	assert(obj.respond_to?(:no_filter))
+	assert(obj.respond_to?(:filter_integer))
+	assert(obj.respond_to?(:filter_string))
+
+	assert_equal(nil, obj.filter_integer)
+	assert_equal(10, obj.filter_integer(10))
+	assert_equal(10, obj.filter_integer)
+	assert_raises(ArgumentError) { obj.filter_integer "v" }
+	assert_raises(ArgumentError) { obj.filter_integer :bla, :blo }
+
+	assert_equal(nil, obj.filter_string)
+	assert_equal("10", obj.filter_string("10"))
+	assert_equal("10", obj.filter_string)
+	assert_raises(RuntimeError) { obj.filter_string 10 }
+    end
 end
 
