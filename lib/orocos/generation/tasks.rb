@@ -72,15 +72,15 @@ module Orocos
 	    def generate
 		task = self
 	    
-		base_code_cpp = Generation.render_template 'tasks/TaskBase.cpp', binding
-		base_code_hpp = Generation.render_template 'tasks/TaskBase.hpp', binding
-		Generation.save_automatic "tasks/#{name}Base.cpp", base_code_cpp
-		Generation.save_automatic "tasks/#{name}Base.hpp", base_code_hpp
+		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
+		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
+		Generation.save_automatic "tasks", "#{name}Base.cpp", base_code_cpp
+		Generation.save_automatic "tasks", "#{name}Base.hpp", base_code_hpp
 
-		code_cpp = Generation.render_template "tasks/Task.cpp", binding
-		code_hpp = Generation.render_template "tasks/Task.hpp", binding
-		Generation.save_user "tasks/#{name}.cpp", code_cpp
-		Generation.save_user "tasks/#{name}.hpp", code_hpp
+		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
+		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
+		Generation.save_user "tasks", "#{name}.cpp", code_cpp
+		Generation.save_user "tasks", "#{name}.hpp", code_hpp
 
 		self
 	    end

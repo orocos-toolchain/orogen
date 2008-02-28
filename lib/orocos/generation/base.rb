@@ -131,8 +131,14 @@ module Orocos
 	    end
 	end
 
-	def self.render_template(name, binding)
-	    template = load_template name
+	# call-seq:
+	#   render_template path1, path2, file_name, binding
+	#
+	# Render the template found at path1/path2/file_name and render it
+	# using the provided binding
+	def self.render_template(*args)
+	    binding = args.pop
+	    template = load_template(*args)
 	    template.result(binding)
 	end
 
