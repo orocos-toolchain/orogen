@@ -1,9 +1,25 @@
 module Orocos
     class Generation
 	class Property
-	    attr_reader :name, :type
-	    def initialize(name, type)
+	    # The property name
+	    attr_reader :name
+
+	    # The property type, as a Typelib::Type object from the underlying
+	    # component's type registry
+	    attr_reader :type
+
+	    # The property's default value
+	    attr_reader :default_value
+
+	    # The property description
+	    attr_reader :doc
+
+	    # Create a new property with the given name, type and default value
+	    def initialize(name, type, default_value)
+		@name, @type, @default_value = name, type, default_value
 	    end
+
+	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
 	class TaskContext
@@ -17,11 +33,10 @@ module Orocos
 		@name = name
 		@realtime = true
 		@priority = :lowest
-		instance_eval(&block) if block
-	    end
 
-	    dsl_attribute :period do |value|
-		Float(value)
+		@properties = Array.new
+
+		instance_eval(&block) if block
 	    end
 
 	    # Marks this task as being aperiodic (the default). To make it
@@ -75,15 +90,24 @@ module Orocos
 	    # available from Ruby
 	    dsl_attribute(:priority) { |value| Integer(value) }
 
-	    def event(name)
-	    end
+	    # The set of properties for this task
+	    attr_reader :properties
 
-	    def property(name, type)
-		if type.respond_to?(:to_str)
-		    type = component.registry.get(type.to_str)
+	    # Create a new property with the given name, type and default value
+	    # for this task. This returns the Property representing the new
+	    # property
+	    def property(name, type, default_value = '')
+		if properties.find { |p| p.name == name }
+		    raise ArgumentError, "there is already a #{name} property"
 		end
 
-		Property.new(name, type)
+		if type.respond_to?(:to_str)
+		    type = component.registry.build(type.to_str)
+		end
+
+		new_property = Property.new(name, type, default_value)
+		properties << new_property
+		new_property
 	    end
 
 	    # Generate the code files for this task. This builds to classes:
@@ -109,9 +133,6 @@ module Orocos
 
 		self
 	    end
-	end
-
-	class Event
 	end
 
 	def task_context(name, &block)

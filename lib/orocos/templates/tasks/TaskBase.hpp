@@ -7,6 +7,7 @@
 <% else %>
 #include <rtt/NonPeriodicActivity.hpp>
 <% end %>
+#include "<%= component.name %>ToolkitTypes.hpp"
 
 namespace <%= component.name %> {
     class <%= task.name %>Base : public RTT::TaskContext
@@ -16,6 +17,12 @@ namespace <%= component.name %> {
 	<% else %>
 	    RTT::NonPeriodicActivity activity;
 	<% end %>
+
+	/** Properties */
+	<% task.properties.each do |prop| %>
+	    RTT::Property< <%= prop.type.full_name('::') %> > _<%= prop.name %>;
+	<% end %>
+	    
 
     public:
 	<%= task.name %>Base();
