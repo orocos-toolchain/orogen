@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<typelib>
+<!-- define here some placeholders for types that can not be represented
+     in typelib, but are supported by Orocos -->
+
+    <null name="/std/string" />
+    <null name="/std/vector&lt;double&gt;" />
+</typelib>

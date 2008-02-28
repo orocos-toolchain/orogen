@@ -79,6 +79,12 @@ module Orocos
 
 	def initialize(&block)
 	    @tasks = []
+	    @registry = Typelib::Registry.new
+
+	    # Load orocos-specific types which cannot be used in the
+	    # component-defined toolkit but can be used literally in argument
+	    # lists or property types
+	    registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 
 	    instance_eval(&block)
 	end

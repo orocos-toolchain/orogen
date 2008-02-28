@@ -177,6 +177,7 @@ module Orocos
 
 	    @toolkit = Toolkit.new(self, toolkit_name)
 	    @toolkit.instance_eval(&block)
+	    registry.merge(toolkit.registry)
 
 	    component = self
 	    types, hpp, cpp, corba, idl = toolkit.to_code
