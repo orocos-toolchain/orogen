@@ -22,6 +22,77 @@ module Orocos
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
+	class Method
+	    # The task this method is part of
+	    attr_reader :task
+	    # The method name
+	    attr_reader :name
+	    # The method signature as 'return_type(arg1, arg2, ...)'
+	    attr_reader :signature
+	    # The documentation, if one is provided
+	    attr_reader :doc
+	    # The C++ method name to be called to serve this Orocos method.
+	    # This defaults to +name+, but you can customize it by using
+	    # #method_name
+	    attr_reader :method_name
+
+	    def initialize(task, name)
+		@task = task
+		@name = name
+		@method_name = name
+		@arguments = []
+	    end
+
+	    # call-seq:
+	    #	doc new_doc => self
+	    #
+	    # Set the documentation string and returns self
+	
+	    dsl_attribute(:doc) { |value| value.to_s }
+
+	    # The set of arguments of this method, as an array of [name, type,
+	    # doc] elements
+	    attr_reader :return_type
+
+	    # Set the return type for this method
+	    def returns(type);
+		if type.respond_to?(:to_str)
+		    type = component.registry.build(type.to_str)
+		end
+
+		@return_type = type
+	    end
+
+	    # The set of arguments of this method, as an array of [name, type,
+	    # doc] elements
+	    attr_reader :arguments
+
+	    # Defines the next argument of this method
+	    def argument(name, type, doc = "")
+		if type.respond_to?(:to_str)
+		    type = task.component.registry.build(type.to_str)
+		end
+		arguments << [name, type, doc]
+	    end
+
+	    def signature
+		result = ""
+		if return_type
+		    result << return_type.full_name 
+		else
+		    result << "void"
+		end
+		result << "(" << arguments.map { |_, t, _| t.full_name('::') }.join(", ") << ")"
+	    end
+
+	    # call-seq:
+	    #	method_name new_name => self
+	    #
+	    # Sets the name of the C++ method which is to be called to serve
+	    # this orocos method. It default to the method name itself.
+	    dsl_attribute(:method_name) { |value| value.to_s }
+	end
+
 	class TaskContext
 	    # The component this task is part of
 	    attr_reader :component
@@ -35,6 +106,7 @@ module Orocos
 		@priority = :lowest
 
 		@properties = Array.new
+		@methods = Array.new
 
 		instance_eval(&block) if block
 	    end
@@ -105,9 +177,26 @@ module Orocos
 		    type = component.registry.build(type.to_str)
 		end
 
-		new_property = Property.new(name, type, default_value)
-		properties << new_property
-		new_property
+		properties << Property.new(name, type, default_value)
+		properties.last
+	    end
+
+	    # The set of methods for this task.
+	    attr_reader :methods
+
+	    # Create a new method with the given name and signature. If
+	    # +method_name+ is defined, this is used as the C++ method name on
+	    # the task object.
+	    #
+	    # In Orocos, a method is a synchronous method call to a task context:
+	    # the caller will block until the method's procedure is called
+	    def method(name)
+		if methods.find { |m| m.name == name }
+		    raise ArgumentError, "there is already a #{name} method"
+		end
+
+		methods << Method.new(self, name)
+		methods.last
 	    end
 
 	    # Generate the code files for this task. This builds to classes:

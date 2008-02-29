@@ -19,7 +19,6 @@ using RTT::TypeInfoRepository;
 <%= code %>
 <%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
 <% end %>
-
 <%= Generation.adapt_namespace(namespace, '/') %>
 
 namespace <%= name %> {
