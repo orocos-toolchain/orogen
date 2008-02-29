@@ -82,7 +82,17 @@ module Orocos
 	    # lists or property types
 	    registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 
-	    instance_eval(&block)
+	    instance_eval(&block) if block_given?
+	end
+
+	def generate
+	    if toolkit
+		toolkit.generate
+	    end
+	    tasks.each do |t|
+		t.generate
+	    end
+	    self
 	end
 
 	# call-seq:

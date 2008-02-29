@@ -105,12 +105,15 @@ module Orocos
 		@corba_enabled = true
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
+
+		instance_eval(&block) if block_given?
 	    end
 
 	    def load(file)
 		file = File.expand_path(file)
 		loads << file
 		registry.import(file)
+		component.registry.import(file)
 	    end
 
 	    def import(other_toolkit)
@@ -145,6 +148,25 @@ module Orocos
 
 		return type_header, header, source, corba, idl
 	    end
+
+	    def generate
+		toolkit = self
+
+		types, hpp, cpp, corba, idl = to_code
+		if toolkit.corba_enabled?
+		    Generation.save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
+		    Generation.save_automatic("toolkit", "#{name}Toolkit.idl", idl)
+		end
+		Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
+		Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
+		Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
+
+		cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
+		Generation.save_automatic("toolkit", "CMakeLists.txt", cmake)
+
+		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
+		Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
+	    end
 	end
 
 	# call-seq:
@@ -161,35 +183,17 @@ module Orocos
 	#
 	# The second form returns a Toolkit object if one is defined, and nil
 	# otherwise.
-	def toolkit(toolkit_name = name, &block)
-	    if !block
+	def toolkit(*args, &block)
+	    if args.empty?
 		return @toolkit
+	    elsif args.size > 1
+		raise ArgumentError, "expected 0 or 1 arguments, got #{args.size}"
 	    end
 
-	    toolkit_name = toolkit_name.to_s
+	    toolkit_name = args.first.to_s
 	    self.name(toolkit_name) unless self.name
 
-	    @toolkit = Toolkit.new(self, toolkit_name)
-	    @toolkit.instance_eval(&block)
-	    registry.merge(toolkit.registry)
-
-	    component = self
-	    types, hpp, cpp, corba, idl = toolkit.to_code
-	    if toolkit.corba_enabled?
-		Generation.save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
-		Generation.save_automatic("toolkit", "#{name}Toolkit.idl", idl)
-	    end
-	    Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
-	    Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
-	    Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
-
-	    cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
-	    Generation.save_automatic("toolkit", "CMakeLists.txt", cmake)
-
-	    pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
-	    Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
-
-	    @toolkit
+	    @toolkit = Toolkit.new(self, toolkit_name, &block)
 	end
     end
 end

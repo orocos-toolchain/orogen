@@ -19,18 +19,16 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
 
     def test_toolkit_generation(with_corba = true)
-	copy_in_wc File.join(TEST_DATA_DIR, 'type_info_generation.h')
-	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
-
-	generation = nil
-	in_wc do
-	    generation = Generation.new do
-		toolkit('Test') do
-		    load 'type_info_generation.h'
-		    disable_corba unless with_corba
-		end
+	component = Generation.new do
+	    toolkit('Test') do
+		load File.join(TEST_DATA_DIR, 'type_info_generation.h')	
+		disable_corba unless with_corba
 	    end
+	end
 
+	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
+	in_wc do
+	    component.generate
 	    if with_corba
 		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkitCorba.hpp')))
 		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.idl')))
@@ -41,7 +39,8 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.hpp')))
 	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.cpp')))
 	end
-	compile_wc(generation) do
+
+	compile_wc(component) do
 	    File.open('CMakeLists.txt', 'a') do |io|
 		io << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
 		io << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"

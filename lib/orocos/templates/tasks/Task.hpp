@@ -11,6 +11,10 @@ namespace <%= component.name %> {
     <% task.methods.each do |meth| %>
 	<%= meth.signature.gsub('(', " #{meth.method_name}(") %>;
     <% end %>
+    <% task.commands.each do |cmd| %>
+	bool <%= cmd.work_method_name %><%= cmd.work_signature %>;
+	bool <%= cmd.completion_method_name %><%= cmd.completion_signature %>;
+    <% end %>
     };
 }
 

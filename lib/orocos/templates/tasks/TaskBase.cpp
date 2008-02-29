@@ -12,16 +12,20 @@ using namespace <%= component.name %>;
     <% task.methods.each do |meth| %>
     , _<%= meth.name %>("<%= meth.name %>", &<%= task.name %>::<%= meth.method_name %>, &_self)
     <% end %>
+    <% task.commands.each do |cmd| %>
+    , _<%= cmd.name %>("<%= cmd.name %>", &<%= task.name %>::<%= cmd.work_method_name %>, &<%= task.name %>::<%= cmd.completion_method_name %>, &_self)
+    <% end %>
 {
     <% task.properties.each do |prop| %>
     properties()->addProperty( &_<%= prop.name %> );
     <% end %>
-    <% task.methods.each do |meth| 
-	argument_setup = meth.arguments.
+    <% (task.methods + task.commands).each do |callable| 
+	argument_setup = callable.arguments.
 	    map { |n, _, d| ", \"#{n}\", \"#{d}\"" }.
 	    join("")
+	kind = callable.class.name.gsub(/^.*::/, '')
     %>
-    methods()->addMethod( &_<%= meth.name %>, "<%= meth.doc %>"<%= argument_setup %>);
+    <%= kind.downcase %>s()->add<%= kind %>( &_<%= callable.name %>, "<%= callable.doc %>"<%= argument_setup %>);
     <% end %>
 }
 

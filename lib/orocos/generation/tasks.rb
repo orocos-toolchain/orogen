@@ -23,7 +23,7 @@ module Orocos
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
-	class Method
+	class Callable
 	    # The task this method is part of
 	    attr_reader :task
 	    # The method name
@@ -36,7 +36,6 @@ module Orocos
 
 		@task = task
 		@name = name
-		@method_name = name
 		@arguments = []
 	    end
 
@@ -46,19 +45,6 @@ module Orocos
 	    # Set the documentation string and returns self
 	
 	    dsl_attribute(:doc) { |value| value.to_s }
-
-	    # The set of arguments of this method, as an array of [name, type,
-	    # doc] elements
-	    attr_reader :return_type
-
-	    # Set the return type for this method
-	    def returns(type);
-		if type.respond_to?(:to_str)
-		    type = component.registry.build(type.to_str)
-		end
-
-		@return_type = type
-	    end
 
 	    # The set of arguments of this method, as an array of [name, type,
 	    # doc] elements
@@ -72,14 +58,54 @@ module Orocos
 		arguments << [name, type, doc]
 	    end
 
-	    def signature
+	    def doxygen_doc
+	    end
+
+	    # Returns the argument part of the C++ signature for this callable
+	    def argument_signature(with_names = true)
+		arglist = arguments.map do |name, type, doc|
+		    type = type.full_name('::').gsub(/^::/, '') 
+		    if with_names then "#{type} #{name}"
+		    else type
+		    end
+		end
+
+		"(" << arglist.join(", ") << ")"
+	    end
+	end
+
+	class Method < Callable
+	    # The C++ method name to be called to serve this Orocos method.
+	    # This defaults to +name+, but you can customize it by using
+	    # #method_name
+	    attr_reader :method_name
+
+	    def initialize(task, name)
+		super
+		@method_name = name.dup
+		method_name[0, 1] = method_name[0, 1].downcase
+	    end
+
+	    # The return type of this method
+	    attr_reader :return_type
+
+	    # Set the return type for this method
+	    def returns(type);
+		if type.respond_to?(:to_str)
+		    type = task.component.registry.build(type.to_str)
+		end
+
+		@return_type = type
+	    end
+
+	    def signature(with_names = true)
 		result = ""
 		if return_type
-		    result << return_type.full_name 
+		    result << return_type.full_name('::').gsub(/^::/, '')
 		else
 		    result << "void"
 		end
-		result << "(" << arguments.map { |_, t, _| t.full_name('::') }.join(", ") << ")"
+		result << argument_signature(with_names)
 	    end
 
 	    # call-seq:
@@ -87,7 +113,50 @@ module Orocos
 	    #
 	    # Sets the name of the C++ method which is to be called to serve
 	    # this orocos method. It default to the method name itself.
+
 	    dsl_attribute(:method_name) { |value| value.to_s }
+	end
+
+	class Command < Callable
+	    # The C++ method name to be called to serve this Orocos command.
+	    # This defaults to +name+, but you can customize it by using
+	    # #method_name
+	    dsl_attribute(:work_method_name) { |name| name.to_s }
+	    # The C++ method name to be called to serve this Orocos command.
+	    # This defaults to is+name+Completed, but you can customize it by
+	    # using #method_name
+	    dsl_attribute(:completion_method_name) { |name| name.to_s }
+
+	    def initialize(task, name)
+		super
+		@work_method_name = name.dup
+		work_method_name[0, 1] = work_method_name[0, 1].downcase
+		@completion_method_name = "is#{name}Completed"
+
+		@completion_signature_type = :all_arguments
+	    end
+
+	    # Which kind of signature do we want for the completion method ?
+	    # It is either +:no_arguments+, +:first_argument+ or +:all_arguments+
+	    # Use #completion_no_arguments, #completion_first_argument or #completion_all_arguments
+	    # to change it
+	    attr_reader :completion_signature_type
+
+	    def completion_no_arguments;   @completion_signature_type = :no_arguments   end
+	    def completion_first_argument; @completion_signature_type = :first_argument end
+	    def completion_all_arguments;  @completion_signature_type = :all_arguments  end
+
+	    def work_signature(with_names = true)
+		argument_signature(with_names)
+	    end
+	    def completion_signature(with_names = true)
+		case completion_signature_type
+		when :no_arguments then "()"
+		when :first_argument
+		    argument_signature(with_names).gsub(/,.*\)$/, ")")
+		when :all_arguments; argument_signature(with_names)
+		end
+	    end
 	end
 
 	class TaskContext
@@ -107,7 +176,8 @@ module Orocos
 		@priority = :lowest
 
 		@properties = Array.new
-		@methods = Array.new
+		@methods    = Array.new
+		@commands   = Array.new
 
 		instance_eval(&block) if block
 	    end
@@ -185,9 +255,8 @@ module Orocos
 	    # The set of methods for this task.
 	    attr_reader :methods
 
-	    # Create a new method with the given name and signature. If
-	    # +method_name+ is defined, this is used as the C++ method name on
-	    # the task object.
+	    # Create a new method with the given name. Use the returned Method
+	    # object to configure the method further.
 	    #
 	    # In Orocos, a method is a synchronous method call to a task context:
 	    # the caller will block until the method's procedure is called
@@ -198,6 +267,24 @@ module Orocos
 
 		methods << Method.new(self, name)
 		methods.last
+	    end
+
+
+	    # The set of commands for this task.
+	    attr_reader :commands
+
+	    # Create a new command with the given name. Use the returned Command
+	    # object to configure the method further.
+	    #
+	    # In Orocos, a command is an asynchronous method call to a task
+	    # context.
+	    def command(name)
+		if commands.find { |c| c.name == name }
+		    raise ArgumentError, "there is already a #{name} command"
+		end
+
+		commands << Command.new(self, name)
+		commands.last
 	    end
 
 	    # Generate the code files for this task. This builds to classes:
@@ -231,8 +318,8 @@ module Orocos
 	    end
 
 	    new_task = TaskContext.new(self, name, &block)
-	    new_task.generate
 	    tasks << new_task
+	    tasks.last
 	end
     end
 end
