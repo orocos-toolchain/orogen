@@ -1,11 +1,12 @@
 require 'test/unit'
-require 'orocos/generation/build'
 require 'fileutils'
+require 'orocos/generation'
 
 module Orocos
-    class Generation
+    module Generation
 	module Test
 	    include Orocos
+	    include Orocos::Generation
 
 	    TEST_DIR = File.expand_path('../../../test', File.dirname(__FILE__))
 	    attr_reader :working_directory
@@ -46,9 +47,10 @@ module Orocos
 		Dir.chdir(working_directory, &block)
 	    end
 
-	    def compile_wc(generation)
+	    def compile_wc(component)
 		in_wc do
-		    generation.build_system
+		    component.generate
+
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do

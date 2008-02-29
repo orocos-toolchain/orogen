@@ -59,49 +59,13 @@ end
 
 
 module Orocos
-    class Generation
+    module Generation
 	class << self
 	    attr_reader :logger
 	end
 	@logger = Logger.new(STDOUT)
 	logger.level = Logger::WARN
  
-	# The set of tasks defined for this generation
-	attr_reader :tasks
-
-	# The Typelib::Registry object holding all known
-	# types defined in this component
-	attr_reader :registry
-
-	def initialize(&block)
-	    @tasks = []
-	    @registry = Typelib::Registry.new
-
-	    # Load orocos-specific types which cannot be used in the
-	    # component-defined toolkit but can be used literally in argument
-	    # lists or property types
-	    registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
-
-	    instance_eval(&block) if block_given?
-	end
-
-	def generate
-	    if toolkit
-		toolkit.generate
-	    end
-	    tasks.each do |t|
-		t.generate
-	    end
-	    self
-	end
-
-	# call-seq:
-	#   name(new_name) => new_name
-	#
-	# Sets the component name for this generation
-	
-	dsl_attribute :name
-
 	@templates = Hash.new
 	class << self
 	    # The set of templates already loaded as a path => ERB object hash

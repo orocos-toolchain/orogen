@@ -1,5 +1,5 @@
 module Orocos
-    class Generation
+    module Generation
 	class Property
 	    # The property name
 	    attr_reader :name
@@ -56,9 +56,7 @@ module Orocos
 		    type = task.component.registry.build(type.to_str)
 		end
 		arguments << [name, type, doc]
-	    end
-
-	    def doxygen_doc
+		self
 	    end
 
 	    # Returns the argument part of the C++ signature for this callable
@@ -96,6 +94,7 @@ module Orocos
 		end
 
 		@return_type = type
+		self
 	    end
 
 	    def signature(with_names = true)
@@ -219,6 +218,10 @@ module Orocos
 		end
 	    end
 
+	    def pretty_print(pp)
+		pp.text to_s
+	    end
+
 	    # Make this task as being of the highest priority allowed by the
 	    # underlying OS
 	    def highest_priority; @priority = :highest end
@@ -310,16 +313,6 @@ module Orocos
 
 		self
 	    end
-	end
-
-	def task_context(name, &block)
-	    if tasks.find { |t| t.name == name }
-		raise ArgumentError, "there is already a #{name} task"
-	    end
-
-	    new_task = TaskContext.new(self, name, &block)
-	    tasks << new_task
-	    tasks.last
 	end
     end
 end

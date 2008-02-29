@@ -1,4 +1,3 @@
-require 'orocos/generation'
 require 'orocos/generation/test'
 
 class TC_GenerationTasks < Test::Unit::TestCase
@@ -6,30 +5,29 @@ class TC_GenerationTasks < Test::Unit::TestCase
     TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
 
     def test_task
-	in_wc do
-	    component = Generation.new do
-		name 'test'
-	    end
+	component = Component.new
+	component.name 'test'
 
-	    name = 'task_name'
-	    doc  = 'task doc'
+	name = 'task_name'
+	doc  = 'task doc'
 
-	    task = component.task_context(name)
-	    assert_raises(ArgumentError) { component.task_context(name) }
+	task = component.task_context(name)
+	assert_raises(ArgumentError) { component.task_context(name) }
 
-	    assert_kind_of(Generation::TaskContext, task)
-	    assert_equal(name, task.name)
+	assert_kind_of(Generation::TaskContext, task)
+	assert_equal(name, task.name)
 
-	    # Check name validation
-	    assert_raises(ArgumentError) { component.task_context("bla bla") }
-	    assert_raises(ArgumentError) { component.task_context("bla(bla") }
-	    assert_raises(ArgumentError) { component.task_context("bla!bla") }
-	    assert_raises(ArgumentError) { component.task_context("bla/bla") }
-	end
+	# Check name validation
+	assert_raises(ArgumentError) { component.task_context("bla bla") }
+	assert_raises(ArgumentError) { component.task_context("bla(bla") }
+	assert_raises(ArgumentError) { component.task_context("bla!bla") }
+	assert_raises(ArgumentError) { component.task_context("bla/bla") }
+
+	compile_wc(component)
     end
 
     def test_task_property
-	component = Generation.new
+	component = Component.new
 	component.name 'test'
 
 	name = 'property_name'
@@ -48,14 +46,11 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal(type, property.type.full_name)
 	assert_equal(doc,  property.doc)
 
-	in_wc do
-	    component.generate
-	    compile_wc(component)
-	end
+	compile_wc(component)
     end
 
     def test_task_method
-	component = Generation.new
+	component = Component.new
 	component.name 'test'
 
 	task = component.task_context("Task")
@@ -76,11 +71,11 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("MethodName", meth.name)
 	assert_equal("another_method_name", meth.method_name)
 
-	meth.returns "/int"
+	assert_same(meth, meth.returns("/int"))
 	assert_equal("int()", meth.signature)
 	assert(meth.arguments.empty?)
 
-	meth.argument "arg1", "/std/string", "first argument"
+	assert_same(meth, meth.argument("arg1", "/std/string", "first argument"))
 	assert_equal("int(std::string arg1)", meth.signature(true))
 	assert_equal("int(std::string)", meth.signature(false))
 	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
@@ -97,17 +92,14 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("void(std::string, double)", meth.signature(false))
 	assert_equal(expected_arguments, meth.arguments)
 
-	in_wc do
-	    component.generate
-	    compile_wc(component)
-	end
+	compile_wc(component)
     end
 
     def test_task_command
-	component = Generation.new 
+	component = Component.new 
 	component.name 'test'
 
-	task = component.task_context("task")
+	task = component.task_context "task"
 
 	cmd = task.command("Cmd").
 	    doc("the command to test")
@@ -122,17 +114,17 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("()", cmd.work_signature)
 	assert_equal("()", cmd.completion_signature)
 
-	cmd.work_method_name "another_method_name"
+	assert_same cmd, cmd.work_method_name("another_method_name")
 	assert_equal("Cmd", cmd.name)
 	assert_equal("another_method_name", cmd.work_method_name)
 	assert_equal("isCmdCompleted", cmd.completion_method_name)
 
-	cmd.completion_method_name "another_completion_name"
+	assert_same cmd, cmd.completion_method_name("another_completion_name")
 	assert_equal("Cmd", cmd.name)
 	assert_equal("another_method_name", cmd.work_method_name)
 	assert_equal("another_completion_name", cmd.completion_method_name)
 
-	cmd.argument "arg1", "/std/string", "first argument"
+	assert_same cmd, cmd.argument("arg1", "/std/string", "first argument")
 	assert_equal("(std::string arg1)", cmd.work_signature)
 	assert_equal("(std::string arg1)", cmd.completion_signature)
 	assert_equal("(std::string)", cmd.work_signature(false))
@@ -155,10 +147,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("()", cmd.completion_signature)
 	assert_equal("()", cmd.completion_signature(false))
 
-	in_wc do
-	    component.generate
-	    compile_wc(component)
-	end
+	compile_wc(component)
     end
 end
 

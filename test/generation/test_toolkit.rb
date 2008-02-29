@@ -1,5 +1,4 @@
 require 'orocos/generation/test'
-require 'orocos/generation/toolkit'
 
 class TC_GenerationToolkit < Test::Unit::TestCase
     include Orocos::Generation::Test
@@ -19,7 +18,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
 
     def test_toolkit_generation(with_corba = true)
-	component = Generation.new do
+	component = Component.new do
 	    toolkit('Test') do
 		load File.join(TEST_DATA_DIR, 'type_info_generation.h')	
 		disable_corba unless with_corba

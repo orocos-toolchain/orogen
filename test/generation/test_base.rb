@@ -1,6 +1,5 @@
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'orocos/generation/test'
-require 'orocos/generation/base'
 
 class TC_GenerationBase < Test::Unit::TestCase
     include Orocos::Generation::Test

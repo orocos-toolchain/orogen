@@ -88,7 +88,7 @@ module Typelib
 end
 
 module Orocos
-    class Generation
+    module Generation
 	class Toolkit
 	    attr_reader :component
 	    attr_reader :name, :imports, :loads
@@ -129,7 +129,7 @@ module Orocos
 	    def to_code
 		toolkit = self
 
-		type_header = Orocos::Generation.render_template('toolkit/types.hpp', binding)
+		type_header = Generation.render_template('toolkit/types.hpp', binding)
 
 		generated_types = []
 		registry.each_type do |type|
@@ -139,7 +139,7 @@ module Orocos
 		end
 
 		if corba_enabled?
-		    corba  = Orocos::Generation.render_template 'toolkit/corba.hpp', binding
+		    corba  = Generation.render_template 'toolkit/corba.hpp', binding
 		    idl    = Orocos::Generation.render_template "toolkit/corba.idl", binding
 		end
 		header = Orocos::Generation.render_template "toolkit/header.hpp", binding
@@ -167,33 +167,6 @@ module Orocos
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
 	    end
-	end
-
-	# call-seq:
-	#   component.toolkit(toolkit_name = component.name) do
-	#      ... toolkit setup ...
-	#   end => toolkit
-	#
-	#   component.toolkit => current toolkit or nil
-	#
-	# The first form defines the type toolkit this component defines and
-	# builds a Toolkit object based what the code block does. The given
-	# code block should call Toolkit instance methods to set up that new
-	# object
-	#
-	# The second form returns a Toolkit object if one is defined, and nil
-	# otherwise.
-	def toolkit(*args, &block)
-	    if args.empty?
-		return @toolkit
-	    elsif args.size > 1
-		raise ArgumentError, "expected 0 or 1 arguments, got #{args.size}"
-	    end
-
-	    toolkit_name = args.first.to_s
-	    self.name(toolkit_name) unless self.name
-
-	    @toolkit = Toolkit.new(self, toolkit_name, &block)
 	end
     end
 end
