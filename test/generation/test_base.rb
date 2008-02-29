@@ -16,7 +16,7 @@ class TC_GenerationBase < Test::Unit::TestCase
 	assert_same(erb, Generation.load_template('toolkit', 'type_info.cpp'))
 
 	other_erb = nil
-	assert_nothing_raised { other_erb = Generation.load_template('build', 'CMakeLists.txt') }
+	assert_nothing_raised { other_erb = Generation.load_template('CMakeLists.txt') }
 	assert_not_same(other_erb, erb)
     end
 
@@ -86,21 +86,24 @@ class TC_GenerationBase < Test::Unit::TestCase
 	    end
 	end
 
-	obj = cl.new
-	assert(obj.respond_to?(:no_filter))
-	assert(obj.respond_to?(:filter_integer))
-	assert(obj.respond_to?(:filter_string))
+	2.times do
+	    obj = cl.new
+	    assert(obj.respond_to?(:no_filter))
+	    assert(obj.respond_to?(:filter_integer))
+	    assert(obj.respond_to?(:filter_string))
 
-	assert_equal(nil, obj.filter_integer)
-	assert_equal(10, obj.filter_integer(10))
-	assert_equal(10, obj.filter_integer)
-	assert_raises(ArgumentError) { obj.filter_integer "v" }
-	assert_raises(ArgumentError) { obj.filter_integer :bla, :blo }
+	    assert_equal(nil, obj.filter_integer)
+	    assert_equal(obj, obj.filter_integer(10))
+	    assert_equal(10, obj.filter_integer)
+	    assert_raises(ArgumentError) { obj.filter_integer "v" }
+	    assert_raises(ArgumentError) { obj.filter_integer :bla, :blo }
 
-	assert_equal(nil, obj.filter_string)
-	assert_equal("10", obj.filter_string("10"))
-	assert_equal("10", obj.filter_string)
-	assert_raises(RuntimeError) { obj.filter_string 10 }
+	    assert_equal(nil, obj.filter_string)
+	    assert_equal(obj, obj.filter_string("10"))
+	    assert_equal("10", obj.filter_string)
+	    assert_raises(RuntimeError) { obj.filter_string 10 }
+	    cl = Class.new(cl)
+	end
     end
 end
 
