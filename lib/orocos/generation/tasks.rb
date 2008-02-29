@@ -13,6 +13,10 @@ module Orocos
 
 	    # Create a new property with the given name, type and default value
 	    def initialize(name, type, default_value)
+		if name !~ /^\w+$/
+		    raise ArgumentError, "invalid task name #{name}"
+		end
+
 		@name, @type, @default_value = name, type, default_value
 	    end
 
@@ -26,6 +30,10 @@ module Orocos
 	    attr_reader :name
 
 	    def initialize(task, name)
+		if name !~ /^\w+$/
+		    raise ArgumentError, "invalid task name #{name}"
+		end
+
 		@task = task
 		@name = name
 		@method_name = name
@@ -89,6 +97,10 @@ module Orocos
 	    attr_reader :name
 
 	    def initialize(component, name, &block)
+		if name !~ /^\w+$/
+		    raise ArgumentError, "invalid task name #{name}"
+		end
+
 		@component = component
 		@name = name
 		@realtime = true

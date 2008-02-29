@@ -15,9 +15,16 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	    doc  = 'task doc'
 
 	    task = component.task_context(name)
+	    assert_raises(ArgumentError) { component.task_context(name) }
 
 	    assert_kind_of(Generation::TaskContext, task)
 	    assert_equal(name, task.name)
+
+	    # Check name validation
+	    assert_raises(ArgumentError) { component.task_context("bla bla") }
+	    assert_raises(ArgumentError) { component.task_context("bla(bla") }
+	    assert_raises(ArgumentError) { component.task_context("bla!bla") }
+	    assert_raises(ArgumentError) { component.task_context("bla/bla") }
 	end
     end
 

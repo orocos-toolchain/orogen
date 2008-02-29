@@ -93,20 +93,14 @@ module Orocos
 	    attr_reader :component
 	    attr_reader :name, :imports, :loads
 	    attr_reader :registry
-	    def self.validate_name(name)
-		if !name || name.empty?
-		    raise "empty toolkit name"
-		elsif name !~ /^\w+$/
+
+	    def initialize(component, name, &block)
+		if name !~ /^\w+$/
 		    raise "toolkit names can only contain alphanumeric characters and _"
 		end
 
-		# TODO: check that this toolkit name is not already used ?
-	    end
-
-	    def initialize(component, name)
-		Toolkit.validate_name name
 		@component = component
-		@name = name
+		@name      = name
 
 		@corba_enabled = true
 		@imports, @loads = [], []
