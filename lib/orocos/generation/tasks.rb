@@ -11,9 +11,6 @@ module Orocos
 	    # The property's default value
 	    attr_reader :default_value
 
-	    # The property description
-	    attr_reader :doc
-
 	    # Create a new property with the given name, type and default value
 	    def initialize(name, type, default_value)
 		@name, @type, @default_value = name, type, default_value
@@ -27,14 +24,6 @@ module Orocos
 	    attr_reader :task
 	    # The method name
 	    attr_reader :name
-	    # The method signature as 'return_type(arg1, arg2, ...)'
-	    attr_reader :signature
-	    # The documentation, if one is provided
-	    attr_reader :doc
-	    # The C++ method name to be called to serve this Orocos method.
-	    # This defaults to +name+, but you can customize it by using
-	    # #method_name
-	    attr_reader :method_name
 
 	    def initialize(task, name)
 		@task = task
