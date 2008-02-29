@@ -206,6 +206,11 @@ module Orocos
 	# not exist yet
 	def self.save_user(*args)
 	    save_generated false, *args
+
+	    # Save the template in path1/path2/.../orogen/file_name
+	    args = args.dup
+	    args.insert(-3, "orogen")
+	    save_generated true, *args
 	end
 
 	# Returns the C++ code which changes the current namespace from +old+
