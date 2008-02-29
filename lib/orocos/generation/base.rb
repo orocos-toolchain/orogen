@@ -1,6 +1,7 @@
 require 'logger'
 require 'fileutils'
 require 'erb'
+require 'typelib'
 
 class Module
     # call-seq:
@@ -37,27 +38,22 @@ class Module
     #	    end
     #	 end
     #
-    def dsl_attribute(name, &block)
-	assignation = if block
-			  validator_iv = "@dsl_attribute_#{name}_validator"
-			  instance_variable_set(validator_iv, block)
-			  "@#{name} = self.class.instance_variable_get(\"#{validator_iv}\").call(value.first)"
-		      else
-			  "@#{name} = value.first"
-		      end
-
-	class_eval <<-EOD
-	def #{name}(*value)
-	    if value.empty?
-		@#{name}
-	    elsif value.size > 1
-		raise ArgumentError, "expected 0 or 1 argument (got \#{value.size})"
-	    else
-		#{assignation}
-		self
+    def dsl_attribute(name, &filter_block)
+	class_eval do
+	    define_method(name) do |*value|
+		if value.empty?
+		    instance_variable_get("@#{name}")
+		elsif value.size > 1
+		    raise ArgumentError, "expected 0 or 1 argument (got #{value.size})"
+		elsif filter_block
+		    instance_variable_set("@#{name}", filter_block.call(value.first))
+		    self
+		else
+		    instance_variable_set("@#{name}", value.first)
+		    self
+		end
 	    end
 	end
-	EOD
     end
 end
 
