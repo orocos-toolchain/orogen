@@ -34,8 +34,21 @@ SET(OROCOS_COMPONENT_LIBRARIES ${OCL_LIBS} ${OROCOS_RTT_LIBS} )
 IF(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.orocos/toolkit)
     ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/.orocos/toolkit )
     INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/.orocos/toolkit")
-    LINK_DIRECTORIES("${CMAKE_BINARY_DIR}/.orocos/toolkit")
     SET(OROCOS_COMPONENT_LIBRARIES ${OROCOS_COMPONENT_LIBRARIES} ${CMAKE_PROJECT_NAME}-toolkit-${OROCOS_TARGET})
 ENDIF(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.orocos/toolkit)
+
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/.orocos)
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR})
+
+<% if !component.tasks.empty? %>
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
+<% end %>
+
+ADD_EXECUTABLE(<%= component.name %> ${CMAKE_SOURCE_DIR}/.orocos/main.cpp)
+TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
+
+<% if !component.tasks.empty? %>
+TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
+<% end %>
 
 

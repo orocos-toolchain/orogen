@@ -1,4 +1,5 @@
 require 'typelib'
+require 'find'
 require 'orocos/generation/base'
 
 module Typelib
@@ -160,9 +161,6 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
 		Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
 		Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
-
-		cmake = Generation.render_template "toolkit/CMakeLists.txt", binding
-		Generation.save_automatic("toolkit", "CMakeLists.txt", cmake)
 
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)

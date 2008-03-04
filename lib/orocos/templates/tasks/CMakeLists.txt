@@ -1,8 +1,8 @@
 <% task_files = []
    component.tasks.each do |task| 
-     task_files << "${CMAKE_CURRENT_SOURCE_DIR}/.orocos/#{task.name}Base.cpp"
+     task_files << "${CMAKE_SOURCE_DIR}/.orocos/tasks/#{task.name}Base.cpp"
      task_files << "#{task.name}.cpp"
    end
 %>
-ADD_LIBRARY(<%= task_files.join(" ") %>
+ADD_LIBRARY(<%= component.name %>-tasks-${OROCOS_TARGET} <%= task_files.join(" ") %>)
 

@@ -1,3 +1,5 @@
+require 'pathname'
+
 module Orocos
     module Generation
 	class Component
@@ -37,9 +39,29 @@ module Orocos
 
 		component = self
 
-		# Generate the toplevel CMakeLists.txt
-		root_cmake = Generation.render_template 'CMakeLists.txt', binding
-		Generation.save_public_automatic 'CMakeLists.txt', root_cmake
+		# Generate the automatic part of the root cmake file
+		cmake = Generation.render_template "config", "OrocosComponent.cmake", binding
+		Generation.save_automatic "config", "OrocosComponent.cmake", cmake
+
+		# Generate CMakeLists.txt if there is one in the template directory,
+		# and the target directory exists. We check first for the user area
+		# and then for the automatic area
+		base_template_dir = Pathname.new(Generation.template_path)
+		base_template_dir.find do |path|
+		    path = Pathname.new(path).relative_path_from(base_template_dir)
+		    if path.basename.to_s == "CMakeLists.txt"
+			cmake = Generation.render_template path.to_s, binding
+
+			dirname = path.dirname
+			if File.directory?(dirname)
+			    Generation.save_user path, cmake
+			elsif File.directory?(File.join(".orocos", dirname))
+			    Generation.save_automatic path, cmake
+			else
+			    Generation.logger.info "ignoring template #{path}"
+			end
+		    end
+		end
 
 		# Generate the main.cpp file, which includes the ORO_main entry
 		# point
