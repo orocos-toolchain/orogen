@@ -46,14 +46,14 @@ class TC_GenerationBase < Test::Unit::TestCase
 	    Generation.save_automatic 'test.cpp', "blabla"
 	end
 
-	target_file = File.join(working_directory, '.orocos', 'test.cpp')
+	target_file = File.join(working_directory, Generation::AUTOMATIC_AREA_NAME, 'test.cpp')
 	assert_equal("blabla", File.read(target_file))
 
 	in_wc do
 	    Generation.save_automatic 'subdir', 'test.cpp', "bloblo"
 	end
 
-	target_file = File.join(working_directory, '.orocos', 'subdir', 'test.cpp')
+	target_file = File.join(working_directory, Generation::AUTOMATIC_AREA_NAME, 'subdir', 'test.cpp')
 	assert_equal("bloblo", File.read(target_file))
     end
 

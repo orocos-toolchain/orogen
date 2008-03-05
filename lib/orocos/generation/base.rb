@@ -63,6 +63,9 @@ end
 
 module Orocos
     module Generation
+	AUTOMATIC_AREA_NAME = '.orogen'
+
+
 	class << self
 	    attr_reader :logger
 	end
@@ -156,9 +159,9 @@ module Orocos
 	#   save_automatic path1, path2, ..., file_name, data
 	#
 	# Save the provided data in the path1/path2/.../file_name file of the
-	# automatically-generated part of the component (i.e. under .orocos)
+	# automatically-generated part of the component (i.e. under .orogen)
 	def self.save_automatic(*args)
-	    save_generated true, '.orocos', *args
+	    save_generated true, AUTOMATIC_AREA_NAME, *args
 	end
 	
 	# call-seq:

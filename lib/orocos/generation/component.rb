@@ -34,8 +34,8 @@ module Orocos
 	    end
 
 	    def generate_build_system
-		FileUtils.mkdir_p('.orocos')
-		FileUtils.cp_r Generation.template_path('config'), '.orocos'
+		FileUtils.mkdir_p(Generation::AUTOMATIC_AREA_NAME)
+		FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
 
 		component = self
 

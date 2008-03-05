@@ -29,14 +29,14 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	in_wc do
 	    component.generate
 	    if with_corba
-		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkitCorba.hpp')))
-		assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.idl')))
+		assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkitCorba.hpp')))
+		assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.idl')))
 	    else
-		assert(!File.file?( File.join('.orocos', 'toolkit', 'TestToolkitCorba.hpp')))
-		assert(!File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.idl')))
+		assert(!File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkitCorba.hpp')))
+		assert(!File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.idl')))
 	    end
-	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.hpp')))
-	    assert(File.file?( File.join('.orocos', 'toolkit', 'TestToolkit.cpp')))
+	    assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.hpp')))
+	    assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.cpp')))
 	end
 
 	compile_wc(component) do

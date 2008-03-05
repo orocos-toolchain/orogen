@@ -292,7 +292,7 @@ module Orocos
 
 	    # Generate the code files for this task. This builds to classes:
 	    #
-	    # * a #{task.name}Base class in .orocos/tasks/#{task.name}Base.{cpp,hpp}
+	    # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
 	    #   which is the automatically generated part of the task.
 	    # * a #{task.name} class in tasks/#{task.name}.{cpp,hpp} which is
 	    #   the user-provided part of the task. This class is a public
