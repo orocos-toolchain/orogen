@@ -40,13 +40,16 @@ class Module
     #
     def dsl_attribute(name, &filter_block)
 	class_eval do
+	    define_method("__dsl_attribute__#{name}__filter__", &filter_block)
+
 	    define_method(name) do |*value|
 		if value.empty?
 		    instance_variable_get("@#{name}")
 		elsif value.size > 1
 		    raise ArgumentError, "expected 0 or 1 argument (got #{value.size})"
 		elsif filter_block
-		    instance_variable_set("@#{name}", filter_block.call(value.first))
+		    filtered_value = send("__dsl_attribute__#{name}__filter__", value.first)
+		    instance_variable_set("@#{name}", filtered_value)
 		    self
 		else
 		    instance_variable_set("@#{name}", value.first)
