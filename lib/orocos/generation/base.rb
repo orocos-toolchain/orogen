@@ -185,7 +185,7 @@ module Orocos
 
 	    # Save the template in path1/path2/.../orogen/file_name
 	    args = args.dup
-	    args.insert(-3, "orogen")
+	    args.unshift "templates"
 	    save_generated true, *args
 	end
 
