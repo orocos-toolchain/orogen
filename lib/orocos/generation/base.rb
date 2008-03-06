@@ -121,6 +121,7 @@ module Orocos
 	def self.render_template(*args)
 	    binding = args.pop
 	    template = load_template(*args)
+	    logger.debug "rendering #{File.join(*args)}"
 	    template.result(binding)
 	end
 
