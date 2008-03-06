@@ -26,7 +26,11 @@ DEPENDENT_OPTION( DOC_GENERATE_API "Build API Documentation" OFF "DOXYGEN" OFF )
 OPTION( BUILD_TESTS "Turn me off to disable compilation of all tests" OFF )
 
 FIND_PACKAGE(OrocosRTT REQUIRED)
+<% if component.toolkit && component.toolkit.corba_enabled? %>
 FIND_PACKAGE(OrocosCORBA REQUIRED COMPONENTS Toolkit)
+<% elsif component.corba_enabled? %>
+FIND_PACKAGE(OrocosCORBA REQUIRED)
+<% end %>
 
 SET(OROCOS_COMPONENT_INCLUDE ${OROCOS_RTT_INCLUDE_DIRS} ${OCL_INCLUDE_DIR})
 SET(OROCOS_COMPONENT_LIBRARIES ${OCL_LIBS} ${OROCOS_RTT_LIBS} )
@@ -50,5 +54,6 @@ TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
 <% if !component.tasks.empty? %>
 TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
-
-
+<% if component.corba_enabled? %>
+TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS})
+<% end %>

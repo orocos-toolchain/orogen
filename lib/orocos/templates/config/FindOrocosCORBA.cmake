@@ -12,6 +12,7 @@ IF(NOT OrocosCORBA_FOUND)
     ENDIF (OrocosCORBA_FIND_REQUIRED)
 
 ELSE(NOT OrocosCORBA_FOUND)
+    SET(OrocosCORBA_LIBS orocos-rtt-corba-${OROCOS_TARGET})
 
     # TAO-specific configuration steps if the TOOLKIT component
     # is required

@@ -10,9 +10,21 @@ module Orocos
 	    # types defined in this component
 	    attr_reader :registry
 
+	    # If the generated component should start Corba support. It can be
+	    # changed by #enable_corba and #disable_corba (enabled by default)
+	    def corba_enabled?; @corba end
+	    # Enables corba in the generated component. See also #disable_corba
+	    # and the #corba attribute
+	    def enable_corba; @corba = true end
+	    # Disables corba in the generated component. See also #enable_corba
+	    # and the #corba attribute.
+	    def disable_corba; @corba = false end
+
 	    def initialize(&block)
 		@tasks = []
 		@registry = Typelib::Registry.new
+
+		@corba   = true
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
