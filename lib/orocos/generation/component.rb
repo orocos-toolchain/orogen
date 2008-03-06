@@ -23,6 +23,10 @@ module Orocos
 	    end
 
 	    def generate
+		unless name
+		    raise ArgumentError, "you must set a name for this component"
+		end
+
 		if toolkit
 		    toolkit.generate
 		end
@@ -74,7 +78,12 @@ module Orocos
 	    #
 	    # Sets the component name for this generation
 	    
-	    dsl_attribute :name
+	    dsl_attribute :name do |new|
+		if toolkit && !toolkit.name
+		    toolkit.name new
+		end
+		new
+	    end
 
 	    # call-seq:
 	    #   component.toolkit(toolkit_name = component.name) do
@@ -91,15 +100,13 @@ module Orocos
 	    # The second form returns a Toolkit object if one is defined, and nil
 	    # otherwise.
 	    def toolkit(*args, &block)
-		if args.empty?
+		if args.empty? && !block_given?
 		    return @toolkit
 		elsif args.size > 1
 		    raise ArgumentError, "expected 0 or 1 arguments, got #{args.size}"
 		end
 
-		toolkit_name = args.first.to_s
-		self.name(toolkit_name) unless self.name
-
+		toolkit_name = args.first || self.name
 		@toolkit = Toolkit.new(self, toolkit_name, &block)
 	    end
 

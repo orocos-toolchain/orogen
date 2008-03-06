@@ -104,5 +104,14 @@ class TC_GenerationBase < Test::Unit::TestCase
 	    cl = Class.new(cl)
 	end
     end
+
+    def test_component_generate
+	in_wc do
+	    component = Generation::Component.new
+	    assert_raises(ArgumentError) { component.generate }
+	    component.name "cmp"
+	    assert_nothing_raised { component.generate }
+	end
+    end
 end
 

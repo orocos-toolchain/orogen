@@ -92,16 +92,22 @@ module Orocos
     module Generation
 	class Toolkit
 	    attr_reader :component
-	    attr_reader :name, :imports, :loads
+	    attr_reader :imports, :loads
 	    attr_reader :registry
 
-	    def initialize(component, name, &block)
-		if name !~ /^\w+$/
+	    dsl_attribute :name do |new|
+		new = new.to_s
+		if new !~ /^\w+$/
 		    raise "toolkit names can only contain alphanumeric characters and _"
 		end
+		new
+	    end
 
+	    def initialize(component, name, &block)
 		@component = component
-		@name      = name
+		if name
+		    self.name name
+		end
 
 		@corba_enabled = true
 		@imports, @loads = [], []
