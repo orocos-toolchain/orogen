@@ -18,7 +18,7 @@ namespace <%= component.name %> {
 
 	<% unless task.properties.empty? %>/** Properties */<% end %>
     <% task.properties.each do |prop| %>
-	RTT::Property< <%= prop.type.full_name('::') %> > _<%= prop.name %>;
+	RTT::Property< <%= prop.type.full_name('::', true) %> > _<%= prop.name %>;
     <% end %>
 
 	<% unless task.methods.empty? %>/** Methods */<% end %>

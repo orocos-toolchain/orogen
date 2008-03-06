@@ -62,7 +62,7 @@ module Orocos
 	    # Returns the argument part of the C++ signature for this callable
 	    def argument_signature(with_names = true)
 		arglist = arguments.map do |name, type, doc|
-		    type = type.full_name('::').gsub(/^::/, '') 
+		    type = type.full_name('::', true)
 		    if with_names then "#{type} #{name}"
 		    else type
 		    end
@@ -100,7 +100,7 @@ module Orocos
 	    def signature(with_names = true)
 		result = ""
 		if return_type
-		    result << return_type.full_name('::').gsub(/^::/, '')
+		    result << return_type.full_name('::', true)
 		else
 		    result << "void"
 		end

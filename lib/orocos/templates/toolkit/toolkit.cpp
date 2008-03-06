@@ -28,8 +28,8 @@ namespace <%= name %> {
 	TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
 	RTT::TypeInfo* ti;
 
-	<% generated_types.each do |type| %>ti = new <%= type.full_name('::') %>TypeInfo();
-	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.full_name('::') %> >());<% end %>
+	<% generated_types.each do |type| %>ti = new <%= type.full_name('::', true) %>TypeInfo();
+	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.full_name('::', true) %> >());<% end %>
 	ti_repository->addType( ti );<% end %>
 	    
 	return true;
