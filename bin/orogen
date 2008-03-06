@@ -29,7 +29,7 @@ Orocos::Generation::Component.new do |gen|
 	files.each do |name|
 	    Kernel.eval(File.read(name), binding)
 	end
-	component.generate
+	generate
     end
 end
 
