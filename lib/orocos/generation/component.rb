@@ -54,12 +54,12 @@ module Orocos
 		base_template_dir.find do |path|
 		    path = Pathname.new(path).relative_path_from(base_template_dir)
 		    if path.basename.to_s == "CMakeLists.txt"
-			cmake = Generation.render_template path.to_s, binding
-
 			dirname = path.dirname
 			if File.directory?(dirname)
+			    cmake = Generation.render_template path.to_s, binding
 			    Generation.save_user path, cmake
-			elsif File.directory?(File.join(".orocos", dirname))
+			elsif File.directory?(File.join(Generation::AUTOMATIC_AREA_NAME, dirname))
+			    cmake = Generation.render_template path.to_s, binding
 			    Generation.save_automatic path, cmake
 			else
 			    Generation.logger.info "ignoring template #{path}"
