@@ -224,11 +224,10 @@ module Orocos
 	    base_dir     = Pathname.new('.')
 	    template_dir = Pathname.new('templates')
 	    template_dir.find do |path|
-		puts path
 		next unless path.file?
 		template_data = File.read(path.to_s)
 		relative = path.relative_path_from(template_dir)
-		puts relative
+
 		if relative.file?
 		    user_data = File.read(relative.to_s)
 		    if user_data == template_data
