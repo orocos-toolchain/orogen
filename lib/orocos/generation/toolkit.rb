@@ -118,6 +118,10 @@ module Orocos
 
 	    def load(file)
 		file = File.expand_path(file)
+		if !File.file?(file)
+		    raise ArgumentError, "no such file or directory #{file}"
+		end
+
 		loads << file
 		registry.import(file)
 		component.registry.import(file)

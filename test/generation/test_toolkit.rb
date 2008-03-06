@@ -17,6 +17,28 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	assert_raises(TypeError) { registry.orocos_equivalent(registry.get('int64_t')) }
     end
 
+    def test_toolkit_load
+	component = Component.new
+
+	assert_raises(RuntimeError) do
+	    component.toolkit('Test') do
+		load 'does_not_exist'
+	    end
+	end
+
+	assert_raises(RuntimeError) do
+	    component.toolkit('Test') do
+		load 'does_not_exist.h'
+	    end
+	end
+
+	assert_raises(RuntimeError) do
+	    component.toolkit do
+		load 'does_not_exist.h'
+	    end
+	end
+    end
+
     def test_toolkit_generation(with_corba = true)
 	component = Component.new do
 	    toolkit('Test') do
