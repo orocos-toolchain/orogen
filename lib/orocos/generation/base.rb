@@ -216,6 +216,37 @@ module Orocos
 
 	    result
 	end
+
+	def self.really_clean
+	    # List all files in templates and compare them w.r.t.  the ones in
+	    # the user-side of the component. Remove those that are identical
+	    base_dir     = Pathname.new('.')
+	    template_dir = Pathname.new('templates')
+	    template_dir.find do |path|
+		puts path
+		next unless path.file?
+		template_data = File.read(path.to_s)
+		relative = path.relative_path_from(template_dir)
+		puts relative
+		if relative.file?
+		    user_data = File.read(relative.to_s)
+		    if user_data == template_data
+			Generation.logger.info "removing #{relative} as it is the same than in template"
+			FileUtils.rm_f relative.to_s
+		    end
+		end
+		puts
+	    end
+	    
+	    # Call #clean afterwards, since #clean removes the templates/ directory
+	    clean
+	end
+
+	def self.clean
+	    FileUtils.rm_rf Generation::AUTOMATIC_AREA_NAME
+	    FileUtils.rm_rf "build"
+	    FileUtils.rm_rf "templates"
+	end
     end
 end
 
