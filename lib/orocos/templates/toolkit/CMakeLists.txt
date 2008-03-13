@@ -15,7 +15,7 @@ IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %
     INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
     INCLUDE_DIRECTORIES(${OrocosCORBA_Toolkit_INCLUDE_DIR})
     INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= toolkit.name %>Toolkit.idl
-	DESTINATION include/orocos/toolkits
+	DESTINATION include/orocos/toolkit
 	RENAME <%= toolkit.name %>.idl)
 ENDIF (<%= is_corba_enabled %>)
 
@@ -25,8 +25,8 @@ SET(libname <%= toolkit.name %>-toolkit-${OROCOS_TARGET})
 ADD_LIBRARY(${libname} SHARED <%= toolkit.name %>Toolkit.cpp ${CORBA_FILES})
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= toolkit.name %>ToolkitTypes.hpp
-    DESTINATION include/orocos/toolkits
-    RENAME <%= toolkit.name %>.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/<%= toolkit.name %>Toolkit.hpp
+    DESTINATION include/orocos/toolkit)
 
 IF (<%= is_corba_enabled %>)
     LINK_DIRECTORIES(${OROCOS_RTT_LINK_DIRS})

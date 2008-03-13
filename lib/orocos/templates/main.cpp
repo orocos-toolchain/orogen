@@ -1,5 +1,8 @@
 #include <rtt/os/main.h>
 <% if component.toolkit %>#include "toolkit/<%= toolkit.name %>Toolkit.hpp"<% end %>
+<% component.used_toolkits.each do |name| %>
+#include <toolkit/<%= name %>Toolkit.hpp>
+<% end %>
 <% component.tasks.each do |task| %>
 #include <tasks/<%= task.name %>.hpp>
 <% end %>
@@ -12,6 +15,9 @@ using RTT::Corba::ControlTaskServer;
 int ORO_main(int argc, char* argv[])
 {
    <% if component.toolkit %>RTT::Toolkit::Import( <%= component.toolkit.name %>::Toolkit );<% end %>
+   <% component.used_toolkits.each do |name| %>
+   RTT::Toolkit::Import( <%= name %>::Toolkit );
+   <% end %>
 
 <% if component.corba_enabled? %>
     ControlTaskServer::InitOrb(argc, argv);

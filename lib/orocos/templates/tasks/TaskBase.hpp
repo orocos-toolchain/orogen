@@ -2,7 +2,10 @@
 #define <%= task.name.upcase %>_TASK_BASE_HPP
 
 #include <rtt/TaskContext.hpp>
-<% if component.toolkit %>#include "<%= component.name %>ToolkitTypes.hpp"<% end %>
+<% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
+<% component.used_toolkits.each do |name| %>
+#include <toolkit/<%= name %>ToolkitTypes.hpp>
+<% end %>
 
 <% unless task.methods.empty? %>#include <rtt/Method.hpp><% end %>
 <% unless task.commands.empty? %>#include <rtt/Command.hpp><% end %>

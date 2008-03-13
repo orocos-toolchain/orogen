@@ -44,6 +44,15 @@ ENDIF(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/to
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR})
 
+<% component.used_toolkits.each do |name| %>
+    PKGCONFIG( <%= name %>-toolkit-${OROCOS_TARGET}
+	<%= name %>_TOOLKIT_DIR <%= name %>_TOOLKIT_INCLUDE_DIR 
+	<%= name %>_TOOLKIT_DEFINES <%= name %>_TOOLKIT_LINK_DIR 
+	<%= name %>_TOOLKIT_LIBS )
+    INCLUDE_DIRECTORIES(${<%= name %>_TOOLKIT_INCLUDE_DIR})
+    LINK_DIRECTORIES(${<%= name %>_TOOLKIT_LINK_DIR})
+<% end %>
+
 <% if !component.tasks.empty? %>
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
@@ -52,6 +61,9 @@ ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 ADD_EXECUTABLE(<%= component.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main.cpp)
 TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
 
+<% component.used_toolkits.each do |name| %>
+    TARGET_LINK_LIBRARIES(<%= component.name %> ${<%= name %>_TOOLKIT_LIBS})
+<% end %>
 <% if !component.tasks.empty? %>
 TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>

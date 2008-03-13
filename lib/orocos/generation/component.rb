@@ -37,6 +37,7 @@ module Orocos
 
 		@corba   = true
 		@version = "0.0"
+		@used_toolkits = []
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
@@ -44,6 +45,20 @@ module Orocos
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 
 		instance_eval(&block) if block_given?
+	    end
+
+	    # The set of toolkits that are to be used in this component
+	    attr_reader :used_toolkits
+
+	    # Import a toolkit to be used by this component
+	    def using_toolkit(name)
+		if used_toolkits.include?(name)
+		    return
+		end
+
+		used_toolkits << name
+		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-gnulinux")
+		registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c"
 	    end
 	    
 	    # Find the Typelib::Type object for +name+. +name+ can be either a
@@ -64,6 +79,9 @@ module Orocos
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
+
+		# For consistency in templates
+		component = self
 
 		if toolkit
 		    toolkit.generate
