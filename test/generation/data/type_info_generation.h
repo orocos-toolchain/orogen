@@ -8,5 +8,10 @@ namespace Test {
 	int a;
 	char b[20];
     };
+
+    struct Timestamp {
+	unsigned long sec;
+	unsigned long usec;
+    };
 }
 

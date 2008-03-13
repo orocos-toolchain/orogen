@@ -23,6 +23,47 @@ module Orocos
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
+	class Port
+	    # The port task
+	    attr_reader :task
+	    # The port name
+	    attr_reader :name
+	    # The port type
+	    attr_reader :type
+	    # The IO mode ('r', 'w' or 'rw')
+	    attr_reader :mode
+
+	    def read_access?; mode =~ /r/ end
+	    def write_access?; mode =~ /w/ end
+	    def read_write?; read_access? && write_access? end
+
+	    def initialize(task, name, type, mode)
+		@task, @name, @type, @mode = task, name, type, mode
+	    end
+
+	    # Returns the name of the Orocos template class for this port
+	    def orocos_class
+		basename = self.class.name.gsub(/.*::/, '')
+		if read_write? then basename
+		elsif read_access? then "Read#{basename}"
+		else "Write#{basename}"
+		end
+	    end
+
+	    dsl_attribute(:doc) { |value| value.to_s }
+	end
+	class DataPort < Port; end
+	class BufferPort < Port
+	    # The port size, which is the maximal number of items it can handle
+	    # at the same time
+	    attr_reader :size
+
+	    def initialize(task, name, type, mode, size)
+		super(task, name, type, mode)
+		@size = size
+	    end
+	end
+
 	class Callable
 	    # The task this method is part of
 	    attr_reader :task
@@ -198,6 +239,7 @@ module Orocos
 		@properties = Array.new
 		@methods    = Array.new
 		@commands   = Array.new
+		@ports	    = Array.new
 
 		instance_eval(&block) if block
 	    end
@@ -312,6 +354,48 @@ module Orocos
 		commands << Command.new(self, name)
 		commands.last
 	    end
+
+	    # The set of IO ports for this task context. These are either
+	    # DataPort and BufferPort objects
+	    attr_reader :ports
+
+	    # Inserts a new port of the given class, name, type and with the
+	    # given mode.
+	    #
+	    # This is an internal helper method used to implement #data_port
+	    # and #buffer_port
+	    def port(klass, name, type, mode, *additional_args) # :nodoc:
+		check_uniqueness(:ports, name)
+		mode = mode.to_s
+		unless %w{r w rw }.any? { |v| v == mode }
+		    raise ArgumentError, "invalid mode specification #{mode}. Expected one of: r, w, rw"
+		end
+		type = component.find_type(type)
+
+		ports << klass.new(self, name, type, mode, *additional_args)
+		ports.last
+	    end
+	    private :port
+
+	    # Add a new buffer port with the given name, type, size and mode.
+	    # Mode defines in what direction the port accept data: it is a
+	    # string and can be one of r, w, and rw. +type+ is either a
+	    # Typelib::Type object or a type name defined in the component type
+	    # registry. The size is, for write ports, how many items can be
+	    # buffered at the same time in the port. It is unused for read-only
+	    # ports.
+	    #
+	    # See also #data_port
+	    def buffer_port(name, type, size, mode = 'rw'); port(BufferPort, name, type, mode, size) end
+
+	    # Add a new buffer port with the given name, type and mode.
+	    # Mode defines in what direction the port accept data: it is a
+	    # string and can be one of r, w, and rw. +type+ is either a
+	    # Typelib::Type object or a type name defined in the component type
+	    # registry.
+	    #
+	    # See also #buffer_port
+	    def data_port(name, type, mode = 'rw'); port(DataPort, name, type, mode) end
 
 	    # Generate the code files for this task. This builds to classes:
 	    #

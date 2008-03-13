@@ -149,5 +149,53 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	compile_wc(component)
     end
+
+    def test_task_ports
+	component = Component.new 
+	component.name 'test'
+
+	task = component.task_context "task"
+	data_rw = task.data_port 'data_rw', 'int', 'rw'
+	assert(data_rw.read_access?)
+	assert(data_rw.write_access?)
+	assert(data_rw.read_write?)
+	assert_equal("DataPort", data_rw.orocos_class)
+	assert_equal("int", data_rw.type.full_name('::', true))
+
+	data_w = task.data_port 'data_w', 'int', 'w'
+	assert(! data_w.read_access?)
+	assert(data_w.write_access?)
+	assert(! data_w.read_write?)
+	assert_equal("WriteDataPort", data_w.orocos_class)
+
+	data_r = task.data_port 'data_r', 'int', 'r'
+	assert(data_r.read_access?)
+	assert(! data_r.write_access?)
+	assert(! data_r.read_write?)
+	assert_equal("ReadDataPort", data_r.orocos_class)
+
+	assert_raises(ArgumentError) { task.data_port 'data_rw', 'int', 'rw' }
+	assert_raises(ArgumentError) { task.data_port 'data', 'int', 'bla' }
+
+	buffer_rw = task.buffer_port 'buffer_rw', 'int', 10, 'rw'
+	assert(buffer_rw.read_access?)
+	assert(buffer_rw.write_access?)
+	assert(buffer_rw.read_write?)
+	assert_equal("BufferPort", buffer_rw.orocos_class)
+
+	buffer_w = task.buffer_port 'buffer_w', 'int', 10, 'w'
+	assert(! buffer_w.read_access?)
+	assert(buffer_w.write_access?)
+	assert(! buffer_w.read_write?)
+	assert_equal("WriteBufferPort", buffer_w.orocos_class)
+
+	buffer_r = task.buffer_port 'buffer_r', 'int', 10, 'r'
+	assert(buffer_r.read_access?)
+	assert(! buffer_r.write_access?)
+	assert(! buffer_r.read_write?)
+	assert_equal("ReadBufferPort", buffer_r.orocos_class)
+
+	compile_wc(component)
+    end
 end
 
