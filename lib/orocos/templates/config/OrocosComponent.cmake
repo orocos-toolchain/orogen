@@ -5,6 +5,9 @@ ELSE ( NOT CMAKE_BUILD_TYPE )
   MESSAGE( "Build type set to '${CMAKE_BUILD_TYPE}' by user." )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
+INCLUDE(RPATHHandling)
+CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos")
+
 #
 # Check for Doxygen and enable documentation building
 #
