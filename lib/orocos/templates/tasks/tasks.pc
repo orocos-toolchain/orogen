@@ -3,8 +3,9 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
 includedir=${prefix}/include
 
-Name: <%= name %>Tasks
-Description: tasks defined for the <%= name %> component
+Name: <%= component.name %>Tasks
+Version: <%= component.version %>
+Description: tasks defined for the <%= component.name %> component
 Libs: -L${libdir} -l@libname@
 Cflags: -I${includedir}
 

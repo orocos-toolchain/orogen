@@ -1,4 +1,5 @@
 require 'pathname'
+require 'utilrb/pkgconfig'
 
 module Orocos
     module Generation
@@ -9,6 +10,16 @@ module Orocos
 	    # The Typelib::Registry object holding all known
 	    # types defined in this component
 	    attr_reader :registry
+
+	    # The version number of this component. Defaults to
+	    # "0.0"
+	    dsl_attribute(:version) do |name|
+		name = name.to_s
+		if name != /^\d/
+		    raise ArgumentError, "version strings must start with a number"
+		end
+		name
+	    end
 
 	    # If the generated component should start Corba support. It can be
 	    # changed by #enable_corba and #disable_corba (enabled by default)
@@ -25,6 +36,7 @@ module Orocos
 		@registry = Typelib::Registry.new
 
 		@corba   = true
+		@version = "0.0"
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
