@@ -121,6 +121,10 @@ module Orocos
 	    # using #method_name
 	    dsl_attribute(:completion_method_name) { |name| name.to_s }
 
+	    # Create a new callable object on the specified task and with the
+	    # specified name. The setup of the callable should be done by
+	    # calling the various setup methods after the object has been
+	    # created.
 	    def initialize(task, name)
 		super
 		@work_method_name = name.dup
@@ -135,14 +139,30 @@ module Orocos
 	    # Use #completion_no_arguments, #completion_first_argument or #completion_all_arguments
 	    # to change it
 	    attr_reader :completion_signature_type
-
+	    
+	    # The completion method for this command has no argument at all
 	    def completion_no_arguments;   @completion_signature_type = :no_arguments   end
+	    # The completion method for this command will be given the same
+	    # first argument of the command method
 	    def completion_first_argument; @completion_signature_type = :first_argument end
+	    # The completion method for this command will be given the same
+	    # arguments than the command method
 	    def completion_all_arguments;  @completion_signature_type = :all_arguments  end
 
+	    # A string representing the signature for the C++ work method.  If
+	    # +with_names+ is true, the name of the method and the names of the
+	    # arguments are included in the string.
 	    def work_signature(with_names = true)
 		argument_signature(with_names)
 	    end
+	    
+	    # A string representing the signature for the C++ completion
+	    # method.  If +with_names+ is true, the name of the method and the
+	    # names of the arguments are included in the string.
+	    #
+	    # The result depends on the completion_signature_type attribute,
+	    # which can be changed by the completion_no_arguments,
+	    # completion_first_argument and completion_all_arguments methods.
 	    def completion_signature(with_names = true)
 		case completion_signature_type
 		when :no_arguments then "()"
@@ -159,6 +179,12 @@ module Orocos
 	    # The task name
 	    attr_reader :name
 
+	    # Create a new task context in the given component and with
+	    # the given name. If a block is given, it is evaluated
+	    # in the context of the newly created TaskContext object.
+	    #
+	    # TaskContext objects should not be created directly. You should
+	    # use Component#task_context for that.
 	    def initialize(component, name, &block)
 		if name !~ /^\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
@@ -216,13 +242,19 @@ module Orocos
 	    def pretty_print(pp)
 		pp.text to_s
 	    end
+	    
 
+	    # Raises ArgumentError if an object named +name+ is already present
+	    # in the set attribute +set_name+. 
+	    #
+	    # This is an internal helper method
 	    def check_uniqueness(set_name, name) # :nodoc:
 		set = send(set_name)
 		if set.find { |o| o.name == name }
 		    raise ArgumentError, "there is already a #{name} in #{set_name}"
 		end
 	    end
+	    private :check_uniqueness
 
 	    # Make this task as being of the highest priority allowed by the
 	    # underlying OS
