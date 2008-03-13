@@ -33,6 +33,20 @@ module Orocos
 
 		instance_eval(&block) if block_given?
 	    end
+	    
+	    # Find the Typelib::Type object for +name+. +name+ can be either a
+	    # Typelib::Type object directly, or a type name which should be
+	    # registered into the component's registry
+	    def find_type(type)
+		if type
+		    if type.respond_to?(:to_str)
+			registry.build(type.to_str)
+		    elsif !type.is_a?(Class) && !(type < Typelib::Type)
+			raise ArgumentError, "expected a type object, got #{type}"
+		    end
+		end
+	    end
+
 
 	    def generate
 		unless name

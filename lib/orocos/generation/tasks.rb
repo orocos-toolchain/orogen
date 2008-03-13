@@ -52,9 +52,7 @@ module Orocos
 
 	    # Defines the next argument of this method
 	    def argument(name, type, doc = "")
-		if type.respond_to?(:to_str)
-		    type = task.component.registry.build(type.to_str)
-		end
+		type = task.component.find_type(type)
 		arguments << [name, type, doc]
 		self
 	    end
@@ -89,10 +87,7 @@ module Orocos
 
 	    # Set the return type for this method
 	    def returns(type);
-		if type.respond_to?(:to_str)
-		    type = task.component.registry.build(type.to_str)
-		end
-
+		type = task.component.find_type(type)
 		@return_type = type
 		self
 	    end
@@ -222,6 +217,13 @@ module Orocos
 		pp.text to_s
 	    end
 
+	    def check_uniqueness(set_name, name) # :nodoc:
+		set = send(set_name)
+		if set.find { |o| o.name == name }
+		    raise ArgumentError, "there is already a #{name} in #{set_name}"
+		end
+	    end
+
 	    # Make this task as being of the highest priority allowed by the
 	    # underlying OS
 	    def highest_priority; @priority = :highest end
@@ -243,13 +245,8 @@ module Orocos
 	    # for this task. This returns the Property representing the new
 	    # property
 	    def property(name, type, default_value = '')
-		if properties.find { |p| p.name == name }
-		    raise ArgumentError, "there is already a #{name} property"
-		end
-
-		if type.respond_to?(:to_str)
-		    type = component.registry.build(type.to_str)
-		end
+		check_uniqueness(:properties, name)
+		type = component.find_type(type)
 
 		properties << Property.new(name, type, default_value)
 		properties.last
@@ -264,10 +261,7 @@ module Orocos
 	    # In Orocos, a method is a synchronous method call to a task context:
 	    # the caller will block until the method's procedure is called
 	    def method(name)
-		if methods.find { |m| m.name == name }
-		    raise ArgumentError, "there is already a #{name} method"
-		end
-
+		check_uniqueness :methods, name
 		methods << Method.new(self, name)
 		methods.last
 	    end
@@ -282,10 +276,7 @@ module Orocos
 	    # In Orocos, a command is an asynchronous method call to a task
 	    # context.
 	    def command(name)
-		if commands.find { |c| c.name == name }
-		    raise ArgumentError, "there is already a #{name} command"
-		end
-
+		check_uniqueness :commands, name
 		commands << Command.new(self, name)
 		commands.last
 	    end
