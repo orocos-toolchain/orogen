@@ -56,9 +56,14 @@ module Orocos
 		if toolkit
 		    toolkit.generate
 		end
-		tasks.each do |t|
-		    t.generate
+
+		if !tasks.empty?
+		    tasks.each { |t| t.generate }
+
+		    pc = Generation.render_template "tasks", "tasks.pc", binding
+		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 		end
+
 		generate_build_system
 		self
 	    end
@@ -72,21 +77,29 @@ module Orocos
 		# Generate the automatic part of the root cmake file
 		cmake = Generation.render_template "config", "OrocosComponent.cmake", binding
 		Generation.save_automatic "config", "OrocosComponent.cmake", cmake
-
+		
 		# Generate CMakeLists.txt if there is one in the template directory,
 		# and the target directory exists. We check first for the user area
 		# and then for the automatic area
 		base_template_dir = Pathname.new(Generation.template_path)
 		base_template_dir.find do |path|
 		    path = Pathname.new(path).relative_path_from(base_template_dir)
+		    dirname = path.dirname
 		    if path.basename.to_s == "CMakeLists.txt"
-			dirname = path.dirname
 			if File.directory?(dirname)
 			    cmake = Generation.render_template path.to_s, binding
 			    Generation.save_user path, cmake
 			elsif File.directory?(File.join(Generation::AUTOMATIC_AREA_NAME, dirname))
 			    cmake = Generation.render_template path.to_s, binding
 			    Generation.save_automatic path, cmake
+			else
+			    Generation.logger.info "ignoring template #{path}"
+			end
+		    elsif path.basename.to_s == "CMakeLists-auto.txt"
+			if File.directory?(File.join(Generation::AUTOMATIC_AREA_NAME, dirname))
+			    target = File.join(dirname, path.basename.to_s.gsub(/-auto\.txt$/, '.txt'))
+			    cmake = Generation.render_template path.to_s, binding
+			    Generation.save_automatic target, cmake
 			else
 			    Generation.logger.info "ignoring template #{path}"
 			end
