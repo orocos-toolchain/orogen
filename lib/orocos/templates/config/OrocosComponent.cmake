@@ -73,3 +73,6 @@ TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS
 <% if component.corba_enabled? %>
 TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS})
 <% end %>
+
+INSTALL(TARGETS <%= component.name %>
+    RUNTIME DESTINATION bin)
