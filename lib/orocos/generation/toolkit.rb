@@ -27,9 +27,11 @@ module Typelib
 	end
 	def self.to_orocos_decomposition(result, path, indent = "    ")
 	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
+	    result
 	end
 	def self.code_to_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, result, path, indent)
+	    result
 	end
 
 	def self.to_orocos_composition
