@@ -17,6 +17,7 @@ namespace <%= component.name %> {
     class <%= task.name %>;
     class <%= task.name %>Base : public RTT::TaskContext
     {
+    protected:
         <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %> _activity;
 	<%= task.name %>& _self;
 
