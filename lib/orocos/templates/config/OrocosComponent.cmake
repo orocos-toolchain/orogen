@@ -71,7 +71,7 @@ TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
 TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
 <% if component.corba_enabled? %>
-TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS})
+TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS} TAO_Strategies)
 <% end %>
 
 INSTALL(TARGETS <%= component.name %>
