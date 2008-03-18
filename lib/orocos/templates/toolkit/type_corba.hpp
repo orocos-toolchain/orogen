@@ -4,6 +4,11 @@ struct AnyConversion< <%= type.full_name('::', true) %> >
     typedef <%= type.namespace('::') %>Corba::<%= type.basename %> CorbaType;
     typedef <%= type.full_name('::', true) %> BaseType;
 
+    <% if toolkit.blob_threshold && type.size > toolkit.blob_threshold %>
+    static CorbaType* toAny(const BaseType& value) {
+	return new CorbaType(sizeof(BaseType), sizeof(BaseType), (CORBA::Octet*)&value);
+    }
+    <% else %>
     static CorbaType* toAny(const BaseType& value) {
 	CorbaType* _result = new CorbaType();
 	CorbaType&  result = *_result;
@@ -14,7 +19,13 @@ struct AnyConversion< <%= type.full_name('::', true) %> >
 	%>
 	return _result;
     }
+    <% end %>
 
+    <% if toolkit.blob_threshold && type.size > toolkit.blob_threshold %>
+    static BaseType get(const CorbaType* _value) {
+	return *((BaseType*)_value->get_buffer());
+    }
+    <% else %>
     static BaseType get(const CorbaType* _value) {
 	BaseType   result;
 	CorbaType const& value = *_value;
@@ -25,6 +36,7 @@ struct AnyConversion< <%= type.full_name('::', true) %> >
 	%>
 	return result;
     }
+    <% end %>
 
     static bool update(const CORBA::Any& any, BaseType& value) {
 	CorbaType* result;

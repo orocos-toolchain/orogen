@@ -1,1 +1,1 @@
-<%= registry.export 'idl', :namespace_suffix => 'Corba' %>
+<%= registry.export 'idl', :blob_threshold => (toolkit.blob_threshold || 0).to_s, :namespace_suffix => 'Corba' %>

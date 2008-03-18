@@ -97,6 +97,13 @@ module Orocos
 	    attr_reader :imports, :loads
 	    attr_reader :registry
 
+	    dsl_attribute :blob_threshold do |value|
+		value = Integer(value)
+		if value == 0; nil
+		else value
+		end
+	    end
+
 	    dsl_attribute :name do |new|
 		new = new.to_s
 		if new !~ /^\w+$/
