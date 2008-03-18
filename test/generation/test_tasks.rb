@@ -177,19 +177,23 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_raises(ArgumentError) { task.data_port 'data_rw', 'int', 'rw' }
 	assert_raises(ArgumentError) { task.data_port 'data', 'int', 'bla' }
 
+	assert_raises(ArgumentError) { task.buffer_port 'buffer_r', 'int', 'rw' }
 	buffer_rw = task.buffer_port 'buffer_rw', 'int', 10, 'rw'
 	assert(buffer_rw.read_access?)
 	assert(buffer_rw.write_access?)
 	assert(buffer_rw.read_write?)
 	assert_equal("BufferPort", buffer_rw.orocos_class)
 
+	assert_raises(ArgumentError) { task.buffer_port 'buffer_r', 'int', 'w' }
 	buffer_w = task.buffer_port 'buffer_w', 'int', 10, 'w'
 	assert(! buffer_w.read_access?)
 	assert(buffer_w.write_access?)
 	assert(! buffer_w.read_write?)
 	assert_equal("WriteBufferPort", buffer_w.orocos_class)
 
-	buffer_r = task.buffer_port 'buffer_r', 'int', 10, 'r'
+	# read buffer do not have any size
+	assert_raises(ArgumentError) { task.buffer_port 'buffer_r', 'int', 10, 'r' }
+	buffer_r = task.buffer_port 'buffer_r', 'int', 'r'
 	assert(buffer_r.read_access?)
 	assert(! buffer_r.write_access?)
 	assert(! buffer_r.read_write?)

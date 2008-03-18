@@ -377,16 +377,41 @@ module Orocos
 	    end
 	    private :port
 
+	    # call-seq:
+	    #	buffer_port 'name', '/type', 'r'
+	    #	buffer_port 'name', '/type', buffer_size, 'rw'
+	    #	buffer_port 'name', '/type', buffer_size, 'w'
+	    #
 	    # Add a new buffer port with the given name, type, size and mode.
 	    # Mode defines in what direction the port accept data: it is a
 	    # string and can be one of r, w, and rw. +type+ is either a
 	    # Typelib::Type object or a type name defined in the component type
 	    # registry. The size is, for write ports, how many items can be
-	    # buffered at the same time in the port. It is unused for read-only
-	    # ports.
+	    # buffered at the same time in the port. It should not be provided
+	    # for read-only ports.
 	    #
 	    # See also #data_port
-	    def buffer_port(name, type, size, mode = 'rw'); port(BufferPort, name, type, mode, size) end
+	    def buffer_port(name, type, *spec)
+		spec << 'r' if spec.empty?
+
+		mode_or_size = spec.shift
+		if mode_or_size.respond_to?(:to_str)
+		    if mode_or_size.to_str != 'r'
+			raise ArgumentError, "write access needs a buffer size to be defined"
+		    end
+		    mode = 'r'
+		    size = nil
+		else
+		    mode = spec.shift.to_s
+		    if mode == 'r'
+			raise ArgumentError, "buffer size provided for read-only buffer port"
+		    end
+
+		    size = Integer(mode_or_size)
+		end
+
+		port(BufferPort, name, type, mode, size) 
+	    end
 
 	    # Add a new buffer port with the given name, type and mode.
 	    # Mode defines in what direction the port accept data: it is a
