@@ -114,6 +114,10 @@ module Orocos
 		base_template_dir = Pathname.new(Generation.template_path)
 		base_template_dir.find do |path|
 		    path = Pathname.new(path).relative_path_from(base_template_dir)
+                    if path.to_s == 'toolkit' && !toolkit
+                        Find.prune
+                    end
+
 		    dirname = path.dirname
 		    if path.basename.to_s == "CMakeLists.txt"
 			if File.directory?(dirname)
