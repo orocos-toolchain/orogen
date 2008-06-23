@@ -1,8 +1,15 @@
+<%
+    type_name = type.full_name('::', true)
+    corba_type_name = "#{type.namespace('::')}Corba::#{type.basename}"
+%>
+
 template<>
-struct AnyConversion< <%= type.full_name('::', true) %> >
+struct AnyConversion< <%= type_name %> > 
+    : public details::conversion_base< AnyConversion< <%= type_name %> >, <%= type_name %>, <%= corba_type_name %>* >
+    , public details::PODHelper< <%= type_name %>, <%= corba_type_name %> >
 {
-    typedef <%= type.namespace('::') %>Corba::<%= type.basename %> CorbaType;
-    typedef <%= type.full_name('::', true) %> BaseType;
+    typedef <%= corba_type_name %> CorbaType;
+    typedef <%= type_name %> BaseType;
 
     <% if toolkit.blob_threshold && type.size > toolkit.blob_threshold %>
     static CorbaType* toAny(const BaseType& value) {
@@ -22,35 +29,18 @@ struct AnyConversion< <%= type.full_name('::', true) %> >
     <% end %>
 
     <% if toolkit.blob_threshold && type.size > toolkit.blob_threshold %>
-    static BaseType get(const CorbaType* _value) {
-	return *((BaseType*)_value->get_buffer());
+    static void get(const CorbaType* _value, BaseType& ret) {
+	ret = *((BaseType*)_value->get_buffer());
     }
     <% else %>
-    static BaseType get(const CorbaType* _value) {
-	BaseType   result;
+    static void get(const CorbaType* _value, BaseType& result) {
 	CorbaType const& value = *_value;
 	int i;
 <%= result = ""
 	    type.code_from_corba(result, "", " " * 8)
 	    result 
 	%>
-	return result;
     }
     <% end %>
-
-    static bool update(const CORBA::Any& any, BaseType& value) {
-	CorbaType* result;
-	if ( any >>= result ) {
-	    value = get(result);
-	    return true;
-	}
-	return false;
-    }
-
-    static CORBA::Any_ptr createAny( const BaseType& t ) {
-	CORBA::Any_ptr ret = new CORBA::Any();
-	*ret <<= toAny( t );
-	return ret;
-    }
 };
 

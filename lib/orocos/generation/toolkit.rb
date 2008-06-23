@@ -1,4 +1,5 @@
 require 'typelib'
+require 'tempfile'
 require 'find'
 require 'orocos/generation/base'
 
@@ -96,6 +97,7 @@ module Orocos
 	    attr_reader :component
 	    attr_reader :imports, :loads
 	    attr_reader :registry
+            attr_reader :preloaded_registry
 
 	    dsl_attribute :blob_threshold do |value|
 		value = Integer(value)
@@ -121,19 +123,35 @@ module Orocos
 		@corba_enabled = true
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
+		@preloaded_registry = Typelib::Registry.new
 
 		instance_eval(&block) if block_given?
 	    end
 
-	    def load(file)
+            def preload(file)
+                cpp_source = Tempfile.new("preload")
+
+                cpp_source.puts "#include <#{file}>"
+                cpp_source.flush
+
+                puts cpp_source.path
+                puts File.read(cpp_source.path)
+
+                load(cpp_source.path, true)
+            ensure
+                cpp_source.close if cpp_source
+            end
+
+	    def load(file, preload = false)
 		file = File.expand_path(file)
 		if !File.file?(file)
 		    raise ArgumentError, "no such file or directory #{file}"
 		end
 
 		loads << file
-		registry.import(file)
-		component.registry.import(file)
+		registry.import(file, 'c')
+                preloaded_registry.import(file, 'c') if preload
+		component.registry.import(file, 'c')
 	    end
 
 	    def import(other_toolkit)
@@ -149,6 +167,7 @@ module Orocos
 	    def to_code
 		toolkit = self
 
+                registry = self.registry.minimal(preloaded_registry)
 		type_header = Generation.render_template('toolkit/types.hpp', binding)
 
 		generated_types = []

@@ -2,6 +2,7 @@
 #include <rtt/TemplateTypeInfo.hpp>
 #include <rtt/PropertyBag.hpp>
 #include <rtt/Toolkit.hpp>
+#include <rtt/TemplateTypeInfo.hpp>
 #include "<%= name %>Toolkit.hpp"
 #include "<%= name %>ToolkitTypes.hpp"
 <% if corba_enabled? %>
