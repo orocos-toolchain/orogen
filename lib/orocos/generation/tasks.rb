@@ -405,6 +405,8 @@ module Orocos
 		    mode = spec.shift.to_s
 		    if mode == 'r'
 			raise ArgumentError, "buffer size provided for read-only buffer port"
+                    elsif !mode
+                        raise ArgumentError, "mode not specified"
 		    end
 
 		    size = Integer(mode_or_size)
