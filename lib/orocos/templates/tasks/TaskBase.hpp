@@ -10,15 +10,12 @@
 <% unless task.methods.empty? %>#include <rtt/Method.hpp><% end %>
 <% unless task.commands.empty? %>#include <rtt/Command.hpp><% end %>
 <% unless task.ports.empty? %>#include <rtt/Ports.hpp><% end %>
-<% if task.period %>#include <rtt/PeriodicActivity.hpp>
-<% else %>#include <rtt/NonPeriodicActivity.hpp><% end %>
 
 namespace <%= component.name %> {
     class <%= task.name %>;
     class <%= task.name %>Base : public RTT::TaskContext
     {
     protected:
-        <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %> _activity;
 	<%= task.name %>& _self;
 
 	<% unless task.properties.empty? %>/** Properties */<% end %>

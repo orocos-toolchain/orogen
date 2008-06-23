@@ -39,6 +39,8 @@ module Orocos
 		@version = "0.0"
 		@used_toolkits = []
 
+                @deployers = []
+
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
@@ -46,6 +48,9 @@ module Orocos
 
 		instance_eval(&block) if block_given?
 	    end
+
+            # The deployment modes that are required for this generation
+            attr_reader :deployers
 
 	    # The set of toolkits that are to be used in this component
 	    attr_reader :used_toolkits
@@ -94,15 +99,19 @@ module Orocos
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 		end
 
+                if !deployers.empty?
+                    deployers.each { |t| t.generate }
+                end
+
 		generate_build_system
 		self
 	    end
 
 	    def generate_build_system
+		component = self
+
 		FileUtils.mkdir_p(Generation::AUTOMATIC_AREA_NAME)
 		FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
-
-		component = self
 
 		# Generate the automatic part of the root cmake file
 		cmake = Generation.render_template "config", "OrocosComponent.cmake", binding
@@ -139,11 +148,6 @@ module Orocos
 			end
 		    end
 		end
-
-		# Generate the main.cpp file, which includes the ORO_main entry
-		# point
-		main = Generation.render_template 'main.cpp', binding
-		Generation.save_automatic 'main.cpp', main
 	    end
 
 	    # call-seq:
@@ -192,6 +196,12 @@ module Orocos
 		tasks << new_task
 		tasks.last
 	    end
+
+            def static_deployment(&block)
+                deployer = StaticDeployment.new(self, &block)
+                @deployers << deployer
+                deployer
+            end
 	end
     end
 end

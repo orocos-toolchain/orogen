@@ -233,8 +233,6 @@ module Orocos
 
 		@component = component
 		@name = name
-		@realtime = true
-		@priority = :lowest
 
 		@properties = Array.new
 		@methods    = Array.new
@@ -242,43 +240,6 @@ module Orocos
 		@ports	    = Array.new
 
 		instance_eval(&block) if block
-	    end
-
-	    # Marks this task as being aperiodic (the default). To make it
-	    # periodic, call #period with the required period
-	    def aperiodic; @period = nil end
-
-	    # call-seq:
-	    #	period(period_in_seconds) => period_in_seconds
-	    #
-	    # Sets or gets the task period. Call #aperiodic to make it
-	    # aperiodic
-	    dsl_attribute(:period) { |value| Float(value) }
-
-	    # Returns the Orocos scheduler constant name for this task's
-	    # scheduler class. Call #realtime and #non_realtime to change the
-	    # task scheduling class
-	    def rtt_scheduler
-		if @realtime then 'ORO_SCHED_RT'
-		else 'ORO_SCHED_OTHER'
-		end
-	    end
-	    # Marks this task as being part of the realtime scheduling class
-	    def realtime; @realtime = true end
-	    # Marks this task as being part of the non-realtime scheduling
-	    # class
-	    def non_realtime; @realtime = false end
-
-	    # Returns the Orocos value for this task's priority
-	    def rtt_priority
-		case @priority
-		when :highest
-		    'RTT::OS::HighestPriority'
-		when :lowest
-		    'RTT::OS::LowestPriority'
-		when Integer
-		    @priority
-		end
 	    end
 
 	    def pretty_print(pp)

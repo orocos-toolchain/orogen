@@ -11,6 +11,9 @@
 using RTT::Corba::ControlTaskServer;
 <% end %>
 
+#include <rtt/PeriodicActivity.hpp>
+#include <rtt/NonPeriodicActivity.hpp>
+
 
 int ORO_main(int argc, char* argv[])
 {
@@ -23,14 +26,20 @@ int ORO_main(int argc, char* argv[])
     ControlTaskServer::InitOrb(argc, argv);
 <% end %>
 
-<% component.tasks.each do |task| %>
-    <%= component.name %>::<%= task.name %> <%= task.name %>;
-    ControlTaskServer::Create( &<%= task.name %> );
+<% task_activities.each do |task| %>
+{
+    <%= component.name %>::<%= task.context.name %> task;
+    <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %>
+        activity(<%= task.rtt_scheduler %>, <%= task.rtt_priority %>, <% if task.period %><%= task.period %>, <% end %>task.engine());
+
+    <% if component.corba_enabled? %>
+    ControlTaskServer::Create( &task );
+    <% end %>
+}
 <% end %>
 
 <% if component.corba_enabled? %>
     ControlTaskServer::RunOrb();
-
     ControlTaskServer::DestroyOrb();
 <% end %>
 
