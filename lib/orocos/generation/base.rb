@@ -123,6 +123,8 @@ module Orocos
 	    template = load_template(*args)
 	    logger.debug "rendering #{File.join(*args)}"
 	    template.result(binding)
+        rescue Exception => e
+            raise e, "while rendering #{File.join(*args)}: #{e.message}", e.backtrace
 	end
 
 	def self.save_generated(overwrite, *args) # :nodoc:
