@@ -19,6 +19,15 @@ module Orocos
 	    # periodic, call #period with the required period
 	    def aperiodic; @period = nil end
 
+            # Call to make the deployer start this task when the component is
+            # launched
+            def start; @start = true end
+            # True if this task should be started when the component is
+            # started. Note that the deployer must honor the initial_state of
+            # the underlying task context (i.e. call configure() if
+            # initial_state is PreOperational)
+            def start?; !!@start end
+
 	    # call-seq:
 	    #	period(period_in_seconds) => period_in_seconds
 	    #
@@ -64,6 +73,23 @@ module Orocos
                 instance_eval(&block) if block_given?
             end
 
+            KNOWN_LOG_LEVELS = {
+                :info => 'Info',
+                :debug => 'Debug'
+            }
+
+            dsl_attribute :loglevel do |level|
+                orocos_level = KNOWN_LOG_LEVELS[level.to_sym]
+                if !orocos_level
+                    raise ArgumentError, "unknown log level '#{level}'. Must be one of #{KNOWN_LOG_LEVELS.keys.join(", ")}"
+                end
+                @loglevel = orocos_level
+            end
+
+            def corba_enabled?; @corba_enabled || (@corba_enabled.nil? && component.corba_enabled?) end
+            def enable_corba;  @corba_enabled = true end
+            def disable_corba; @corba_enabled = false end
+
             def task(name, context = name)
                 name    = name.to_s
                 context = context.to_s
@@ -79,13 +105,41 @@ module Orocos
             end
 
             def generate
+                deployer = self
+
 		# Generate the main.cpp file, which includes the ORO_main entry
 		# point
 		main = Generation.render_template 'main.cpp', binding
 		Generation.save_automatic 'main.cpp', main
             end
+
             def cmake_code
+                deployer = self
+
                 Generation.render_template 'config/static_deployer.cmake', binding
+            end
+
+            dsl_attribute :main_task do |name|
+                @main_task = task_by_name(name)
+            end
+
+            def task_by_name(name)
+                task = task_activities.find { |t| t.name == name.to_s }
+                if !task
+                    raise ArgumentError, "no task #{name} defined"
+                end
+                task
+            end
+
+            # Sets up the TaskBrowser component and uses it to browse
+            # +task_name+
+            dsl_attribute :browse do |task_name|
+                if browse
+                    raise ArgumentError, "can browse only one task"
+                elsif corba_enabled?
+                    raise ArgumentError, "cannot browse and use CORBA at the same time"
+                end
+                @browse = task_by_name(task_name)
             end
         end
     end

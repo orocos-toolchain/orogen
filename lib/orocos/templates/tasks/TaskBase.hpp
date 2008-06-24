@@ -1,6 +1,7 @@
 #ifndef <%= task.name.upcase %>_TASK_BASE_HPP
 #define <%= task.name.upcase %>_TASK_BASE_HPP
 
+#include <string>
 #include <rtt/TaskContext.hpp>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 <% component.used_toolkits.each do |name| %>

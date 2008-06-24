@@ -238,6 +238,7 @@ module Orocos
 		@methods    = Array.new
 		@commands   = Array.new
 		@ports	    = Array.new
+                @initial_state = 'Stopped'
 
 		instance_eval(&block) if block
 	    end
@@ -245,7 +246,6 @@ module Orocos
 	    def pretty_print(pp)
 		pp.text to_s
 	    end
-	    
 
 	    # Raises ArgumentError if an object named +name+ is already present
 	    # in the set attribute +set_name+. 
@@ -258,6 +258,14 @@ module Orocos
 		end
 	    end
 	    private :check_uniqueness
+
+            # Initial state of the task. May be either 'Stopped' or 'PreOperational'
+            attr_reader :initial_state
+
+            # Declares that this task needs to be configured before it is
+            # started (i.e. its initial state will be PreOperational instead
+            # of Stopped)
+            def needs_configuration; @initial_state = 'PreOperational' end
 
 	    # Make this task as being of the highest priority allowed by the
 	    # underlying OS

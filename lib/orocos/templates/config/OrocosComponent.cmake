@@ -55,7 +55,7 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR})
 SET(USED_TOOLKIT_LIBS "")
 <% component.used_toolkits.each do |name| %>
 pkg_check_modules(<%= name %>_TOOLKIT REQUIRED <%= name %>-toolkit-${OROCOS_TARGET})
-INCLUDE_DIRECTORIES(${<%= name %>_TOOLKIT_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
 list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_TOOLKIT_LDFLAGS})
 <% end %>
@@ -63,7 +63,7 @@ list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_TOOLKIT_LDFLAGS})
 SET(USED_LIBRARIES_LIBS "")
 <% component.used_libraries.each do |pkg| %>
 pkg_check_modules(<%= name %> REQUIRED <%= name %>)
-INCLUDE_DIRECTORIES(${<%= name %>_INCLUDEDIR})
+INCLUDE_DIRECTORIES(${<%= name %>_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_LIBRARY_DIRS})
 
 list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_LDFLAGS})
