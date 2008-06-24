@@ -31,13 +31,17 @@ module Orocos
 	    # and the #corba attribute.
 	    def disable_corba; @corba = false end
 
+            # The set of pkg-config dependencies we depend on
+            attr_reader :used_libraries
+
 	    def initialize(&block)
 		@tasks = []
 		@registry = Typelib::Registry.new
 
 		@corba   = true
 		@version = "0.0"
-		@used_toolkits = []
+		@used_toolkits  = []
+                @used_libraries = []
 
                 @deployers = []
 
@@ -161,6 +165,14 @@ module Orocos
 		end
 		new
 	    end
+
+            # call-seq:
+            #   depends_on 'name'
+            #
+            # Make the component build depends on the pkg-config package +name+
+            def using_library(name)
+                used_libraries << Utilrb::PkgConfig.new(name)
+            end
 
 	    # call-seq:
 	    #   component.toolkit(toolkit_name = component.name) do

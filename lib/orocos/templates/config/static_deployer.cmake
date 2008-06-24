@@ -9,6 +9,8 @@ TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS
 <% end %>
 INSTALL(TARGETS <%= component.name %>
     RUNTIME DESTINATION bin)
+
+TARGET_APPEND_LDFLAGS(<%= component.name %> "${DEPENDENCIES_LDFLAGS}")
 <% if component.corba_enabled? %>
     TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS} TAO_Strategies)
 <% end %>

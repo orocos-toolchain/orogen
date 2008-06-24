@@ -7,10 +7,11 @@
      task_files << "#{task.name}.cpp"
    end
 %>
-ADD_LIBRARY(<%= component.name %>-tasks-${OROCOS_TARGET} SHARED
-    <%= task_files.join(" ") %>)
 
 SET(libname <%= component.name %>-tasks-${OROCOS_TARGET})
+ADD_LIBRARY(${libname} SHARED <%= task_files.join(" ") %>)
+TARGET_APPEND_LDFLAGS(${libname} "${DEPENDENCIES_LDFLAGS}")
+
 INSTALL(TARGETS ${libname}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
