@@ -12,13 +12,13 @@
 #
 # This module requires pkg-config
 
-FIND_PACKAGE( PkgConfig REQUIRED )
+FIND_PACKAGE( OrocosPkgConfig REQUIRED )
 
 IF(OCL_INSTALL)
 SET(ENV{PKG_CONFIG_PATH} "${OCL_INSTALL}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 ENDIF(OCL_INSTALL)
 
-PKGCONFIG( "orocos-ocl-${OROCOS_TARGET} >= 1.4" OrocosOCL_FOUND OrocosOCL_INCLUDE_DIR OrocosOCL_DEFINES OrocosOCL_LINK_DIR OrocosOCL_LIBS )
+OROCOS_PKGCONFIG( "orocos-ocl-${OROCOS_TARGET} >= 1.4" OrocosOCL_FOUND OrocosOCL_INCLUDE_DIR OrocosOCL_DEFINES OrocosOCL_LINK_DIR OrocosOCL_LIBS )
 
 IF( OrocosOCL_FOUND )
     MESSAGE("   Includes in: ${OrocosOCL_INCLUDE_DIR}")

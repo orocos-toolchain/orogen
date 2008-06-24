@@ -4,14 +4,14 @@
 # COMEDI_INSTALL where to find include, lib, bin, etc.
 # COMEDILIB_FOUND, is set to true
 
-FIND_PACKAGE( PkgConfig REQUIRED )
+FIND_PACKAGE( OrocosPkgConfig REQUIRED )
 INCLUDE (component_rules)
 
 # GNU/Linux detection of Comedi lib uses pkgconfig or plain header search.
 IF (OS_GNULINUX)
   SET(ENV{PKG_CONFIG_PATH} "${COMEDI_INSTALL}/lib/pkgconfig/:$ENV{PKG_CONFIG_PATH}")
   MESSAGE( "Looking for comedilib headers in ${COMEDI_INSTALL}/include ")
-  PKGCONFIG( "comedilib >= 0.7.0" COMEDILIB_FOUND COMEDI_INCLUDE_DIRS COMEDI_DEFINES COMEDI_LINK_DIRS COMEDI_LIBS )
+  OROCOS_PKGCONFIG( "comedilib >= 0.7.0" COMEDILIB_FOUND COMEDI_INCLUDE_DIRS COMEDI_DEFINES COMEDI_LINK_DIRS COMEDI_LIBS )
 
   IF ( NOT COMEDILIB_FOUND )
         MESSAGE("Looking for comedilib headers in ${COMEDI_INSTALL}/include")

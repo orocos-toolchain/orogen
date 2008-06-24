@@ -4,11 +4,11 @@
 # BLF_INSTALL where to find include, lib, bin, etc.
 # BLF_FOUND, is set to true
 
-FIND_PACKAGE( PkgConfig REQUIRED )
+FIND_PACKAGE( OrocosPkgConfig REQUIRED )
 
 MESSAGE( STATUS "Detecting BFL" )
 MESSAGE( "Looking for BFL in: ${BFL_INSTALL}")
-PKGCONFIG( "libbfl-dev >= 0.4.2" BFL_FOUND BFL_INCLUDE_DIRS BFL_DEFINES BFL_LINK_DIRS BFL_LIBS )
+OROCOS_PKGCONFIG( "libbfl-dev >= 0.4.2" BFL_FOUND BFL_INCLUDE_DIRS BFL_DEFINES BFL_LINK_DIRS BFL_LIBS )
 
 IF( BFL_FOUND )
     MESSAGE("   Includes in: ${BFL_INCLUDE_DIRS}")
