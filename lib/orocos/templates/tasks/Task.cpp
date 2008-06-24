@@ -2,6 +2,9 @@
 
 using namespace <%= task.component.name %>;
 
+<%= task.name %>::<%= task.name %>(std::string const& name)
+    : <%= task.name %>Base(name) {}
+
 <% task.methods.each do |meth| %>
 <%= meth.signature.gsub('(', " #{task.name}::#{meth.method_name}(") %> {
 }

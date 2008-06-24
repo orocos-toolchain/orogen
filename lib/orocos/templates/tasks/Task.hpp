@@ -15,6 +15,9 @@ namespace <%= component.name %> {
 	bool <%= cmd.work_method_name %><%= cmd.work_signature %>;
 	bool <%= cmd.completion_method_name %><%= cmd.completion_signature %>;
     <% end %>
+
+    public:
+        <%= task.name %>(std::string const& name = "<%= task.name %>");
     };
 }
 

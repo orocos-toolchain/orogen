@@ -39,7 +39,7 @@ namespace <%= component.name %> {
     <% end %>
 
     public:
-	<%= task.name %>Base();
+	<%= task.name %>Base(std::string const& name);
     };
 }
 

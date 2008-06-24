@@ -2,8 +2,8 @@
 
 using namespace <%= component.name %>;
 
-<%= task.name %>Base::<%= task.name %>Base()
-    : RTT::TaskContext("<%= task.name %>")
+<%= task.name %>Base::<%= task.name %>Base(std::string const& name)
+    : RTT::TaskContext(name, TaskContext::<%= task.initial_state %>)
     , _self(static_cast<<%= task.name %>&>(*this))
     <% task.properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
