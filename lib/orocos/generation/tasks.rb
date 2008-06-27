@@ -1,6 +1,8 @@
 module Orocos
     module Generation
 	class Property
+            # The task on which this property is attached
+            attr_reader :task
 	    # The property name
 	    attr_reader :name
 
@@ -12,7 +14,8 @@ module Orocos
 	    attr_reader :default_value
 
 	    # Create a new property with the given name, type and default value
-	    def initialize(name, type, default_value)
+	    def initialize(task, name, type, default_value)
+                name = name.to_s
 		if name !~ /^\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
 		end
@@ -38,6 +41,7 @@ module Orocos
 	    def read_write?; read_access? && write_access? end
 
 	    def initialize(task, name, type, mode)
+                name = name.to_s
 		@task, @name, @type, @mode = task, name, type, mode
 	    end
 
@@ -71,6 +75,7 @@ module Orocos
 	    attr_reader :name
 
 	    def initialize(task, name)
+                name = name.to_s
 		if name !~ /^\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
 		end
@@ -119,7 +124,7 @@ module Orocos
 
 	    def initialize(task, name)
 		super
-		@method_name = name.dup
+		@method_name = self.name.dup
 		method_name[0, 1] = method_name[0, 1].downcase
 	    end
 
@@ -277,7 +282,7 @@ module Orocos
 		check_uniqueness(:properties, name)
 		type = component.find_type(type)
 
-		properties << Property.new(name, type, default_value)
+		properties << Property.new(self, name, type, default_value)
 		properties.last
 	    end
 
