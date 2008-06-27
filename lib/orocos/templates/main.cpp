@@ -3,7 +3,8 @@
 <% component.used_toolkits.each do |name| %>
 #include <toolkit/<%= name %>Toolkit.hpp>
 <% end %>
-<% component.tasks.each do |task| %>
+<% component.tasks.each do |task|
+    next if task.external_definition?  %>
 #include <tasks/<%= task.name %>.hpp>
 <% end %>
 <% if deployer.corba_enabled? %>

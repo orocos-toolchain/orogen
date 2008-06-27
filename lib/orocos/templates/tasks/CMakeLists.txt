@@ -1,5 +1,6 @@
 <% task_files = []
    component.tasks.each do |task| 
+     next if task.external_definition?
      if !task_files.empty?
 	 task_files << "\n    "
      end

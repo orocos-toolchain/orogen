@@ -1,3 +1,5 @@
+require 'utilrb/module/attr_predicate'
+
 module Orocos
     module Generation
 	class Property
@@ -225,6 +227,17 @@ module Orocos
 	    # The task name
 	    attr_reader :name
 
+            # True if this task context is defined by one of our dependencies.
+            attr_predicate :external_definition?, true
+
+            def class_name
+                if external_definition?
+                    name
+                else
+                    "#{component.name}::#{name}"
+                end
+            end
+
 	    # Create a new task context in the given component and with
 	    # the given name. If a block is given, it is evaluated
 	    # in the context of the newly created TaskContext object.
@@ -392,6 +405,8 @@ module Orocos
 	    #   the user-provided part of the task. This class is a public
 	    #   subclass of the Base class.
 	    def generate
+                return if external_definition?
+
 		# Make this task be available in templates as 'task'
 		task = self
 	    
