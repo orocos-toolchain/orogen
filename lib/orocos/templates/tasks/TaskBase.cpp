@@ -16,7 +16,10 @@ using namespace <%= component.name %>;
     <% task.commands.each do |cmd| %>
     , _<%= cmd.name %>("<%= cmd.name %>", &<%= task.name %>::<%= cmd.work_method_name %>, &<%= task.name %>::<%= cmd.completion_method_name %>, &_self)<% end %>
 {
-    <% task.properties.each do |prop| %>
+    <% task.properties.each do |prop|
+        if prop.default_value %>
+        _<%= prop.name %>.set(<%= prop.default_value.inspect %>);
+        <% end %>
     properties()->addProperty( &_<%= prop.name %> );<% end %>
     <% task.ports.each do |port| %>
     ports()->addPort( &_<%= port.name %>, "<%= port.doc %>" );<% end %>

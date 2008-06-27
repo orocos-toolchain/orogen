@@ -291,7 +291,7 @@ module Orocos
 	    # Create a new property with the given name, type and default value
 	    # for this task. This returns the Property representing the new
 	    # property
-	    def property(name, type, default_value = '')
+	    def property(name, type, default_value = nil)
 		check_uniqueness(:properties, name)
 		type = component.find_type(type)
 
