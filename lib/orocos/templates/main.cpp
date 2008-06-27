@@ -18,6 +18,9 @@ using RTT::Corba::ControlTaskServer;
 <% if deployer.browse %>
 #include <ocl/TaskBrowser.hpp>
 <% end %>
+<% if !file_reporters.empty? %>
+#include <ocl/FileReporting.hpp>
+<% end %>
 
 using namespace Orocos;
 int ORO_main(int argc, char* argv[])
@@ -54,6 +57,16 @@ int ORO_main(int argc, char* argv[])
     <% if deployer.corba_enabled? %>
     ControlTaskServer::Create( &task_<%= task.name%> );
     <% end %>
+<% end %>
+
+<% reporter_id = 0 %>
+<% if !deployer.file_reporters.empty?
+        deployer.file_reporters.each do |filename, (reporter_activity, method_calls)|
+            method_calls.each do |type, reported_activity, args| %>
+                task_<%= reporter_activity.name %>.connectPeers(&task_<%= reported_activity.name %>);
+                task_<%= reporter_activity.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>);
+            <% end %>
+        <% end %>
 <% end %>
 
     // Start some activities

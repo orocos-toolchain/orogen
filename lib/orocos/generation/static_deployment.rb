@@ -140,12 +140,15 @@ module Orocos
         end
 
         class StaticDeployment
+            # The underlying Component object
             attr_reader :component
+            # The set of tasks that need to be deployed
             attr_reader :task_activities
 
             def initialize(component, &block)
                 @task_activities = Array.new
                 @component = component
+                @file_reporters = Hash.new
 
                 instance_eval(&block) if block_given?
             end
@@ -196,27 +199,48 @@ module Orocos
                 Generation.render_template 'config/static_deployer.cmake', binding
             end
 
-            dsl_attribute :main_task do |name|
-                @main_task = task_by_name(name)
+            dsl_attribute :main_task do |task|
+                @main_task = task
             end
 
-            def task_by_name(name)
-                task = task_activities.find { |t| t.name == name.to_s }
-                if !task
-                    raise ArgumentError, "no task #{name} defined"
+            attr_reader :file_reporters
+
+            # Sets up a file reporter for the given object (property, port or
+            # task context)
+            def file_report(object, filename)
+                if file_reporters.empty?
+                    # Define the FileReporting task context
+                    component.task_context 'FileReporting' do |task|
+                        task.external_definition = true
+                        property 'ReportFile', 'std/string'
+                    end
                 end
-                task
+
+                filename = filename.to_s
+                unless reporter_config = file_reporters[filename]
+                    reporter = task("FileReporter#{file_reporters.size}", :FileReporting)
+                    reporter.ReportFile = filename
+                    reporter_config = file_reporters[filename] =  [reporter, []]
+                end
+
+                method = case object
+                         when TaskDeployment then ["Component", object, [object.name]]
+                         when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
+                         when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
+                         end
+                reporter_config[1] << method
+                reporter_config[0]
             end
 
             # Sets up the TaskBrowser component and uses it to browse
             # +task_name+
-            dsl_attribute :browse do |task_name|
+            dsl_attribute :browse do |task|
                 if browse
                     raise ArgumentError, "can browse only one task"
                 elsif corba_enabled?
                     raise ArgumentError, "cannot browse and use CORBA at the same time"
                 end
-                @browse = task_by_name(task_name)
+                @browse = task
             end
         end
     end
