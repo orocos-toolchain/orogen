@@ -7,7 +7,10 @@ module Typelib
     class Type
 	def self.to_orocos_decomposition(result, path, indent = "    ")
 	    orocos_type = registry.orocos_equivalent(self).basename
-	    result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{path}\", \"\", value#{path}) );"
+            if path[0] == ?.
+                path = path[1..-1]
+            end
+	    result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{path}\", \"\", value.#{path}) );"
 	end
 
 	def self.code_to_corba(result, path = "", indent = "    ")
