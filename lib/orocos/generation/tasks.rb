@@ -267,20 +267,6 @@ module Orocos
             # of Stopped)
             def needs_configuration; @initial_state = 'PreOperational' end
 
-	    # Make this task as being of the highest priority allowed by the
-	    # underlying OS
-	    def highest_priority; @priority = :highest end
-	    # Make this task as being of the lowest priority allowed by the
-	    # underlying OS
-	    def lowest_priority;  @priority = :lowest end
-	    # call-seq:
-	    #	priority prio => new_prio
-	    #
-	    # Sets the task priority as an integer value. Allowed values are
-	    # OS-specific, and for now the allowed range is unfortunately not
-	    # available from Ruby
-	    dsl_attribute(:priority) { |value| Integer(value) }
-
 	    # The set of properties for this task
 	    attr_reader :properties
 
