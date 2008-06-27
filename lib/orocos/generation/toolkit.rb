@@ -151,10 +151,16 @@ module Orocos
 		    raise ArgumentError, "no such file or directory #{file}"
 		end
 
+                file_registry = Typelib::Registry.new
+                options = { :include => component.base_dir } if component.base_dir
+		file_registry.import(file, 'c', options || {})
+
+                registry.merge(file_registry)
+
+                preloaded_registry.merge(file_registry) if preload
+		component.registry.merge(file_registry)
+
 		loads << file
-		registry.import(file, 'c')
-                preloaded_registry.import(file, 'c') if preload
-		component.registry.import(file, 'c')
 	    end
 
 	    def import(other_toolkit)
