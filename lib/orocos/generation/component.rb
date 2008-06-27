@@ -34,9 +34,14 @@ module Orocos
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
 
-	    def initialize(&block)
+            # If set, the directory in which the .orogen file is used. This is
+            # used to update include paths for instance.
+            attr_reader :base_dir
+
+	    def initialize(base_dir = nil, &block)
 		@tasks = []
 		@registry = Typelib::Registry.new
+                @base_dir = base_dir
 
 		@corba   = true
 		@version = "0.0"
