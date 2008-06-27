@@ -39,13 +39,18 @@ int ORO_main(int argc, char* argv[])
 
     TaskContext* main_task = 0;
 <% deployer.task_activities.each do |task| %>
-    <%= component.name %>::<%= task.context.name %> task_<%= task.name%>("<%= task.name %>");
-    <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %>
-    activity_<%= task.name%>(
+    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
+    <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %> activity_<%= task.name%>(
             <%= task.rtt_scheduler %>,
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
             task_<%= task.name%>.engine());
+    <% task.properties.each do |prop|
+        if prop.value %>
+    task_<%= task.name %>.properties()->getProperty<<%= prop.interface_object.type.full_name('::', true) %>>("<%= prop.name %>")->set(<%= prop.value.inspect %>);
+        <% end %>
+    <% end %>
+
     <% if deployer.corba_enabled? %>
     ControlTaskServer::Create( &task_<%= task.name%> );
     <% end %>

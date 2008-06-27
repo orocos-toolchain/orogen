@@ -1,16 +1,48 @@
 module Orocos
     module Generation
+        class GenericObjectDeployment
+            attr_reader :activity, :interface_object
+            def initialize(activity, interface_object)
+                @activity, @interface_object = activity, interface_object
+            end
+            def name; interface_object.name end
+        end
+        class PortDeployment     < GenericObjectDeployment; end
+        class PropertyDeployment < GenericObjectDeployment
+            attr_reader :value
+            def set(value)
+                @value = value
+            end
+        end
+        class MethodDeployment   < GenericObjectDeployment; end
+        class CommandDeployment  < GenericObjectDeployment; end
+
         class TaskDeployment
             attr_reader :name
             attr_reader :context
             attr_reader :realtime
             attr_reader :priority
 
+            attr_reader :properties
+            attr_reader :ports
+            attr_reader :methods
+            attr_reader :commands
+
             def initialize(name, context)
                 @name     = name
                 @context  = context
 		@realtime = false
 		@priority = :lowest
+
+                { :properties  => PropertyDeployment,
+                    :ports    => PortDeployment,
+                    :methods  => MethodDeployment,
+                    :commands => CommandDeployment }.each do |collection_name, klass|
+                        deployed_objects = context.send(collection_name).map do |obj|
+                            klass.new(self, obj)
+                        end
+                        instance_variable_set "@#{collection_name}", deployed_objects
+                    end
             end
             
 	    # Make this task as being of the highest priority allowed by the
@@ -75,6 +107,36 @@ module Orocos
 		    @priority
 		end
 	    end
+
+            def method_missing(m, *args) # :nodoc:
+                name = m.to_s
+                if name =~ /=$/
+                    setter = true
+                    name = $`
+                end
+
+                { :properties  => PropertyDeployment,
+                    :ports    => PortDeployment,
+                    :methods  => MethodDeployment,
+                    :commands => CommandDeployment }.each do |collection_name, klass|
+                    if obj = send(collection_name).find { |el| el.name == name.to_s }
+                        if setter
+                            if args.size != 1
+                                raise ArgumentError, "wrong number of arguments for #{name}=: expected 1 got #{args.size}"
+                            end
+                            obj.set args[0]
+                            return args[0]
+                        else
+                            if !args.empty?
+                                raise ArgumentError, "wrong number of arguments for #{name}: expected 1 got #{args.size}"
+                            end
+                            return obj
+                        end
+                    end
+                end
+
+                return super
+            end
         end
 
         class StaticDeployment
