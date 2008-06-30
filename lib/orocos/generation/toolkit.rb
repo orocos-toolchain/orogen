@@ -123,6 +123,7 @@ module Orocos
 		    self.name name
 		end
 
+                @internal_dependencies = []
 		@corba_enabled = true
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
@@ -162,6 +163,17 @@ module Orocos
 
 		loads << file
 	    end
+
+            # Packages defined in this component on which the toolkit should
+            # depend. See #internal_dependency.
+            attr_reader :internal_dependencies
+
+            # Declare that the toolkit depends on a package defined inside this
+            # component. The only effect is to make the generated .pc file depend
+            # on the said package.
+            def internal_dependency(name, version = nil)
+                @internal_dependencies << [name, version]
+            end
 
 	    def import(other_toolkit)
 		raise NotImplementedError

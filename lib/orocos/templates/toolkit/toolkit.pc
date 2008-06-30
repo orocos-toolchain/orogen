@@ -5,6 +5,9 @@ includedir=${prefix}/include/orocos
 
 Name: <%= component.name %>Toolkit
 Version: <%= component.version %>
+<% unless toolkit.internal_dependencies.empty? %>
+Requires: <%= toolkit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
+<% end %>
 Description: <%= component.name %> types support for the Orocos type system
 Libs: -L${libdir} -l@libname@
 Cflags: -I${includedir}
