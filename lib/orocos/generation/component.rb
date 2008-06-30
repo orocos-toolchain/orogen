@@ -21,8 +21,8 @@ module Orocos
 	    # "0.0"
 	    dsl_attribute(:version) do |name|
 		name = name.to_s
-		if name != /^\d/
-		    raise ArgumentError, "version strings must start with a number"
+		if name !~ /^\d/
+		    raise ArgumentError, "version strings must start with a number (had: #{name})"
 		end
 		name
 	    end
