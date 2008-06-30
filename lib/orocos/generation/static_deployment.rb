@@ -47,10 +47,10 @@ module Orocos
             
 	    # Make this task as being of the highest priority allowed by the
 	    # underlying OS
-	    def highest_priority; @priority = :highest end
+	    def highest_priority; @priority = :highest; self end
 	    # Make this task as being of the lowest priority allowed by the
 	    # underlying OS
-	    def lowest_priority;  @priority = :lowest end
+	    def lowest_priority;  @priority = :lowest; self end
 	    # call-seq:
 	    #	priority prio => new_prio
 	    #
@@ -64,11 +64,11 @@ module Orocos
 
 	    # Marks this task as being aperiodic (the default). To make it
 	    # periodic, call #period with the required period
-	    def aperiodic; @period = nil end
+	    def aperiodic; @period = nil; self end
 
             # Call to make the deployer start this task when the component is
             # launched
-            def start; @start = true end
+            def start; @start = true; self end
             # True if this task should be started when the component is
             # started. Note that the deployer must honor the initial_state of
             # the underlying task context (i.e. call configure() if
@@ -91,10 +91,10 @@ module Orocos
 		end
 	    end
 	    # Marks this task as being part of the realtime scheduling class
-	    def realtime; @realtime = true end
+	    def realtime; @realtime = true; self end
 	    # Marks this task as being part of the non-realtime scheduling
 	    # class
-	    def non_realtime; @realtime = false end
+	    def non_realtime; @realtime = false; self end
 
 	    # Returns the Orocos value for this task's priority
 	    def rtt_priority
