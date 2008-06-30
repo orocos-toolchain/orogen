@@ -11,6 +11,12 @@ module Orocos
 	    # types defined in this component
 	    attr_reader :registry
 
+            # The target OS for orocos. Uses the OROCOS_TARGET environment
+            # variable, if set, and defaults to gnulinux otherwise.
+            def orocos_target
+                ENV['OROCOS_TARGET'] || 'gnulinux'
+            end
+
 	    # The version number of this component. Defaults to
 	    # "0.0"
 	    dsl_attribute(:version) do |name|
@@ -70,9 +76,11 @@ module Orocos
 		    return
 		end
 
+		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+		registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c",
+                    :rawflag => pkg.cflags.split(" "), :debug => true
+
 		used_toolkits << name
-		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-gnulinux")
-		registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c"
 	    end
 	    
 	    # Find the Typelib::Type object for +name+. +name+ can be either a
