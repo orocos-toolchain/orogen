@@ -48,6 +48,11 @@ int ORO_main(int argc, char* argv[])
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
             task_<%= task.name%>.engine());
+    <% if task.period %>
+    RTT::OS::PeriodicThread* thread_<%= task.name %> =
+        dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>.thread());
+    thread_<%= task.name %>->setMaxOverrun(<%= task.max_overruns %>);
+    <% end %>
     <% task.properties.each do |prop|
         if prop.value %>
     task_<%= task.name %>.properties()->getProperty<<%= prop.interface_object.type.full_name('::', true) %>>("<%= prop.name %>")->set(<%= prop.value.inspect %>);

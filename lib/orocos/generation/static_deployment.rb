@@ -33,6 +33,7 @@ module Orocos
                 @context  = context
 		@realtime = false
 		@priority = :lowest
+                @max_overruns = 5
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
@@ -81,6 +82,21 @@ module Orocos
 	    # Sets or gets the task period. Call #aperiodic to make it
 	    # aperiodic
 	    dsl_attribute(:period) { |value| Float(value) }
+
+            # Do no check for overruns. Valid for periodic tasks. See
+            # #max_overruns for a more precise description.
+            def disable_overruns_control; @max_overruns = -1; self end
+
+            # Sets or gets the count of allowed overruns. Only valid if the
+            # task is periodic. Default: 5. Use #disable_overruns_control
+            # to disable this check.
+            dsl_attribute(:max_overruns) do |value|
+                if !period
+                    raise "max_overruns is only valid in periodic tasks"
+                else
+                    @period = Integer(value)
+                end
+            end
 
 	    # Returns the Orocos scheduler constant name for this task's
 	    # scheduler class. Call #realtime and #non_realtime to change the
