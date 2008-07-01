@@ -60,12 +60,29 @@ module Orocos
 	    # available from Ruby
 	    dsl_attribute(:priority) { |value| Integer(value) }
 
-
             def component; context.component end
+
+            # The subclass of ActivityInterface which should be used to run this task
+            attr_reader :activity_type
+
+            # Makes this task's activity driven by a file descriptor. The underlying
+            # task context must be a subclass of FileDescriptorActivity::Provider
+            def fd_driven; @activity_type = 'FileDescriptorActivity'; self end
+
+	    # call-seq:
+	    #	period(period_in_seconds) => period_in_seconds
+	    #
+	    # Sets or gets the task period. Call #aperiodic to make it
+	    # aperiodic
+	    dsl_attribute(:period) do |value|
+                value = Float(value)
+                @activity_type = 'PeriodicActivity'
+                value
+            end
 
 	    # Marks this task as being aperiodic (the default). To make it
 	    # periodic, call #period with the required period
-	    def aperiodic; @period = nil; self end
+	    def aperiodic; @activity_type = 'NonPeriodicActivity'; self end
 
             # Call to make the deployer start this task when the component is
             # launched
@@ -75,13 +92,6 @@ module Orocos
             # the underlying task context (i.e. call configure() if
             # initial_state is PreOperational)
             def start?; !!@start end
-
-	    # call-seq:
-	    #	period(period_in_seconds) => period_in_seconds
-	    #
-	    # Sets or gets the task period. Call #aperiodic to make it
-	    # aperiodic
-	    dsl_attribute(:period) { |value| Float(value) }
 
             # Do no check for overruns. Valid for periodic tasks. See
             # #max_overruns for a more precise description.

@@ -14,6 +14,7 @@ using RTT::Corba::ControlTaskServer;
 
 #include <rtt/PeriodicActivity.hpp>
 #include <rtt/NonPeriodicActivity.hpp>
+#include <rtt/FileDescriptorActivity.hpp>
 
 <% if deployer.browse %>
 #include <ocl/TaskBrowser.hpp>
@@ -43,7 +44,7 @@ int ORO_main(int argc, char* argv[])
     TaskContext* main_task = 0;
 <% deployer.task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
-    <% if task.period %>RTT::PeriodicActivity<% else %>RTT::NonPeriodicActivity<% end %> activity_<%= task.name%>(
+    RTT::<%= task.activity_type %> activity_<%= task.name%>(
             <%= task.rtt_scheduler %>,
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
