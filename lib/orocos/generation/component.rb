@@ -78,7 +78,7 @@ module Orocos
 
 		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
 		registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c",
-                    :rawflag => pkg.cflags.split(" "), :debug => true
+                    :rawflag => pkg.cflags.split(" ")
 
 		used_toolkits << name
 	    end
