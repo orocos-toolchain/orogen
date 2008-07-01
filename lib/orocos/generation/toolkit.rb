@@ -19,9 +19,11 @@ module Typelib
 	def self.code_from_corba(result, path = "", indent = "    ")
 	    code_to_corba(result, path, indent)
 	end
-
 	def self.to_orocos_composition
 	end
+        def self.to_ostream(result, path, indent)
+            result << indent << "io << \"#{indent}\" << #{path} << \"\\n\";"
+        end
     end
     class CompoundType
 	def self.convertion_code_helper(method, result, path, indent)
@@ -40,6 +42,16 @@ module Typelib
 
 	def self.to_orocos_composition
 	end
+
+        def self.to_ostream(result, path, indent)
+            result << indent << "io << \"#{indent}{\\n\";\n"
+            new_indent = indent + "  ";
+	    each_field do |name, type|
+		result << new_indent << "io << \"#{new_indent}#{name} = \";\n"
+                type.to_ostream(result, "#{path}.#{name}", new_indent) << "\n"
+	    end
+            result << indent << "io << \"#{indent}}\\n\";\n"
+        end
     end
     class ArrayType
 	def self.convertion_code_helper(method, result, path, indent)
@@ -56,6 +68,14 @@ module Typelib
 
 	def self.to_orocos_composition
 	end
+
+        def self.to_ostream(result, path, indent)
+            result << indent << "io << \"#{indent}[\\n\""
+            result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
+		type.to_ostream(result, "#{path}[i]", indent + "  ") << "\", \";\n"
+            result << indent << "}\n" 
+            result << indent << "io << \"#{indent}]\\n\""
+        end
     end
     class Registry
 	OROCOS_KNOWN_TYPES = ['char', 'int', 'unsigned int', 'float', 'double']
