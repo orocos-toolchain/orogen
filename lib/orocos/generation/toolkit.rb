@@ -70,11 +70,12 @@ module Typelib
 	end
 
         def self.to_ostream(result, path, indent)
-            result << indent << "io << \"#{indent}[\\n\""
-            result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
-		type.to_ostream(result, "#{path}[i]", indent + "  ") << "\", \";\n"
+            result << indent << "io << \"[\\n\";\n"
+            result << indent << "for (int i = 0; i < #{length}; ++i) {\n" 
+		deference.to_ostream(result, "#{path}[i]", indent + "  ") << "\n"
+                result << "#{indent}  io << \", \";\n"
             result << indent << "}\n" 
-            result << indent << "io << \"#{indent}]\\n\""
+            result << indent << "io << \"#{indent}]\\n\";\n"
         end
     end
     class Registry
