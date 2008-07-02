@@ -69,6 +69,11 @@ module Orocos
             # task context must be a subclass of FileDescriptorActivity::Provider
             def fd_driven; @activity_type = 'FileDescriptorActivity'; self end
 
+            # Makes this task's activity driven by events on an IRQ line. The
+            # underlying task context must be a subclass of
+            # IRQActivity::Provider
+            def irq_driven; @activity_type = 'IRQActivity'; self end
+
 	    # call-seq:
 	    #	period(period_in_seconds) => period_in_seconds
 	    #

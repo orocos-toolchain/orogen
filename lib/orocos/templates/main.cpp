@@ -12,9 +12,13 @@
 using RTT::Corba::ControlTaskServer;
 <% end %>
 
-#include <rtt/PeriodicActivity.hpp>
-#include <rtt/NonPeriodicActivity.hpp>
-#include <rtt/FileDescriptorActivity.hpp>
+<% require 'set'
+    activity_types = deployer.task_activities.
+    map { |t| t.activity_type }.
+    to_set %>
+<% activity_types.each do |activity_klassname| %>
+#include <rtt/<%= activity_klassname%>.hpp>
+<% end %>
 
 <% if deployer.browse %>
 #include <ocl/TaskBrowser.hpp>
