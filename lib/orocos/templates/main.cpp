@@ -101,6 +101,11 @@ int ORO_main(int argc, char* argv[])
     browser.loop();
 <% end %>
 
+    // Kill all running activities
+<% deployer.task_activities.each do |task| %>
+    activity_<%= task.name%>.stop();
+<% end %>
+
     return 0;
 }
 
