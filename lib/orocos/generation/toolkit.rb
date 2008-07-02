@@ -22,7 +22,7 @@ module Typelib
 	def self.to_orocos_composition
 	end
         def self.to_ostream(result, path, indent)
-            result << indent << "io << \"#{indent}\" << #{path} << \"\\n\";"
+            result << indent << "io << #{path};"
         end
     end
     class CompoundType
@@ -44,13 +44,19 @@ module Typelib
 	end
 
         def self.to_ostream(result, path, indent)
-            result << indent << "io << \"#{indent}{\\n\";\n"
-            new_indent = indent + "  ";
+            result << indent << "io << \"{ \";\n"
+
+            first_field = true
 	    each_field do |name, type|
-		result << new_indent << "io << \"#{new_indent}#{name} = \";\n"
-                type.to_ostream(result, "#{path}.#{name}", new_indent) << "\n"
+                unless first_field
+                    result << "#{indent}  io << \", \";\n";
+                end
+
+                first_field = false
+		result << "#{indent}  io << \"#{name} = \";\n"
+                type.to_ostream(result, "#{path}.#{name}", indent + "  ") << "\n"
 	    end
-            result << indent << "io << \"#{indent}}\\n\";\n"
+            result << indent << "io << \" }\";\n"
         end
     end
     class ArrayType
@@ -72,10 +78,10 @@ module Typelib
         def self.to_ostream(result, path, indent)
             result << indent << "io << \"[\\n\";\n"
             result << indent << "for (int i = 0; i < #{length}; ++i) {\n" 
-		deference.to_ostream(result, "#{path}[i]", indent + "  ") << "\n"
-                result << "#{indent}  io << \", \";\n"
+		deference.to_ostream(result, "#{path}[i]", indent + "  ")
+                result << "#{indent}  if (i != #{length - 1}) io << \", \";\n"
             result << indent << "}\n" 
-            result << indent << "io << \"#{indent}]\\n\";\n"
+            result << indent << "io << \" ]\";\n"
         end
     end
     class Registry
