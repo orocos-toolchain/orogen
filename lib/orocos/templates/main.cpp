@@ -98,6 +98,12 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
+<% deployer.connections.each do |src, dst| %>
+    PortInterface* src = task_<% src.activity.name %>.ports()->getPort("<%= src.name %>");
+    PortInterface* dst = task_<% dst.activity.name %>.ports()->getPort("<%= dst.name %>");
+    src->connectTo(dst);
+<% end %>
+
 <% if deployer.corba_enabled? %>
     ControlTaskServer::RunOrb();
     ControlTaskServer::DestroyOrb();

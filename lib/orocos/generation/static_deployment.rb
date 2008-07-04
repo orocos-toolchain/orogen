@@ -180,6 +180,7 @@ module Orocos
                 @task_activities = Array.new
                 @component = component
                 @file_reporters = Hash.new
+                @connections = Array.new
 
                 instance_eval(&block) if block_given?
             end
@@ -262,6 +263,11 @@ module Orocos
                          end
                 reporter_config[1] << method
                 reporter_config[0]
+            end
+
+            attr_reader :connections
+            def connect(from, to)
+                connections << [from, to]
             end
 
             # Sets up the TaskBrowser component and uses it to browse
