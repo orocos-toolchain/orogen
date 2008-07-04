@@ -71,6 +71,7 @@ module Orocos
 	end
 	@logger = Logger.new(STDOUT)
 	logger.level = Logger::WARN
+        logger.formatter = lambda { |severity, time, progname, msg| "#{severity}: #{msg}\n" }
  
 	@templates = Hash.new
 	class << self
