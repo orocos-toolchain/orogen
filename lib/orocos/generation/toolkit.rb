@@ -180,8 +180,10 @@ module Orocos
 		end
 
                 file_registry = Typelib::Registry.new
-                options = { :include => component.base_dir } if component.base_dir
-		file_registry.import(file, 'c', options || {})
+
+                options = { :define => '__orogen' }
+                options[:include] = component.base_dir if component.base_dir
+		file_registry.import(file, 'c', options)
 
                 registry.merge(file_registry)
 
