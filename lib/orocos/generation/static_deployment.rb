@@ -239,9 +239,10 @@ module Orocos
             # Sets up a file reporter for the given object (property, port or
             # task context)
             def file_report(object, filename)
-                if file_reporters.empty?
+                if !component.tasks.find { |t| t.name == "OCL::FileReporting" }
                     # Define the FileReporting task context
                     component.task_context 'FileReporting' do |task|
+                        task.instance_variable_set :@name, "OCL::FileReporting"
                         task.external_definition = true
                         property 'ReportFile', 'std/string'
                     end
@@ -249,7 +250,7 @@ module Orocos
 
                 filename = filename.to_s
                 unless reporter_config = file_reporters[filename]
-                    reporter = task("FileReporter#{file_reporters.size}", :FileReporting)
+                    reporter = task("FileReporter#{file_reporters.size}", "OCL::FileReporting")
                     reporter.ReportFile = filename
                     reporter_config = file_reporters[filename] =  [reporter, []]
                 end

@@ -1,4 +1,6 @@
-<% task_files = []
+<% 
+   include_files = []
+   task_files = []
    component.tasks.each do |task| 
      next if task.external_definition?
      if !task_files.empty?
@@ -6,6 +8,8 @@
      end
      task_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.name}Base.cpp"
      task_files << "#{task.name}.cpp"
+     include_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.name}Base.hpp"
+     include_files << "#{task.name}.hpp"
    end
 %>
 
@@ -17,3 +21,5 @@ INSTALL(TARGETS ${libname}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
 
+INSTALL(FILES <%= task_files.join(" ") %> <%= include_files.join(" ") %>
+    DESTINATION include/orocos/<%= component.name.downcase %>)

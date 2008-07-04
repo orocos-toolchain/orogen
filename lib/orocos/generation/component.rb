@@ -40,19 +40,30 @@ module Orocos
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
 
-            # If set, the directory in which the .orogen file is used. This is
-            # used to update include paths for instance.
-            attr_reader :base_dir
+            # A set of libraries defining tasks. They have to provide a .orogen
+            # file which lists the tasks and their properties.
+            attr_reader :used_task_libraries
 
-	    def initialize(base_dir = nil, &block)
+            attr_reader :deffile
+
+            # If set, the directory in which the .orogen file is. This is used
+            # to update include paths for instance.
+            def base_dir
+                if deffile
+                    File.dirname(deffile)
+                end
+            end
+
+	    def initialize(deffile = nil, &block)
+                @deffile = deffile
 		@tasks = []
 		@registry = Typelib::Registry.new
-                @base_dir = base_dir
 
 		@corba   = true
 		@version = "0.0"
 		@used_toolkits  = []
                 @used_libraries = []
+                @used_task_libraries = []
 
                 @deployers = []
 
@@ -129,6 +140,9 @@ module Orocos
 
 		FileUtils.mkdir_p(Generation::AUTOMATIC_AREA_NAME)
 		FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
+                if !File.exists?(include_symlink = File.join(Generation::AUTOMATIC_AREA_NAME, name.downcase))
+                    FileUtils.ln_sf 'tasks', include_symlink
+                end
 
 		# Generate the automatic part of the root cmake file
 		cmake = Generation.render_template "config", "OrocosComponent.cmake", binding
@@ -222,12 +236,64 @@ module Orocos
 		tasks.last
 	    end
 
+            # Declares that this component depends on tasks defined in the
+            # given task library. After this call, the definitions of the tasks
+            # in the task library are available as 'name::task_context_name'
+            def using_task_library(name)
+                pkg = Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                orogen = pkg.deffile
+
+                component = TaskLibrary.new(self) do
+                    Kernel.eval(File.read(orogen), binding)
+                end
+
+                component_tasks = component.tasks.map do |t|
+                    # UGLY HACK
+                    if t.name !~ /::/
+                        t.instance_variable_set :@name, "#{component.name}::#{t.name}"
+                    end
+                    t
+                end
+                tasks.concat component_tasks
+                if component.has_toolkit?
+                    using_toolkit component.name
+                end
+                used_task_libraries << component
+            end
+
             def static_deployment(&block)
                 deployer = StaticDeployment.new(self, &block)
                 @deployers << deployer
                 deployer
             end
 	end
+
+        class TaskLibrary < Component
+            attr_reader :base_component
+
+            def initialize(component)
+                @base_component = component
+                super
+            end
+
+            def task_context(name, &block)
+                task = super
+                task.external_definition = true
+                task
+            end
+
+            attr_predicate :has_toolkit?, true
+            def toolkit(*args, &block)
+                if args.empty? && !block_given?
+                    super
+                else
+                    self.has_toolkit = true
+                end
+                nil
+            end
+            def generate; raise NotImplementedError end
+            def generate_build_system; raise NotImplementedError end
+        end
     end
 end
 

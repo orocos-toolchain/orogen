@@ -1,7 +1,7 @@
-#ifndef <%= task.name.upcase %>_TASK_HPP
-#define <%= task.name.upcase %>_TASK_HPP
+#ifndef <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_HPP
+#define <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_HPP
 
-#include "tasks/<%= task.name %>Base.hpp"
+#include "<%= component.name.downcase %>/<%= task.name %>Base.hpp"
 
 namespace <%= component.name %> {
     class <%= task.name %> : public <%= task.name %>Base

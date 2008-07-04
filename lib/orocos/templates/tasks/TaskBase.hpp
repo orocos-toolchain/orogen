@@ -1,5 +1,5 @@
-#ifndef <%= task.name.upcase %>_TASK_BASE_HPP
-#define <%= task.name.upcase %>_TASK_BASE_HPP
+#ifndef <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_BASE_HPP
+#define <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_BASE_HPP
 
 #include <string>
 #include <rtt/TaskContext.hpp>

@@ -3,9 +3,13 @@
 <% component.used_toolkits.each do |name| %>
 #include <toolkit/<%= name %>Toolkit.hpp>
 <% end %>
-<% component.tasks.each do |task|
-    next if task.external_definition?  %>
-#include <tasks/<%= task.name %>.hpp>
+<% deployer.task_activities.each do |task|
+    if task.context.external_definition?
+        library_name, name = task.context.name.split("::") %>
+#include <<%= File.join(library_name.downcase, name) %>.hpp>
+    <% else %>
+#include <tasks/<%= task.context.name %>.hpp>
+    <% end %>
 <% end %>
 <% if deployer.corba_enabled? %>
 #include <rtt/corba/ControlTaskServer.hpp>
@@ -22,9 +26,6 @@ using RTT::Corba::ControlTaskServer;
 
 <% if deployer.browse %>
 #include <ocl/TaskBrowser.hpp>
-<% end %>
-<% if !file_reporters.empty? %>
-#include <ocl/FileReporting.hpp>
 <% end %>
 
 using namespace Orocos;

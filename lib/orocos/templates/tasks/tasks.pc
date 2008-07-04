@@ -1,7 +1,8 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
-includedir=${prefix}/include
+includedir=${prefix}/include/orocos
+deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
 
 Name: <%= component.name %>Tasks
 Version: <%= component.version %>

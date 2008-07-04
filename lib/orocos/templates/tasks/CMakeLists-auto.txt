@@ -3,3 +3,6 @@ CONFIGURE_FILE(<%= component.name %>-tasks.pc.in
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
 
+INSTALL(FILES <%= component.deffile %>
+    DESTINATION share/orogen)
+

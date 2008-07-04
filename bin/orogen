@@ -29,7 +29,7 @@ if files.size != 1
 end
 
 filename = files.first
-Orocos::Generation::Component.new(File.expand_path(File.dirname(filename))) do |gen|
+Orocos::Generation::Component.new(File.expand_path(filename)) do |gen|
     Kernel.eval(File.read(filename), binding)
     generate
 end
