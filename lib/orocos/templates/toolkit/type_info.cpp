@@ -1,7 +1,7 @@
 
     std::ostream& operator << (std::ostream& io, <%= type.basename %> const& data) {
 <%= result = ""
-        type.to_ostream(result, "data", " " * 4)
+        type.to_ostream(result, "", " " * 4)
         result %>
         return io;
     }

@@ -5,27 +5,92 @@ require 'orocos/generation/base'
 
 module Typelib
     class Type
-	def self.to_orocos_decomposition(result, path, indent = "    ")
-	    orocos_type = registry.orocos_equivalent(self).basename
-            if path[0] == ?.
-                path = path[1..-1]
+        def self.cxx_name(fullname = true)
+            full_name('::', fullname).gsub("<::", "< ::")
+        end
+        def self.corba_name
+            cxx_name
+        end
+
+        def self.collection_iteration(varname, result, path, indent)
+            if name =~ /^([^<]+)<(.*)>$/
+                collection_name, element_type = $1, $2
+                element_type = registry.build(element_type)
+
+                result << "#{indent}for(#{cxx_name}::const_iterator it = #{varname}#{path}.begin(); it != #{varname}#{path}.end(); ++it)\n"
+                result << "#{indent}{\n"
+                yield(element_type)
+                result << "#{indent}}\n"
+            else
+                raise "unsupported opaque type #{name}"
             end
-	    result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{path}\", \"\", value.#{path}) );"
+        end
+
+	def self.to_orocos_decomposition(result, path, indent = "    ")
+            if opaque?
+                # This whole thing is a hack. Currently vector<>, set<> and
+                # map<> are parsed as opaque type by the C loader of typelib.
+                # We parse it back here to actually handle those types
+                collection_iteration(:value, result, path, indent) do |element_type|
+                    result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
+                    element_type.to_orocos_decomposition(result, "", indent + "  ") << "\n"
+                end
+            else
+                orocos_type = registry.orocos_equivalent(self).basename
+                property_name = path[1..-1]
+                result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+            end
 	end
 
 	def self.code_to_corba(result, path = "", indent = "    ")
-	    result << indent << "result#{path} = value#{path};"
+            if opaque?
+                # HACK see comment at the beginning of to_orocos_decomposition
+                result << "#{indent}result#{path}.length(value#{path}.size());\n"
+                result << "#{indent}i = 0;\n"
+                collection_iteration(:value, result, path, indent) do |element_type|
+                    result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
+                    result << "#{indent}  CorbaType& real_result = result;\n"
+                    result << "#{indent}  #{element_type.corba_name} result;\n"
+                    element_type.code_to_corba(result, "", indent + "  ") << "\n";
+                    result << "#{indent}  real_result#{path}[i] = result;\n"
+                    result << "#{indent}  ++i;\n"
+                end
+            else
+                result << indent << "result#{path} = value#{path};"
+            end
 	end
 	def self.code_from_corba(result, path = "", indent = "    ")
-	    code_to_corba(result, path, indent)
+            if opaque?
+                result << "#{indent}result#{path}.resize(value#{path}.length());\n"
+                result << "#{indent}i = 0;\n"
+                collection_iteration(:result, result, path, indent) do |element_type|
+                    result << "#{indent}  CorbaType const& real_value = value;\n"
+                    result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[i];\n"
+                    result << "#{indent}  #{element_type.cxx_name} result;\n"
+                    element_type.code_from_corba(result, "", indent + "  ") << "\n";
+                    result << "#{indent}  ++i;\n"
+                end
+            else
+                result << indent << "result#{path} = value#{path};"
+            end
 	end
 	def self.to_orocos_composition
 	end
         def self.to_ostream(result, path, indent)
-            result << indent << "io << #{path};"
+            if opaque?
+                collection_iteration(:data, result, path, indent) do |element_type|
+                    result << "#{indent}  #{element_type.cxx_name} const& data = *it;\n"
+                    element_type.to_ostream(result, "", indent + "  ") << "\n"
+                end
+            else
+                result << indent << "io << data#{path};"
+            end
         end
     end
     class CompoundType
+        def self.corba_name
+            "#{namespace('::')}Corba::#{basename.gsub('<::', '< ::')}"
+        end
 	def self.convertion_code_helper(method, result, path, indent)
 	    each_field do |name, type|
 		type.send(method, result, "#{path}.#{name}", indent) << "\n"
@@ -37,6 +102,10 @@ module Typelib
 	end
 	def self.code_to_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, result, path, indent)
+	    result
+	end
+	def self.code_from_corba(result, path = "", indent = "    ")
+	    convertion_code_helper(:code_from_corba, result, path, indent)
 	    result
 	end
 
@@ -60,6 +129,8 @@ module Typelib
         end
     end
     class ArrayType
+        def self.corba_name; raise NotImplementedError end
+
 	def self.convertion_code_helper(method, result, path, indent)
 	    result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
 	    deference.send(method, result, path + "[i]", indent + "    ") << "\n"

@@ -1,6 +1,6 @@
 <%
-    type_name = type.full_name('::', true)
-    corba_type_name = "#{type.namespace('::')}Corba::#{type.basename}"
+    type_name = type.cxx_name
+    corba_type_name = type.corba_name
 %>
 
 template<>

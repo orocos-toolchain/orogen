@@ -4,5 +4,5 @@
      in typelib, but are supported by Orocos -->
 
     <null name="/std/string" />
-    <null name="/std/vector&lt;double&gt;" />
+    <null name="/std/vector&lt;/double&gt;" />
 </typelib>
