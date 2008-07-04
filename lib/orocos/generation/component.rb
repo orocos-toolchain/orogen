@@ -17,6 +17,11 @@ module Orocos
                 ENV['OROCOS_TARGET'] || 'gnulinux'
             end
 
+            # True if the orocos target is gnulinux
+            def linux?; orocos_target == 'gnulinux' end
+            # True if the orocos target is xenomai
+            def xenomai?; orocos_target == 'xenomai' end
+
 	    # The version number of this component. Defaults to
 	    # "0.0"
 	    dsl_attribute(:version) do |name|
