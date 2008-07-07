@@ -181,6 +181,7 @@ module Orocos
                 @component = component
                 @file_reporters = Hash.new
                 @connections = Array.new
+                @tcp_reporters = Hash.new
 
                 instance_eval(&block) if block_given?
             end
@@ -235,11 +236,31 @@ module Orocos
                 @main_task = task
             end
 
+            # The set of file reporters, as filename => [reporter_task, method_specifications]
             attr_reader :file_reporters
 
+            # Common code for reporting definitions
+            def reporter(collection, key, object) # :nodoc:
+                unless reporter_config = collection[key]
+                    reporter = yield
+                    reporter_config = collection[key] =  [reporter, []]
+                end
+
+                method = case object
+                         when TaskDeployment then ["Component", object, [object.name]]
+                         when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
+                         when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
+                         else raise ArgumentError, "cannot report #{object}"
+                         end
+
+                reporter_config[1] << method
+                reporter_config[0]
+            end
+
             # Sets up a file reporter for the given object (property, port or
-            # task context)
+            # task context) to the given file
             def file_report(object, filename)
+                filename = filename.to_s
                 if !component.tasks.find { |t| t.name == "OCL::FileReporting" }
                     # Define the FileReporting task context
                     component.task_context 'FileReporting' do |task|
@@ -249,20 +270,34 @@ module Orocos
                     end
                 end
 
-                filename = filename.to_s
-                unless reporter_config = file_reporters[filename]
-                    reporter = task("FileReporter#{file_reporters.size}", "OCL::FileReporting")
+                reporter(file_reporters, filename, object) do
+                    reporter = task "FileReporter#{file_reporters.size}", "OCL::FileReporting"
                     reporter.ReportFile = filename
-                    reporter_config = file_reporters[filename] =  [reporter, []]
+                    reporter
+                end
+            end
+            
+            # The set of tcp reporters, as port => [reporter_task, method_specifications]
+            attr_reader :tcp_reporters
+
+            # Sets up a tcp reporter for the given object (property, port or
+            # task context) on the given port
+            def tcp_report(object, port)
+                port = Integer(port)
+                if tcp_reporters.empty?
+                    # Define the FileReporting task context
+                    component.task_context 'TCPReporting' do |task|
+                        task.instance_variable_set :@name, "OCL::TCPReporting"
+                        task.external_definition = true
+                        property 'port', 'int', 3142
+                    end
                 end
 
-                method = case object
-                         when TaskDeployment then ["Component", object, [object.name]]
-                         when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
-                         when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
-                         end
-                reporter_config[1] << method
-                reporter_config[0]
+                reporter(tcp_reporters, port, object) do
+                    reporter = task("TCPReporter#{tcp_reporters.size}", "OCL::TCPReporting")
+                    reporter.port = port
+                    reporter
+                end
             end
 
             attr_reader :connections
