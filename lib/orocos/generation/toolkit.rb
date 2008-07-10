@@ -143,6 +143,9 @@ module Typelib
 	def self.code_to_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, result, path, indent)
 	end
+	def self.code_from_corba(result, path = "", indent = "    ")
+	    convertion_code_helper(:code_from_corba, result, path, indent)
+	end
 
 	def self.to_orocos_composition
 	end
