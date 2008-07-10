@@ -98,10 +98,18 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
-<% deployer.connections.each do |src, dst| %>
-    PortInterface* src = task_<% src.activity.name %>.ports()->getPort("<%= src.name %>");
-    PortInterface* dst = task_<% dst.activity.name %>.ports()->getPort("<%= dst.name %>");
-    src->connectTo(dst);
+<% deployer.peers.each do |a, b| %>
+    task_<%= a.activity.name %>.connectPeers(&task_<%= a.activity.name %>);
+<% end %>
+
+<% deployer.connections.each do |src, dst|
+    if src.kind_of?(TaskDeployment) %>
+        task_<%= a.activity.name %>.connectPorts(&task_<%= a.activity.name %>);
+    <% else %>
+        PortInterface* src = task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>");
+        PortInterface* dst = task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>");
+        src->connectTo(dst);
+    <% end %>
 <% end %>
 
 <% if deployer.corba_enabled? %>

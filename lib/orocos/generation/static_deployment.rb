@@ -1,3 +1,5 @@
+require 'set'
+
 module Orocos
     module Generation
         class GenericObjectDeployment
@@ -182,6 +184,7 @@ module Orocos
                 @file_reporters = Hash.new
                 @connections = Array.new
                 @tcp_reporters = Hash.new
+                @peers       = Set.new
 
                 instance_eval(&block) if block_given?
             end
@@ -300,9 +303,15 @@ module Orocos
                 end
             end
 
+            attr_reader :peers
             attr_reader :connections
             def connect(from, to)
+                add_peers from, to
                 connections << [from, to]
+            end
+
+            def add_peers(a, b)
+                peers << [a, b]
             end
 
             # Sets up the TaskBrowser component and uses it to browse
