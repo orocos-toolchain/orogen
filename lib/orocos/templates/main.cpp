@@ -28,6 +28,29 @@ using RTT::Corba::ControlTaskServer;
 #include <ocl/TaskBrowser.hpp>
 <% end %>
 
+class Deinitializer
+{
+    friend Deinitializer& operator << (Deinitializer&, RTT::ActivityInterface&);
+
+    std::vector<RTT::ActivityInterface*> m_activities;
+
+public:
+    ~Deinitializer()
+    {
+        for (std::vector<RTT::ActivityInterface*>::const_iterator it = m_activities.begin();
+                it != m_activities.end(); ++it)
+        {
+            (*it)->stop();
+        }
+    }
+};
+
+Deinitializer& operator << (Deinitializer& deinit, RTT::ActivityInterface& activity)
+{
+    deinit.m_activities.push_back(&activity);
+    return deinit;
+}
+
 using namespace Orocos;
 int ORO_main(int argc, char* argv[])
 {
@@ -80,9 +103,13 @@ int ORO_main(int argc, char* argv[])
         <% end %>
 <% end %>
 
+   Deinitializer deinit;
+
     // Start some activities
-<% deployer.task_activities.each do |task|
-    if task.start?
+<% deployer.task_activities.each do |task| %>
+    deinit << activity_<%= task.name%>;
+
+    <% if task.start?
         if task.context.initial_state == 'PreOperational' %>
     if (!task_<%= task.name %>.configure())
     {
@@ -118,11 +145,6 @@ int ORO_main(int argc, char* argv[])
 <% elsif deployer.browse %>
     TaskBrowser browser(& task_<%= deployer.browse.name %>);
     browser.loop();
-<% end %>
-
-    // Kill all running activities
-<% deployer.task_activities.each do |task| %>
-    activity_<%= task.name%>.stop();
 <% end %>
 
     return 0;
