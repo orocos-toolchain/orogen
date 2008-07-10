@@ -59,13 +59,20 @@ LINK_DIRECTORIES(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
 list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_TOOLKIT_LDFLAGS})
 <% end %>
 
-SET(USED_LIBRARIES_LIBS "")
-<% component.used_libraries.each do |pkg| %>
+<% component.used_libraries.each do |pkg|
+name = pkg.name %>
 pkg_check_modules(<%= name %> REQUIRED <%= name %>)
 INCLUDE_DIRECTORIES(${<%= name %>_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_LIBRARY_DIRS})
-
 list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_LDFLAGS})
+<% end %>
+
+<% component.used_task_libraries.each do |pkg|
+name = pkg.name %>
+pkg_check_modules(<%= name %>_TASKLIB REQUIRED <%= name %>-tasks-${OROCOS_TARGET})
+INCLUDE_DIRECTORIES(${<%= name %>_TASKLIB_INCLUDE_DIRS})
+LINK_DIRECTORIES(${<%= name %>_TASKLIB_LIBRARY_DIRS})
+list(APPEND DEPENDENCIES_LDFLAGS ${<%= name %>_TASKLIB_LDFLAGS})
 <% end %>
 
 MESSAGE(STATUS "External dependencies libraries: ${DEPENDENCIES_LDFLAGS}")
