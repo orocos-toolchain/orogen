@@ -7,6 +7,6 @@ deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
 Name: <%= component.name %>Tasks
 Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
-Libs: -L${libdir} -l@libname@
+Libs: -L${libdir} -l<%= component.name %>-tasks-<%= component.orocos_target %>
 Cflags: -I${includedir}
 
