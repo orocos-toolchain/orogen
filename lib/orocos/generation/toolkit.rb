@@ -81,6 +81,7 @@ module Typelib
                 collection_iteration(:data, result, path, indent) do |element_type|
                     result << "#{indent}  #{element_type.cxx_name} const& data = *it;\n"
                     element_type.to_ostream(result, "", indent + "  ") << "\n"
+                    result << "#{indent}  io << \", \";\n"
                 end
             else
                 result << indent << "io << data#{path};"
