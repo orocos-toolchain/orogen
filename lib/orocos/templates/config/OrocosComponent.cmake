@@ -52,8 +52,7 @@ ENDIF(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/to
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR})
 
-SET(USED_TOOLKIT_LIBS "")
-<% component.used_toolkits.each do |name| %>
+<% component.used_toolkits.each do |name, _| %>
 pkg_check_modules(<%= name %>_TOOLKIT REQUIRED <%= name %>-toolkit-${OROCOS_TARGET})
 INCLUDE_DIRECTORIES(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_TOOLKIT_LIBRARY_DIRS})

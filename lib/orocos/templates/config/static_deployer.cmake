@@ -7,7 +7,7 @@ LINK_DIRECTORIES(${OrocosOCL_LIBRARY_DIRS})
 ADD_EXECUTABLE(<%= component.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main.cpp)
 TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
 
-<% component.used_toolkits.each do |name| %>
+<% component.used_toolkits.each do |name, _| %>
 TARGET_LINK_LIBRARIES(<%= component.name %> ${<%= name %>_TOOLKIT_LIBS})
 <% end %>
 <% if !component.tasks.empty? %>

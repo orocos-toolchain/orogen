@@ -88,15 +88,17 @@ module Orocos
 
 	    # Import a toolkit to be used by this component
 	    def using_toolkit(name)
-		if used_toolkits.include?(name)
+		if used_toolkits.any? { |n, _| n == name }
 		    return
 		end
 
 		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
-		registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c",
+		toolkit_registry = Typelib::Registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c",
                     :define => ['__orogen'], :rawflag => pkg.cflags.split(" ")
 
-		used_toolkits << name
+                registry.merge(toolkit_registry)
+
+		used_toolkits << [name, toolkit_registry]
 	    end
 	    
 	    # Find the Typelib::Type object for +name+. +name+ can be either a

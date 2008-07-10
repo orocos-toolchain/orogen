@@ -4,7 +4,7 @@
 #include <string>
 #include <rtt/TaskContext.hpp>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
-<% component.used_toolkits.each do |name| %>
+<% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
 <% end %>
 

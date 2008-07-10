@@ -293,7 +293,7 @@ module Orocos
 
 		generated_types = []
 		registry.each_type do |type|
-		    if type < Typelib::CompoundType
+		    if type < Typelib::CompoundType && !component.used_toolkits.any? { |_, r| r.get(type.name) }
 			generated_types << type
 		    end
 		end
