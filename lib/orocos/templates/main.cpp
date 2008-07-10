@@ -96,9 +96,11 @@ int ORO_main(int argc, char* argv[])
 <% reporter_id = 0 %>
 <% if !deployer.file_reporters.empty?
         deployer.file_reporters.each do |filename, (reporter_activity, method_calls)|
-            method_calls.each do |type, reported_activity, args| %>
+            method_calls.each do |type, peek, reported_activity, args| 
+                peek = peek ? "true" : "false" %>
+
                 task_<%= reporter_activity.name %>.connectPeers(&task_<%= reported_activity.name %>);
-                task_<%= reporter_activity.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>);
+                task_<%= reporter_activity.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>, <%= peek %>);
             <% end %>
         <% end %>
 <% end %>

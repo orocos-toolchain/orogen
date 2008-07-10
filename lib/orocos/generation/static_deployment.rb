@@ -243,16 +243,16 @@ module Orocos
             attr_reader :file_reporters
 
             # Common code for reporting definitions
-            def reporter(collection, key, object) # :nodoc:
+            def reporter(collection, key, object, peek) # :nodoc:
                 unless reporter_config = collection[key]
                     reporter = yield
                     reporter_config = collection[key] =  [reporter, []]
                 end
 
                 method = case object
-                         when TaskDeployment then ["Component", object, [object.name]]
-                         when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
-                         when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
+                         when TaskDeployment then ["Component", peek, object, [object.name]]
+                         when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
+                         when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
                          else raise ArgumentError, "cannot report #{object}"
                          end
 
@@ -261,8 +261,8 @@ module Orocos
             end
 
             # Sets up a file reporter for the given object (property, port or
-            # task context) to the given file
-            def file_report(object, filename)
+            # task context)
+            def file_report(object, filename, peek = true)
                 filename = filename.to_s
                 if !component.tasks.find { |t| t.name == "OCL::FileReporting" }
                     # Define the FileReporting task context
@@ -273,7 +273,7 @@ module Orocos
                     end
                 end
 
-                reporter(file_reporters, filename, object) do
+                reporter(file_reporters, filename, object, peek) do
                     reporter = task "FileReporter#{file_reporters.size}", "OCL::FileReporting"
                     reporter.ReportFile = filename
                     reporter
@@ -285,7 +285,7 @@ module Orocos
 
             # Sets up a tcp reporter for the given object (property, port or
             # task context) on the given port
-            def tcp_report(object, port)
+            def tcp_report(object, port, peek)
                 port = Integer(port)
                 if tcp_reporters.empty?
                     # Define the FileReporting task context
@@ -296,7 +296,7 @@ module Orocos
                     end
                 end
 
-                reporter(tcp_reporters, port, object) do
+                reporter(tcp_reporters, port, object, peek) do
                     reporter = task("TCPReporter#{tcp_reporters.size}", "OCL::TCPReporting")
                     reporter.port = port
                     reporter
