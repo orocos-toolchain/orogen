@@ -128,7 +128,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% deployer.peers.each do |a, b| %>
-    task_<%= a.activity.name %>.connectPeers(&task_<%= a.activity.name %>);
+    task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
 <% end %>
 
 <% deployer.connections.each do |src, dst|

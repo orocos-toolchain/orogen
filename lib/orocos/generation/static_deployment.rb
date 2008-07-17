@@ -319,7 +319,7 @@ module Orocos
 
             # Connects the two given ports
             def connect(from, to)
-                add_peers from, to
+                add_peers from.activity, to.activity
                 connections << [from, to]
             end
 
