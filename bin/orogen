@@ -6,6 +6,11 @@ require 'optparse'
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
+    opt.on("--[no-]corba", "enables/disables corba support [disabled]") do |flag|
+        if flag then Orocos::Generation.enable_corba
+        else Orocos::Generation.disable_corba
+        end
+    end
     opt.on("--verbose") { Orocos::Generation.logger.level = Logger::INFO }
     opt.on("--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
     opt.on("--help", "this help message") do

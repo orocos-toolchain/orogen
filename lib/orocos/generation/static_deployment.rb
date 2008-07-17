@@ -202,7 +202,10 @@ module Orocos
                 @loglevel = orocos_level
             end
 
-            def corba_enabled?; @corba_enabled || (@corba_enabled.nil? && component.corba_enabled?) end
+            # Makes the deployed component offer a CORBA interface. By default,
+            # follows the value of component.corba_enabled?, but this can be
+            # overriden by using #enable_corba and #disable_corba
+            def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
             def enable_corba;  @corba_enabled = true end
             def disable_corba; @corba_enabled = false end
 

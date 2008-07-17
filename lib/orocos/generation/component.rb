@@ -33,13 +33,15 @@ module Orocos
 	    end
 
 	    # If the generated component should start Corba support. It can be
-	    # changed by #enable_corba and #disable_corba (enabled by default)
+	    # changed by #enable_corba and #disable_corba (disabled by default)
+            #
+            # This setting can also be changed by the command line --corba and
+            # --no-corba flags. Use the #enable_corba and #disable_corba only when
+            # you want to force the use or no-use of corba.
 	    def corba_enabled?; @corba end
-	    # Enables corba in the generated component. See also #disable_corba
-	    # and the #corba attribute
+	    # Enables corba in the generated component. See #corba_enabled?.
 	    def enable_corba; @corba = true end
-	    # Disables corba in the generated component. See also #enable_corba
-	    # and the #corba attribute.
+	    # Disables corba in the generated component. See #corba_enabled?.
 	    def disable_corba; @corba = false end
 
             # The set of pkg-config dependencies we depend on
@@ -64,7 +66,7 @@ module Orocos
 		@tasks = []
 		@registry = Typelib::Registry.new
 
-		@corba   = true
+		@corba   = false
 		@version = "0.0"
 		@used_toolkits  = []
                 @used_libraries = []

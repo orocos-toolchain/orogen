@@ -226,7 +226,7 @@ module Orocos
 		end
 
                 @internal_dependencies = []
-		@corba_enabled = true
+		@corba_enabled = nil
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
 		@preloaded_registry = Typelib::Registry.new
@@ -283,11 +283,14 @@ module Orocos
 		raise NotImplementedError
 	    end
 
-	    def corba_enabled?; @corba_enabled end
+            # True if the CORBA-specific part of the toolkit should be enabled.
+            # By default, it follows the setting in the component. You can a
+            # per-toolkit specific setting by using #enable_corba and
+            # #disable_corba
+	    def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
 
-	    def disable_corba
-		@corba_enabled = false
-	    end
+            def enable_corba; @corba_enabled = true end
+	    def disable_corba; @corba_enabled = false end
 
 	    def to_code
 		toolkit = self
