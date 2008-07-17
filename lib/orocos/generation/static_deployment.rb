@@ -209,6 +209,8 @@ module Orocos
             def enable_corba;  @corba_enabled = true end
             def disable_corba; @corba_enabled = false end
 
+            # Deploys a new task using the given context name, and returns the
+            # corresponding TaskDeployment object.
             def task(name, context = name)
                 name    = name.to_s
                 context = context.to_s
@@ -223,6 +225,7 @@ module Orocos
                 deployment
             end
 
+            # Generates the code associated with this deployment setup
             def generate
                 deployer = self
 
@@ -232,7 +235,7 @@ module Orocos
 		Generation.save_automatic 'main.cpp', main
             end
 
-            def cmake_code
+            def cmake_code # :nodoc:
                 deployer = self
 
                 Generation.render_template 'config/static_deployer.cmake', binding
@@ -306,8 +309,15 @@ module Orocos
                 end
             end
 
+            # The set of peer pairs set up for this deployment. This is a set
+            # of [a, b] TaskDeployment objects.
             attr_reader :peers
+
+            # The set of connections set up for this deployment. This is a set
+            # of [from, to] PortDeployment objects.
             attr_reader :connections
+
+            # Connects the two given ports
             def connect(from, to)
                 add_peers from, to
                 connections << [from, to]
