@@ -157,6 +157,9 @@ module Orocos
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 		end
 
+                ignorefile = Generation.render_template "gitignore", binding
+                Generation.save_user ".gitignore", ignorefile
+
                 if !deployers.empty?
                     deployers.each { |t| t.generate }
                 end
