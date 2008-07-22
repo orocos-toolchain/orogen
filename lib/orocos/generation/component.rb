@@ -14,7 +14,12 @@ module Orocos
             # The target OS for orocos. Uses the OROCOS_TARGET environment
             # variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
-                ENV['OROCOS_TARGET'] || 'gnulinux'
+                user_target = ENV['OROCOS_TARGET']
+                if user_target && !user_target.empty?
+                    user_target
+                else
+                    'gnulinux'
+                end
             end
 
             # True if the orocos target is gnulinux
