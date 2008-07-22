@@ -6,7 +6,7 @@ require 'orocos/generation/base'
 module Typelib
     class Type
         def self.cxx_name(fullname = true)
-            full_name('::', fullname).gsub("<::", "< ::")
+            full_name('::', fullname).gsub("<::", "<")
         end
         def self.corba_name
             cxx_name

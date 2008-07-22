@@ -21,12 +21,12 @@ namespace <%= component.name %> {
 
 	<% unless task.properties.empty? %>/** Properties */<% end %>
     <% task.properties.each do |prop| %>
-	RTT::Property< <%= prop.type.full_name('::', true) %> > _<%= prop.name %>;
+	RTT::Property< <%= prop.type.cxx_name %> > _<%= prop.name %>;
     <% end %>
 
 	<% unless task.ports.empty? %>/** Ports */<% end %>
     <% task.ports.each do |port| %>
-	RTT::<%= port.orocos_class %>< <%= port.type.full_name('::', true) %> > _<%= port.name %>;
+	RTT::<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
     <% end %>
 
 	<% unless task.methods.empty? %>/** Methods */<% end %>
