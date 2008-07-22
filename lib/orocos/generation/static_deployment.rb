@@ -65,20 +65,31 @@ module Orocos
             def component; context.component end
 
             # The subclass of ActivityInterface which should be used to run this task
-            attr_reader :activity_type
+            dsl_attribute :activity_type do |type|
+                if context.required_activity? && activity_type
+                    raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity"
+                end
+                type.to_s
+            end
 
             # Makes this task's activity driven by a file descriptor. The underlying
             # task context must be a subclass of FileDescriptorActivity::Provider
-            def fd_driven; @activity_type = 'FileDescriptorActivity'; self end
+            def fd_driven; activity_type 'FileDescriptorActivity'; self end
 
             # Makes this task's activity driven by events on an IRQ line. The
             # underlying task context must be a subclass of
             # IRQActivity::Provider
-            def irq_driven; @activity_type = 'IRQActivity'; self end
+            def irq_driven; activity_type 'IRQActivity'; self end
 
             # Make this task being driven "on demand", i.e. when the step()
             # method is explicitely called on it.
-            def slave; @activity_type = 'SlaveActivity'; self end
+            def slave; activity_type 'SlaveActivity'; self end
+
+            # Make this task being driven by a set of events. If the task is
+            # itself declared data driven (through the TaskContext#data_driven
+            # call), the task will be triggered by the data availability on its
+            # input ports.
+            def event_driven; activity_type 'EventDrivenActivity'; self end
 
 	    # call-seq:
 	    #	period(period_in_seconds) => period_in_seconds
@@ -87,13 +98,13 @@ module Orocos
 	    # aperiodic
 	    dsl_attribute(:period) do |value|
                 value = Float(value)
-                @activity_type = 'PeriodicActivity'
+                activity_type 'PeriodicActivity'
                 value
             end
 
 	    # Marks this task as being aperiodic (the default). To make it
 	    # periodic, call #period with the required period
-	    def aperiodic; @activity_type = 'NonPeriodicActivity'; self end
+	    def aperiodic; activity_type 'NonPeriodicActivity'; self end
 
             # Call to make the deployer start this task when the component is
             # launched
