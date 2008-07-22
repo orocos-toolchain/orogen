@@ -4,6 +4,20 @@ class TC_GenerationTasks < Test::Unit::TestCase
     include Orocos::Generation::Test
     TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
 
+    def test_generation_validation
+	component = Component.new
+
+        # Should raise because there is no name
+        assert_raises(ArgumentError) { component.generate }
+
+        component.name "test"
+        # Should raise because there is no orogen file
+        assert_raises(ArgumentError) { component.generate }
+
+        component.instance_variable_set(:@deffile, "bla.orogen")
+        component.generate
+    end
+
     def test_task
 	component = Component.new
 	component.name 'test'

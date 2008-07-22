@@ -56,6 +56,10 @@ module Orocos
             # file which lists the tasks and their properties.
             attr_reader :used_task_libraries
 
+            # The definition file: the full path to the .orogen file which has been
+            # loaded to define this object
+            #
+            # nil if no file has been used
             attr_reader :deffile
 
             # If set, the directory in which the .orogen file is. This is used
@@ -131,11 +135,13 @@ module Orocos
 		end
 	    end
 
-
 	    def generate
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
+                unless deffile
+                    raise ArgumentError, "there is no orogen file for this component, cannot generate"
+                end
 
 		# For consistency in templates
 		component = self
