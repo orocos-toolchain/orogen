@@ -1,0 +1,30 @@
+name "DataDriven"
+version "1.0"
+disable_corba
+
+task_context "BufferReader" do
+    data_driven
+    buffer_port "input", "int", "r"
+end
+task_context "DataReader" do
+    data_driven
+    data_port "input", "int", "r"
+end
+
+task_context "Writer" do
+    data_port "data", "int", "w"
+    buffer_port "buffer", "int", 10, "w"
+end
+
+static_deployment do
+    w = task("Writer").period(1)
+    d = task("DataReader").start
+    b = task("BufferReader").start
+
+    connect w.data, d.input
+    connect w.buffer, b.input
+
+    disable_corba
+    browse w
+end
+
