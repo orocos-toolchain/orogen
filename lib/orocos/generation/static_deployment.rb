@@ -76,6 +76,10 @@ module Orocos
             # IRQActivity::Provider
             def irq_driven; @activity_type = 'IRQActivity'; self end
 
+            # Make this task being driven "on demand", i.e. when the step()
+            # method is explicitely called on it.
+            def slave; @activity_type = 'SlaveActivity'; self end
+
 	    # call-seq:
 	    #	period(period_in_seconds) => period_in_seconds
 	    #
