@@ -276,6 +276,7 @@ module Orocos
 
 		@component = component
 		@name = name
+                @task_type = "TaskContext"
 
 		@properties = Array.new
 		@methods    = Array.new
@@ -419,6 +420,14 @@ module Orocos
 	    #
 	    # See also #buffer_port
 	    def data_port(name, type, mode = 'rw'); port(DataPort, name, type, mode) end
+
+            # Declares that this task context is designed to be woken up when
+            # new data is available on one of its ports.
+            def data_driven
+                @task_type         = "DataDrivenTask"
+                @required_activity = true
+                default_activity 'event_driven'
+            end
 
 	    # Generate the code files for this task. This builds to classes:
 	    #

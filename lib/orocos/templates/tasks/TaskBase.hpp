@@ -2,7 +2,7 @@
 #define <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_BASE_HPP
 
 #include <string>
-#include <rtt/TaskContext.hpp>
+#include <rtt/<%= task.task_type %>.hpp>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 <% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
@@ -14,7 +14,7 @@
 
 namespace <%= component.name %> {
     class <%= task.name %>;
-    class <%= task.name %>Base : public RTT::TaskContext
+    class <%= task.name %>Base : public RTT::<%= task.task_type %>
     {
     protected:
 	<%= task.name %>& _self;
