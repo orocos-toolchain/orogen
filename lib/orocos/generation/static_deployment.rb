@@ -178,6 +178,11 @@ module Orocos
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
+            # True if we are generating for Linux
+            def linux?;     component.linux? end
+            # True if we are generating for Xenomai
+            def xenomai?;   component.xenomai? end
+
             def initialize(component, &block)
                 @task_activities = Array.new
                 @component = component
@@ -185,8 +190,6 @@ module Orocos
                 @connections = Array.new
                 @tcp_reporters = Hash.new
                 @peers       = Set.new
-
-                instance_eval(&block) if block_given?
             end
 
             KNOWN_LOG_LEVELS = {

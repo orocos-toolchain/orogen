@@ -61,8 +61,20 @@ module Orocos
                 end
             end
 
-	    def initialize(deffile = nil, &block)
-                @deffile = deffile
+            def self.load(file)
+                component = new
+                component.load(file)
+            end
+
+            def load(file)
+                @deffile = File.expand_path(file)
+
+                component = self
+                Kernel.eval(File.read(deffile), binding)
+                self
+            end
+
+	    def initialize
 		@tasks = []
 		@registry = Typelib::Registry.new
 
@@ -78,8 +90,6 @@ module Orocos
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
-
-		instance_eval(&block) if block_given?
 	    end
 
             # The deployment modes that are required for this generation
@@ -241,6 +251,7 @@ module Orocos
 		end
 
 		new_task = TaskContext.new(self, name, &block)
+		new_task.instance_eval(&block) if block_given?
 		tasks << new_task
 		tasks.last
 	    end
@@ -252,10 +263,7 @@ module Orocos
                 pkg = Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
                 orogen = pkg.deffile
 
-                component = TaskLibrary.new(self) do
-                    Kernel.eval(File.read(orogen), binding)
-                end
-
+                component = TaskLibrary.load(self, orogen)
                 component_tasks = component.tasks.map do |t|
                     # UGLY HACK
                     if t.name !~ /::/
@@ -272,6 +280,7 @@ module Orocos
 
             def static_deployment(&block)
                 deployer = StaticDeployment.new(self, &block)
+                deployer.instance_eval(&block) if block_given?
                 @deployers << deployer
                 deployer
             end
@@ -279,6 +288,10 @@ module Orocos
 
         class TaskLibrary < Component
             attr_reader :base_component
+
+            def self.load(base, file)
+                new(base).load(file)
+            end
 
             def initialize(component)
                 @base_component = component

@@ -241,6 +241,11 @@ module Orocos
 		new
 	    end
 
+            # True if we are generating for Linux
+            def linux?;     component.linux? end
+            # True if we are generating for Xenomai
+            def xenomai?;   component.xenomai? end
+
 	    def initialize(component, name, &block)
 		@component = component
 		if name

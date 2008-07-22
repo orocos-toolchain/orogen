@@ -230,6 +230,11 @@ module Orocos
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
+            # True if we are generating for Linux
+            def linux?;     component.linux? end
+            # True if we are generating for Xenomai
+            def xenomai?;   component.xenomai? end
+
             def class_name
                 if external_definition?
                     name
@@ -244,7 +249,7 @@ module Orocos
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
-	    def initialize(component, name, &block)
+	    def initialize(component, name)
 		if name !~ /^\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
 		end
@@ -257,8 +262,6 @@ module Orocos
 		@commands   = Array.new
 		@ports	    = Array.new
                 @initial_state = 'Stopped'
-
-		instance_eval(&block) if block
 	    end
 
 	    def pretty_print(pp)
