@@ -238,6 +238,12 @@ module Orocos
 
             # Generates the code associated with this deployment setup
             def generate
+                task_activities.each do |task|
+                    if !task.activity_type
+                        raise ArgumentError, "no activity type defined for #{task.name}. Chose one"
+                    end
+                end
+
                 deployer = self
 
 		# Generate the main.cpp file, which includes the ORO_main entry
