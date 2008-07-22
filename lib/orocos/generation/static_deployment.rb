@@ -225,6 +225,10 @@ module Orocos
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
+
+                if task_context.default_activity
+                    deployment.send(*task_context.default_activity)
+                end
                 deployment
             end
 

@@ -31,7 +31,7 @@ class Module
     # (or worse, using set_ and get_ prefixes), we can do
     #
     #    model = create_model do
-    #	    my_model_attribute 'bla'
+    #	    my_model_attribute 'bla', arg0, arg1, ...
     #
     #	    if (my_model_attribute)
     #		<do something>
@@ -45,14 +45,16 @@ class Module
 	    define_method(name) do |*value|
 		if value.empty?
 		    instance_variable_get("@#{name}")
-		elsif value.size > 1
-		    raise ArgumentError, "expected 0 or 1 argument (got #{value.size})"
 		elsif filter_block
-		    filtered_value = send("__dsl_attribute__#{name}__filter__", value.first)
+		    filtered_value = send("__dsl_attribute__#{name}__filter__", *value)
 		    instance_variable_set("@#{name}", filtered_value)
 		    self
 		else
-		    instance_variable_set("@#{name}", value.first)
+                    if value.size == 1
+                        instance_variable_set("@#{name}", value.first)
+                    else
+                        instance_variable_set("@#{name}", value)
+                    end
 		    self
 		end
 	    end

@@ -226,7 +226,17 @@ module Orocos
 	    attr_reader :component
 	    # The task name
 	    attr_reader :name
-
+            # The kind of activity that should be used by default. This is the
+            # name of the corresponding method on the deployment objects
+            # (:periodic, :aperiodic, :slave, :irq_driven, :fd_driven)
+            dsl_attribute :default_activity do |type, *args|
+                type = type.to_sym
+                if !TaskDeployment.method_defined?(type)
+                    raise ArgumentError, "#{type} is not a valid activity type"
+                end
+                [type, *args]
+            end
+            
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 

@@ -215,5 +215,21 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	compile_wc(component)
     end
+
+    def test_default_activity
+	component = Component.new 
+	component.name 'test'
+
+	task = component.task_context "task"
+        assert_raises(ArgumentError) { task.default_activity(:bla) }
+        task.default_activity :period, 10
+        assert_equal([:period, 10], task.default_activity)
+
+        deployment = component.static_deployment
+        activity = deployment.task "task"
+        assert_equal("PeriodicActivity", activity.activity_type)
+
+	compile_wc(component)
+    end
 end
 
