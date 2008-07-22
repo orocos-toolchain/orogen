@@ -32,7 +32,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	name = 'property_name'
 	doc  = 'property doc'
-	type = '/std/vector<double>'
+	type = '/std/vector</double>'
 
 	task = component.task_context(name)
 
