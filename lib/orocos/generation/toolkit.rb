@@ -257,7 +257,14 @@ module Orocos
                 file_registry = Typelib::Registry.new
 
                 options = { :define => '__orogen' }
-                options[:include] = component.base_dir if component.base_dir
+                options[:include] = []
+                options[:include] << component.base_dir if component.base_dir
+                component.used_libraries.each do |pkg|
+                    options[:include] << pkg.includedir
+                end
+                component.used_task_libraries.each do |pkg|
+                    options[:include] << pkg.includedir
+                end
 		file_registry.import(file, 'c', options)
 
                 registry.merge(file_registry)

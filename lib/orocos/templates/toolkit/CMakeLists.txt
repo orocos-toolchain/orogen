@@ -19,8 +19,13 @@ IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %
 	RENAME <%= toolkit.name %>.idl)
 ENDIF (<%= is_corba_enabled %>)
 
-# Generate the toolkit shared library, and link it to Corba-related stuff if
-# corba is enabled
+# Add the include directories to the component dependencies to the include path
+<% component.used_libraries.each do |pkg| %>
+pkg_check_modules(<%= pkg.name %> REQUIRED <%= pkg.name %>)
+INCLUDE_DIRECTORIES(${<%= pkg.name %>_INCLUDE_DIRS})
+<% end %>
+
+# Generate the toolkit shared library
 SET(libname <%= toolkit.name %>-toolkit-${OROCOS_TARGET})
 ADD_LIBRARY(${libname} SHARED <%= toolkit.name %>Toolkit.cpp ${CORBA_FILES})
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
