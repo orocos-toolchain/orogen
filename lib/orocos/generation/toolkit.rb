@@ -35,6 +35,16 @@ module Typelib
                     result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
                     element_type.to_orocos_decomposition(result, "", indent + "  ") << "\n"
                 end
+            elsif self < EnumType
+                property_name = path[1..-1]
+                result << indent << "switch(value#{path}) {\n"
+                keys.each do |name, _|
+                    result << indent << "  case #{name}:\n"
+                    result << indent << "    target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", \"#{name}\") );\n"
+                    result << indent << "    break;\n"
+                end
+                result << indent << "}\n"
+
             else
                 orocos_type = registry.orocos_equivalent(self).basename
                 property_name = path[1..-1]
@@ -83,6 +93,16 @@ module Typelib
                     element_type.to_ostream(result, "", indent + "  ") << "\n"
                     result << "#{indent}  io << \", \";\n"
                 end
+            elsif self < EnumType
+                property_name = path[1..-1]
+                result << indent << "switch(data#{path}) {\n"
+                keys.each do |name, _|
+                    result << indent << "  case #{name}:\n"
+                    result << indent << "    io << \"#{name}\";\n"
+                    result << indent << "    break;\n"
+                end
+                result << indent << "}\n"
+
             else
                 result << indent << "io << data#{path};"
             end
@@ -189,7 +209,9 @@ module Typelib
 
 	    if type = orocos_type_equivalence[user_type]
 		type
-	    else
+            elsif type < EnumType
+                get("/std/string")
+            else
 		raise TypeError, "#{user_type.name} does not have an equivalent in the Orocos RTT toolkit"
 	    end
 	end
