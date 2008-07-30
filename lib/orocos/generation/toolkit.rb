@@ -12,6 +12,15 @@ module Typelib
             cxx_name
         end
 
+        @@index_var_stack = Array.new
+        def self.index_var_stack; @@index_var_stack end
+        def self.allocate_index
+            index_var_stack.push "i#{index_var_stack.size}"
+            yield(index_var_stack.last)
+        ensure
+            index_var_stack.pop
+        end
+
         def self.collection_iteration(varname, result, path, indent)
             if name =~ /^([^<]+)<(.*)>$/
                 collection_name, element_type = $1, $2
@@ -56,14 +65,16 @@ module Typelib
             if opaque?
                 # HACK see comment at the beginning of to_orocos_decomposition
                 result << "#{indent}result#{path}.length(value#{path}.size());\n"
-                result << "#{indent}i = 0;\n"
-                collection_iteration(:value, result, path, indent) do |element_type|
-                    result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
-                    result << "#{indent}  CorbaType& real_result = result;\n"
-                    result << "#{indent}  #{element_type.corba_name} result;\n"
-                    element_type.code_to_corba(result, "", indent + "  ") << "\n";
-                    result << "#{indent}  real_result#{path}[i] = result;\n"
-                    result << "#{indent}  ++i;\n"
+                allocate_index do |index_var|
+                    result << "#{indent}int #{index_var} = 0;\n"
+                    collection_iteration(:value, result, path, indent) do |element_type|
+                        result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
+                        result << "#{indent}  CorbaType& real_result = result;\n"
+                        result << "#{indent}  #{element_type.corba_name} result;\n"
+                        element_type.code_to_corba(result, "", indent + "  ") << "\n";
+                        result << "#{indent}  real_result#{path}[#{index_var}] = result;\n"
+                        result << "#{indent}  ++#{index_var};\n"
+                    end
                 end
             else
                 result << indent << "result#{path} = value#{path};"
@@ -72,13 +83,15 @@ module Typelib
 	def self.code_from_corba(result, path = "", indent = "    ")
             if opaque?
                 result << "#{indent}result#{path}.resize(value#{path}.length());\n"
-                result << "#{indent}i = 0;\n"
-                collection_iteration(:result, result, path, indent) do |element_type|
-                    result << "#{indent}  CorbaType const& real_value = value;\n"
-                    result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[i];\n"
-                    result << "#{indent}  #{element_type.cxx_name} result;\n"
-                    element_type.code_from_corba(result, "", indent + "  ") << "\n";
-                    result << "#{indent}  ++i;\n"
+                allocate_index do |index_var|
+                    result << "#{indent}#{index_var} = 0;\n"
+                    collection_iteration(:result, result, path, indent) do |element_type|
+                        result << "#{indent}  CorbaType const& real_value = value;\n"
+                        result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
+                        result << "#{indent}  #{element_type.cxx_name} result;\n"
+                        element_type.code_from_corba(result, "", indent + "  ") << "\n";
+                        result << "#{indent}  ++#{index_var};\n"
+                    end
                 end
             else
                 result << indent << "result#{path} = value#{path};"
@@ -153,9 +166,11 @@ module Typelib
         def self.corba_name; raise NotImplementedError end
 
 	def self.convertion_code_helper(method, result, path, indent)
-	    result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
-	    deference.send(method, result, path + "[i]", indent + "    ") << "\n"
-	    result << indent << "}"
+            allocate_index do |index_var|
+                result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
+                deference.send(method, result, path + "[#{index_var}]", indent + "    ") << "\n"
+                result << indent << "}"
+            end
 	end
 	def self.to_orocos_decomposition(result, path, indent = "    ")
 	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
@@ -172,10 +187,12 @@ module Typelib
 
         def self.to_ostream(result, path, indent)
             result << indent << "io << \"[\\n\";\n"
-            result << indent << "for (int i = 0; i < #{length}; ++i) {\n" 
-		deference.to_ostream(result, "#{path}[i]", indent + "  ")
-                result << "#{indent}  if (i != #{length - 1}) io << \", \";\n"
-            result << indent << "}\n" 
+            allocate_index do |index_var|
+                result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
+                    deference.to_ostream(result, "#{path}[#{index_var}]", indent + "  ")
+                    result << "#{indent}  if (#{index_var} != #{length - 1}) io << \", \";\n"
+                result << indent << "}\n" 
+            end
             result << indent << "io << \" ]\";\n"
         end
     end

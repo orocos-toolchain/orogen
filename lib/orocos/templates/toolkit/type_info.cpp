@@ -17,7 +17,6 @@
 	    : RTT::TemplateTypeInfo<<%= type.basename %>, true>("<%= type.full_name('::', true) %>") {}
 
 	bool decomposeTypeImpl(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) const {
-	    int i; // index for array convertions
 	    target_bag.setType("<%= type.full_name('::', true) %>");
 <%= result = ""
 	    type.to_orocos_decomposition(result, "", " " * 12) 
