@@ -153,7 +153,7 @@ module Typelib
         def self.corba_name; raise NotImplementedError end
 
 	def self.convertion_code_helper(method, result, path, indent)
-	    result << indent << "for (i = 0; i < #{length}; ++i) {\n" 
+	    result << indent << "for (int i = 0; i < #{length}; ++i) {\n" 
 	    deference.send(method, result, path + "[i]", indent + "    ") << "\n"
 	    result << indent << "}"
 	end
