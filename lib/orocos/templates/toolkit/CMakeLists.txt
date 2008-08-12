@@ -43,3 +43,6 @@ SET(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= toolkit.name %>-toolkit-${OR
 CONFIGURE_FILE(<%= toolkit.name %>-toolkit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 INSTALL(FILES ${PKG_CONFIG_FILE} DESTINATION lib/pkgconfig)
 
+SET(TLB_FILE ${CMAKE_CURRENT_SOURCE_DIR}/<%= toolkit.name %>.tlb)
+INSTALL(FILES ${TLB_FILE} DESTINATION share/orogen)
+

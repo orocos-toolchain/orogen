@@ -378,6 +378,7 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
 		Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
 		Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
+                Generation.save_automatic "toolkit", "#{component.name}.tlb", registry.to_xml
 
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
