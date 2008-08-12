@@ -4,8 +4,13 @@ require 'utilrb/pkgconfig'
 module Orocos
     module Generation
 	class Component
-	    # The set of tasks defined for this generation
+	    # The set of tasks whose definition is available
 	    attr_reader :tasks
+
+            # The set of tasks defined by this component
+            def self_tasks
+                tasks.find_all { |t| !t.external_definition? }
+            end
 
 	    # The Typelib::Registry object holding all known
 	    # types defined in this component
@@ -178,8 +183,8 @@ module Orocos
 		    toolkit.generate
 		end
 
-		if !tasks.empty?
-		    tasks.each { |t| t.generate }
+		if !self_tasks.empty?
+		    self_tasks.each { |t| t.generate }
 
 		    pc = Generation.render_template "tasks", "tasks.pc", binding
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc

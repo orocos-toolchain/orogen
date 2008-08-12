@@ -91,7 +91,7 @@ MACRO(TARGET_APPEND_LDFLAGS TARGET FLAGS)
     ENDIF(CURRENT_LDFLAGS)
 ENDMACRO(TARGET_APPEND_LDFLAGS)
 
-<% if !component.tasks.empty? %>
+<% if !component.self_tasks.empty? %>
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
