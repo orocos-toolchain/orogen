@@ -1,23 +1,23 @@
-#ifndef <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_BASE_HPP
-#define <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_BASE_HPP
+#ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
+#define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
 
 #include <string>
-#include <rtt/<%= task.task_type %>.hpp>
-<% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
+#include <<%= task.superclass.header_file %>>
 <% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
 <% end %>
+<% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 
 <% unless task.methods.empty? %>#include <rtt/Method.hpp><% end %>
 <% unless task.commands.empty? %>#include <rtt/Command.hpp><% end %>
 <% unless task.ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
 namespace <%= component.name %> {
-    class <%= task.name %>;
-    class <%= task.name %>Base : public RTT::<%= task.task_type %>
+    class <%= task.basename %>;
+    class <%= task.basename %>Base : public <%= task.superclass.name %>
     {
     protected:
-	<%= task.name %>& _self;
+	<%= task.basename %>& _self;
 
 	<% unless task.properties.empty? %>/** Properties */<% end %>
     <% task.properties.each do |prop| %>
@@ -40,7 +40,7 @@ namespace <%= component.name %> {
     <% end %>
 
     public:
-	<%= task.name %>Base(std::string const& name);
+	<%= task.basename %>Base(std::string const& name);
     };
 }
 

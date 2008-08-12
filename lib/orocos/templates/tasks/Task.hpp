@@ -1,12 +1,12 @@
-#ifndef <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_HPP
-#define <%= component.name.upcase %>_<%= task.name.upcase %>_TASK_HPP
+#ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
 
-#include "<%= component.name.downcase %>/<%= task.name %>Base.hpp"
+#include "<%= component.name.downcase %>/<%= task.basename %>Base.hpp"
 
 namespace <%= component.name %> {
-    class <%= task.name %> : public <%= task.name %>Base
+    class <%= task.basename %> : public <%= task.basename %>Base
     {
-	friend class <%= task.name %>Base;
+	friend class <%= task.basename %>Base;
     protected:
     <% task.methods.each do |meth| %>
 	<%= meth.signature.gsub('(', " #{meth.method_name}(") %>;
@@ -17,7 +17,7 @@ namespace <%= component.name %> {
     <% end %>
 
     public:
-        <%= task.name %>(std::string const& name = "<%= task.name %>");
+        <%= task.basename %>(std::string const& name = "<%= task.name %>");
     };
 }
 

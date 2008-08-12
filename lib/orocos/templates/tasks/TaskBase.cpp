@@ -1,10 +1,14 @@
-#include "tasks/<%= task.name %>.hpp"
+#include "tasks/<%= task.basename %>.hpp"
 
 using namespace <%= component.name %>;
 
-<%= task.name %>Base::<%= task.name %>Base(std::string const& name)
-    : RTT::<%= task.task_type %>(name, TaskContext::<%= task.initial_state %>)
-    , _self(static_cast<<%= task.name %>&>(*this))
+<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name)
+<% if task.fixed_initial_state? %>
+    : <%= task.superclass.name %>(name)
+<% else %>
+    : <%= task.superclass.name %>(name, TaskContext::<%= task.initial_state %>)
+<% end %>
+    , _self(static_cast<<%= task.basename %>&>(*this))
     <% task.properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
     <% task.ports.each do |port| %>

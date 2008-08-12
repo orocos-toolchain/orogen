@@ -3,13 +3,8 @@
 <% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>Toolkit.hpp>
 <% end %>
-<% deployer.task_activities.each do |task|
-    if task.context.external_definition?
-        library_name, name = task.context.name.split("::") %>
-#include <<%= File.join(library_name.downcase, name) %>.hpp>
-    <% else %>
-#include <tasks/<%= task.context.name %>.hpp>
-    <% end %>
+<% deployer.task_activities.each do |task| %>
+#include <<%= task.context.header_file %>>
 <% end %>
 <% if deployer.corba_enabled? %>
 #include <rtt/corba/ControlTaskServer.hpp>

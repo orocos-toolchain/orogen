@@ -228,7 +228,12 @@ module Orocos
 	    attr_reader :name
             # The subclass of TaskContext which should be used to define this
             # class
-            attr_reader :task_type
+            attr_reader :superclass
+            # Declares that this task context is a subclass of the following type
+            def subclasses(task_context)
+                @superclass = component.find_task_context task_context
+            end
+
             # The kind of activity that should be used by default. This is the
             # name of the corresponding method on the deployment objects
             # (:periodic, :aperiodic, :slave, :irq_driven, :fd_driven)
@@ -250,17 +255,30 @@ module Orocos
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
+            # The name of the header file containing the C++ code which defines
+            # this task context
+            def header_file
+                if external_definition?
+                    library_name, name = self.name.split("::")
+                    "#{library_name.downcase}/#{name}.hpp"
+                else
+                    "tasks/#{basename}.hpp"
+                end
+            end
+
+            # Returns the name without an eventual library name
+            def basename
+                library_name, name = self.name.split("::")
+                name || library_name
+            end
+
             # True if we are generating for Linux
             def linux?;     component.linux? end
             # True if we are generating for Xenomai
             def xenomai?;   component.xenomai? end
 
             def class_name
-                if external_definition?
-                    name
-                else
-                    "#{component.name}::#{name}"
-                end
+                name
             end
 
 	    # Create a new task context in the given component and with
@@ -270,11 +288,12 @@ module Orocos
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
 	    def initialize(component, name)
-		if name !~ /^\w+$/
+		if name !~ /^(\w+::)?\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
 		end
 
-		@component = component
+		@component  = component
+                @superclass = component.default_task_superclass
 		@name = name
                 @task_type = "TaskContext"
 
@@ -301,13 +320,31 @@ module Orocos
 	    end
 	    private :check_uniqueness
 
-            # Initial state of the task. May be either 'Stopped' or 'PreOperational'
+            # Initial state of the task. May be either 'Stopped' or
+            # 'PreOperational'.  By default, it is 'Stopped'. Call
+            # #needs_configuration to make it PreOperational.  Some task
+            # contexts do not allow to change the start state, in which case
+            # their #fixed_initial_state? method returns true.
             attr_reader :initial_state
+
+            # If true, it is not possible to change the start state of this
+            # component
+            def fixed_initial_state?; !!@fixed_initial_state || (superclass && superclass.fixed_initial_state?) end
+            
+            # Declares that it is not possible to change the start state of
+            # this component
+            def fixed_initial_state; @fixed_initial_state = true end
+
 
             # Declares that this task needs to be configured before it is
             # started (i.e. its initial state will be PreOperational instead
             # of Stopped)
-            def needs_configuration; @initial_state = 'PreOperational' end
+            def needs_configuration
+                if fixed_initial_state? || superclass.fixed_initial_state?
+                    raise ArgumentError, "cannot change the start state of this task context"
+                end
+                @initial_state = 'PreOperational'
+            end
 
 	    # The set of properties for this task
 	    attr_reader :properties
@@ -444,13 +481,13 @@ module Orocos
 	    
 		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
 		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
-		Generation.save_automatic "tasks", "#{name}Base.cpp", base_code_cpp
-		Generation.save_automatic "tasks", "#{name}Base.hpp", base_code_hpp
+		Generation.save_automatic "tasks", "#{basename}Base.cpp", base_code_cpp
+		Generation.save_automatic "tasks", "#{basename}Base.hpp", base_code_hpp
 
 		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
 		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
-		Generation.save_user "tasks", "#{name}.cpp", code_cpp
-		Generation.save_user "tasks", "#{name}.hpp", code_hpp
+		Generation.save_user "tasks", "#{basename}.cpp", code_cpp
+		Generation.save_user "tasks", "#{basename}.hpp", code_hpp
 
 		self
 	    end

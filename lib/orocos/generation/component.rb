@@ -83,8 +83,23 @@ module Orocos
                 self
             end
 
+            @@standard_tasks = nil
+            def self.standard_tasks
+                if @@standard_tasks
+                    @@standard_tasks
+                else
+                    @@standard_tasks = []
+                    ["rtt.orogen", "ocl.orogen"].each do |orogen|
+                        component = TaskLibrary.load(self, File.expand_path(orogen, File.dirname(__FILE__)))
+                        @@standard_tasks.concat component.tasks
+                    end
+                end
+
+                @@standard_tasks
+            end
+
 	    def initialize
-		@tasks = []
+		@tasks = Component.standard_tasks.dup
 		@registry = Typelib::Registry.new
 
 		@corba   = false
@@ -100,6 +115,19 @@ module Orocos
 		# lists or property types
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 	    end
+
+            def default_task_superclass
+                find_task_context "RTT::TaskContext"
+            end
+
+            def find_task_context(obj)
+                if obj.respond_to?(:to_str)
+                    klass = tasks.find { |t| t.name == obj.to_str }
+                    klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
+                else
+                    obj
+                end
+            end
 
             # The deployment modes that are required for this generation
             attr_reader :deployers
@@ -218,7 +246,6 @@ module Orocos
 	    #   name(new_name) => new_name
 	    #
 	    # Sets the component name for this generation
-	    
 	    dsl_attribute :name do |new|
 		if toolkit && !toolkit.name
 		    toolkit.name new
@@ -260,11 +287,11 @@ module Orocos
 	    end
 
 	    def task_context(name, &block)
-		if tasks.find { |t| t.name == name }
+		if find_task_context(name)
 		    raise ArgumentError, "there is already a #{name} task"
 		end
 
-		new_task = TaskContext.new(self, name, &block)
+		new_task = TaskContext.new(self, "#{self.name}::#{name}")
 		new_task.instance_eval(&block) if block_given?
 		tasks << new_task
 		tasks.last
@@ -278,13 +305,6 @@ module Orocos
                 orogen = pkg.deffile
 
                 component = TaskLibrary.load(self, orogen)
-                component_tasks = component.tasks.map do |t|
-                    # UGLY HACK
-                    if t.name !~ /::/
-                        t.instance_variable_set :@name, "#{component.name}::#{t.name}"
-                    end
-                    t
-                end
                 tasks.concat component_tasks
                 if component.has_toolkit?
                     using_toolkit component.name
@@ -309,7 +329,7 @@ module Orocos
 
             def initialize(component)
                 @base_component = component
-                super
+                super()
             end
 
             def task_context(name, &block)

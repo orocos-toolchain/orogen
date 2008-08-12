@@ -1,0 +1,16 @@
+name "OCL"
+
+context = task_context "ReportingComponent" do
+    fixed_initial_state
+end
+
+task_context 'TCPReporting' do
+    subclasses "Reporter"
+    property 'port', 'int', 3142
+end
+
+task_context 'FileReporting' do
+    subclasses "FileReporting"
+    property 'ReportFile', 'std/string'
+end
+

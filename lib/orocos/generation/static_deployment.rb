@@ -233,10 +233,7 @@ module Orocos
                 name    = name.to_s
                 context = context.to_s
 
-                task_context = component.tasks.find { |t| t.name == context }
-                if !task_context
-                    raise ArgumentError, "no such task context #{context} defined"
-                end
+                task_context = component.find_task_context(context)
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
@@ -298,15 +295,6 @@ module Orocos
             # task context)
             def file_report(object, filename, peek = true)
                 filename = filename.to_s
-                if !component.tasks.find { |t| t.name == "OCL::FileReporting" }
-                    # Define the FileReporting task context
-                    component.task_context 'FileReporting' do |task|
-                        task.instance_variable_set :@name, "OCL::FileReporting"
-                        task.external_definition = true
-                        property 'ReportFile', 'std/string'
-                    end
-                end
-
                 reporter(file_reporters, filename, object, peek) do
                     reporter = task "FileReporter#{file_reporters.size}", "OCL::FileReporting"
                     reporter.ReportFile = filename
@@ -321,15 +309,6 @@ module Orocos
             # task context) on the given port
             def tcp_report(object, port, peek)
                 port = Integer(port)
-                if tcp_reporters.empty?
-                    # Define the FileReporting task context
-                    component.task_context 'TCPReporting' do |task|
-                        task.instance_variable_set :@name, "OCL::TCPReporting"
-                        task.external_definition = true
-                        property 'port', 'int', 3142
-                    end
-                end
-
                 reporter(tcp_reporters, port, object, peek) do
                     reporter = task("TCPReporter#{tcp_reporters.size}", "OCL::TCPReporting")
                     reporter.port = port
