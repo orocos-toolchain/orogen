@@ -200,11 +200,12 @@ module Orocos
 
             def initialize(component, &block)
                 @task_activities = Array.new
-                @component = component
+                @component      = component
                 @file_reporters = Hash.new
-                @connections = Array.new
-                @tcp_reporters = Hash.new
-                @peers       = Set.new
+                @data_loggers   = Hash.new
+                @connections    = Array.new
+                @tcp_reporters  = Hash.new
+                @peers          = Set.new
             end
 
             KNOWN_LOG_LEVELS = {
@@ -270,35 +271,61 @@ module Orocos
                 @main_task = task
             end
 
+            class Logger
+                attr_reader :component, :task, :config
+                def initialize(component, task)
+                    @component, @task, @config = component, task, Array.new
+                end
+
+                def report(object, peek)
+                    method = case object
+                             when TaskDeployment then ["Component", peek, object, [object.name]]
+                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
+                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
+                             else raise ArgumentError, "cannot report #{object}"
+                             end
+
+                    config << method
+                    self
+                end
+
+                def method_missing(*args)
+                    task.send(*args)
+                end
+            end
+
+            # Common code for reporting definitions
+            def logger_for(collection, key) # :nodoc:
+                collection[key] ||= Logger.new(self, yield)
+            end
+
             # The set of file reporters, as filename => [reporter_task, method_specifications]
             attr_reader :file_reporters
 
-            # Common code for reporting definitions
-            def reporter(collection, key, object, peek) # :nodoc:
-                unless reporter_config = collection[key]
-                    reporter = yield
-                    reporter_config = collection[key] =  [reporter, []]
-                end
-
-                method = case object
-                         when TaskDeployment then ["Component", peek, object, [object.name]]
-                         when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
-                         when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
-                         else raise ArgumentError, "cannot report #{object}"
-                         end
-
-                reporter_config[1] << method
-                reporter_config[0]
-            end
-
             # Sets up a file reporter for the given object (property, port or
             # task context)
-            def file_report(object, filename, peek = true)
+            def file_report(filename)
                 filename = filename.to_s
-                reporter(file_reporters, filename, object, peek) do
+                logger_for(file_reporters, filename) do
                     reporter = task "FileReporter#{file_reporters.size}", "OCL::FileReporting"
                     reporter.ReportFile = filename
                     reporter
+                end
+            end
+
+            attr_reader :data_loggers
+
+            # Gets a data logger object, defined from the logger component, for
+            # the given file
+            def data_logger(filename)
+                if !component.used_task_libraries.find { |t| t.name == "logger" }
+                    component.using_task_library "logger"
+                end
+
+                logger_for(data_loggers, filename.to_s) do
+                    logger = task("DataLogger#{data_loggers.size}", "logger::Logger")
+                    logger.file = filename.to_s
+                    logger
                 end
             end
             
@@ -307,9 +334,9 @@ module Orocos
 
             # Sets up a tcp reporter for the given object (property, port or
             # task context) on the given port
-            def tcp_report(object, port, peek)
+            def tcp_report(port)
                 port = Integer(port)
-                reporter(tcp_reporters, port, object, peek) do
+                logger_for(tcp_reporters, port) do
                     reporter = task("TCPReporter#{tcp_reporters.size}", "OCL::TCPReporting")
                     reporter.port = port
                     reporter

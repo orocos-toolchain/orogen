@@ -88,14 +88,23 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
-<% reporter_id = 0 %>
 <% if !deployer.file_reporters.empty?
-        deployer.file_reporters.each do |filename, (reporter_activity, method_calls)|
-            method_calls.each do |type, peek, reported_activity, args| 
+        deployer.file_reporters.each do |filename, logger|
+            logger.config.each do |type, peek, reported_activity, args| 
                 peek = peek ? "true" : "false" %>
 
-                task_<%= reporter_activity.name %>.connectPeers(&task_<%= reported_activity.name %>);
-                task_<%= reporter_activity.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>, <%= peek %>);
+                task_<%= logger.task.name %>.connectPeers(&task_<%= reported_activity.name %>);
+                task_<%= logger.task.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>, <%= peek %>);
+            <% end %>
+        <% end %>
+<% end %>
+<% if !deployer.data_loggers.empty?
+        deployer.data_loggers.each do |filename, logger|
+            logger.config.each do |type, peek, reported_activity, args| 
+                peek = peek ? "true" : "false" %>
+
+                task_<%= logger.task.name %>.connectPeers(&task_<%= reported_activity.name %>);
+                task_<%= logger.task.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>, <%= peek %>);
             <% end %>
         <% end %>
 <% end %>
