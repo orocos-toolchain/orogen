@@ -14,10 +14,10 @@
 	public RTT::TemplateTypeInfo<<%= type.basename %>, true>
     {
         <%= type.basename %>TypeInfo()
-	    : RTT::TemplateTypeInfo<<%= type.basename %>, true>("<%= type.full_name('::', true) %>") {}
+	    : RTT::TemplateTypeInfo<<%= type.basename %>, true>("<%= type.full_name %>") {}
 
 	bool decomposeTypeImpl(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) const {
-	    target_bag.setType("<%= type.full_name('::', true) %>");
+	    target_bag.setType("<%= type.full_name %>");
 <%= result = ""
 	    type.to_orocos_decomposition(result, "", " " * 12) 
 	    result
