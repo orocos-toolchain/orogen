@@ -57,8 +57,9 @@ module Orocos
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
 
-            # A set of libraries defining tasks. They have to provide a .orogen
-            # file which lists the tasks and their properties.
+            # A set of TaskLibrary objects describing libraries which define
+            # tasks. They have to provide a .orogen file which lists the tasks
+            # and their properties.
             attr_reader :used_task_libraries
 
             # The definition file: the full path to the .orogen file which has been
