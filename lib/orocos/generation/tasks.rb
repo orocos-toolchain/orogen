@@ -232,6 +232,9 @@ module Orocos
             # Declares that this task context is a subclass of the following type
             def subclasses(task_context)
                 @superclass = component.find_task_context task_context
+                if !superclass
+                    raise ArgumentError, "no such task context #{task_context}"
+                end
             end
 
             # The kind of activity that should be used by default. This is the
@@ -295,7 +298,6 @@ module Orocos
 		@component  = component
                 @superclass = component.default_task_superclass
 		@name = name
-                @task_type = "TaskContext"
 
 		@properties = Array.new
 		@methods    = Array.new
@@ -461,7 +463,8 @@ module Orocos
             # Declares that this task context is designed to be woken up when
             # new data is available on one of its ports.
             def data_driven
-                @task_type         = "DataDrivenTask"
+                subclasses "RTT::DataDrivenTask"
+
                 @required_activity = true
                 default_activity 'event_driven'
             end

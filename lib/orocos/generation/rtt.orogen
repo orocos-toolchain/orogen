@@ -1,5 +1,5 @@
 name "RTT"
 
 task_context "TaskContext"
-task_context "EventDrivenTask"
+task_context "DataDrivenTask"
 

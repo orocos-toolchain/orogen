@@ -5,12 +5,12 @@ context = task_context "ReportingComponent" do
 end
 
 task_context 'TCPReporting' do
-    subclasses "Reporter"
+    subclasses "ReportingComponent"
     property 'port', 'int', 3142
 end
 
 task_context 'FileReporting' do
-    subclasses "FileReporting"
+    subclasses "ReportingComponent"
     property 'ReportFile', 'std/string'
 end
 
