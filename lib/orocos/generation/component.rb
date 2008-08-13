@@ -310,7 +310,7 @@ module Orocos
                 orogen = pkg.deffile
 
                 component = TaskLibrary.load(self, orogen)
-                tasks.concat component_tasks
+                tasks.concat component.tasks
                 if component.has_toolkit?
                     using_toolkit component.name
                 end
