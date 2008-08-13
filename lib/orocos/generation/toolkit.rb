@@ -226,7 +226,7 @@ module Typelib
 
 	    if type = orocos_type_equivalence[user_type]
 		type
-            elsif type < EnumType
+            elsif user_type < EnumType
                 get("/std/string")
             else
 		raise TypeError, "#{user_type.name} does not have an equivalent in the Orocos RTT toolkit"
