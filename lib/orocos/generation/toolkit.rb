@@ -84,7 +84,7 @@ module Typelib
             if opaque?
                 result << "#{indent}result#{path}.resize(value#{path}.length());\n"
                 allocate_index do |index_var|
-                    result << "#{indent}#{index_var} = 0;\n"
+                    result << "#{indent}int #{index_var} = 0;\n"
                     collection_iteration(:result, result, path, indent) do |element_type|
                         result << "#{indent}  CorbaType const& real_value = value;\n"
                         result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
@@ -339,8 +339,7 @@ module Orocos
             # per-toolkit specific setting by using #enable_corba and
             # #disable_corba
 	    def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
-
-            def enable_corba; @corba_enabled = true end
+            def enable_corba;  @corba_enabled = true end
 	    def disable_corba; @corba_enabled = false end
 
 	    def to_code

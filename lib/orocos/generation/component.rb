@@ -3,6 +3,10 @@ require 'utilrb/pkgconfig'
 
 module Orocos
     module Generation
+        def self.corba_enabled?; @corba end
+        def self.enable_corba;   @corba = true end
+        def self.disable_corba;  @corba = false end
+
 	class Component
 	    # The set of tasks whose definition is available
 	    attr_reader :tasks
@@ -48,11 +52,11 @@ module Orocos
             # This setting can also be changed by the command line --corba and
             # --no-corba flags. Use the #enable_corba and #disable_corba only when
             # you want to force the use or no-use of corba.
-	    def corba_enabled?; @corba end
+	    def corba_enabled?; @corba.nil? ? Generation.corba_enabled? : @corba end
 	    # Enables corba in the generated component. See #corba_enabled?.
-	    def enable_corba; @corba = true end
+	    def enable_corba;   @corba = true end
 	    # Disables corba in the generated component. See #corba_enabled?.
-	    def disable_corba; @corba = false end
+	    def disable_corba;  @corba = false end
 
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
@@ -108,7 +112,7 @@ module Orocos
 		@tasks = Component.standard_tasks.dup
 		@registry = Typelib::Registry.new
 
-		@corba   = false
+		@corba   = nil
 		@version = "0.0"
 		@used_toolkits  = []
                 @used_libraries = []
