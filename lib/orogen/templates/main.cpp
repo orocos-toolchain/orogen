@@ -1,5 +1,5 @@
 #include <rtt/os/main.h>
-<% if component.toolkit %>#include "toolkit/<%= component.toolkit.name %>Toolkit.hpp"<% end %>
+<% if component.toolkit %>#include "toolkit/<%= component.name %>Toolkit.hpp"<% end %>
 <% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>Toolkit.hpp>
 <% end %>
@@ -55,7 +55,7 @@ int ORO_main(int argc, char* argv[])
    }
    <% end %>
 
-   <% if component.toolkit %>RTT::Toolkit::Import( <%= component.toolkit.name %>::Toolkit );<% end %>
+   <% if component.toolkit %>RTT::Toolkit::Import( <%= component.name %>::Toolkit );<% end %>
    <% component.used_toolkits.each do |name, _| %>
    RTT::Toolkit::Import( <%= name %>::Toolkit );
    <% end %>
