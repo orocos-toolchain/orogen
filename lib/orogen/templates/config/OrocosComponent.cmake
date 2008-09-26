@@ -40,7 +40,11 @@ SET(OROCOS_COMPONENT_INCLUDE ${OROCOS_RTT_INCLUDE_DIRS})
 pkg_check_modules(TYPELIB REQUIRED typelib)
     <% if component.toolkit.corba_enabled? %>
 FIND_PACKAGE(OrocosCORBA REQUIRED COMPONENTS Toolkit)
-    <% else %>
+    <% end %>
+<% end %>
+
+<% if component.corba_enabled? %>
+    <% if !component.toolkit || !component.toolkit.corba_enabled? %>
 FIND_PACKAGE(OrocosCORBA REQUIRED)
     <% end %>
 <% end %>
@@ -99,6 +103,9 @@ ENDMACRO(TARGET_APPEND_LDFLAGS)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
+
+INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${OrocosCORBA_DEFINES})
 
 <% component.deployers.each do |deploy| %>
     <%= deploy.cmake_code %>

@@ -17,7 +17,6 @@ IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %
 
     ADD_DEFINITIONS(${OrocosCORBA_Toolkit_DEFINES})
     INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-    INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${OrocosCORBA_Toolkit_INCLUDE_DIR})
     INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
 	DESTINATION include/orocos/toolkit
