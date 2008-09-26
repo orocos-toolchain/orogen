@@ -62,19 +62,18 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 		io << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
 		io << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
 		io << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
+		io << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
 		io << "\n"
 	    end
 	end
 
-	in_wc do
-	    output = nil
-	    Dir.chdir("build") do
-		assert(system("./test_toolkit"))
-		output = File.read('test_toolkit.xml')
-	    end
+	in_prefix do
+            output = nil
+            assert(system("bin/test_toolkit"))
+            output = File.read('test_toolkit.xml')
 
-	    expected = File.read(File.join(TEST_DATA_DIR, 'simple_value.xml'))
-	    assert_equal(expected, output)
+            expected = File.read(File.join(TEST_DATA_DIR, 'simple_value.xml'))
+            assert_equal(expected, output)
 	end
     end
     def test_disable_corba; test_toolkit_generation(false) end

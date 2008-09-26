@@ -1,23 +1,23 @@
-<bag type="Test::Simple">
-<int id=".a" description="">10</int>
-<char id=".b[i]" description="">a</char>
-<char id=".b[i]" description="">b</char>
-<char id=".b[i]" description="">c</char>
-<char id=".b[i]" description="">d</char>
-<char id=".b[i]" description="">e</char>
-<char id=".b[i]" description="">f</char>
-<char id=".b[i]" description="">g</char>
-<char id=".b[i]" description="">h</char>
-<char id=".b[i]" description="">i</char>
-<char id=".b[i]" description="">j</char>
-<char id=".b[i]" description="">k</char>
-<char id=".b[i]" description="">l</char>
-<char id=".b[i]" description="">m</char>
-<char id=".b[i]" description="">n</char>
-<char id=".b[i]" description="">o</char>
-<char id=".b[i]" description="">p</char>
-<char id=".b[i]" description="">q</char>
-<char id=".b[i]" description="">r</char>
-<char id=".b[i]" description="">s</char>
-<char id=".b[i]" description="">t</char>
+<bag type="/Test/Simple">
+<int id="a" description="">10</int>
+<char id="b[i0]" description="">a</char>
+<char id="b[i0]" description="">b</char>
+<char id="b[i0]" description="">c</char>
+<char id="b[i0]" description="">d</char>
+<char id="b[i0]" description="">e</char>
+<char id="b[i0]" description="">f</char>
+<char id="b[i0]" description="">g</char>
+<char id="b[i0]" description="">h</char>
+<char id="b[i0]" description="">i</char>
+<char id="b[i0]" description="">j</char>
+<char id="b[i0]" description="">k</char>
+<char id="b[i0]" description="">l</char>
+<char id="b[i0]" description="">m</char>
+<char id="b[i0]" description="">n</char>
+<char id="b[i0]" description="">o</char>
+<char id="b[i0]" description="">p</char>
+<char id="b[i0]" description="">q</char>
+<char id="b[i0]" description="">r</char>
+<char id="b[i0]" description="">s</char>
+<char id="b[i0]" description="">t</char>
 </bag>

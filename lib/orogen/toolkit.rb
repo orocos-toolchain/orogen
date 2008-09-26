@@ -270,7 +270,7 @@ module Orocos
             end
 
 	    def load(file, preload = false)
-		file = File.expand_path(file)
+		file = File.expand_path(file, component.base_dir)
 		if !File.file?(file)
 		    raise ArgumentError, "no such file or directory #{file}"
 		end

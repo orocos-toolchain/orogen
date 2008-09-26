@@ -1,7 +1,7 @@
 INCLUDE(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
 
 INCLUDE(RPATHHandling)
-CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/typelib")
+CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib")
 
 IF ( NOT CMAKE_BUILD_TYPE )
   SET( CMAKE_BUILD_TYPE Release )
@@ -36,14 +36,16 @@ OPTION( BUILD_TESTS "Turn me off to disable compilation of all tests" OFF )
 FIND_PACKAGE(OrocosRTT REQUIRED)
 SET(OROCOS_COMPONENT_INCLUDE ${OROCOS_RTT_INCLUDE_DIRS})
 
-<% if component.toolkit && component.toolkit.corba_enabled? %>
+<% if component.toolkit %>
+pkg_check_modules(TYPELIB REQUIRED typelib)
+    <% if component.toolkit.corba_enabled? %>
 FIND_PACKAGE(OrocosCORBA REQUIRED COMPONENTS Toolkit)
-<% elsif component.corba_enabled? %>
+    <% else %>
 FIND_PACKAGE(OrocosCORBA REQUIRED)
+    <% end %>
 <% end %>
 
-SET(OROCOS_COMPONENT_LIBRARIES ${OROCOS_RTT_LIBS} )
-INCLUDE_DIRECTORIES(${OROCOS_COMPONENT_INCLUDE})
+SET(OROCOS_COMPONENT_LIBRARIES ${OROCOS_RTT_LIBS})
 
 IF(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
     ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit )

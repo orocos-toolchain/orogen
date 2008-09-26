@@ -22,10 +22,10 @@ int ORO_main(int argc, char** argv)
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
 
-    TypeInfo* type = ti->type("Test::Simple");
+    TypeInfo* type = ti->type("/Test/Simple");
     if (! type)
     {
-	cerr << "cannot find the type in the type info repository" << endl;
+	cerr << "cannot find /Test/Simple in the type info repository" << endl;
 	return 1;
     }
 

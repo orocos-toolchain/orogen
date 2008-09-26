@@ -24,6 +24,9 @@ IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %
 	RENAME <%= component.name %>.idl)
 ENDIF (<%= is_corba_enabled %>)
 
+INCLUDE_DIRECTORIES(${TYPELIB_INCLUDE_DIRECTORIES})
+LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
+
 # Add the include directories to the component dependencies to the include path
 <% component.used_libraries.each do |pkg| %>
 pkg_check_modules(<%= pkg.name %> REQUIRED <%= pkg.name %>)
@@ -38,6 +41,7 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.hpp
     DESTINATION include/orocos/toolkit)
 
+TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES})
 IF (<%= is_corba_enabled %>)
     LINK_DIRECTORIES(${OROCOS_RTT_LINK_DIRS})
     TARGET_LINK_LIBRARIES(${libname} orocos-rtt-corba-${OROCOS_TARGET})

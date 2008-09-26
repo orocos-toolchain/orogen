@@ -1,0 +1,5 @@
+name "Test"
+toolkit('Test') do
+    load 'type_info_generation.h'
+end
+

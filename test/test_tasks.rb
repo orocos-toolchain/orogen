@@ -29,7 +29,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_raises(ArgumentError) { component.task_context(name) }
 
 	assert_kind_of(Generation::TaskContext, task)
-	assert_equal(name, task.name)
+	assert_equal("test::#{name}", task.name)
 
 	# Check name validation
 	assert_raises(ArgumentError) { component.task_context("bla bla") }

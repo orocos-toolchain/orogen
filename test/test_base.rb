@@ -72,7 +72,8 @@ class TC_GenerationBase < Test::Unit::TestCase
 	assert_equal(nil, obj.no_filter)
 	obj.no_filter 10
 	assert_equal(10, obj.no_filter)
-	assert_raises(ArgumentError) { obj.no_filter :bla, :blo }
+        obj.no_filter :bla, :blo
+	assert_equal([:bla, :blo], obj.no_filter)
 
 	cl.dsl_attribute :filter_integer do |value|
 	    Integer(value)
@@ -107,10 +108,24 @@ class TC_GenerationBase < Test::Unit::TestCase
 
     def test_component_generate
 	in_wc do
+            # No name, no orogen file
 	    component = Generation::Component.new
 	    assert_raises(ArgumentError) { component.generate }
+
+            # No orogen file
+	    component = Generation::Component.new
 	    component.name "cmp"
-	    assert_nothing_raised { component.generate }
+	    assert_raises(ArgumentError) { component.generate } 
+            
+            # No name
+	    component = Generation::Component.new
+	    component.instance_variable_set(:@deffile, File.join(TEST_DATA_DIR, "empty_component.orogen"))
+	    assert_raises(ArgumentError) { component.generate } 
+
+            # OK
+	    component = Generation::Component.new
+	    component.load(File.join(TEST_DATA_DIR, "empty_component.orogen"))
+	    assert_nothing_raised { component.generate } 
 	end
     end
 end

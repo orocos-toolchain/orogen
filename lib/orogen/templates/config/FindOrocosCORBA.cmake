@@ -2,8 +2,7 @@ IF (NOT OrocosRTT_FOUND)
     FIND_PACKAGE(OrocosRTT REQUIRED)
 ENDIF(NOT OrocosRTT_FOUND)
 
-
-FIND_FILE( OrocosCORBA_FOUND rtt/corba/ControlTaskProxy.hpp ${OROCOS_RTT_INCLUDE_DIRS})
+pkg_check_modules(OrocosCORBA orocos-rtt-corba-${OROCOS_TARGET})
 IF(NOT OrocosCORBA_FOUND)
     IF (OrocosCORBA_FIND_REQUIRED)
 	MESSAGE(FATAL_ERROR "RTT has not been built with CORBA support")
@@ -12,9 +11,7 @@ IF(NOT OrocosCORBA_FOUND)
     ENDIF (OrocosCORBA_FIND_REQUIRED)
 
 ELSE(NOT OrocosCORBA_FOUND)
-    SET(OrocosCORBA_LIBS orocos-rtt-corba-${OROCOS_TARGET})
-    SET(OrocosCORBA_INCLUDE_DIR "${OROCOS_RTT_INCLUDE_DIRS}/rtt;${OROCOS_RTT_INCLUDE_DIRS}/rtt/corba")
-    LIST(APPEND OROCOS_COMPONENT_INCLUDE ${OrocosCORBA_INCLUDE_DIR})
+    LIST(APPEND OROCOS_COMPONENT_INCLUDE ${OrocosCORBA_INCLUDE_DIRS})
 
     # First, find the actual implementation of the used ORB (TAO or OMNIORB)
     FIND_FILE( OrocosCORBA_config rtt/corba/rtt-corba-config.h ${OROCOS_RTT_INCLUDE_DIRS})
@@ -45,7 +42,7 @@ ELSE(NOT OrocosCORBA_FOUND)
                 SET(OrocosCORBA_Toolkit_DEFINES ${ORBSVCS_DEFINES})
                 # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
-                SET(OrocosCORBA_Toolkit_INCLUDE_DIR "${ORBSVCS_INCLUDE_DIR};${OROCOS_RTT_INCLUDE_DIRS}/rtt;${OROCOS_RTT_INCLUDE_DIRS}/rtt/corba")
+                SET(OrocosCORBA_Toolkit_INCLUDE_DIR "${ORBSVCS_INCLUDE_DIR};${OrocosCORBA_INCLUDE_DIRS}")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE})
             ELSE(OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
                 IF(NOT OrocosCORBA_FIND_QUIETLY)

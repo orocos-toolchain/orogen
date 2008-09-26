@@ -1,7 +1,6 @@
-struct Simple {
-    int a;
-    char b[20];
-};
+#ifndef __orogen
+#include <stdint.h>
+#endif
 
 namespace Test {
     struct Simple {
@@ -10,8 +9,8 @@ namespace Test {
     };
 
     struct Timestamp {
-	unsigned long sec;
-	unsigned long usec;
+	uint32_t sec;
+	uint32_t usec;
     };
 }
 

@@ -46,6 +46,22 @@ module Orocos
 		create_wc
 		Dir.chdir(working_directory, &block)
 	    end
+            def in_prefix(&block)
+		create_wc
+                old_pkgconfig = ENV['PKG_CONFIG_PATH']
+                in_wc do
+                    Dir.chdir("build") do
+                        if !system("make", "install")
+                            raise "failed to install"
+                        end
+                    end
+
+                    ENV['PKG_CONFIG_PATH'] += ":" + File.join(working_directory, 'prefix', 'lib', 'pkgconfig')
+                    Dir.chdir("prefix", &block)
+                end
+            ensure
+                ENV['PKG_CONFIG_PATH'] = old_pkgconfig
+            end
 
 	    def compile_wc(component)
 		in_wc do
@@ -55,7 +71,7 @@ module Orocos
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
-			if !system("cmake ..")
+			if !system("cmake -DCMAKE_INSTALL_PREFIX=#{working_directory}/prefix ..")
 			    raise "failed to configure"
 			elsif !system("make")
 			    raise "failed to build"
