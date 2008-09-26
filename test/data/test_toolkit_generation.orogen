@@ -1,5 +1,5 @@
 name "Test"
-toolkit('Test') do
+toolkit do
     load 'type_info_generation.h'
 end
 
