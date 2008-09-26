@@ -80,11 +80,15 @@ module Orocos
                 end
             end
 
+            # Create a new Component object by loading the given orogen
+            # specification file
             def self.load(file)
                 component = new
                 component.load(file)
+                component
             end
 
+            # Apply the component specification included in +file+ to +self+
             def load(file)
                 @deffile = File.expand_path(file)
 
@@ -94,6 +98,10 @@ module Orocos
             end
 
             @@standard_tasks = nil
+
+            # The set of standard components defined by RTT and OCL. They are
+            # defined as orogen-specification in the <tt>rtt.orogen</tt> and
+            # <tt>ocl.orogen</tt>, present in orogen source code.
             def self.standard_tasks
                 if @@standard_tasks
                     @@standard_tasks
@@ -126,10 +134,38 @@ module Orocos
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 	    end
 
+            # Returns the TaskContext object for the default task contexts
+            # superclass (i.e. RTT::TaskContext)
             def default_task_superclass
                 find_task_context "RTT::TaskContext"
             end
 
+            # Find the TaskContext object described by +obj+. +obj+ can either
+            # be a TaskContext instance, in which case it is returned, or a
+            # task context name, in which case the corresponding TaskContext
+            # object is searched in the set of known ones (i.e. the ones
+            # defined in this component or in the task libraries loaded
+            # by #using_task_library).
+            #
+            # If the task context is defined in this component, the leading
+            # namespace can be omitted. For example, in a component defined by
+            #
+            #   name 'myComponent'
+            #   task_context 'TC' do
+            #   end
+            #
+            # the following two statements are equivalent
+            #   find_task_context('TC')
+            #   find_task_context('myComponent::TC')
+            #
+            # This is not true for imported task contexts. For instance, for
+            #   name 'otherComponent'
+            #   using_task_library 'myComponent'
+            #
+            # the following statement will return nil:
+            #   find_task_context('TC')
+            # while this one works as expected:
+            #   find_task_context('myComponent::TC')
             def find_task_context(obj)
                 if obj.respond_to?(:to_str)
                     klass = tasks.find { |t| t.name == obj.to_str }
@@ -145,7 +181,14 @@ module Orocos
 	    # The set of toolkits that are to be used in this component
 	    attr_reader :used_toolkits
 
-	    # Import a toolkit to be used by this component
+            # Import an orogen-generated toolkit to be used by this component.
+            # The toolkit is searched by name through the pkg-config tool. It
+            # means that, if PREFIX is the installation prefix where the component
+            # is installed, then
+            #
+            #   PREFIX/lib/pkgconfig
+            #
+            # must be listed in the PKG_CONFIG_PATH environment variable.
 	    def using_toolkit(name)
 		if used_toolkits.any? { |n, _| n == name }
 		    return
@@ -160,9 +203,10 @@ module Orocos
 		used_toolkits << [name, toolkit_registry]
 	    end
 	    
-	    # Find the Typelib::Type object for +name+. +name+ can be either a
-	    # Typelib::Type object directly, or a type name which should be
-	    # registered into the component's registry
+            # Find the Typelib::Type object for +name+. +name+ can be either a
+            # Typelib::Type object directly, or a type name. In both cases, the
+            # type must have been defined either by the component's own toolkit
+            # or by the ones imported by #using_toolkit
 	    def find_type(type)
 		if type
 		    if type.respond_to?(:to_str)
@@ -173,6 +217,7 @@ module Orocos
 		end
 	    end
 
+            # Generate the component's source files
 	    def generate
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
@@ -206,6 +251,7 @@ module Orocos
 		self
 	    end
 
+            # Generate the CMake build system for this component
 	    def generate_build_system
 		component = self
 
@@ -253,7 +299,8 @@ module Orocos
 	    end
 
 	    # call-seq:
-	    #   name(new_name) => new_name
+	    #   name(new_name) => self
+            #   name => current_name
 	    #
 	    # Sets the component name for this generation
 	    dsl_attribute :name do |new|
@@ -264,35 +311,53 @@ module Orocos
 	    end
 
             # call-seq:
-            #   depends_on 'name'
+            #   using_library 'name' => self
             #
-            # Make the component build depends on the pkg-config package +name+
+            # Make the component build-depend on the pkg-config package +name+.
+            # This is done through the use of the pkg-config tool, so you need
+            # the external dependencies of your component to provide the
+            # necessary files (and those files to be in a directory listed in
+            # the +PKG_CONFIG_PATH+ environment variable).
             def using_library(name)
                 used_libraries << Utilrb::PkgConfig.new(name)
+                self
             end
 
 	    # call-seq:
-	    #   component.toolkit(toolkit_name = component.name) do
+	    #   component.toolkit do
 	    #      ... toolkit setup ...
 	    #   end => toolkit
-	    #
 	    #   component.toolkit => current toolkit or nil
 	    #
-	    # The first form defines the type toolkit this component defines and
-	    # builds a Toolkit object based what the code block does. The given
-	    # code block should call Toolkit instance methods to set up that new
-	    # object
+            # The first form associates a type toolkit for component, as a
+            # Toolkit intance. The given block can set up this Toolkit instance
+            # by calling any instance method defined on it.
 	    #
-	    # The second form returns a Toolkit object if one is defined, and nil
-	    # otherwise.
-	    def toolkit(*args, &block)
-		if args.empty? && !block_given?
+            # The second form returns a Toolkit object if one is defined, and
+            # nil otherwise.
+	    def toolkit(&block)
+		if !block_given?
 		    return @toolkit
+                elsif @toolkit
+                    raise ArgumentError, "a toolkit is already defined for this component"
 		end
 
 		@toolkit = Toolkit.new(self, &block)
 	    end
 
+            # Creates a new task context class of this name. The generated
+            # class is defined in the component's namespace. Therefore
+            #
+            #   name "test_component"
+            #   task_context "SpecificTask" do
+            #     .. task context specification ..
+            #   end
+            #
+            # defines a <tt>test_component::SpecificTask</tt> class.
+            #
+            # Task contexts are represented as instances of TaskContext. See
+            # the documentation of that class for more details.
+            #
 	    def task_context(name, &block)
 		if find_task_context(name)
 		    raise ArgumentError, "there is already a #{name} task"
@@ -304,9 +369,18 @@ module Orocos
 		tasks.last
 	    end
 
-            # Declares that this component depends on tasks defined in the
-            # given task library. After this call, the definitions of the tasks
-            # in the task library are available as 'name::task_context_name'
+            # Declares that this component depends on task contexts defined by
+            # the given orogen-generated component. After this call, the
+            # definitions of the tasks in the task library are available as
+            # 'name::task_context_name'
+            #
+            # As for #using_library, the component is searched by name by the
+            # pkg-config tool. It means that, if PREFIX is the installation
+            # prefix where the component is installed, then
+            #
+            #   PREFIX/lib/pkgconfig
+            #
+            # must be listed in the PKG_CONFIG_PATH environment variable.
             def using_task_library(name)
                 pkg = Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
                 orogen = pkg.deffile
@@ -319,6 +393,19 @@ module Orocos
                 used_task_libraries << component
             end
 
+            # call-seq:
+            #   static_deployment do
+            #     ... deployment specification ...
+            #   end
+            #
+            # Define a static deployment, i.e. the definition of TaskContext
+            # instances, to which Activity instances they should be linked and
+            # a set of connections.
+            #
+            # The deployment is represented by a StaticDeployment instance. The
+            # deployment specification is made of a set of method calls on that
+            # instance, so see the documentation of that class for the list of
+            # possible operations.
             def static_deployment(&block)
                 deployer = StaticDeployment.new(self, &block)
                 deployer.instance_eval(&block) if block_given?
@@ -327,9 +414,18 @@ module Orocos
             end
 	end
 
+        # Instances of this class represent a task library loaded in a
+        # component, i.e.  a set of TaskContext defined externally and imported
+        # using #using_task_library.
+        #
+        # For the task contexts imported this way,
+        # TaskContext#external_definition?  returns true.
         class TaskLibrary < Component
+            # The component in which the library has been imported
             attr_reader :base_component
 
+            # Import in the +base+ component the task library whose orogen
+            # specification is included in +file+
             def self.load(base, file)
                 new(base).load(file)
             end
@@ -339,14 +435,16 @@ module Orocos
                 super()
             end
 
-            def task_context(name, &block)
+            def task_context(name, &block) # :nodoc:
                 task = super
                 task.external_definition = true
                 task
             end
 
+            # True if this task library defines a toolkit
             attr_predicate :has_toolkit?, true
-            def toolkit(*args, &block)
+
+            def toolkit(*args, &block) # :nodoc:
                 if args.empty? && !block_given?
                     super
                 else
@@ -354,7 +452,12 @@ module Orocos
                 end
                 nil
             end
+
+            # Task library objects represent an import, and as such they cannot
+            # be generated.  This method raises NotImplementedError
             def generate; raise NotImplementedError end
+            # Task library objects represent an import, and as such they cannot
+            # be generated.  This method raises NotImplementedError
             def generate_build_system; raise NotImplementedError end
         end
     end

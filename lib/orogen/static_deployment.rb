@@ -19,11 +19,13 @@ module Orocos
         class MethodDeployment   < GenericObjectDeployment; end
         class CommandDeployment  < GenericObjectDeployment; end
 
+        # The instances of this class hold the deployment-specific information
+        # needed for a task.
         class TaskDeployment
+            # The task name
             attr_reader :name
+            # The TaskContext used to define this task
             attr_reader :context
-            attr_reader :realtime
-            attr_reader :priority
 
             attr_reader :properties
             attr_reader :ports
@@ -56,12 +58,16 @@ module Orocos
 	    def lowest_priority;  @priority = :lowest; self end
 	    # call-seq:
 	    #	priority prio => new_prio
+            #	priority => current_priority
 	    #
 	    # Sets the task priority as an integer value. Allowed values are
 	    # OS-specific, and for now the allowed range is unfortunately not
-	    # available from Ruby
+	    # available from Ruby.
+            #
+            # See also #highest_priority and #lowest_priority
 	    dsl_attribute(:priority) { |value| Integer(value) }
 
+            # The Component object this task is part of
             def component; context.component end
 
             # The subclass of ActivityInterface which should be used to run this task
@@ -141,7 +147,7 @@ module Orocos
 	    # Marks this task as being part of the realtime scheduling class
 	    def realtime; @realtime = true; self end
 	    # Marks this task as being part of the non-realtime scheduling
-	    # class
+	    # class (the default)
 	    def non_realtime; @realtime = false; self end
 
 	    # Returns the Orocos value for this task's priority
@@ -187,6 +193,10 @@ module Orocos
             end
         end
 
+        # Instances of this class are used to define a _deployment_. The
+        # deployment is the part in which the TaskContext classes are
+        # instanciated and associated with specific Activity classes.
+        #
         class StaticDeployment
             # The underlying Component object
             attr_reader :component
@@ -213,6 +223,11 @@ module Orocos
                 :debug => 'Debug'
             }
 
+            # call-seq:
+            #   loglevel level => self
+            #
+            # Sets the default log level. The known log levels are listed in
+            # KNOWN_LOG_LEVELS
             dsl_attribute :loglevel do |level|
                 orocos_level = KNOWN_LOG_LEVELS[level.to_sym]
                 if !orocos_level
@@ -225,11 +240,17 @@ module Orocos
             # follows the value of component.corba_enabled?, but this can be
             # overriden by using #enable_corba and #disable_corba
             def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
+
+            # Force the use of corba -- even though corba is not enabled in the
+            # component itself.
             def enable_corba;  @corba_enabled = true end
+            # Force the non-use of corba -- even though corba is enabled in the
+            # component itself.
             def disable_corba; @corba_enabled = false end
 
             # Deploys a new task using the given context name, and returns the
-            # corresponding TaskDeployment object.
+            # corresponding TaskDeployment object. This instance can be used to
+            # configure the task further (for instance specifying the activity)
             def task(name, context = name)
                 name    = name.to_s
                 context = context.to_s
@@ -357,12 +378,19 @@ module Orocos
                 connections << [from, to]
             end
 
+            # Declare that the given tasks are peers
             def add_peers(a, b)
                 peers << [a, b]
+                self
             end
 
-            # Sets up the TaskBrowser component and uses it to browse
-            # +task_name+
+            # call-seq:
+            #   browse => currently_browsed_task
+            #   browse(task) => self
+            #
+            # Sets up a TaskBrowser component to browse the given task, which
+            # is started when all tasks have been initialized. This is incompatible
+            # with the use of CORBA and only one browser can be defined.
             dsl_attribute :browse do |task|
                 if browse
                     raise ArgumentError, "can browse only one task"

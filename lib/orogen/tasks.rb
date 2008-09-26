@@ -25,9 +25,16 @@ module Orocos
 		@name, @type, @default_value = name, type, default_value
 	    end
 
+	    # call-seq:
+	    #	doc new_doc => self
+            #	doc =>  current_doc
+	    #
+	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
+        # Generic representation of ports. The actual ports are either
+        # instance of DataPort or of BufferPort.
 	class Port
 	    # The port task
 	    attr_reader :task
@@ -38,8 +45,11 @@ module Orocos
 	    # The IO mode ('r', 'w' or 'rw')
 	    attr_reader :mode
 
+            # True if it is possible to read this port
 	    def read_access?; mode =~ /r/ end
+            # True if it is possible to write this port
 	    def write_access?; mode =~ /w/ end
+            # True if this port is read-write
 	    def read_write?; read_access? && write_access? end
 
 	    def initialize(task, name, type, mode)
@@ -47,7 +57,8 @@ module Orocos
 		@task, @name, @type, @mode = task, name, type, mode
 	    end
 
-	    # Returns the name of the Orocos template class for this port
+            # Returns the name of the Orocos class for this port (i.e.  one of
+            # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class
 		basename = self.class.name.gsub(/.*::/, '')
 		if read_write? then basename
@@ -56,9 +67,20 @@ module Orocos
 		end
 	    end
 
+	    # call-seq:
+	    #	doc new_doc => self
+            #	doc =>  current_doc
+	    #
+	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
+
+        # Representation of a data port. Instances of this class are usually
+        # created by TaskContext#data_port
 	class DataPort < Port; end
+
+        # Representation of a buffer port. Instances of this class are usually
+        # created by TaskContext#buffer_port
 	class BufferPort < Port
 	    # The port size, which is the maximal number of items it can handle
 	    # at the same time
@@ -71,7 +93,7 @@ module Orocos
 	end
 
 	class Callable
-	    # The task this method is part of
+	    # The TaskContext instance this method is part of
 	    attr_reader :task
 	    # The method name
 	    attr_reader :name
@@ -89,16 +111,23 @@ module Orocos
 
 	    # call-seq:
 	    #	doc new_doc => self
+            #	doc =>  current_doc
 	    #
-	    # Set the documentation string and returns self
-	
+	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 
 	    # The set of arguments of this method, as an array of [name, type,
-	    # doc] elements
+	    # doc] elements. The +type+ objects are Typelib::Type instances.
+            # 
+            # See #argument
 	    attr_reader :arguments
 
-	    # Defines the next argument of this method
+            # Defines the next argument of this method. +name+ is the argument
+            # name and +type+ is either the type name as a string, or a
+            # Typelib::Type object. In both cases, the required type must
+            # be defined in the component, either because it is part of its
+            # own toolkit or because it has been imported by a Component#load_toolkit
+            # call.
 	    def argument(name, type, doc = "")
 		type = task.component.find_type(type)
 		arguments << [name, type, doc]
@@ -118,28 +147,61 @@ module Orocos
 	    end
 	end
 
+        # Representation of a RTT method. Instances of this object are usually
+        # created through TaskContext#method. The generated code will expect
+        # the class implementation (user-visible part) to define one method, to
+        # serve the call, with almost the same name that the method itself.
+        #
+        # For instance, the following definition
+        #   method('MyMethod')
+        #
+        # will require the user-visible part to define
+        #   [return value] myMethod([arguments]);
+        #
+        # (note that the first character of the method name has been set to
+        # lowercase to generate the C++ method name)
+        #
+        # The argument list of the C++ method (the first one) can be defined
+        # using Callable#argument. Its return type by using #returns. The
+        # default method signature is no return type (i.e. void) and no
+        # arguments.
+        #
+        # The name of the work and completion methods can be changed with
+        # #method_name.
+        #
+        # For instance,
+        #   method('MyMethod').
+        #     argument('x', 'double', 'the target X value').
+        #     argument('y', 'double', 'the target Y value').
+        #     method_name('move').
+        #     returns('double')
+        #
+        # will require the user-visible part to define
+        #   double move(double x, double y);
 	class Method < Callable
-	    # The C++ method name to be called to serve this Orocos method.
-	    # This defaults to +name+, but you can customize it by using
-	    # #method_name
-	    attr_reader :method_name
-
 	    def initialize(task, name)
 		super
 		@method_name = self.name.dup
 		method_name[0, 1] = method_name[0, 1].downcase
 	    end
 
-	    # The return type of this method
+	    # The return type of this method, as a Typelib::Type object.
+            # See #returns
 	    attr_reader :return_type
 
-	    # Set the return type for this method
+            # Sets the return type for this method. +type+ can either be the
+            # type name or a Typelib::Type object. In both cases, the required
+            # type must be defined in the component, either because it is part
+            # of its own toolkit or because it has been imported by a
+            # Component#load_toolkit call.
 	    def returns(type);
 		type = task.component.find_type(type)
 		@return_type = type
 		self
 	    end
 
+            # Returns the C++ signature for this method. Used in code
+            # generation only.
 	    def signature(with_names = true)
 		result = ""
 		if return_type
@@ -152,13 +214,59 @@ module Orocos
 
 	    # call-seq:
 	    #	method_name new_name => self
+            #	method_name => current_name
 	    #
-	    # Sets the name of the C++ method which is to be called to serve
-	    # this orocos method. It default to the method name itself.
-
+            # Gets or sets the name of the C++ method which is to be called to
+            # serve this orocos method. It default to the method name with the
+            # first character set to lowercase (MyMethod becomes myMethod).
 	    dsl_attribute(:method_name) { |value| value.to_s }
 	end
 
+        # Representation of a RTT command. Instances of this object are usually
+        # created through TaskContext#command. The generated code will expect
+        # the class implementation (user-visible part) to define two methods:
+        # * a _work_ method which is called once when the command is called. This
+        #   method has a boolean return type and should return true if the command
+        #   started, and false otherwise.
+        # * a _completion_ method which is called while the command is running.
+        #   This method should return true when the command is finished and false
+        #   otherwise.
+        #
+        # For instance, the following definition
+        #   command('MyCommand')
+        #
+        # will require the user-visible part to define
+        #   bool myCommand([arguments]);
+        #   bool isMyCommandCompleted([arguments]);
+        #
+        # (note that the first character of the command name has been set to
+        # lowercase for the work-method name)
+        #
+        # The argument list of the work method (the first one) can be defined
+        # using Callable#argument. For the completion method, three choices are
+        # available:
+        # * no arguments at all
+        # * the same first argument that the work method
+        # * all the same arguments than the work method
+        #
+        # The default is to have all arguments. This can be changed using
+        # #completion_no_arguments, #completion_first_argument and
+        # #completion_all_arguments.
+        #
+        # The name of the work and completion methods can be changed with
+        # #work_method_name and #completion_method_name.
+        #
+        # For instance,
+        #   command('my_command').
+        #     argument('x', 'double', 'the target X value').
+        #     argument('y', 'double', 'the target Y value').
+        #     work_method_name('move').
+        #     completion_method_name('hasReachedTarget').
+        #     completion_no_arguments.
+        #
+        # will require the user-visible part to define
+        #   bool move(double x, double y);
+        #   bool hasReachedTarget();
 	class Command < Callable
 	    # The C++ method name to be called to serve this Orocos command.
 	    # This defaults to +name+, but you can customize it by using
@@ -191,7 +299,7 @@ module Orocos
 	    # The completion method for this command has no argument at all
 	    def completion_no_arguments;   @completion_signature_type = :no_arguments   end
 	    # The completion method for this command will be given the same
-	    # first argument of the command method
+	    # first argument than the command method
 	    def completion_first_argument; @completion_signature_type = :first_argument end
 	    # The completion method for this command will be given the same
 	    # arguments than the command method
@@ -221,6 +329,32 @@ module Orocos
 	    end
 	end
 
+        # Representation of TaskContext classes. This is usually created using
+        # Component#task_context.
+        #
+        # In the generated code, two classes are actually generated:
+        # * the auto-generated code is in <tt>.orogen/tasks/[name]Base.cpp</tt>
+        #   and <tt>.orogen/tasks/[name]Base.hpp</tt>. These files define the
+        #   various attributes related to the task context (i.e. port and
+        #   attribute objects) in an <tt>[component.name]::[name]Base</tt> class.
+        # * the user-visible code is in <tt>tasks/[name].cpp</tt> and
+        #   <tt>tasks/[name].hpp</tt>. These files are the ones that define the
+        #   <tt>[component.name]::[name]</tt> class, which is a direct subclass
+        #   of the <tt>[component.name]::[name]Base</tt> class.
+        #
+        # By default, the +Base+ class derives from the
+        # <tt>RTT::TaskContext</tt> class.  This can be changed by using the
+        # #subclasses method.
+        #
+        # For all task context objects (ports, properties, ...) there is one
+        # attribute, of the right RTT class, added to the generated TaskContext
+        # subclass. The attribute name is always the _[object name], so for
+        # instance the presence of the following statement
+        #   data_port('time', 'double', 'w')
+        #
+        # will cause a <tt>WriteDataPort<double></tt> attribute named
+        # <tt>_time</tt> to be added to the generated class (more specifically,
+        # to the +Base+ subclass).
 	class TaskContext
 	    # The component this task is part of
 	    attr_reader :component
@@ -229,7 +363,11 @@ module Orocos
             # The subclass of TaskContext which should be used to define this
             # class
             attr_reader :superclass
-            # Declares that this task context is a subclass of the following type
+            # Declares that this task context is a subclass of the following
+            # TaskContext class. +task_context+ can either be a class name or a
+            # TaskContext instance. In both cases, it must be defined in the
+            # scope of the enclosing Component object -- i.e. either defined in
+            # it, or imported by a Component#using_task_library call.
             def subclasses(task_context)
                 @superclass = component.find_task_context task_context
                 if !superclass
@@ -240,6 +378,11 @@ module Orocos
             # The kind of activity that should be used by default. This is the
             # name of the corresponding method on the deployment objects
             # (:periodic, :aperiodic, :slave, :irq_driven, :fd_driven)
+            #
+            # This is a default value, i.e. the use of such an activity
+            # is not mandatory. If #required_activity is set to true, then
+            # this activity is the only kind of activity that can be used
+            # with this task context.
             dsl_attribute :default_activity do |type, *args|
                 if required_activity? && @default_activity
                     raise ArgumentError, "the #{default_activity[0]} activity is required, you cannot change it"
@@ -251,9 +394,10 @@ module Orocos
                 end
                 [type, *args]
             end
+
             # True if the current value of default_activity is actually
             # required by the task context implementation
-            attr_predicate :required_activity?
+            attr_predicate :required_activity?, true
             
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
@@ -339,8 +483,13 @@ module Orocos
 
 
             # Declares that this task needs to be configured before it is
-            # started (i.e. its initial state will be PreOperational instead
-            # of Stopped)
+            # started (i.e. its initial state will be PreOperational instead of
+            # Stopped).
+            #
+            # If #fixed_initial_state? returns true, then this method raises
+            # ArgumentError. This is done so that it is possible to declare
+            # that some task contexts's implementation require the initial
+            # state to be either PreOperational or Stopped.
             def needs_configuration
                 if fixed_initial_state? || superclass.fixed_initial_state?
                     raise ArgumentError, "cannot change the start state of this task context"
@@ -351,9 +500,24 @@ module Orocos
 	    # The set of properties for this task
 	    attr_reader :properties
 
-	    # Create a new property with the given name, type and default value
-	    # for this task. This returns the Property representing the new
-	    # property
+            # Create a new property with the given name, type and default value
+            # for this task. This returns the Property instance representing
+            # the new property, whose methods can be used to configure the
+            # property further. +type+ is the type name for that attribute.  It
+            # can be either in Typelib notation (/std/string) or in C++
+            # notation (std::string). This type must be defined either by the
+            # component's own toolkit, or by toolkits imported with
+            # Component#load_toolkit.
+            #
+            # The generated task context will have a <tt>_[property name]</tt>
+            # attribute of class RTT::Property<type>.
+            #
+            # For instance, the following definition
+            #   property('device_name', '/std/string/, '').
+            #       doc 'the device name to connect to'
+            #
+            # Will generate a task context with a <tt>_device_name</tt>
+            # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
 		check_uniqueness(:properties, name)
 		type = component.find_type(type)
@@ -376,15 +540,21 @@ module Orocos
 		methods.last
 	    end
 
-
 	    # The set of commands for this task.
 	    attr_reader :commands
 
-	    # Create a new command with the given name. Use the returned Command
-	    # object to configure the method further.
-	    #
-	    # In Orocos, a command is an asynchronous method call to a task
-	    # context.
+            # Create a new command with the given name. Use the returned
+            # Command object to configure the method further. In Orocos, a
+            # command is an asynchronous method call to a task context.
+            #
+            # The generated class will have a <tt>_[command name]</tt>
+            # attribute of class RTT::Command<>. For instance,
+            #
+            #   command('my_command').
+            #     doc 'description of command'
+            #
+            # will generate an attribute <tt>_my_command</tt> of type
+            # RTT::Command. The 
 	    def command(name)
 		check_uniqueness :commands, name
 		commands << Command.new(self, name)
@@ -418,13 +588,14 @@ module Orocos
 	    #	buffer_port 'name', '/type', buffer_size, 'rw'
 	    #	buffer_port 'name', '/type', buffer_size, 'w'
 	    #
-	    # Add a new buffer port with the given name, type, size and mode.
-	    # Mode defines in what direction the port accept data: it is a
-	    # string and can be one of r, w, and rw. +type+ is either a
-	    # Typelib::Type object or a type name defined in the component type
-	    # registry. The size is, for write ports, how many items can be
-	    # buffered at the same time in the port. It should not be provided
-	    # for read-only ports.
+            # Add a new buffer port with the given name, type, size and mode.
+            # Mode defines in what direction the port accept data: it is a
+            # string and can be one of r, w, and rw. +type+ is either a
+            # Typelib::Type object or a type name defined in the component
+            # (i.e.  either defined in its own toolkit or loaded with
+            # Component#load_toolkit). The size is, for write ports, how many
+            # items can be buffered at the same time in the port. It should not
+            # be provided for read-only ports.
 	    #
 	    # See also #data_port
 	    def buffer_port(name, type, *spec)
@@ -454,14 +625,16 @@ module Orocos
 	    # Add a new buffer port with the given name, type and mode.
 	    # Mode defines in what direction the port accept data: it is a
 	    # string and can be one of r, w, and rw. +type+ is either a
-	    # Typelib::Type object or a type name defined in the component type
-	    # registry.
+	    # Typelib::Type object or a type name defined in the component (i.e.
+            # either defined in its own toolkit or loaded with Component#load_toolkit).
 	    #
 	    # See also #buffer_port
 	    def data_port(name, type, mode = 'rw'); port(DataPort, name, type, mode) end
 
             # Declares that this task context is designed to be woken up when
-            # new data is available on one of its ports.
+            # new data is available on one of its ports. This requires the
+            # RTT::DataDrivenTask class to be installed in your installation of
+            # Orocos::RTT.
             def data_driven
                 subclasses "RTT::DataDrivenTask"
 

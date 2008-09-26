@@ -255,20 +255,45 @@ module Orocos
 		instance_eval(&block) if block_given?
 	    end
 
+            # Loads the types defined in +file+, with the same constraints as
+            # for #load, but will not generate toolkit code for it. This is
+            # needed to load system files for which there is a "natural"
+            # support in Orocos.
             def preload(file)
                 cpp_source = Tempfile.new("preload")
 
                 cpp_source.puts "#include <#{file}>"
                 cpp_source.flush
 
-                puts cpp_source.path
-                puts File.read(cpp_source.path)
-
                 load(cpp_source.path, true)
             ensure
                 cpp_source.close if cpp_source
             end
 
+            # call-seq:
+            #   load(file)
+            #
+            # Load the types defined in the specified file.
+            #
+            # +file+ may contain pure-C code with the following C++ additions:
+            # * namespaces
+            # * <tt>std::vector< <i>type</i> ></tt>. You *have* to specify
+            #   <tt>std::vector</tt> (and not simply +vector+, as the <tt>using
+            #   namespace</tt> directive is not supported by orogen.
+            # 
+            # Moreover, the orogen tool defines the <tt>__orogen</tt>
+            # preprocessor symbol when it loads the file. It is therefore
+            # possible to define constructors, destructors, operators and (more
+            # generically) methods by enclosing them in a block like
+            #   #ifndef __orogen
+            #   ... C++ code not supported by orogen ...
+            #   #endif
+            # 
+            # <b>The use of virtual methods and inheritance is completely
+            # forbidden</b>. The types need to remain "value types" without
+            # inheritance. For those who want to know, this is needed so that
+            # orogen is able to compute the memory layout of the types (i.e.
+            # the exact offsets for all the fields in the structures).
 	    def load(file, preload = false)
 		file = File.expand_path(file, component.base_dir)
 		if !File.file?(file)
@@ -300,9 +325,16 @@ module Orocos
             # depend. See #internal_dependency.
             attr_reader :internal_dependencies
 
-            # Declare that the toolkit depends on a package defined inside this
-            # component. The only effect is to make the generated .pc file depend
-            # on the said package.
+            # The second one allows to specify a dependency of the toolkit on a
+            # library defined in the same CMake package. The toolkit's .pc file
+            # will therefore depend on the specified pkg-config package (among
+            # other things). Do that when you define a library of types and
+            # want people to be able to use it even though they don't have
+            # orogen.
+            #
+            # In other words, it allows to build packages were:
+            #  * a normal C/C++ library is defined/built/install
+            #  * an orogen toolkit is defined, which wraps the types defined by this library
             def internal_dependency(name, version = nil)
                 @internal_dependencies << [name, version]
             end
