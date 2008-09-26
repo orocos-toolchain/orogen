@@ -48,6 +48,10 @@ class Module
 		if value.empty?
 		    instance_variable_get("@#{name}")
 		elsif filter_block
+                    if filter_block.arity >= 0 && value.size != filter_block.arity
+                        raise ArgumentError, "too much arguments. Got #{value.size}, expected #{filter_block.arity}"
+                    end
+
 		    filtered_value = send("__dsl_attribute__#{name}__filter__", *value)
 		    instance_variable_set("@#{name}", filtered_value)
 		    self
