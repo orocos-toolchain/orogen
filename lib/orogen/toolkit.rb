@@ -238,24 +238,13 @@ module Orocos
 		end
 	    end
 
-	    dsl_attribute :name do |new|
-		new = new.to_s
-		if new !~ /^\w+$/
-		    raise "toolkit names can only contain alphanumeric characters and _"
-		end
-		new
-	    end
-
             # True if we are generating for Linux
             def linux?;     component.linux? end
             # True if we are generating for Xenomai
             def xenomai?;   component.xenomai? end
 
-	    def initialize(component, name, &block)
+	    def initialize(component, &block)
 		@component = component
-		if name
-		    self.name name
-		end
 
                 @internal_dependencies = []
 		@corba_enabled = nil
@@ -359,16 +348,16 @@ module Orocos
 
 		types, hpp, cpp, corba, idl = to_code
 		if toolkit.corba_enabled?
-		    Generation.save_automatic("toolkit", "#{name}ToolkitCorba.hpp", corba)
-		    Generation.save_automatic("toolkit", "#{name}Toolkit.idl", idl)
+		    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba)
+		    Generation.save_automatic("toolkit", "#{component.name}Toolkit.idl", idl)
 		end
-		Generation.save_automatic("toolkit", "#{name}ToolkitTypes.hpp", types)
-		Generation.save_automatic("toolkit", "#{name}Toolkit.hpp", hpp)
-		Generation.save_automatic("toolkit", "#{name}Toolkit.cpp", cpp)
+		Generation.save_automatic("toolkit", "#{component.name}ToolkitTypes.hpp", types)
+		Generation.save_automatic("toolkit", "#{component.name}Toolkit.hpp", hpp)
+		Generation.save_automatic("toolkit", "#{component.name}Toolkit.cpp", cpp)
                 Generation.save_automatic "toolkit", "#{component.name}.tlb", registry.to_xml
 
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
-		Generation.save_automatic("toolkit", "#{toolkit.name}-toolkit.pc.in", pkg_config)
+		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 	    end
 	end
     end

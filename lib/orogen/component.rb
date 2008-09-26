@@ -288,12 +288,9 @@ module Orocos
 	    def toolkit(*args, &block)
 		if args.empty? && !block_given?
 		    return @toolkit
-		elsif args.size > 1
-		    raise ArgumentError, "expected 0 or 1 arguments, got #{args.size}"
 		end
 
-		toolkit_name = args.first || self.name
-		@toolkit = Toolkit.new(self, toolkit_name, &block)
+		@toolkit = Toolkit.new(self, &block)
 	    end
 
 	    def task_context(name, &block)

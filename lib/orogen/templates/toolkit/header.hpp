@@ -1,5 +1,5 @@
-#ifndef <%= name.upcase %>_TOOLKIT_PLUGIN_HPP
-#define <%= name.upcase %>_TOOLKIT_PLUGIN_HPP
+#ifndef <%= component.name.upcase %>_TOOLKIT_PLUGIN_HPP
+#define <%= component.name.upcase %>_TOOLKIT_PLUGIN_HPP
 
 #include <rtt/Toolkit.hpp>
 
@@ -7,7 +7,7 @@ namespace Typelib {
     class Registry;
 }
 
-namespace <%= name %> {
+namespace <%= component.name %> {
     static const int ORO_UNTYPED_PROTOCOL_ID = 42;
     class BufferGetterBase;
 

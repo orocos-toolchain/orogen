@@ -1,7 +1,7 @@
-#ifndef OROCOS_<%= name.upcase %>_CORBA_HPP
-#define OROCOS_<%= name.upcase %>_CORBA_HPP
+#ifndef OROCOS_<%= component.name.upcase %>_CORBA_HPP
+#define OROCOS_<%= component.name.upcase %>_CORBA_HPP
 
-#include "<%= name %>ToolkitC.h"
+#include "<%= component.name %>ToolkitC.h"
 #include <rtt/corba/CorbaConversion.hpp>
 
 namespace RTT {

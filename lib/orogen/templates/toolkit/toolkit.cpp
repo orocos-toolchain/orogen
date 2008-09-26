@@ -3,14 +3,14 @@
 #include <rtt/PropertyBag.hpp>
 #include <rtt/Toolkit.hpp>
 #include <rtt/TemplateTypeInfo.hpp>
-#include "<%= name %>Toolkit.hpp"
-#include "<%= name %>ToolkitTypes.hpp"
+#include "<%= component.name %>Toolkit.hpp"
+#include "<%= component.name %>ToolkitTypes.hpp"
 #include <typelib/value_ops.hh>
 #include <typelib/pluginmanager.hh>
 #include <utilmm/configfile/pkgconfig.hh>
 <% if corba_enabled? %>
 #include <rtt/corba/CorbaTemplateProtocol.hpp>
-#include "<%= name %>ToolkitCorba.hpp"
+#include "<%= component.name %>ToolkitCorba.hpp"
 <% end %>
 
 using RTT::Property;
@@ -26,7 +26,7 @@ using RTT::DataSourceBase;
 <% end %>
 <%= Generation.adapt_namespace(namespace, '/') %>
 
-namespace <%= name %> {
+namespace <%= component.name %> {
     template<typename T>
     struct BufferGetter : public RTT::detail::TypeTransporter
     {
@@ -59,7 +59,7 @@ namespace <%= name %> {
     };
 
 #define TOOLKIT_PACKAGE_NAME_aux0(target) #target
-#define TOOLKIT_PACKAGE_NAME_aux(target) "<%= name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
+#define TOOLKIT_PACKAGE_NAME_aux(target) "<%= component.name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
 #define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
 
     ToolkitPlugin::ToolkitPlugin()
@@ -69,7 +69,7 @@ namespace <%= name %> {
         delete m_registry;
     }
 
-    std::string ToolkitPlugin::getName() { return "<%= name %>"; }
+    std::string ToolkitPlugin::getName() { return "<%= component.name %>"; }
     bool ToolkitPlugin::loadTypes()
     {
 	TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();

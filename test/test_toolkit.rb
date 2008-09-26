@@ -19,33 +19,29 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
     def test_toolkit_load
 	component = Component.new
+        component.name 'test_toolkit_load'
 
-	assert_raises(RuntimeError) do
-	    component.toolkit('Test') do
-		load 'does_not_exist'
-	    end
-	end
+        assert_raises(RuntimeError) do
+            component.toolkit do
+                load File.join(TEST_DATA_DIR, 'exists')
+            end
+        end
 
-	assert_raises(RuntimeError) do
-	    component.toolkit('Test') do
-		load 'does_not_exist.h'
-	    end
-	end
-
-	assert_raises(RuntimeError) do
-	    component.toolkit do
-		load 'does_not_exist.h'
-	    end
-	end
+        assert_raises(ArgumentError) do
+            component.toolkit do
+                load 'does_not_exist.h'
+            end
+        end
     end
 
     def test_toolkit_generation(with_corba = true)
-	component = Component.new do
-	    toolkit('Test') do
-		load File.join(TEST_DATA_DIR, 'type_info_generation.h')	
-		disable_corba unless with_corba
-	    end
-	end
+	component = Component.new
+        component.load File.join(TEST_DATA_DIR, 'test_toolkit_generation.orogen')
+        if with_corba
+            component.enable_corba
+        else
+            component.disable_corba
+        end
 
 	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
 	in_wc do
