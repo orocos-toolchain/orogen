@@ -97,6 +97,20 @@ module Typelib
     end
 
     class EnumType
+	def self.to_orocos_decomposition(result, path, indent = "    ")
+            property_name = path[1..-1]
+            result << indent << "{ std::string enum_name;\n"
+            result << indent << "  switch(value#{path}) {\n"
+            keys.each do |name, _|
+                result << indent << "    case #{name}:\n"
+                result << indent << "      enum_name = \"#{name}\";\n"
+                result << indent << "      break;\n"
+            end
+            result << indent << "  }\n"
+            result << indent << "  target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", enum_name) );\n"
+            result << indent << "}"
+	end
+
         def self.to_ostream(result, path, indent)
             property_name = path[1..-1]
             result << indent << "switch(data#{path}) {\n"
@@ -107,6 +121,30 @@ module Typelib
             end
             result << indent << "}\n"
         end
+	def self.code_to_corba(result, path = "", indent = "    ")
+            namespace = self.namespace('::')
+            result << indent << "switch(value#{path}) {\n"
+            keys.each do |name, _|
+                result << indent << "  case #{namespace}#{name}:\n"
+                result << indent << "    result#{path} = #{namespace}Corba::#{name};\n"
+                result << indent << "    break;\n"
+            end
+            result << indent << "}\n"
+
+	    result
+	end
+	def self.code_from_corba(result, path = "", indent = "    ")
+            namespace = self.namespace('::')
+            result << indent << "switch(value#{path}) {\n"
+            keys.each do |name, _|
+                result << indent << "  case #{namespace}Corba::#{name}:\n"
+                result << indent << "    result#{path} = #{namespace}#{name};\n"
+                result << indent << "    break;"
+            end
+            result << indent << "}\n"
+
+	    result
+	end
     end
 
     class CompoundType
