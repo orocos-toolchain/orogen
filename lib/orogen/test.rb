@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'fileutils'
-require 'orocos/generation'
+require 'orogen'
 
 module Orocos
     module Generation
@@ -8,7 +8,7 @@ module Orocos
 	    include Orocos
 	    include Orocos::Generation
 
-	    TEST_DIR = File.expand_path('../../../test', File.dirname(__FILE__))
+	    TEST_DIR = File.expand_path('../../test', File.dirname(__FILE__))
 	    attr_reader :working_directory
 
 	    def setup

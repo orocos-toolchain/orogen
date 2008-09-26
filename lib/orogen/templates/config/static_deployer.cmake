@@ -18,7 +18,7 @@ INSTALL(TARGETS <%= component.name %>
 
 TARGET_APPEND_LDFLAGS(<%= component.name %> "${DEPENDENCIES_LDFLAGS}")
 <% if component.corba_enabled? %>
-TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS} TAO_Strategies)
+TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBS})
 <% end %>
 
 <% if deployer.browse %>

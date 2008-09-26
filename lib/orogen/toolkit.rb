@@ -1,7 +1,7 @@
 require 'typelib'
 require 'tempfile'
 require 'find'
-require 'orocos/generation/base'
+require 'orogen/base'
 
 module Typelib
     class Type
@@ -21,106 +21,94 @@ module Typelib
             index_var_stack.pop
         end
 
-        def self.collection_iteration(varname, result, path, indent)
-            if name =~ /^([^<]+)<(.*)>$/
-                collection_name, element_type = $1, $2
-                element_type = registry.build(element_type)
+	def self.to_orocos_decomposition(result, path, indent = "    ")
+            orocos_type = registry.orocos_equivalent(self).basename
+            property_name = path[1..-1]
+            result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+	end
 
-                result << "#{indent}for(#{cxx_name}::const_iterator it = #{varname}#{path}.begin(); it != #{varname}#{path}.end(); ++it)\n"
-                result << "#{indent}{\n"
-                yield(element_type)
-                result << "#{indent}}\n"
-            else
-                raise "unsupported opaque type #{name}"
-            end
+	def self.code_to_corba(result, path = "", indent = "    ")
+            result << indent << "result#{path} = value#{path};"
+	end
+	def self.code_from_corba(result, path = "", indent = "    ")
+            result << indent << "result#{path} = value#{path};"
+	end
+	def self.to_orocos_composition
+	end
+        def self.to_ostream(result, path, indent)
+            result << indent << "io << data#{path};"
+        end
+    end
+
+    class ContainerType
+        def self.collection_iteration(varname, result, path, indent)
+            collection_name, element_type = container_kind, deference.name
+            element_type = registry.build(element_type)
+
+            result << "#{indent}for(#{cxx_name}::const_iterator it = #{varname}#{path}.begin(); it != #{varname}#{path}.end(); ++it)\n"
+            result << "#{indent}{\n"
+            yield(element_type)
+            result << "#{indent}}\n"
         end
 
 	def self.to_orocos_decomposition(result, path, indent = "    ")
-            if opaque?
-                # This whole thing is a hack. Currently vector<>, set<> and
-                # map<> are parsed as opaque type by the C loader of typelib.
-                # We parse it back here to actually handle those types
-                collection_iteration(:value, result, path, indent) do |element_type|
-                    result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
-                    element_type.to_orocos_decomposition(result, "", indent + "  ") << "\n"
-                end
-            elsif self < EnumType
-                property_name = path[1..-1]
-                result << indent << "switch(value#{path}) {\n"
-                keys.each do |name, _|
-                    result << indent << "  case #{name}:\n"
-                    result << indent << "    target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", \"#{name}\") );\n"
-                    result << indent << "    break;\n"
-                end
-                result << indent << "}\n"
-
-            else
-                orocos_type = registry.orocos_equivalent(self).basename
-                property_name = path[1..-1]
-                result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+            collection_iteration(:value, result, path, indent) do |element_type|
+                result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
+                element_type.to_orocos_decomposition(result, "", indent + "  ") << "\n"
             end
 	end
 
 	def self.code_to_corba(result, path = "", indent = "    ")
-            if opaque?
-                # HACK see comment at the beginning of to_orocos_decomposition
-                result << "#{indent}result#{path}.length(value#{path}.size());\n"
-                allocate_index do |index_var|
-                    result << "#{indent}int #{index_var} = 0;\n"
-                    collection_iteration(:value, result, path, indent) do |element_type|
-                        result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
-                        result << "#{indent}  CorbaType& real_result = result;\n"
-                        result << "#{indent}  #{element_type.corba_name} result;\n"
-                        element_type.code_to_corba(result, "", indent + "  ") << "\n";
-                        result << "#{indent}  real_result#{path}[#{index_var}] = result;\n"
-                        result << "#{indent}  ++#{index_var};\n"
-                    end
+            result << "#{indent}result#{path}.length(value#{path}.size());\n"
+            allocate_index do |index_var|
+                result << "#{indent}int #{index_var} = 0;\n"
+                collection_iteration(:value, result, path, indent) do |element_type|
+                    result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
+                    result << "#{indent}  CorbaType& real_result = result;\n"
+                    result << "#{indent}  #{element_type.corba_name} result;\n"
+                    element_type.code_to_corba(result, "", indent + "  ") << "\n";
+                    result << "#{indent}  real_result#{path}[#{index_var}] = result;\n"
+                    result << "#{indent}  ++#{index_var};\n"
                 end
-            else
-                result << indent << "result#{path} = value#{path};"
             end
 	end
 	def self.code_from_corba(result, path = "", indent = "    ")
-            if opaque?
-                result << "#{indent}result#{path}.resize(value#{path}.length());\n"
-                allocate_index do |index_var|
-                    result << "#{indent}int #{index_var} = 0;\n"
-                    collection_iteration(:result, result, path, indent) do |element_type|
-                        result << "#{indent}  CorbaType const& real_value = value;\n"
-                        result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
-                        result << "#{indent}  #{element_type.cxx_name} result;\n"
-                        element_type.code_from_corba(result, "", indent + "  ") << "\n";
-                        result << "#{indent}  ++#{index_var};\n"
-                    end
+            result << "#{indent}result#{path}.resize(value#{path}.length());\n"
+            allocate_index do |index_var|
+                result << "#{indent}int #{index_var} = 0;\n"
+                collection_iteration(:result, result, path, indent) do |element_type|
+                    result << "#{indent}  CorbaType const& real_value = value;\n"
+                    result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
+                    result << "#{indent}  #{element_type.cxx_name} result;\n"
+                    element_type.code_from_corba(result, "", indent + "  ") << "\n";
+                    result << "#{indent}  ++#{index_var};\n"
                 end
-            else
-                result << indent << "result#{path} = value#{path};"
             end
 	end
 	def self.to_orocos_composition
 	end
         def self.to_ostream(result, path, indent)
-            if opaque?
-                collection_iteration(:data, result, path, indent) do |element_type|
-                    result << "#{indent}  #{element_type.cxx_name} const& data = *it;\n"
-                    element_type.to_ostream(result, "", indent + "  ") << "\n"
-                    result << "#{indent}  io << \", \";\n"
-                end
-            elsif self < EnumType
-                property_name = path[1..-1]
-                result << indent << "switch(data#{path}) {\n"
-                keys.each do |name, _|
-                    result << indent << "  case #{name}:\n"
-                    result << indent << "    io << \"#{name}\";\n"
-                    result << indent << "    break;\n"
-                end
-                result << indent << "}\n"
-
-            else
-                result << indent << "io << data#{path};"
+            collection_iteration(:data, result, path, indent) do |element_type|
+                result << "#{indent}  #{element_type.cxx_name} const& data = *it;\n"
+                element_type.to_ostream(result, "", indent + "  ") << "\n"
+                result << "#{indent}  io << \", \";\n"
             end
         end
     end
+
+    class EnumType
+        def self.to_ostream(result, path, indent)
+            property_name = path[1..-1]
+            result << indent << "switch(data#{path}) {\n"
+            keys.each do |name, _|
+                result << indent << "  case #{name}:\n"
+                result << indent << "    io << \"#{name}\";\n"
+                result << indent << "    break;\n"
+            end
+            result << indent << "}\n"
+        end
+    end
+
     class CompoundType
         def self.corba_name
             "#{namespace('::')}Corba::#{basename.gsub('<::', '< ::')}"

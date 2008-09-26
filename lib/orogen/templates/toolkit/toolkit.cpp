@@ -5,6 +5,9 @@
 #include <rtt/TemplateTypeInfo.hpp>
 #include "<%= name %>Toolkit.hpp"
 #include "<%= name %>ToolkitTypes.hpp"
+#include <typelib/value_ops.hh>
+#include <typelib/pluginmanager.hh>
+#include <utilmm/configfile/pkgconfig.hh>
 <% if corba_enabled? %>
 #include <rtt/corba/CorbaTemplateProtocol.hpp>
 #include "<%= name %>ToolkitCorba.hpp"
@@ -25,14 +28,19 @@ using RTT::DataSourceBase;
 
 namespace <%= name %> {
     template<typename T>
-    class BufferGetter : public RTT::detail::TypeTransporter
+    struct BufferGetter : public RTT::detail::TypeTransporter
     {
+        Typelib::MemoryLayout layout;
+        BufferGetter(Typelib::MemoryLayout layout)
+            : layout(layout) {}
+
         void* createBlob(RTT::DataSourceBase::shared_ptr data) const
         {
             typename RTT::DataSource<T>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<T> >(data);
             T sample = obj->get();
-            uint8_t* buffer = new uint8_t[sizeof(T)];
-            memcpy(buffer, &sample, sizeof(T));
+
+            std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+            Typelib::dump(reinterpret_cast<uint8_t*>(&sample), *buffer, layout);
             return buffer;
         }
 
@@ -50,15 +58,32 @@ namespace <%= name %> {
         DataSourceBase* narrowAssignableDataSource(DataSourceBase* dsb) { return 0; }
     };
 
+#define TOOLKIT_PACKAGE_NAME_aux0(target) #target
+#define TOOLKIT_PACKAGE_NAME_aux(target) "<%= name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
+#define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
+
+    ToolkitPlugin::ToolkitPlugin()
+        : m_registry(0) {}
+    ToolkitPlugin::~ToolkitPlugin()
+    {
+        delete m_registry;
+    }
+
     std::string ToolkitPlugin::getName() { return "<%= name %>"; }
     bool ToolkitPlugin::loadTypes()
     {
 	TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
-	RTT::TypeInfo* ti;
 
+        utilmm::pkgconfig pkg(TOOLKIT_PACKAGE_NAME);
+        std::string tlb = pkg.get("type_registry");
+        m_registry = Typelib::PluginManager::load("tlb", tlb);
+
+	RTT::TypeInfo* ti = 0;
+        Typelib::MemoryLayout layout;
 	<% generated_types.each do |type| %>ti = new <%= type.cxx_name %>TypeInfo();
 	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());<% end %>
-        ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >);
+        layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
+        ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
 	ti_repository->addType( ti );<% end %>
 	return true;
     }

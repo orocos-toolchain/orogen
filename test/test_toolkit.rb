@@ -1,8 +1,8 @@
-require 'orocos/generation/test'
+require 'orogen/test'
 
 class TC_GenerationToolkit < Test::Unit::TestCase
     include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
+    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
     def test_orocos_type_equivalence
 	registry = Typelib::Registry.new

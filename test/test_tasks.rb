@@ -1,4 +1,4 @@
-require 'orocos/generation/test'
+require 'orogen/test'
 
 class TC_GenerationTasks < Test::Unit::TestCase
     include Orocos::Generation::Test

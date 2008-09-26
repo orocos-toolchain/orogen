@@ -89,7 +89,7 @@ module Orocos
 	# which is the orocos/templates directory directly in Orocos.rb
 	# sources.
 	def self.template_path(*path)
-	    reldir = File.join('..', 'templates', *path)
+	    reldir = File.join('templates', *path)
 	    File.expand_path(reldir, File.dirname(__FILE__))
 	end
 

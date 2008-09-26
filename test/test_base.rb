@@ -1,9 +1,9 @@
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orocos/generation/test'
+require 'orogen/test'
 
 class TC_GenerationBase < Test::Unit::TestCase
     include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
+    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
     def test_load_template
 	assert_raises(ArgumentError) { Generation.load_template('does', 'not', 'exist') }

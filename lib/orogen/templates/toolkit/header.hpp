@@ -3,6 +3,10 @@
 
 #include <rtt/Toolkit.hpp>
 
+namespace Typelib {
+    class Registry;
+}
+
 namespace <%= name %> {
     static const int ORO_UNTYPED_PROTOCOL_ID = 42;
     class BufferGetterBase;
@@ -10,7 +14,12 @@ namespace <%= name %> {
     class ToolkitPlugin
 	: public RTT::ToolkitPlugin
     {
+        Typelib::Registry* m_registry;
     public:
+
+        ToolkitPlugin();
+        ~ToolkitPlugin();
+
 	bool loadTypes();
 	std::string getName();
 
