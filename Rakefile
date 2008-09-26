@@ -11,7 +11,7 @@ begin
         p.changes     = p.paragraphs_of('History.txt', 0..1).join("\n\n")
 
         p.extra_deps << 'utilrb' << 'rake'
-        p.rdoc_pattern = /\.rb$|^\w+\.txt$/
+        p.rdoc_pattern = /^lib\/.*\.rb$|^\w+\.txt$/
     end
 rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
