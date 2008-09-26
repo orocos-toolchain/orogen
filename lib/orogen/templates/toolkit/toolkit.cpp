@@ -74,9 +74,17 @@ namespace <%= component.name %> {
     {
 	TypeInfoRepository::shared_ptr ti_repository = TypeInfoRepository::Instance();
 
-        utilmm::pkgconfig pkg(TOOLKIT_PACKAGE_NAME);
-        std::string tlb = pkg.get("type_registry");
-        m_registry = Typelib::PluginManager::load("tlb", tlb);
+        try {
+            utilmm::pkgconfig pkg(TOOLKIT_PACKAGE_NAME);
+            std::string tlb = pkg.get("type_registry");
+            m_registry = Typelib::PluginManager::load("tlb", tlb);
+        }
+        catch(utilmm::not_found)
+        {
+            std::cerr << "cannot find the pkg-config specification associated with this toolkit:" << std::endl;
+            std::cerr << "  " << TOOLKIT_PACKAGE_NAME << std::endl;
+            std::cerr << "this is required to use the toolkit. Aborting" << std::endl;
+        }
 
 	RTT::TypeInfo* ti = 0;
         Typelib::MemoryLayout layout;
