@@ -40,7 +40,9 @@ class Module
     #
     def dsl_attribute(name, &filter_block)
 	class_eval do
-	    define_method("__dsl_attribute__#{name}__filter__", &filter_block)
+            if filter_block
+                define_method("__dsl_attribute__#{name}__filter__", &filter_block)
+            end
 
 	    define_method(name) do |*value|
 		if value.empty?
