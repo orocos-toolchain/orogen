@@ -270,7 +270,7 @@ module Orocos
             def generate
                 task_activities.each do |task|
                     if !task.activity_type
-                        raise ArgumentError, "no activity type defined for #{task.name}. Chose one"
+                        raise ArgumentError, "no activity type defined for the #{task.name} task. Chose one"
                     end
                 end
 
