@@ -1,3 +1,12 @@
+#
+#
+# WARNING: BIG FAT WARNING !!!! BIG FAT WARNING !!! BIG FAT WARNING
+# WARNING: this file is NOT used by CMake. It gets included in the OrocosComponent.cmake
+# WARNING: configuration file for deployments that use Corba, but the file in itself
+# WARNING: is NOT used in the finally generated module (even though it is present there)
+#
+#
+
 <% if deployer.browse %>
 pkg_check_modules(OrocosOCL REQUIRED orocos-ocl-${OROCOS_TARGET})
 INCLUDE_DIRECTORIES(${OrocosOCL_INCLUDE_DIRS})
