@@ -342,7 +342,8 @@ module Orocos
 
             # Gets a data logger object, defined from the logger component, for
             # the given file
-            def data_logger(filename)
+            def data_logger(filename = nil)
+                filename ||= component.name + '.log'
                 if !component.used_task_libraries.find { |t| t.name == "logger" }
                     component.using_task_library "logger"
                 end
