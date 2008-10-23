@@ -3,7 +3,7 @@
 
 #include <string>
 #include <<%= task.superclass.header_file %>>
-<% component.used_toolkits.each do |name, _| %>
+<% task.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
 <% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
@@ -17,7 +17,9 @@ namespace <%= component.name %> {
     class <%= task.basename %>Base : public <%= task.superclass.name %>
     {
     protected:
+    <% unless task.methods.empty? && task.commands.empty? %>
 	<%= task.basename %>& _self;
+    <% end %>
 
 	<% unless task.properties.empty? %>/** Properties */<% end %>
     <% task.properties.each do |prop| %>
