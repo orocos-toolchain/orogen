@@ -108,6 +108,10 @@ ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${OrocosCORBA_DEFINES})
 
+ADD_CUSTOM_TARGET(regen
+    orogen <%= "--corba" if component.corba_enabled? %> <%= component.deffile %>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 <% component.deployers.each do |deploy| %>
     <%= deploy.cmake_code %>
 <% end %>
