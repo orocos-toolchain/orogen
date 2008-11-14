@@ -279,9 +279,11 @@ module Orocos
                 deployer = self
 
 		# Generate the main.cpp file, which includes the ORO_main entry
-		# point
+		# point, and the pkgconfig file describing that deployment
 		main = Generation.render_template 'main.cpp', binding
 		Generation.save_automatic 'main.cpp', main
+                pkg  = Generation.render_template 'deployment.pc', binding
+                Generation.save_automatic "#{component.name}.pc.in", pkg
             end
 
             def cmake_code # :nodoc:

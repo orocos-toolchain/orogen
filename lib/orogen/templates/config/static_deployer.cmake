@@ -25,6 +25,11 @@ TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS
 INSTALL(TARGETS <%= component.name %>
     RUNTIME DESTINATION bin)
 
+CONFIGURE_FILE(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= component.name %>.pc.in
+    orogen-<%= component.name %>.pc @ONLY)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= component.name %>.pc
+    DESTINATION lib/pkgconfig)
+
 TARGET_APPEND_LDFLAGS(<%= component.name %> "${DEPENDENCIES_LDFLAGS}")
 <% if component.corba_enabled? %>
 TARGET_LINK_LIBRARIES(<%= component.name %> ${OrocosCORBA_LIBRARIES})
