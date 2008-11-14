@@ -255,7 +255,9 @@ module Orocos
                 name    = name.to_s
                 context = context.to_s
 
-                task_context = component.find_task_context(context)
+                unless task_context = component.find_task_context(context)
+                    raise "no such task context: #{context}"
+                end
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
