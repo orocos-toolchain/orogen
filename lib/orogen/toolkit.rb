@@ -11,6 +11,9 @@ module Typelib
         def self.corba_name
             cxx_name
         end
+        def self.method_name
+            full_name('_', true).gsub(/[<>\[\]]/, '_')
+        end
 
         @@index_var_stack = Array.new
         def self.index_var_stack; @@index_var_stack end
@@ -268,6 +271,8 @@ module Orocos
 	    attr_reader :imports, :loads
 	    attr_reader :registry
             attr_reader :preloaded_registry
+            attr_reader :marshal_as
+            attr_reader :opaque_registry
 
 	    dsl_attribute :blob_threshold do |value|
 		value = Integer(value)
@@ -289,6 +294,8 @@ module Orocos
 		@imports, @loads = [], []
 		@registry = Typelib::Registry.new
 		@preloaded_registry = Typelib::Registry.new
+		@opaque_registry = Typelib::Registry.new
+                @marshal_as = Hash.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
@@ -311,6 +318,28 @@ module Orocos
                 load(cpp_source.path, true)
             ensure
                 cpp_source.close if cpp_source
+            end
+
+            # Declare that the user will provide a method which converts
+            # +base_type+ into the given intermediate type. Orogen will then use
+            # that intermediate representation to marshal the data.
+            #
+            # +base_type+ is defined as an opaque type in the component's
+            # registry
+            #
+            # +includes+ is an optional set of headers needed to define
+            # +base_type+
+            def opaque_type(base_type, intermediate_type, includes = nil)
+                if base_type.respond_to?(:to_str)
+                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"0\" /></typelib>"
+
+                    opaque_def = Typelib::Registry.from_xml(typedef)
+                    opaque_registry.merge opaque_def
+                    registry.merge opaque_def
+                    component.registry.merge opaque_def
+                end
+
+                @marshal_as[component.find_type(base_type)] = [intermediate_type, includes || []]
             end
 
             # call-seq:
@@ -344,8 +373,9 @@ module Orocos
 		end
 
                 file_registry = Typelib::Registry.new
+                file_registry.merge opaque_registry
 
-                options = { :define => '__orogen' }
+                options = { :define => '__orogen', :ignore_opaques => true }
                 options[:include] = []
                 options[:include] << component.base_dir if component.base_dir
                 component.used_libraries.each do |pkg|
@@ -433,6 +463,13 @@ module Orocos
 
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
+
+                if !marshal_as.empty?
+                    user_hh = Generation.render_template 'toolkit/user.hpp', binding
+                    user_cc = Generation.render_template 'toolkit/user.cpp', binding
+                    Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
+                    Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
+                end
 	    end
 	end
     end

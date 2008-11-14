@@ -34,6 +34,25 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         end
     end
 
+    def test_opaque_types(with_corba = true)
+        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
+
+        component = Component.new
+        in_wc do
+            component.load 'test_toolkit_opaque.orogen'
+            if with_corba
+                component.enable_corba
+            else
+                component.disable_corba
+            end
+
+            component.generate
+        end
+        compile_wc(component)
+    end
+
     def test_toolkit_generation(with_corba = true)
 	component = Component.new
         component.load File.join(TEST_DATA_DIR, 'test_toolkit_generation.orogen')

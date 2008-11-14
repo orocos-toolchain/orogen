@@ -1,0 +1,7 @@
+name "TestOpaque"
+toolkit do
+    opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D', File.expand_path('opaque.h', File.dirname(component.deffile))
+
+    load 'opaque_intermediates.h'
+end
+

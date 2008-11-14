@@ -1,6 +1,8 @@
 # Corba-related generation: IDL, Corba-to-Orocos conversion code. This is done
 # only if the user does not have disabled Corba support by calling
 # #disable_corba
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+
 IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %>)
     IF (NOT OrocosCORBA_Toolkit_FOUND)
 	MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
@@ -34,10 +36,13 @@ INCLUDE_DIRECTORIES(${<%= pkg.name %>_INCLUDE_DIRS})
 
 # Generate the toolkit shared library
 SET(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
-ADD_LIBRARY(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES})
+ADD_LIBRARY(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES}
+    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" unless toolkit.marshal_as.empty? %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
+
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.hpp
+    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.hpp" unless toolkit.marshal_as.empty? %>
     DESTINATION include/orocos/toolkit)
 
 TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES})
