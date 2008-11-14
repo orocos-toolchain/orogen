@@ -19,7 +19,6 @@ struct AnyConversion< <%= type_name %> >
     static CorbaType* toAny(const BaseType& value) {
 	CorbaType* _result = new CorbaType();
 	CorbaType&  result = *_result;
-	int i;
 <%= result = ""
 	    type.code_to_corba(result, "", " " * 8)
 	    result 
@@ -35,7 +34,6 @@ struct AnyConversion< <%= type_name %> >
     <% else %>
     static void get(const CorbaType* _value, BaseType& result) {
 	CorbaType const& value = *_value;
-	int i;
 <%= result = ""
 	    type.code_from_corba(result, "", " " * 8)
 	    result 
