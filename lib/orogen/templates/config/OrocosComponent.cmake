@@ -1,4 +1,5 @@
 INCLUDE(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wall)
 
 INCLUDE(RPATHHandling)
 CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib")
