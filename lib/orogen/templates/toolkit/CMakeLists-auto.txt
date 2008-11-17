@@ -3,6 +3,10 @@
 # #disable_corba
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
+<% if !toolkit.marshal_as.empty? %>
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/toolkit)
+<% end %>
+
 IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %>)
     IF (NOT OrocosCORBA_Toolkit_FOUND)
 	MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")

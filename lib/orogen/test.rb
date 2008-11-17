@@ -36,7 +36,7 @@ module Orocos
 		create_wc
 		if destination
 		    destination = File.expand_path(destination, working_directory)
-		    File.mkdir_p destination
+		    FileUtils.mkdir_p destination
 		end
 
 		FileUtils.cp File.expand_path(file, TEST_DIR), (destination || working_directory)
@@ -79,6 +79,20 @@ module Orocos
 		    end
 		end
 	    end
+
+            def compile_and_test(component, test_bin)
+                compile_wc(component) do
+                    FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
+                    File.open('CMakeLists.txt', 'a') do |io|
+                        yield(io) if block_given?
+                    end
+                end
+
+                in_prefix do
+                    output = nil
+                    assert(system(test_bin))
+                end
+            end
 	end
     end
 end

@@ -3,6 +3,9 @@
 
 #include "<%= component.name %>ToolkitC.h"
 #include <rtt/corba/CorbaConversion.hpp>
+<% if !toolkit.marshal_as.empty? %>
+#include "<%= component.name %>ToolkitUser.hpp"
+<% end %>
 
 namespace RTT {
     namespace details {
@@ -71,6 +74,10 @@ namespace RTT {
     <% generated_types.each do |type| %>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
     <% end %>
+<% marshal_as.each do |type, (intermediate_type, _)|
+    intermediate_type = component.find_type(intermediate_type) %>
+<%= Orocos::Generation.render_template 'toolkit/user_type_corba.hpp', binding %>
+<% end %>
 }
 
 #endif

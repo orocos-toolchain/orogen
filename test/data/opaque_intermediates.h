@@ -3,7 +3,7 @@ namespace TestOpaque
 {
     struct Point2D
     {
-        float x, y;
+        double x, y;
     };
 }
 

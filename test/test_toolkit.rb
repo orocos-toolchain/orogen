@@ -36,6 +36,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
     def test_opaque_types(with_corba = true)
         copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
+        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpp')
         copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
         copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
 
@@ -50,7 +51,25 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
             component.generate
         end
-        compile_wc(component)
+
+        copy_in_wc File.join(TEST_DATA_DIR, 'TestOpaqueToolkitUser.cpp'), 'toolkit'
+        compile_and_test(component, 'bin/test_toolkit') do |cmake|
+            cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit_opaque.cpp)"
+            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit TestOpaque-toolkit-${OROCOS_TARGET})"
+            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
+            cmake << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
+            cmake << "\n"
+	end
+
+	in_prefix do
+            output   = File.read('test_toolkit_opaque.xml')
+            expected = File.read(File.join(TEST_DATA_DIR, 'test_toolkit_opaque.xml'))
+            assert_equal(expected, output)
+
+            output   = File.read('test_toolkit_opaque.cpf')
+            expected = File.read(File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpf'))
+            assert_equal(expected, output)
+	end
     end
 
     def test_toolkit_generation(with_corba = true)
@@ -76,21 +95,16 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	    assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.cpp')))
 	end
 
-	compile_wc(component) do
-	    File.open('CMakeLists.txt', 'a') do |io|
-		io << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
-		io << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
-		io << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
-		io << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
-		io << "\n"
-	    end
+        compile_and_test(component, 'bin/test_toolkit') do |cmake|
+            cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
+            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
+            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
+            cmake << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
+            cmake << "\n"
 	end
 
 	in_prefix do
-            output = nil
-            assert(system("bin/test_toolkit"))
             output = File.read('test_toolkit.xml')
-
             expected = File.read(File.join(TEST_DATA_DIR, 'simple_value.xml'))
             assert_equal(expected, output)
 	end

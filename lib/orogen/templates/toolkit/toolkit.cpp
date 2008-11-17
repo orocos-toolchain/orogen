@@ -12,6 +12,9 @@
 #include <rtt/corba/CorbaTemplateProtocol.hpp>
 #include "<%= component.name %>ToolkitCorba.hpp"
 <% end %>
+<% if !marshal_as.empty? %>
+#include "<%= component.name %>ToolkitUser.hpp"
+<% end %>
 
 using RTT::Property;
 using RTT::PropertyBag;
@@ -23,6 +26,13 @@ using RTT::DataSourceBase;
       namespace = type.namespace %>
 <%= code %>
 <%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
+<% end %>
+<% marshal_as.each do |type, (intermediate_type, _)|
+    intermediate_type = component.find_type(intermediate_type)
+    code = Generation.adapt_namespace(namespace, type.namespace)
+    namespace = type.namespace %>
+<%= code %>
+<%= Orocos::Generation.render_template 'toolkit/user_type_info.cpp', binding %>
 <% end %>
 <%= Generation.adapt_namespace(namespace, '/') %>
 
@@ -87,12 +97,20 @@ namespace <%= component.name %> {
         }
 
 	RTT::TypeInfo* ti = 0;
-        Typelib::MemoryLayout layout;
-	<% generated_types.each do |type| %>ti = new <%= type.cxx_name %>TypeInfo();
-	<% if corba_enabled? %>ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());<% end %>
-        layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
-        ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
-	ti_repository->addType( ti );<% end %>
+	<% (generated_types | marshal_as.keys).each do |type| %>
+            ti = new <%= type.cxx_name %>TypeInfo();
+            <% if corba_enabled? %>
+                ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());
+            <% end %>
+
+            <% if !type.opaque? %>
+                Typelib::MemoryLayout layout;
+                layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
+                ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
+            <% end %>
+
+            ti_repository->addType( ti );
+        <% end %>
 	return true;
     }
 

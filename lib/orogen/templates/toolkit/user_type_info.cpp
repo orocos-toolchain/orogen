@@ -1,9 +1,9 @@
 
 <% begin %>
     std::ostream& operator << (std::ostream& io, <%= type.basename %> const& data) {
-<%= result = ""
-        type.to_ostream(result, "", " " * 4)
-        result %>
+        <%= intermediate_type.cxx_name %> temp;
+        to_intermediate(temp, data);
+        io << temp;
         return io;
     }
 
@@ -18,24 +18,26 @@
 	    : RTT::TemplateTypeInfo<<%= type.basename %>, true>("<%= type.full_name %>") {}
 
 	static bool doDecompose(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) {
-        <%= result = ""
-	    type.to_orocos_decomposition(result, "", " " * 12) 
-	    result
-	    %> 
-            return true;
+            <%= intermediate_type.cxx_name %> temp;
+            to_intermediate(temp, value);
+            return <%= intermediate_type.cxx_name %>TypeInfo::doDecompose(temp, target_bag);
         }
-
 	bool decomposeTypeImpl(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) const {
 	    target_bag.setType("<%= type.full_name %>");
-	    return doDecompose(value, target_bag);
+            return doDecompose(value, target_bag);
 	}
 
 	static bool doCompose(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-	    <%= type.to_orocos_composition %>
+            <%= intermediate_type.cxx_name %> temp;
+            if (! <%= intermediate_type.cxx_name %>TypeInfo::doCompose(bag, temp))
+                return false;
+
+            from_intermediate(out, temp);
             return true;
         }
+
 	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-	    return doCompose(bag, out);
+            return doCompose(bag, out);
 	}
     };
 <% rescue TypeError => e

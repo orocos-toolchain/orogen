@@ -1,0 +1,4 @@
+<bag type="/NotOrogenCompatible/Point2D">
+<double id="x" description="">10</double>
+<double id="y" description="">20</double>
+</bag>

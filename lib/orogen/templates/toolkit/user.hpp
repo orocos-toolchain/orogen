@@ -5,16 +5,14 @@
 
 <%= toolkit.marshal_as.map { |_, (_, includes)| includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
-class <%= component.name %>UserMarshalling
+namespace <%= component.name %>
 {
-public:
-
-<% toolkit.marshal_as.each do |from, (into, _)|
-    into = component.find_type(into) %>
-    void dump_<%= from.method_name %>(<%= from.cxx_name %> const& real_type, <%= into.cxx_name %>& intermediate);
-    void load_<%= from.method_name %>(<%= from.cxx_name %>& real_type, <%= into.cxx_name %> const& intermediate);
-<% end %>
-};
+    <% toolkit.marshal_as.each do |from, (into, _)|
+        into = component.find_type(into) %>
+    void to_intermediate(<%= into.cxx_name %>& intermediate, <%= from.cxx_name %> const& real_type);
+    void from_intermediate(<%= from.cxx_name %>& real_type, <%= into.cxx_name %> const& intermediate);
+    <% end %>
+}
 
 #endif
 
