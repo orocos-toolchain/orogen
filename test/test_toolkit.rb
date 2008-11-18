@@ -96,6 +96,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	end
 
         compile_and_test(component, 'bin/test_toolkit') do |cmake|
+            cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
             cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
             cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
             cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"

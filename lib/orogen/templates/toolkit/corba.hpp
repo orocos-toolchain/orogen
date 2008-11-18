@@ -32,7 +32,7 @@ namespace RTT {
                 }
                 return false;
             }
-            static bool update(const CORBA::Any& any, typename conversion_traits<Type>::out_t _value) { return update(any, _value); }
+            static bool update(const CORBA::Any& any, typename conversion_traits<Type>::out_t _value) { return updateFromAny(any, _value); }
 
             static CORBA::Any_ptr createAny( typename conversion_traits<Type>::in_t t ) {
                 CORBA::Any_ptr ret = new CORBA::Any();

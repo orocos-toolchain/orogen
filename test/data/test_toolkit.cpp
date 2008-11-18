@@ -1,6 +1,12 @@
 #include "TestToolkitTypes.hpp"
 #include "TestToolkit.hpp"
 
+#ifdef WITH_CORBA
+#include <omniORB4/CORBA.h>
+#include <rtt/corba/CorbaLib.hpp>
+#include "build/.orogen/toolkit/TestToolkitC.h"
+#endif
+
 #include <rtt/os/main.h>
 #include <rtt/Types.hpp>
 #include <rtt/PropertyBag.hpp>
@@ -35,7 +41,9 @@ int ORO_main(int argc, char** argv)
     for (int i = 0; i < 20; ++i)
 	value.b[i] = 'a' + i;
 
-    ConstantDataSource<Test::Simple>* source = new ConstantDataSource<Test::Simple>(value);
+    ConstantDataSource<Test::Simple>* source
+        = new ConstantDataSource<Test::Simple>(value);
+    source->ref();
 
     PropertyBag bag;
     type->decomposeType(source, bag);
@@ -62,6 +70,60 @@ int ORO_main(int argc, char** argv)
 	cerr << "input.a == " << input_a << ", 10 expected" << endl;
 	return 1;
     }
+
+#ifdef WITH_CORBA
+    std::cerr << "Testing the CORBA part ..." << std::endl;
+    // And now the CORBA part. First marshalling ...
+    { CORBA::Any* result
+        = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+
+        Test::Corba::Simple *input;
+        (*result) >>= input;
+        if (input->a != 10)
+        {
+            cerr << "error in CORBA marshalling" << endl;
+            cerr << "input.a == " << input->a << ", 10 expected" << endl;
+            return 1;
+        }
+
+        for (int i = 0; i < 20; ++i)
+        {
+            if (input->b[i] != 'a' + i)
+            {
+                cerr << "error in CORBA marshalling" << endl;
+                cerr << "array[" << i << "] == " << input->b[i] << ", " << 'a' + i << " expected" << endl;
+                return 1;
+            }
+        }
+    }
+
+    // And then unmarshalling
+    { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+        ValueDataSource<Test::Simple>* reader =
+            new ValueDataSource<Test::Simple>();
+        reader->ref();
+        reader->updateBlob(ORO_CORBA_PROTOCOL_ID, result);
+        Test::Simple value = reader->get();
+
+        if (value.a != 10)
+        {
+            cerr << "error in CORBA marshalling" << endl;
+            cerr << "input.a == " << input_a << ", 10 expected" << endl;
+            return 1;
+        }
+
+        for (int i = 0; i < 20; ++i)
+        {
+            if (value.b[i] != 'a' + i)
+            {
+                cerr << "error in CORBA marshalling" << endl;
+                cerr << "array[" << i << "] == " << value.b[i] << ", " << 'a' + i << " expected" << endl;
+                return 1;
+            }
+        }
+    }
+
+#endif
 
     return 0;
 }
