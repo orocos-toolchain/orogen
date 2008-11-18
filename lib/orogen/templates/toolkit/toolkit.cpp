@@ -21,12 +21,14 @@ using RTT::PropertyBag;
 using RTT::TypeInfoRepository;
 using RTT::DataSourceBase;
 
-<% generated_types.each do |type| 
-      code = Generation.adapt_namespace(namespace, type.namespace)
-      namespace = type.namespace %>
+<% marshal_as.each do |type, (intermediate_type, _)|
+    type = component.find_type(intermediate_type)
+    code = Generation.adapt_namespace(namespace, type.namespace)
+    namespace = type.namespace %>
 <%= code %>
 <%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
 <% end %>
+
 <% marshal_as.each do |type, (intermediate_type, _)|
     intermediate_type = component.find_type(intermediate_type)
     code = Generation.adapt_namespace(namespace, type.namespace)
@@ -34,6 +36,15 @@ using RTT::DataSourceBase;
 <%= code %>
 <%= Orocos::Generation.render_template 'toolkit/user_type_info.cpp', binding %>
 <% end %>
+
+<% generated_types.each do |type| 
+      next if marshal_as.find { |_, (intermediate, _)| component.find_type(intermediate) == type }
+      code = Generation.adapt_namespace(namespace, type.namespace)
+      namespace = type.namespace %>
+<%= code %>
+<%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
+<% end %>
+
 <%= Generation.adapt_namespace(namespace, '/') %>
 
 namespace <%= component.name %> {
@@ -104,13 +115,13 @@ namespace <%= component.name %> {
                 ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());
             <% end %>
 
-            <% if !type.opaque? %>
+            try
             {
                 Typelib::MemoryLayout layout;
                 layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
                 ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
             }
-            <% end %>
+            catch(Typelib::NoLayout) {}
 
             ti_repository->addType( ti );
         <% end %>

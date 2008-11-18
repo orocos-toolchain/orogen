@@ -24,21 +24,40 @@ module Typelib
             index_var_stack.pop
         end
 
-	def self.to_orocos_decomposition(result, path, indent = "    ")
-            orocos_type = registry.orocos_equivalent(self).basename
-            property_name = path[1..-1]
-            result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+            if opaque?
+                result << indent << "{ PropertyBag inner_bag(\"#{full_name}\");\n"
+                result << indent << "   #{cxx_name}TypeInfo::doDecompose(value#{path}, inner_bag);\n"
+                property_name = path[1..-1]
+                result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(\"#{property_name}\", \"\", inner_bag);\n"
+                result << indent << "   target_bag.add(temp_property);\n"
+                result << indent << "   flattenPropertyBag(target_bag, \".\");\n"
+                result << indent << "   target_bag.removeProperty(temp_property);\n"
+                result << indent << "}"
+            else
+                orocos_type = registry.orocos_equivalent(self).basename
+                property_name = path[1..-1]
+                result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+            end
 	end
 
-	def self.code_to_corba(result, path = "", indent = "    ")
-            result << indent << "result#{path} = value#{path};"
+	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
+            if opaque?
+                result << indent << "result#{path} = *AnyConversion< #{cxx_name} >::createAny(value#{path});"
+            else
+                result << indent << "result#{path} = value#{path};"
+            end
 	end
-	def self.code_from_corba(result, path = "", indent = "    ")
-            result << indent << "result#{path} = value#{path};"
+	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
+            if opaque?
+                result << indent << "AnyConversion< #{cxx_name} >::updateFromAny(value#{path}, result#{path});"
+            else
+                result << indent << "result#{path} = value#{path};"
+            end
 	end
-	def self.to_orocos_composition
+	def self.to_orocos_composition(toolkit)
 	end
-        def self.to_ostream(result, path, indent)
+        def self.to_ostream(toolkit, result, path, indent)
             result << indent << "io << data#{path};"
         end
     end
@@ -54,14 +73,14 @@ module Typelib
             result << "#{indent}}\n"
         end
 
-	def self.to_orocos_decomposition(result, path, indent = "    ")
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
             collection_iteration(:value, result, path, indent) do |element_type|
                 result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
-                element_type.to_orocos_decomposition(result, "", indent + "  ") << "\n"
+                element_type.to_orocos_decomposition(toolkit, result, "", indent + "  ") << "\n"
             end
 	end
 
-	def self.code_to_corba(result, path = "", indent = "    ")
+	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
             result << "#{indent}result#{path}.length(value#{path}.size());\n"
             allocate_index do |index_var|
                 result << "#{indent}int #{index_var} = 0;\n"
@@ -69,13 +88,13 @@ module Typelib
                     result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
                     result << "#{indent}  CorbaType& real_result = result;\n"
                     result << "#{indent}  #{element_type.corba_name} result;\n"
-                    element_type.code_to_corba(result, "", indent + "  ") << "\n";
+                    element_type.code_to_corba(toolkit, result, "", indent + "  ") << "\n";
                     result << "#{indent}  real_result#{path}[#{index_var}] = result;\n"
                     result << "#{indent}  ++#{index_var};\n"
                 end
             end
 	end
-	def self.code_from_corba(result, path = "", indent = "    ")
+	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
             result << "#{indent}result#{path}.resize(value#{path}.length());\n"
             allocate_index do |index_var|
                 result << "#{indent}int #{index_var} = 0;\n"
@@ -83,24 +102,24 @@ module Typelib
                     result << "#{indent}  CorbaType const& real_value = value;\n"
                     result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
                     result << "#{indent}  #{element_type.cxx_name} result;\n"
-                    element_type.code_from_corba(result, "", indent + "  ") << "\n";
+                    element_type.code_from_corba(toolkit, result, "", indent + "  ") << "\n";
                     result << "#{indent}  ++#{index_var};\n"
                 end
             end
 	end
-	def self.to_orocos_composition
+	def self.to_orocos_composition(toolkit)
 	end
-        def self.to_ostream(result, path, indent)
+        def self.to_ostream(toolkit, result, path, indent)
             collection_iteration(:data, result, path, indent) do |element_type|
                 result << "#{indent}  #{element_type.cxx_name} const& data = *it;\n"
-                element_type.to_ostream(result, "", indent + "  ") << "\n"
+                element_type.to_ostream(toolkit, result, "", indent + "  ") << "\n"
                 result << "#{indent}  io << \", \";\n"
             end
         end
     end
 
     class EnumType
-	def self.to_orocos_decomposition(result, path, indent = "    ")
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
             property_name = path[1..-1]
             result << indent << "{ std::string enum_name;\n"
             result << indent << "  switch(value#{path}) {\n"
@@ -114,7 +133,7 @@ module Typelib
             result << indent << "}"
 	end
 
-        def self.to_ostream(result, path, indent)
+        def self.to_ostream(toolkit, result, path, indent)
             property_name = path[1..-1]
             result << indent << "switch(data#{path}) {\n"
             keys.each do |name, _|
@@ -124,7 +143,7 @@ module Typelib
             end
             result << indent << "}\n"
         end
-	def self.code_to_corba(result, path = "", indent = "    ")
+	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
             namespace = self.namespace('::')
             result << indent << "switch(value#{path}) {\n"
             keys.each do |name, _|
@@ -136,7 +155,7 @@ module Typelib
 
 	    result
 	end
-	def self.code_from_corba(result, path = "", indent = "    ")
+	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
             namespace = self.namespace('::')
             result << indent << "switch(value#{path}) {\n"
             keys.each do |name, _|
@@ -154,28 +173,28 @@ module Typelib
         def self.corba_name
             "#{namespace('::')}Corba::#{basename.gsub('<::', '< ::')}"
         end
-	def self.convertion_code_helper(method, result, path, indent)
+	def self.convertion_code_helper(method, toolkit, result, path, indent)
 	    each_field do |name, type|
-		type.send(method, result, "#{path}.#{name}", indent) << "\n"
+		type.send(method, toolkit, result, "#{path}.#{name}", indent) << "\n"
 	    end
 	end
-	def self.to_orocos_decomposition(result, path, indent = "    ")
-	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
 	    result
 	end
-	def self.code_to_corba(result, path = "", indent = "    ")
-	    convertion_code_helper(:code_to_corba, result, path, indent)
+	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
+	    convertion_code_helper(:code_to_corba, toolkit, result, path, indent)
 	    result
 	end
-	def self.code_from_corba(result, path = "", indent = "    ")
-	    convertion_code_helper(:code_from_corba, result, path, indent)
+	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
+	    convertion_code_helper(:code_from_corba, toolkit, result, path, indent)
 	    result
 	end
 
-	def self.to_orocos_composition
+	def self.to_orocos_composition(toolkit)
 	end
 
-        def self.to_ostream(result, path, indent)
+        def self.to_ostream(toolkit, result, path, indent)
             result << indent << "io << \"{ \";\n"
 
             first_field = true
@@ -186,7 +205,7 @@ module Typelib
 
                 first_field = false
 		result << "#{indent}  io << \"#{name} = \";\n"
-                type.to_ostream(result, "#{path}.#{name}", indent + "  ") << "\n"
+                type.to_ostream(toolkit, result, "#{path}.#{name}", indent + "  ") << "\n"
 	    end
             result << indent << "io << \" }\";\n"
         end
@@ -194,31 +213,31 @@ module Typelib
     class ArrayType
         def self.corba_name; raise NotImplementedError end
 
-	def self.convertion_code_helper(method, result, path, indent)
+	def self.convertion_code_helper(method, toolkit, result, path, indent)
             allocate_index do |index_var|
                 result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
-                deference.send(method, result, path + "[#{index_var}]", indent + "    ") << "\n"
+                deference.send(method, toolkit, result, path + "[#{index_var}]", indent + "    ") << "\n"
                 result << indent << "}"
             end
 	end
-	def self.to_orocos_decomposition(result, path, indent = "    ")
-	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
 	end
-	def self.code_to_corba(result, path = "", indent = "    ")
-	    convertion_code_helper(:code_to_corba, result, path, indent)
+	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
+	    convertion_code_helper(:code_to_corba, toolkit, result, path, indent)
 	end
-	def self.code_from_corba(result, path = "", indent = "    ")
-	    convertion_code_helper(:code_from_corba, result, path, indent)
-	end
-
-	def self.to_orocos_composition
+	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
+	    convertion_code_helper(:code_from_corba, toolkit, result, path, indent)
 	end
 
-        def self.to_ostream(result, path, indent)
+	def self.to_orocos_composition(toolkit)
+	end
+
+        def self.to_ostream(toolkit, result, path, indent)
             result << indent << "io << \"[\\n\";\n"
             allocate_index do |index_var|
                 result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
-                    deference.to_ostream(result, "#{path}[#{index_var}]", indent + "  ")
+                    deference.to_ostream(toolkit, result, "#{path}[#{index_var}]", indent + "  ")
                     result << "#{indent}  if (#{index_var} != #{length - 1}) io << \", \";\n"
                 result << indent << "}\n" 
             end

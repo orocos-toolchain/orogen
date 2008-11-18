@@ -71,6 +71,8 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	in_prefix do
             check_output_file('test_toolkit_opaque.xml')
             check_output_file('test_toolkit_opaque.cpf')
+            check_output_file('test_toolkit_composed_opaque.xml')
+            check_output_file('test_toolkit_composed_opaque.cpf')
 	end
     end
     def test_opaque_without_corba; test_opaque(false) end

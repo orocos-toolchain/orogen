@@ -70,13 +70,19 @@ namespace RTT {
         };
     }
 
-
-    <% generated_types.each do |type| %>
+<% marshal_as.each do |_, (type, _)|
+    type = component.find_type(type) %>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
-    <% end %>
+<% end %>
+
 <% marshal_as.each do |type, (intermediate_type, _)|
     intermediate_type = component.find_type(intermediate_type) %>
 <%= Orocos::Generation.render_template 'toolkit/user_type_corba.hpp', binding %>
+<% end %>
+
+<% generated_types.each do |type|
+    next if marshal_as.find { |_, (intermediate, _)| component.find_type(intermediate) == type } %>
+<%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 }
 

@@ -2,7 +2,7 @@
 <% begin %>
     std::ostream& operator << (std::ostream& io, <%= type.basename %> const& data) {
 <%= result = ""
-        type.to_ostream(result, "", " " * 4)
+        type.to_ostream(toolkit, result, "", " " * 4)
         result %>
         return io;
     }
@@ -19,7 +19,7 @@
 
 	static bool doDecompose(const <%= type.basename %>& value, RTT::PropertyBag& target_bag) {
         <%= result = ""
-	    type.to_orocos_decomposition(result, "", " " * 12) 
+	    type.to_orocos_decomposition(toolkit, result, "", " " * 12) 
 	    result
 	    %> 
             return true;
@@ -31,7 +31,7 @@
 	}
 
 	static bool doCompose(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-	    <%= type.to_orocos_composition %>
+	    <%= type.to_orocos_composition(toolkit) %>
             return true;
         }
 	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {

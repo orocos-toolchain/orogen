@@ -1,3 +1,5 @@
+#ifndef TEST_OPAQUE_HH
+#define TEST_OPAQUE_HH
 
 namespace NotOrogenCompatible
 {
@@ -15,4 +17,6 @@ namespace NotOrogenCompatible
         float& y() { return _y; }
     };
 }
+
+#endif
 
