@@ -34,6 +34,12 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         end
     end
 
+    def check_output_file(name)
+        output   = File.read(name)
+        expected = File.read(File.join(TEST_DATA_DIR, name))
+        assert_equal(expected, output)
+    end
+
     def test_opaque(with_corba = true)
         copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
         copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpp')
@@ -63,13 +69,8 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	end
 
 	in_prefix do
-            output   = File.read('test_toolkit_opaque.xml')
-            expected = File.read(File.join(TEST_DATA_DIR, 'test_toolkit_opaque.xml'))
-            assert_equal(expected, output)
-
-            output   = File.read('test_toolkit_opaque.cpf')
-            expected = File.read(File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpf'))
-            assert_equal(expected, output)
+            check_output_file('test_toolkit_opaque.xml')
+            check_output_file('test_toolkit_opaque.cpf')
 	end
     end
     def test_opaque_without_corba; test_opaque(false) end
@@ -107,9 +108,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	end
 
 	in_prefix do
-            output = File.read('test_toolkit.xml')
-            expected = File.read(File.join(TEST_DATA_DIR, 'simple_value.xml'))
-            assert_equal(expected, output)
+            check_output_file('test_toolkit.xml')
 	end
     end
     def test_generation_without_corba; test_generation(false) end
