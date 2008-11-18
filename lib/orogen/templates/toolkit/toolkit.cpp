@@ -94,6 +94,7 @@ namespace <%= component.name %> {
             std::cerr << "cannot find the pkg-config specification associated with this toolkit:" << std::endl;
             std::cerr << "  " << TOOLKIT_PACKAGE_NAME << std::endl;
             std::cerr << "this is required to use the toolkit. Aborting" << std::endl;
+            return false;
         }
 
 	RTT::TypeInfo* ti = 0;
