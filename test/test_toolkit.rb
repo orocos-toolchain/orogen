@@ -72,7 +72,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	end
     end
 
-    def test_toolkit_generation(with_corba = true)
+    def test_generation(with_corba = true)
 	component = Component.new
         component.load File.join(TEST_DATA_DIR, 'test_toolkit_generation.orogen')
         if with_corba
@@ -110,6 +110,6 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             assert_equal(expected, output)
 	end
     end
-    def test_disable_corba; test_toolkit_generation(false) end
+    def test_generation_without_corba; test_generation(false) end
 end
 
