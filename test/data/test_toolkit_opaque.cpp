@@ -2,6 +2,11 @@
 #include "TestOpaqueToolkit.hpp"
 #include "opaque.h"
 
+#ifdef WITH_CORBA
+#include <omniORB4/CORBA.h>
+#include <rtt/corba/CorbaLib.hpp>
+#endif
+
 #include <rtt/os/main.h>
 #include <rtt/Types.hpp>
 #include <rtt/PropertyBag.hpp>
@@ -35,6 +40,7 @@ int ORO_main(int argc, char** argv)
     NotOrogenCompatible::Point2D value(10, 20);
     ConstantDataSource<NotOrogenCompatible::Point2D>* source =
         new ConstantDataSource<NotOrogenCompatible::Point2D>(value);
+    source->ref();
 
     PropertyBag bag;
     type->decomposeType(source, bag);
@@ -70,6 +76,41 @@ int ORO_main(int argc, char** argv)
 	cerr << "input.b == " << input_b << ", 20 expected" << endl;
 	return 1;
     }
+
+#ifdef WITH_CORBA
+    std::cerr << "Testing the CORBA part ..." << std::endl;
+    // And now the CORBA part. First marshalling ...
+    { CORBA::Any_var result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+
+        result >>= input_a;
+        result >>= input_b;
+        if (input_a != 10 || input_b != 20)
+        {
+            cerr << "error in CORBA marshalling" << endl;
+            cerr << "input.a == " << input_a << ", 10 expected" << endl;
+            cerr << "input.b == " << input_b << ", 20 expected" << endl;
+            return 1;
+        }
+    }
+
+    // And then unmarshalling
+    { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+        ValueDataSource<NotOrogenCompatible::Point2D>* reader =
+            new ValueDataSource<NotOrogenCompatible::Point2D>();
+        reader->ref();
+        reader->updateBlob(ORO_CORBA_PROTOCOL_ID, result);
+        NotOrogenCompatible::Point2D value = reader->get();
+
+        if (value.x() != 10 || value.y() != 20)
+        {
+            cerr << "error in CORBA unmarshalling" << endl;
+            cerr << "value.x() == " << value.x() << ", 10 expected" << endl;
+            cerr << "value.y() == " << value.y() << ", 20 expected" << endl;
+            return 1;
+        }
+    }
+
+#endif
 
     return 0;
 }

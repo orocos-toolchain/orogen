@@ -34,7 +34,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         end
     end
 
-    def test_opaque_types(with_corba = true)
+    def test_opaque(with_corba = true)
         copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
         copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpp')
         copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
@@ -54,6 +54,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
         copy_in_wc File.join(TEST_DATA_DIR, 'TestOpaqueToolkitUser.cpp'), 'toolkit'
         compile_and_test(component, 'bin/test_toolkit') do |cmake|
+            cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
             cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit_opaque.cpp)"
             cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit TestOpaque-toolkit-${OROCOS_TARGET})"
             cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
@@ -71,6 +72,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             assert_equal(expected, output)
 	end
     end
+    def test_opaque_without_corba; test_opaque(false) end
 
     def test_generation(with_corba = true)
 	component = Component.new
