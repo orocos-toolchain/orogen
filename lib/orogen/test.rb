@@ -71,7 +71,7 @@ module Orocos
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
-			if !system("cmake -DCMAKE_INSTALL_PREFIX=#{working_directory}/prefix ..")
+			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{working_directory}/prefix ..")
 			    raise "failed to configure"
 			elsif !system("make")
 			    raise "failed to build"
