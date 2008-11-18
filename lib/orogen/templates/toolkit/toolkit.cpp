@@ -105,9 +105,11 @@ namespace <%= component.name %> {
             <% end %>
 
             <% if !type.opaque? %>
+            {
                 Typelib::MemoryLayout layout;
                 layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
                 ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
+            }
             <% end %>
 
             ti_repository->addType( ti );
