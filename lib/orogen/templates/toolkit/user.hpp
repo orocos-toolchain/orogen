@@ -3,8 +3,6 @@
 
 #include <<%= component.name %>ToolkitTypes.hpp>
 
-<%= toolkit.marshal_as.map { |_, (_, includes)| includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
-
 namespace <%= component.name %>
 {
     <% toolkit.marshal_as.each do |from, (into, _)|
