@@ -55,10 +55,17 @@ int ORO_main(int argc, char** argv)
     PropertyDemarshaller cpf_input("test_toolkit_opaque.cpf");
     cpf_input.deserialize(input_bag);
 
-    double input_a = Property<double>(input_bag.getItem(0)).value();
-    double input_b = Property<double>(input_bag.getItem(1)).value();
+    if (input_bag.size() != 3)
+    {
+        cerr << "error in property marshalling/demarshalling" << endl;
+        cerr << "expected 3 elements, got " << input_bag.size() << endl;
+    }
+
+    double input_a = Property<double>(input_bag.getItem(1)).value();
+    double input_b = Property<double>(input_bag.getItem(2)).value();
     if (input_a != 10 || input_b != 20)
     {
+        cerr << "error in property marshalling/demarshalling" << endl;
 	cerr << "input.a == " << input_a << ", 10 expected" << endl;
 	cerr << "input.b == " << input_b << ", 20 expected" << endl;
 	return 1;

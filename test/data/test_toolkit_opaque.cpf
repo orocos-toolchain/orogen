@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "cpf.dtd">
 <properties>
+  <simple name="padding" type="long"><value>100</value></simple>
   <simple name="x" type="double"><value>10</value></simple>
   <simple name="y" type="double"><value>20</value></simple>
 </properties>

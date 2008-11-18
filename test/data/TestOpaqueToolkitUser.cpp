@@ -3,6 +3,7 @@
 
 void TestOpaque::to_intermediate(TestOpaque::Point2D& intermediate, NotOrogenCompatible::Point2D const& real_type)
 {
+    intermediate.padding = 100;
     intermediate.x = real_type.x();
     intermediate.y = real_type.y();
 }
