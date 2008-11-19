@@ -2,6 +2,7 @@ require 'typelib'
 require 'tempfile'
 require 'find'
 require 'orogen/base'
+require 'utilrb/kernel/options'
 
 module Typelib
     class Type
@@ -285,12 +286,14 @@ end
 
 module Orocos
     module Generation
+        OpaqueDefinition = Struct.new :type, :intermediate, :includes, :alignment
+
 	class Toolkit
 	    attr_reader :component
 	    attr_reader :imports, :loads
 	    attr_reader :registry
             attr_reader :preloaded_registry
-            attr_reader :marshal_as
+            attr_reader :opaques
             attr_reader :opaque_registry
 
 	    dsl_attribute :blob_threshold do |value|
@@ -309,12 +312,12 @@ module Orocos
 		@component = component
 
                 @internal_dependencies = []
-		@corba_enabled = nil
-		@imports, @loads = [], []
-		@registry = Typelib::Registry.new
+		@corba_enabled      = nil
+		@imports, @loads    = [], []
+		@registry           = Typelib::Registry.new
 		@preloaded_registry = Typelib::Registry.new
-		@opaque_registry = Typelib::Registry.new
-                @marshal_as = Hash.new
+		@opaque_registry    = Typelib::Registry.new
+                @opaques            = Array.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
@@ -348,9 +351,14 @@ module Orocos
             #
             # +includes+ is an optional set of headers needed to define
             # +base_type+
-            def opaque_type(base_type, intermediate_type, includes = nil)
+            def opaque_type(base_type, intermediate_type, options = {})
+                options = validate_options options,
+                    :includes => nil,
+                    :alignment => 8,
+                    :size      => 0
+
                 if base_type.respond_to?(:to_str)
-                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"0\" /></typelib>"
+                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{options[:size]}\" /></typelib>"
 
                     opaque_def = Typelib::Registry.from_xml(typedef)
                     opaque_registry.merge opaque_def
@@ -358,7 +366,10 @@ module Orocos
                     component.registry.merge opaque_def
                 end
 
-                @marshal_as[component.find_type(base_type)] = [intermediate_type, includes || []]
+                @opaques << OpaqueDefinition.new(component.find_type(base_type),
+                                                 intermediate_type,
+                                                 options[:includes],
+                                                 options[:alignment])
             end
 
             # call-seq:
@@ -394,7 +405,7 @@ module Orocos
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :define => '__orogen', :ignore_opaques => true }
+                options = { :define => '__orogen' }
                 options[:include] = []
                 options[:include] << component.base_dir if component.base_dir
                 component.used_libraries.each do |pkg|
@@ -403,6 +414,13 @@ module Orocos
                 component.used_task_libraries.each do |pkg|
                     options[:include] << pkg.includedir
                 end
+                options[:opaques] = []
+                opaques.each do |opaque_def|
+                    if opaque_def.alignment
+                        options[:opaques] << Hash[:name => opaque_def.type.full_name, :alignment => opaque_def.alignment]
+                    end
+                end
+
 		file_registry.import(file, 'c', options)
 
                 registry.merge(file_registry)
@@ -483,7 +501,7 @@ module Orocos
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
-                if !marshal_as.empty?
+                if !opaques.empty?
                     user_hh = Generation.render_template 'toolkit/user.hpp', binding
                     user_cc = Generation.render_template 'toolkit/user.cpp', binding
                     Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh

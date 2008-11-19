@@ -1,7 +1,8 @@
 #include "<%= component.name %>ToolkitUser.hpp"
 
-<% toolkit.marshal_as.each do |from, (into, _)|
-    into = component.find_type(into) %>
+<% toolkit.opaques.each do |opaque_def|
+    from = opaque_def.type
+    into = component.find_type(opaque_def.intermediate) %>
 void <%= component.name %>::to_intermediate(<%= into.cxx_name %>& intermediate, <%= from.cxx_name %> const& real_type)
 {
 }

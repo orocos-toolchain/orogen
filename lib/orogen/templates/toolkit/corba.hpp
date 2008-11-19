@@ -3,7 +3,7 @@
 
 #include "<%= component.name %>ToolkitC.h"
 #include <rtt/corba/CorbaConversion.hpp>
-<% if !toolkit.marshal_as.empty? %>
+<% if !toolkit.opaques.empty? %>
 #include "<%= component.name %>ToolkitUser.hpp"
 <% end %>
 
@@ -70,18 +70,19 @@ namespace RTT {
         };
     }
 
-<% marshal_as.each do |_, (type, _)|
-    type = component.find_type(type) %>
+<% opaques.each do |opaque_def|
+    type = component.find_type(opaque_def.intermediate) %>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 
-<% marshal_as.each do |type, (intermediate_type, _)|
-    intermediate_type = component.find_type(intermediate_type) %>
+<% opaques.each do |opaque_def|
+    type = opaque_def.type
+    intermediate_type = component.find_type(opaque_def.intermediate) %>
 <%= Orocos::Generation.render_template 'toolkit/user_type_corba.hpp', binding %>
 <% end %>
 
 <% generated_types.each do |type|
-    next if marshal_as.find { |_, (intermediate, _)| component.find_type(intermediate) == type } %>
+    next if opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type } %>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 }

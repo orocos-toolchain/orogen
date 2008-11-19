@@ -12,7 +12,7 @@
 #include <rtt/corba/CorbaTemplateProtocol.hpp>
 #include "<%= component.name %>ToolkitCorba.hpp"
 <% end %>
-<% if !marshal_as.empty? %>
+<% if !opaques.empty? %>
 #include "<%= component.name %>ToolkitUser.hpp"
 <% end %>
 
@@ -21,16 +21,17 @@ using RTT::PropertyBag;
 using RTT::TypeInfoRepository;
 using RTT::DataSourceBase;
 
-<% marshal_as.each do |type, (intermediate_type, _)|
-    type = component.find_type(intermediate_type)
+<% opaques.each do |opaque_def|
+    type = component.find_type(opaque_def.intermediate)
     code = Generation.adapt_namespace(namespace, type.namespace)
     namespace = type.namespace %>
 <%= code %>
 <%= Orocos::Generation.render_template 'toolkit/type_info.cpp', binding %>
 <% end %>
 
-<% marshal_as.each do |type, (intermediate_type, _)|
-    intermediate_type = component.find_type(intermediate_type)
+<% opaques.each do |opaque_def|
+    type = opaque_def.type
+    intermediate_type = component.find_type(opaque_def.intermediate)
     code = Generation.adapt_namespace(namespace, type.namespace)
     namespace = type.namespace %>
 <%= code %>
@@ -38,7 +39,7 @@ using RTT::DataSourceBase;
 <% end %>
 
 <% generated_types.each do |type| 
-      next if marshal_as.find { |_, (intermediate, _)| component.find_type(intermediate) == type }
+      next if opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type }
       code = Generation.adapt_namespace(namespace, type.namespace)
       namespace = type.namespace %>
 <%= code %>
@@ -109,7 +110,7 @@ namespace <%= component.name %> {
         }
 
 	RTT::TypeInfo* ti = 0;
-	<% (generated_types | marshal_as.keys).each do |type| %>
+	<% (generated_types | opaques.map { |d| d.type }).each do |type| %>
             ti = new <%= type.cxx_name %>TypeInfo();
             <% if corba_enabled? %>
                 ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());
