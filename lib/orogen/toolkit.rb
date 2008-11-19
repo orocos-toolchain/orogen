@@ -485,7 +485,82 @@ module Orocos
 		return type_header, header, source, corba, idl
 	    end
 
+            # Builds a map telling where are the opaque fields used in this
+            # type. The returned value is an array of the form
+            #  [
+            #     [opaque_type, intermediate_type, path]
+            #     ...
+            #  ]
+            # where the first two objects are subclasses of Typelib::Type and
+            # the third is the "path" of the field in the structure (of the
+            # form "a.b.c.d").
+            def build_opaque_map(type)
+                unless type < Typelib::CompoundType
+                    raise "build_opaque_map is only valid for compound types"
+                end
+
+                result = []
+                type.each_field do |field_name, field_type|
+                    if field_type.opaque?
+                        spec = opaques.find { |opaque_def| opaque_def.type == field_type }
+                        result << [field_type, component.find_type(spec.intermediate), field_name]
+                    elsif field_type < Typelib::CompoundType
+                        inner = build_opaque_map(field_type)
+                        if !inner.empty?
+                            result.concat(inner.map { |a, b, path| [a, b, "#{field_name}.#{path}"] })
+                        end
+                    end
+                end
+                result
+            end
+
+            def validate_opaque_is_last_field(type, *spec)
+                if type.fields.last == spec
+                    return true
+                else
+                    raise NotImplementedError, "invalid use of opaque type #{spec[1].name} for field #{spec[0]}"
+                end
+            end
+
+            def validate_opaque_one_type(type, depth)
+                type.each_field do |field_name, field_type|
+                    if field_type < Typelib::CompoundType
+                        if validate_opaque_one_type(field_type, depth + 1)
+                            return validate_opaque_is_last_field(type, field_name, field_type)
+                        end
+
+                    elsif field_type.opaque?
+                        if depth > 1 || field_type.size == 0
+                            return validate_opaque_is_last_field(type, field_name, field_type)
+                        end
+                    end
+                end
+                false
+            rescue NotImplementedError => e
+                raise e, e.message + " in #{type.name}", e.backtrace
+            end
+
+            # This method performs sanity checks on the use of opaque types.
+            # The following rules apply:
+            #  * by default, the opaque field MUST be aligned EXPLICITELY
+            #    on 8 bytes. An error is generated otherwise.
+            #  * if the size of the type is specified, then it can be used
+            #    at first and second level (i.e. toplevel and in a struct).
+            #    The support of more nested levels is doable, but needs to
+            #    be written.
+            #  * if the size of the type is NOT specified, the opaque field
+            #    MUST be at the end of the structure.
+            def validate_opaque_types
+                registry.each_type do |type|
+                    if type < Typelib::CompoundType
+                        validate_opaque_one_type(type, 1)
+                    end
+                end
+            end
+
 	    def generate
+                validate_opaque_types
+
 		toolkit = self
 
 		types, hpp, cpp, corba, idl = to_code

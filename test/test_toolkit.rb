@@ -77,6 +77,40 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
     def test_opaque_without_corba; test_opaque(false) end
 
+    def test_opaque_validation
+        component = Component.new
+        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
+        in_wc do
+            component.load 'test_toolkit_opaque.orogen'
+            assert_nothing_raised { component.generate }
+        end
+        clear_wc
+
+        component = Component.new
+        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
+        in_wc do
+            component.load 'test_toolkit_opaque.orogen'
+            component.toolkit.load File.join(TEST_DATA_DIR, 'test_toolkit_opaque_invalid_0.h')
+            assert_raises(NotImplementedError) { component.generate }
+        end
+        clear_wc
+
+        component = Component.new
+        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
+        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
+        in_wc do
+            component.load 'test_toolkit_opaque.orogen'
+            component.toolkit.load File.join(TEST_DATA_DIR, 'test_toolkit_opaque_invalid_1.h')
+            assert_raises(NotImplementedError) { component.generate }
+        end
+        clear_wc
+    end
+
     def test_generation(with_corba = true)
 	component = Component.new
         component.load File.join(TEST_DATA_DIR, 'test_toolkit_generation.orogen')

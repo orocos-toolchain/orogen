@@ -53,8 +53,10 @@ namespace <%= component.name %> {
     struct BufferGetter : public RTT::detail::TypeTransporter
     {
         Typelib::MemoryLayout layout;
-        BufferGetter(Typelib::MemoryLayout layout)
-            : layout(layout) {}
+        BufferGetter(std::string const& name, Typelib::Registry const& registry)
+        {
+            layout = Typelib::layout_of(*registry.get(name), false, false);
+        }
 
         void* createBlob(RTT::DataSourceBase::shared_ptr data) const
         {
@@ -80,6 +82,17 @@ namespace <%= component.name %> {
         DataSourceBase* narrowAssignableDataSource(DataSourceBase* dsb) { return 0; }
     };
 
+<% (generated_types + opaques.map { |opdef| opdef.type }).each do |type|
+    if type < Typelib::CompoundType && !type.opaque?
+        opaque_map = build_opaque_map(type)
+        next if opaque_map.empty?
+    end %>
+    <%= Orocos::Generation.render_template 'toolkit/user_type_marshaller.cpp', binding %>
+<% end %>
+}
+
+
+namespace <%= component.name %> {
 #define TOOLKIT_PACKAGE_NAME_aux0(target) #target
 #define TOOLKIT_PACKAGE_NAME_aux(target) "<%= component.name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
 #define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
@@ -118,9 +131,7 @@ namespace <%= component.name %> {
 
             try
             {
-                Typelib::MemoryLayout layout;
-                layout = Typelib::layout_of(*m_registry->get("<%= type.name %>"));
-                ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >(layout));
+                ti->addProtocol(ORO_UNTYPED_PROTOCOL_ID, new BufferGetter< <%= type.cxx_name %> >("<%= type.name %>", *m_registry));
             }
             catch(Typelib::NoLayout) {}
 

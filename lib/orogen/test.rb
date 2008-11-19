@@ -16,12 +16,7 @@ module Orocos
 	    end
 
 	    def teardown
-		unless ENV['TEST_KEEP_WC']
-		    if working_directory && File.directory?(working_directory)
-			FileUtils.rm_rf working_directory
-		    end
-		end
-
+                clear_wc
 		super if defined? super
 	    end
 
@@ -31,6 +26,15 @@ module Orocos
 		    FileUtils.mkdir_p working_directory
 		end
 	    end
+
+            def clear_wc
+		unless ENV['TEST_KEEP_WC']
+		    if working_directory && File.directory?(working_directory)
+			FileUtils.rm_rf working_directory
+                        @working_directory = nil
+		    end
+		end
+            end
 
 	    def copy_in_wc(file, destination = nil)
 		create_wc

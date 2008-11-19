@@ -75,6 +75,29 @@ bool test_plain_opaque()
 	return false;
     }
 
+    // Now, try the marshalling thing
+    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    { std::vector<uint8_t>* result =
+        reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TestOpaque::ORO_UNTYPED_PROTOCOL_ID));
+
+        if (sizeof(TestOpaque::Point2D) != result->size())
+        {
+            cerr << "error in Pocosim marshalling" << endl;
+            cerr << "resulting buffer is of size " << result->size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
+            return false;
+        }
+
+        TestOpaque::Point2D p = *reinterpret_cast<TestOpaque::Point2D*>(&(*result)[0]);
+        if (p.padding != 100 || p.x != 10 || p.y != 20)
+        {
+            cerr << "error in Pocosim marshalling" << endl;
+            cerr << "input.padding == " << p.padding << ", 100 expected" << endl;
+            cerr << "input.a == " << p.x << ", 10 expected" << endl;
+            cerr << "input.b == " << p.y << ", 20 expected" << endl;
+            return false;
+        }
+    }
+
 #ifdef WITH_CORBA
     std::cerr << "Testing the CORBA part ..." << std::endl;
     // And now the CORBA part. First marshalling ...
