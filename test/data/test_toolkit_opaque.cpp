@@ -78,15 +78,17 @@ bool test_plain_opaque()
 #ifdef WITH_CORBA
     std::cerr << "Testing the CORBA part ..." << std::endl;
     // And now the CORBA part. First marshalling ...
-    { CORBA::Any_var result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+    { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
 
-        result >>= input_a;
-        result >>= input_b;
-        if (input_a != 10 || input_b != 20)
+        TestOpaque::Corba::Point2D*  p;
+        (*result) >>= p;
+
+        if (p->padding != 100 || p->x != 10 || p->y != 20)
         {
             cerr << "error in CORBA marshalling" << endl;
-            cerr << "input.a == " << input_a << ", 10 expected" << endl;
-            cerr << "input.b == " << input_b << ", 20 expected" << endl;
+            cerr << "input.padding == " << p->padding << ", 100 expected" << endl;
+            cerr << "input.a == " << p->x << ", 10 expected" << endl;
+            cerr << "input.b == " << p->y << ", 20 expected" << endl;
             return false;
         }
     }
