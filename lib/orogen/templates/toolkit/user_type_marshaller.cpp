@@ -3,7 +3,7 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 {
 
 <% if type.opaque?
-    spec = toolkit.opaques.find { |opaque_def| opaque_def.type == type }
+    spec = toolkit.opaque_specification(type)
     intermediate = component.find_type(spec.intermediate) %>
 
     Typelib::MemoryLayout layout_<%= intermediate.method_name %>;

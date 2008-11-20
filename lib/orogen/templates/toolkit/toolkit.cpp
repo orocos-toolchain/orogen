@@ -39,7 +39,7 @@ using RTT::DataSourceBase;
 <% end %>
 
 <% generated_types.each do |type| 
-      next if opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type }
+      next if toolkit.intermediate_type?(type)
       code = Generation.adapt_namespace(namespace, type.namespace)
       namespace = type.namespace %>
 <%= code %>

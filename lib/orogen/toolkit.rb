@@ -486,6 +486,29 @@ module Orocos
 		return type_header, header, source, corba, idl
 	    end
 
+            def opaque_specification(type_def)
+                type = component.find_type(type_def)
+                raise "#{type} is unknown" unless type
+                raise "#{type} is not opaque" unless type.opaque?
+
+                opaques.find { |opaque_def| opaque_def.type == type }
+            end
+
+            def contains_opaques?(type)
+                type = component.find_type(type)
+                return true  if type.opaque?
+                return false unless type < Typelib::CompoundType
+
+                type.each_field do |field_name, field_type|
+                    return true if contains_opaques?(field_type)
+                end
+                false
+            end
+
+            def intermediate_type?(type)
+                opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type }
+            end
+
             # Builds a map telling where are the opaque fields used in this
             # type. The returned value is an array of the form
             #  [
@@ -503,7 +526,7 @@ module Orocos
                 result = []
                 type.each_field do |field_name, field_type|
                     if field_type.opaque?
-                        spec = opaques.find { |opaque_def| opaque_def.type == field_type }
+                        spec = opaque_specification(field_type)
                         result << [field_type, component.find_type(spec.intermediate), field_name]
                     elsif field_type < Typelib::CompoundType
                         inner = build_opaque_map(field_type)

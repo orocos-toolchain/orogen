@@ -82,7 +82,7 @@ namespace RTT {
 <% end %>
 
 <% generated_types.each do |type|
-    next if opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type } %>
+    next if toolkit.intermediate_type?(type) %>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 }
