@@ -8,5 +8,12 @@
 <%= File.read(file) %>
 <% end %>
 
+                
+<%= 
+    catch(:nothing_to_define) do
+        generate_all_marshalling_types = true
+        Generation.render_template 'toolkit/marshalling_types.hpp', binding
+    end %>
+
 #endif
 

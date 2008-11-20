@@ -28,16 +28,10 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 <% else %>
 
     Typelib::MemoryLayout layout;
-    <% opaque_map.each do |_, intermediate, _| %>
-        Typelib::MemoryLayout layout_<%= intermediate.method_name %>;
-    <% end %>
 
     BufferGetter(std::string const& name, Typelib::Registry const& registry)
     {
-        layout = Typelib::layout_of(*registry.get("<%= type.name %>"), false, true);
-        <% opaque_map.each do |_, intermediate, _| %>
-            layout_<%= intermediate.method_name %> = Typelib::layout_of(*registry.get("<%= intermediate.name %>"), false, false);
-        <% end %>
+        layout = Typelib::layout_of(*registry.get("<%= type.name %>_m"), false, true);
     }
 
     void* createBlob(RTT::DataSourceBase::shared_ptr data) const
@@ -45,16 +39,17 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
         RTT::DataSource<<%= type.cxx_name %>>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<<%= type.cxx_name %>> >(data);
         <%= type.cxx_name %> sample = obj->get();
 
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
-        Typelib::dump(reinterpret_cast<uint8_t*>(&sample), *buffer, layout);
-
-        <% opaque_map.each do |field_type, intermediate, field_path| %>
-        {
-            <%= intermediate.cxx_name %> temp;
-            to_intermediate(temp, sample.<%= field_path %>);
-            Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout_<%= intermediate.method_name %>);
-        }
+        <%= type.cxx_name %>_m temp;
+        <% type.each_field do |field_name, field_type| %>
+            <% if field_type.opaque? %>
+                to_intermediate(temp.<%= field_name %>, sample.<%= field_name %>);
+            <% else %>
+                temp.<%= field_name %> = sample.<%= field_name %>;
+            <% end %>
         <% end %>
+
+        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout);
 
         return buffer;
     }

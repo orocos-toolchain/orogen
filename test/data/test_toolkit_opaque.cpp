@@ -201,6 +201,22 @@ bool test_composed_opaque()
     if (!check_position_value("property demarshalling", timestamp, x, y))
         return false;
 
+    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    { std::vector<uint8_t>* result =
+        reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TestOpaque::ORO_UNTYPED_PROTOCOL_ID));
+
+        if (sizeof(TestOpaque::Position_m) != result->size())
+        {
+            cerr << "error in Pocosim marshalling" << endl;
+            cerr << "resulting buffer is of size " << result->size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
+            return false;
+        }
+
+        TestOpaque::Position_m p = *reinterpret_cast<TestOpaque::Position_m*>(&(*result)[0]);
+        if (!check_position_value("pocosim marshalling", p.timestamp, p.p.x, p.p.y))
+            return false;
+    }
+
 #ifdef WITH_CORBA
     std::cerr << "Testing the CORBA part ..." << std::endl;
     // And now the CORBA part. First marshalling ...

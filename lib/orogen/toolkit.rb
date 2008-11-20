@@ -287,7 +287,7 @@ end
 
 module Orocos
     module Generation
-        OpaqueDefinition = Struct.new :type, :intermediate, :includes, :alignment
+        OpaqueDefinition = Struct.new :type, :intermediate, :includes
 
 	class Toolkit
 	    attr_reader :component
@@ -354,12 +354,10 @@ module Orocos
             # +base_type+
             def opaque_type(base_type, intermediate_type, options = {})
                 options = validate_options options,
-                    :includes => nil,
-                    :alignment => 8,
-                    :size      => 0
+                    :includes => nil
 
                 if base_type.respond_to?(:to_str)
-                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{options[:size]}\" /></typelib>"
+                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{0}\" /></typelib>"
 
                     opaque_def = Typelib::Registry.from_xml(typedef)
                     opaque_registry.merge opaque_def
@@ -369,8 +367,7 @@ module Orocos
 
                 @opaques << OpaqueDefinition.new(component.find_type(base_type),
                                                  intermediate_type,
-                                                 options[:includes],
-                                                 options[:alignment])
+                                                 options[:includes])
             end
 
             # call-seq:
@@ -406,7 +403,7 @@ module Orocos
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :define => '__orogen' }
+                options = { :define => '__orogen', :opaques_ignore => true }
                 options[:include] = []
                 options[:include] << component.base_dir if component.base_dir
                 component.used_libraries.each do |pkg|
@@ -415,17 +412,10 @@ module Orocos
                 component.used_task_libraries.each do |pkg|
                     options[:include] << pkg.includedir
                 end
-                options[:opaques] = []
-                opaques.each do |opaque_def|
-                    if opaque_def.alignment
-                        options[:opaques] << Hash[:name => opaque_def.type.full_name, :alignment => opaque_def.alignment]
-                    end
-                end
 
 		file_registry.import(file, 'c', options)
 
                 registry.merge(file_registry)
-
                 preloaded_registry.merge(file_registry) if preload
 		component.registry.merge(file_registry)
 
@@ -538,54 +528,54 @@ module Orocos
                 result
             end
 
-            def validate_opaque_is_last_field(type, *spec)
-                if type.fields.last == spec
-                    return true
-                else
-                    raise NotImplementedError, "invalid use of opaque type #{spec[1].name} for field #{spec[0]}"
-                end
-            end
-
-            def validate_opaque_one_type(type, depth)
-                type.each_field do |field_name, field_type|
-                    if field_type < Typelib::CompoundType
-                        if validate_opaque_one_type(field_type, depth + 1)
-                            return validate_opaque_is_last_field(type, field_name, field_type)
-                        end
-
-                    elsif field_type.opaque?
-                        if depth > 1 || field_type.size == 0
-                            return validate_opaque_is_last_field(type, field_name, field_type)
-                        end
-                    end
-                end
-                false
-            rescue NotImplementedError => e
-                raise e, e.message + " in #{type.name}", e.backtrace
-            end
-
             # This method performs sanity checks on the use of opaque types.
-            # The following rules apply:
-            #  * by default, the opaque field MUST be aligned EXPLICITELY
-            #    on 8 bytes. An error is generated otherwise.
-            #  * if the size of the type is specified, then it can be used
-            #    at first and second level (i.e. toplevel and in a struct).
-            #    The support of more nested levels is doable, but needs to
-            #    be written.
-            #  * if the size of the type is NOT specified, the opaque field
-            #    MUST be at the end of the structure.
+            # The only limitation is that an opaque opaque_t can only be
+            # used at toplevel and in a struct. The following is forbidden:
+            #
+            #   struct S0
+            #   {
+            #       opaque_t field;
+            #   };
+            #
+            #   struct S1
+            #   {
+            #       S0 field;
+            #   };
             def validate_opaque_types
                 registry.each_type do |type|
                     if type < Typelib::CompoundType
-                        validate_opaque_one_type(type, 1)
+                        type.each_field do |_, field_type|
+                            if !field_type.opaque? && contains_opaques?(field_type)
+                                raise NotImplementedError, "opaques types can only be used at toplevel and at one-level indirection"
+                            end
+                        end
+                    end
+                end
+            end
+
+            def handle_opaques_generation
+		toolkit = self
+
+                validate_opaque_types
+
+                # Generate some type definitions for the pocosim marshalling. In
+                # practice, we generate C code that we merge back into the
+                # repository
+                generate_all_marshalling_types = false
+                catch(:nothing_to_define) do
+                    Tempfile.open('orogen') do |io|
+                        marshalling_code = Generation.render_template 'toolkit/marshalling_types.hpp', binding
+                        io << marshalling_code
+                        io.flush
+
+                        registry.import(io.path, 'c')
                     end
                 end
             end
 
 	    def generate
-                validate_opaque_types
-
 		toolkit = self
+                handle_opaques_generation
 
 		types, hpp, cpp, corba, idl = to_code
 		if toolkit.corba_enabled?
@@ -603,7 +593,7 @@ module Orocos
                     spec = opaque_specification(opaque_entry['name'])
 
                     opaque_entry['marshal_as'] = spec.intermediate
-                    opaque_entry['alignment']  = spec.alignment.to_s
+                    opaque_entry['includes']   = spec.includes.join(':')
                 end
                 Generation.save_automatic "toolkit", "#{component.name}.tlb", doc.to_xml
 
