@@ -211,7 +211,9 @@ module Orocos
 		if type
 		    if type.respond_to?(:to_str)
 			registry.build(type.to_str)
-		    elsif !type.is_a?(Class) && !(type < Typelib::Type)
+		    elsif type.kind_of?(Class) && type <= Typelib::Type
+                        type
+                    else
 			raise ArgumentError, "expected a type object, got #{type}"
 		    end
 		end
