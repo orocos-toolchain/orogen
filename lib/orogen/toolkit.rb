@@ -3,6 +3,7 @@ require 'tempfile'
 require 'find'
 require 'orogen/base'
 require 'utilrb/kernel/options'
+require 'nokogiri'
 
 module Typelib
     class Type
@@ -571,7 +572,17 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{component.name}ToolkitTypes.hpp", types)
 		Generation.save_automatic("toolkit", "#{component.name}Toolkit.hpp", hpp)
 		Generation.save_automatic("toolkit", "#{component.name}Toolkit.cpp", cpp)
-                Generation.save_automatic "toolkit", "#{component.name}.tlb", registry.to_xml
+
+                # Add opaque-related information in the TLB file
+                plain_registry = registry.to_xml
+                doc = Nokogiri::XML(plain_registry)
+                doc.xpath('//opaque').each do |opaque_entry|
+                    spec = opaque_specification(opaque_entry['name'])
+
+                    opaque_entry['marshal_as'] = spec.intermediate
+                    opaque_entry['alignment']  = spec.alignment.to_s
+                end
+                Generation.save_automatic "toolkit", "#{component.name}.tlb", doc.to_xml
 
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
