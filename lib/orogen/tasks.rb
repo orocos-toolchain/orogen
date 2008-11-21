@@ -1,4 +1,5 @@
 require 'utilrb/module/attr_predicate'
+require 'utilrb/value_set'
 
 module Orocos
     module Generation
@@ -11,6 +12,8 @@ module Orocos
 	    # The property type, as a Typelib::Type object from the underlying
 	    # component's type registry
 	    attr_reader :type
+
+            def used_types; [type] end
 
 	    # The property's default value
 	    attr_reader :default_value
@@ -44,6 +47,8 @@ module Orocos
 	    attr_reader :type
 	    # The IO mode ('r', 'w' or 'rw')
 	    attr_reader :mode
+
+            def used_types; [type] end
 
             # True if it is possible to read this port
 	    def read_access?; mode =~ /r/ end
@@ -134,6 +139,10 @@ module Orocos
 		self
 	    end
 
+            def used_types
+                arguments.map { |_, t, _| t }
+            end
+
 	    # Returns the argument part of the C++ signature for this callable
 	    def argument_signature(with_names = true)
 		arglist = arguments.map do |name, type, doc|
@@ -184,6 +193,10 @@ module Orocos
 		@method_name = self.name.dup
 		method_name[0, 1] = method_name[0, 1].downcase
 	    end
+
+            def used_types
+                [return_type] + super
+            end
 
 	    # The return type of this method, as a Typelib::Type object.
             # See #returns
@@ -642,6 +655,21 @@ module Orocos
                 default_activity 'event_driven'
             end
 
+            # Looks at the various data objects defined on this task, and
+            # returns the list of toolkits that define them
+            def used_toolkits
+                types = (properties + methods + commands + ports).
+                    map { |obj| obj.used_types }.
+                    flatten.to_value_set.to_a
+
+                types.map do |t|
+                    tk, reg = component.used_toolkits.find do |_, reg|
+                        reg.get(t.name)
+                    end
+                    tk
+                end.compact.to_value_set.to_a
+            end
+
 	    # Generate the code files for this task. This builds to classes:
 	    #
 	    # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
@@ -651,6 +679,7 @@ module Orocos
 	    #   subclass of the Base class.
 	    def generate
                 return if external_definition?
+                used_toolkits
 
 		# Make this task be available in templates as 'task'
 		task = self

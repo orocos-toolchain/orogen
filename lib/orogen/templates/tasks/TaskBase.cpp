@@ -1,4 +1,8 @@
+<% if task.methods.empty? && task.commands.empty? %>
+#include "tasks/<%= task.basename %>Base.hpp"
+<% else %>
 #include "tasks/<%= task.basename %>.hpp"
+<% end %>
 
 using namespace <%= component.name %>;
 
@@ -8,7 +12,9 @@ using namespace <%= component.name %>;
 <% else %>
     : <%= task.superclass.name %>(name, TaskContext::<%= task.initial_state %>)
 <% end %>
+<% unless task.methods.empty? && task.commands.empty? %>
     , _self(static_cast<<%= task.basename %>&>(*this))
+<% end %>
     <% task.properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
     <% task.ports.each do |port| %>
