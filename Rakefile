@@ -2,7 +2,7 @@ require './lib/orogen/version'
 
 begin
     require 'hoe'
-    config = Hoe.new('utilrb', Orocos::Generation::VERSION) do |p|
+    config = Hoe.new('orogen', Orocos::Generation::VERSION) do |p|
         p.developer("Sylvain Joyeux", "sylvain.joyeux@m4x.org")
 
         p.summary = 'Component generation for Orocos::RTT'
