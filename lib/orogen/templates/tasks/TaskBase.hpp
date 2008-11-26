@@ -6,6 +6,9 @@
 <% task.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
 <% end %>
+<% task.implemented_classes.each do |class_name, include_file| %>
+#include <<%= include_file %>> // to get <%= class_name %>
+<% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 
 <% unless task.methods.empty? %>#include <rtt/Method.hpp><% end %>
@@ -15,6 +18,9 @@
 namespace <%= component.name %> {
     class <%= task.basename %>;
     class <%= task.basename %>Base : public <%= task.superclass.name %>
+        <% task.implemented_classes.each do |class_name, _| %>
+        , public <%= class_name %>
+        <% end %>
     {
     protected:
     <% unless task.methods.empty? && task.commands.empty? %>

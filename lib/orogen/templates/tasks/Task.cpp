@@ -20,6 +20,15 @@ bool <%= task.basename %>::<%= cmd.completion_method_name %><%= cmd.completion_s
 }
 <% end %>
 
+<% if task.implements?("RTT::FileDescriptorActivity::Provider") %>
+/** This method is called after the configuration step by the
+ * FileDescriptorActivity to get the file descriptor
+ */
+int <%= task.basename %>::getFileDescriptor() const
+{
+    return -1;
+}
+<% end %>
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See <%= task.basename %>.hpp for more detailed

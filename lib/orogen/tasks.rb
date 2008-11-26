@@ -376,6 +376,8 @@ module Orocos
             # The subclass of TaskContext which should be used to define this
             # class
             attr_reader :superclass
+            # A set of classes the TaskContext has to implement as well
+            attr_reader :implemented_classes
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
             # TaskContext instance. In both cases, it must be defined in the
@@ -386,6 +388,18 @@ module Orocos
                 if !superclass
                     raise ArgumentError, "no such task context #{task_context}"
                 end
+            end
+
+            # Declares that this task context is also a subclass of the
+            # following class. +name+ does not have to be a task context class.
+            def implements(name, include_file = nil)
+                @implemented_classes << [name, include_file]
+            end
+
+            # True if the task context implements a parent class which matches
+            # +name+. +name+ can either be a string or a regular expression.
+            def implements?(name)
+                @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
             # The kind of activity that should be used by default. This is the
@@ -454,6 +468,7 @@ module Orocos
 
 		@component  = component
                 @superclass = component.default_task_superclass
+                @implemented_classes = []
 		@name = name
 
 		@properties = Array.new
@@ -653,6 +668,14 @@ module Orocos
 
                 @required_activity = true
                 default_activity 'event_driven'
+            end
+
+            # Declares that this task context is designed to be woren up when
+            # new data is available on a I/O file descriptor. This also requires
+            # using the fd_driven deployment type.
+            def fd_driven
+                implements "RTT::FileDescriptorActivity::Provider", "rtt/FileDescriptorActivity.hpp"
+                default_activity "fd_driven"
             end
 
             # Looks at the various data objects defined on this task, and

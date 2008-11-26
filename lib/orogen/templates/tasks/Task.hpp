@@ -76,6 +76,14 @@ namespace <%= component.name %> {
          * before calling start() again.
          */
         // void cleanupHook();
+
+        <% if task.implements?("RTT::FileDescriptorActivity::Provider") %>
+        /** This method is called after the configuration step by the
+         * FileDescriptorActivity to get the file descriptor
+         */
+        int getFileDescriptor() const;
+        <% end %>
+
     };
 }
 
