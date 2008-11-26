@@ -302,7 +302,7 @@ module Orocos
                     @component, @task, @config = component, task, Array.new
                 end
 
-                def report(object, peek)
+                def report(object, peek = true)
                     method = case object
                              when TaskDeployment then ["Component", peek, object, [object.name]]
                              when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
