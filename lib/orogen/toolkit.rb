@@ -301,14 +301,7 @@ module Orocos
             # needed to load system files for which there is a "natural"
             # support in Orocos.
             def preload(file)
-                cpp_source = Tempfile.new("preload")
-
-                cpp_source.puts "#include <#{file}>"
-                cpp_source.flush
-
-                load(cpp_source.path, true)
-            ensure
-                cpp_source.close if cpp_source
+                load(file, true)
             end
 
             # call-seq:
@@ -336,10 +329,9 @@ module Orocos
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
 	    def load(file, preload = false)
-		file = File.expand_path(file, component.base_dir)
-		if !File.file?(file)
-		    raise ArgumentError, "no such file or directory #{file}"
-		end
+                cpp_source = Tempfile.new("preload", Dir.pwd)
+                cpp_source.puts "#include <#{file}>"
+                cpp_source.flush
 
                 file_registry = Typelib::Registry.new
 
@@ -352,7 +344,7 @@ module Orocos
                 component.used_task_libraries.each do |pkg|
                     options[:include] << pkg.includedir
                 end
-		file_registry.import(file, 'c', options)
+		file_registry.import(cpp_source.path, 'c', options)
 
                 registry.merge(file_registry)
 
@@ -360,6 +352,8 @@ module Orocos
 		component.registry.merge(file_registry)
 
 		loads << file
+            ensure
+                cpp_source.close if cpp_source
 	    end
 
             # Packages defined in this component on which the toolkit should
