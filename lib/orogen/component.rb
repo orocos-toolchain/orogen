@@ -195,8 +195,7 @@ module Orocos
 		end
 
 		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
-		toolkit_registry = Typelib::Registry.import "#{pkg.includedir}/toolkit/#{name}ToolkitTypes.hpp", "c",
-                    :define => ['__orogen'], :rawflag => pkg.cflags.split(" ")
+		toolkit_registry = Typelib::Registry.import pkg.type_registry
 
                 registry.merge(toolkit_registry)
 
