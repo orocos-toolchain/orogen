@@ -26,9 +26,11 @@
 	    return true;
 	}
 
-	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-	    <%= type.to_orocos_composition %>
-	    return false;
+	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) const {
+	    <%= result = ""
+		type.from_orocos_decomposition(result, "", " " * 12)
+		result %>
+	    return true;
 	}
     };
 <% rescue TypeError => e

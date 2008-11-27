@@ -22,9 +22,15 @@ module Typelib
         end
 
 	def self.to_orocos_decomposition(result, path, indent = "    ")
-            orocos_type = registry.orocos_equivalent(self).basename
+            orocos_type = registry.orocos_equivalent(self).cxx_name
             property_name = path[1..-1]
             result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+	end
+
+	def self.from_orocos_decomposition(result, path, indent = "    ")
+            orocos_type = registry.orocos_equivalent(self).cxx_name
+            property_name = path[1..-1]
+            result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(\"#{property_name}\")->get();"
 	end
 
 	def self.code_to_corba(result, path = "", indent = "    ")
@@ -33,10 +39,10 @@ module Typelib
 	def self.code_from_corba(result, path = "", indent = "    ")
             result << indent << "result#{path} = value#{path};"
 	end
-	def self.to_orocos_composition
-	end
         def self.to_ostream(result, path, indent)
-            result << indent << "io << data#{path};"
+            orocos_type = registry.orocos_equivalent(self).cxx_name
+            property_name = path[1..-1]
+            result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
         end
     end
 
@@ -85,7 +91,7 @@ module Typelib
                 end
             end
 	end
-	def self.to_orocos_composition
+	def self.from_orocos_decomposition(result, path, indent = "    ")
 	end
         def self.to_ostream(result, path, indent)
             collection_iteration(:data, result, path, indent) do |element_type|
@@ -106,10 +112,24 @@ module Typelib
                 result << indent << "      enum_name = \"#{name}\";\n"
                 result << indent << "      break;\n"
             end
+	    result << indent << "    default:\n"
+	    result << indent << "      enum_name = boost::lexical_cast<std::string>(value#{path});\n"
+            result << indent << "      break;\n"
             result << indent << "  }\n"
             result << indent << "  target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", enum_name) );\n"
             result << indent << "}"
 	end
+	def self.from_orocos_decomposition(result, path, indent = "    ")
+            property_name = path[1..-1]
+            result << indent << "{ std::string enum_name;\n"
+            result << indent << "  enum_name = bag.getProperty<std::string>( \"#{property_name}\" )->get();\n"
+            keys.each do |name, _|
+		result << indent << "  if(enum_name == \"#{name}\")\n"
+		result << indent << "     out#{path} = #{name};\n"
+            end
+            result << indent << "}"
+	end
+
 
         def self.to_ostream(result, path, indent)
             property_name = path[1..-1]
@@ -119,6 +139,9 @@ module Typelib
                 result << indent << "    io << \"#{name}\";\n"
                 result << indent << "    break;\n"
             end
+	    result << indent << "    default:\n"
+	    result << indent << "      io << data#{path};\n"
+            result << indent << "      break;\n"
             result << indent << "}\n"
         end
 	def self.code_to_corba(result, path = "", indent = "    ")
@@ -160,6 +183,10 @@ module Typelib
 	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
 	    result
 	end
+	def self.from_orocos_decomposition(result, path, indent = "    ")
+	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
+	    result
+	end
 	def self.code_to_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, result, path, indent)
 	    result
@@ -167,9 +194,6 @@ module Typelib
 	def self.code_from_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_from_corba, result, path, indent)
 	    result
-	end
-
-	def self.to_orocos_composition
 	end
 
         def self.to_ostream(result, path, indent)
@@ -192,23 +216,24 @@ module Typelib
         def self.corba_name; raise NotImplementedError end
 
 	def self.convertion_code_helper(method, result, path, indent)
-            allocate_index do |index_var|
-                result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
-                deference.send(method, result, path + "[#{index_var}]", indent + "    ") << "\n"
-                result << indent << "}"
+	    length.times do |i|
+                deference.send(method, result, path + "[#{i}]", indent + "    ") << "\n"
             end
+	    result
 	end
 	def self.to_orocos_decomposition(result, path, indent = "    ")
 	    convertion_code_helper(:to_orocos_decomposition, result, path, indent)
 	end
+	def self.from_orocos_decomposition(result, path, indent = "    ")
+	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
+	end
+
 	def self.code_to_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, result, path, indent)
 	end
 	def self.code_from_corba(result, path = "", indent = "    ")
 	    convertion_code_helper(:code_from_corba, result, path, indent)
-	end
-
-	def self.to_orocos_composition
+            result
 	end
 
         def self.to_ostream(result, path, indent)
@@ -223,8 +248,12 @@ module Typelib
         end
     end
     class Registry
-	OROCOS_KNOWN_TYPES = ['char', 'unsigned char', 'short', 'unsigned short', 'int', 'unsigned int', 'float', 'double']
-	OROCOS_KNOWN_CONVERTIONS = {}
+	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'float', 'double']
+	OROCOS_KNOWN_CONVERTIONS = {
+		'char' => 'int',
+		'unsigned char'  => 'unsigned int',
+		'unsigned short' => 'unsigned int',
+		'short' => 'int' }
 
 	attr_reader :orocos_type_equivalence
 	def build_orocos_type_equivalence
