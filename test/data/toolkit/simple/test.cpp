@@ -102,9 +102,9 @@ int ORO_main(int argc, char** argv)
 
     // Create a structure of type Test::Simple, inject it into Orocos and check
     // that it is able to generate a XML representation of it
-    Test::Simple testValue = { 10, "" };
+    Test::Simple testValue = { 10, Test::VALUE_1, "" };
     for (int i = 0; i < 20; ++i)
-	testValue.b[i] = 'a' + i;
+	testValue.a[i] = 'a' + i;
 
     if (! generic_type_handling_test("simple", testValue, *type))
         return 1;

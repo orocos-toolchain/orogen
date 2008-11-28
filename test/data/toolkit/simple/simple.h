@@ -3,19 +3,28 @@
 #endif
 
 namespace Test {
+    enum SIMPLE_ENUM {
+        VALUE_0,
+        VALUE_1,
+        VALUE_100 = 100
+    };
+
     struct Simple {
-	int a;
-	char b[20];
+	int          i;
+        SIMPLE_ENUM  e;
+	char         a[20];
 
 #ifndef __orogen
         bool operator == (Simple const& other) const
         { 
-            if (other.a != a)
+            if (other.i != i)
+                return false;
+            if (other.e != e)
                 return false;
 
-            for (int i = 0; i < 20; ++i)
+            for (int it = 0; it < 20; ++it)
             {
-                if (other.b[i] != b[i])
+                if (other.a[i] != a[i])
                     return false;
             }
             return true;
