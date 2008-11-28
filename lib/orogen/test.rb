@@ -84,6 +84,20 @@ module Orocos
 		end
 	    end
 
+            def build_test_component(dirname)
+                # Copy +dirname+ in place of wc
+                wc_dirname = File.join(TEST_DIR, "wc")
+                FileUtils.rm_rf wc_dirname
+                FileUtils.cp_r dirname, wc_dirname
+
+                in_wc do
+                    spec = Dir.glob("*.orogen").to_a.first
+                    component = Component.load(spec)
+                    compile_wc(component)
+                end
+            end
+
+
             def compile_and_test(component, test_bin)
                 compile_wc(component) do
                     FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
