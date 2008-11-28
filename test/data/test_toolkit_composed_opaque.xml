@@ -1,6 +1,8 @@
 <bag type="/TestOpaque/Position">
 <double id="timestamp" description="">10</double>
-<int id="p.padding" description="">100</int>
-<double id="p.x" description="">20</double>
-<double id="p.y" description="">30</double>
+<bag type="/NotOrogenCompatible/Point2D" name="p">
+<int id="padding" description="">100</int>
+<double id="x" description="">20</double>
+<double id="y" description="">30</double>
+</bag>
 </bag>

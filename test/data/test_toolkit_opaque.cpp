@@ -24,6 +24,8 @@ using std::endl;
 
 bool test_plain_opaque()
 {
+    cerr << "======== Testing plain opaque handling ========" << endl;
+
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/NotOrogenCompatible/Point2D");
     if (! type)
@@ -54,25 +56,51 @@ bool test_plain_opaque()
     cpf_output.serialize(bag);
     cpf_output.flush();
 
+    // Load back the CPF-marshalled value. Check it first by hand, and
+    // afterwards try to compose the type back
+    cerr << "Testing PropertyBag decomposition" << endl;
     PropertyBag input_bag;
     PropertyDemarshaller cpf_input("test_toolkit_opaque.cpf");
     cpf_input.deserialize(input_bag);
-
-    if (input_bag.size() != 3)
     {
-        cerr << "error in property marshalling/demarshalling" << endl;
-        cerr << "expected 3 elements, got " << input_bag.size() << endl;
-        return false;
+        if (input_bag.size() != 3)
+        {
+            cerr << "error in property marshalling/demarshalling" << endl;
+            cerr << "expected 2 elements, got " << input_bag.size() << endl;
+            return false;
+        }
+
+        double input_a = Property<double>(input_bag.getItem(1)).value();
+        double input_b = Property<double>(input_bag.getItem(2)).value();
+        if (input_a != 10 || input_b != 20)
+        {
+            cerr << "error in property marshalling/demarshalling" << endl;
+            cerr << "input.a == " << input_a << ", 10 expected" << endl;
+            cerr << "input.b == " << input_b << ", 20 expected" << endl;
+            return false;
+        }
     }
 
-    double input_a = Property<double>(input_bag.getItem(1)).value();
-    double input_b = Property<double>(input_bag.getItem(2)).value();
-    if (input_a != 10 || input_b != 20)
-    {
-        cerr << "error in property marshalling/demarshalling" << endl;
-	cerr << "input.a == " << input_a << ", 10 expected" << endl;
-	cerr << "input.b == " << input_b << ", 20 expected" << endl;
-	return false;
+    cerr << "Testing PropertyBag composition" << endl;
+    { ValueDataSource<NotOrogenCompatible::Point2D>* reader =
+            new ValueDataSource<NotOrogenCompatible::Point2D>();
+        reader->ref();
+        Property<PropertyBag> bag("", "", input_bag);
+        if (!type->composeType(bag.getDataSource(), reader))
+        {
+            cerr << "cannot recompose type" << endl;
+            return false;
+        }
+
+        NotOrogenCompatible::Point2D value = reader->get();
+        if (value.x() != 10 || value.y() != 20)
+        {
+            cerr << "error in type recomposition from XML" << endl;
+            cerr << "value.x() == " << value.x() << ", 10 expected" << endl;
+            cerr << "value.y() == " << value.y() << ", 20 expected" << endl;
+            return false;
+        }
+
     }
 
     // Now, try the marshalling thing
@@ -99,7 +127,7 @@ bool test_plain_opaque()
     }
 
 #ifdef WITH_CORBA
-    std::cerr << "Testing the CORBA part ..." << std::endl;
+    std::cerr << "Testing CORBA marshalling" << std::endl;
     // And now the CORBA part. First marshalling ...
     { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
 
@@ -117,6 +145,7 @@ bool test_plain_opaque()
     }
 
     // And then unmarshalling
+    std::cerr << "Testing CORBA demarshalling" << std::endl;
     { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
         ValueDataSource<NotOrogenCompatible::Point2D>* reader =
             new ValueDataSource<NotOrogenCompatible::Point2D>();
@@ -151,6 +180,8 @@ bool check_position_value(std::string const& place, double timestamp, double x, 
 
 bool test_composed_opaque()
 {
+    cerr << "======== Testing opaque field in struct ========" << endl;
+
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/TestOpaque/Position");
     if (! type)
@@ -185,21 +216,40 @@ bool test_composed_opaque()
     cpf_output.serialize(bag);
     cpf_output.flush();
 
+    cerr << "Testing PropertyBag decomposition" << endl;
     PropertyBag input_bag;
     PropertyDemarshaller cpf_input("test_toolkit_composed_opaque.cpf");
     cpf_input.deserialize(input_bag);
-
-    if (input_bag.size() != 4)
     {
-        cerr << "error in property marshalling/demarshalling" << endl;
-        cerr << "expected 4 elements, got " << input_bag.size() << endl;
+        if (input_bag.size() != 2)
+        {
+            cerr << "error in property marshalling/demarshalling" << endl;
+            cerr << "expected 2 elements, got " << input_bag.size() << endl;
+        }
+
+        double timestamp = Property<double>(input_bag.getItem(0)).value();
+        PropertyBag& inner_bag = input_bag.getProperty<PropertyBag>("p")->value();
+        double x = Property<double>(inner_bag.getItem(1)).value();
+        double y = Property<double>(inner_bag.getItem(2)).value();
+        if (!check_position_value("property demarshalling", timestamp, x, y))
+            return false;
     }
 
-    double timestamp = Property<double>(input_bag.getItem(0)).value();
-    double x = Property<double>(input_bag.getItem(2)).value();
-    double y = Property<double>(input_bag.getItem(3)).value();
-    if (!check_position_value("property demarshalling", timestamp, x, y))
-        return false;
+    cerr << "Testing PropertyBag composition" << endl;
+    { ValueDataSource<TestOpaque::Position>* reader =
+            new ValueDataSource<TestOpaque::Position>();
+        reader->ref();
+        Property<PropertyBag> bag("", "", input_bag);
+        if (!type->composeType(bag.getDataSource(), reader))
+        {
+            cerr << "cannot recompose type" << endl;
+            return false;
+        }
+
+        TestOpaque::Position value = reader->get();
+        if (!check_position_value("PropertyBag composition", value.timestamp, value.p.x(), value.p.y()))
+            return false;
+    }
 
     std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
     { std::vector<uint8_t>* result =

@@ -36,7 +36,7 @@
             return true;
         }
 
-	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
+	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) const {
             return doCompose(bag, out);
 	}
     };

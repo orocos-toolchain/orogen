@@ -69,9 +69,13 @@ module Typelib
             end
 	end
         def self.to_ostream(toolkit, result, path, indent)
-            orocos_type = registry.orocos_equivalent(self).cxx_name
-            property_name = path[1..-1]
-            result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
+            if opaque?
+                result << indent << "io << data#{path};"
+            else
+                orocos_type = registry.orocos_equivalent(self).cxx_name
+                property_name = path[1..-1]
+                result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
+            end
         end
     end
 
@@ -148,7 +152,7 @@ module Typelib
             result << indent << "  target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", enum_name) );\n"
             result << indent << "}"
 	end
-	def self.from_orocos_decomposition(result, path, indent = "    ")
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
             property_name = path[1..-1]
             result << indent << "{ std::string enum_name;\n"
             result << indent << "  enum_name = bag.getProperty<std::string>( \"#{property_name}\" )->get();\n"
@@ -222,7 +226,7 @@ module Typelib
 	end
 
 	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
+	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent)
 	    result
 	end
 
@@ -262,7 +266,7 @@ module Typelib
 	end
 
 	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
+	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent)
 	end
 
         def self.to_ostream(toolkit, result, path, indent)
