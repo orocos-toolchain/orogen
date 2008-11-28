@@ -69,7 +69,9 @@ module Orocos
 
 	    def compile_wc(component)
 		in_wc do
-                    component.instance_variable_set(:@deffile, File.join(working_directory, "#{component.name}.orogen"))
+                    unless component.deffile
+                        component.instance_variable_set(:@deffile, File.join(working_directory, "#{component.name}.orogen"))
+                    end
 		    component.generate
 
 		    yield if block_given?
