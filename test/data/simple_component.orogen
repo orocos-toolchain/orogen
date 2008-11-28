@@ -1,3 +1,5 @@
+# The name of the component is not the same than the name of the .orogen file,
+# THIS IS INTENTIONAL
 name "simple"
 
 task_context "SimpleTask" do
