@@ -15,6 +15,9 @@ namespace NotOrogenCompatible
         float y() const { return _y; }
         float& x() { return _x; }
         float& y() { return _y; }
+
+        bool operator == (Point2D const& other) const
+        { return other.x() == x() && other.y() == y(); }
     };
 }
 

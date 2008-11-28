@@ -1,5 +1,0 @@
-name "Test"
-toolkit do
-    load 'type_info_generation.h'
-end
-

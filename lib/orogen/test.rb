@@ -84,7 +84,7 @@ module Orocos
 		end
 	    end
 
-            def build_test_component(dirname)
+            def build_test_component(dirname, with_corba, test_bin = nil)
                 # Copy +dirname+ in place of wc
                 wc_dirname = File.join(TEST_DIR, "wc")
                 FileUtils.rm_rf wc_dirname
@@ -93,7 +93,24 @@ module Orocos
                 in_wc do
                     spec = Dir.glob("*.orogen").to_a.first
                     component = Component.load(spec)
-                    compile_wc(component)
+                    if with_corba
+                        component.enable_corba
+                    else
+                        component.disable_corba
+                    end
+
+                    compile_wc(component) do
+                        FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
+                        File.open('CMakeLists.txt', 'a') do |io|
+                            yield(io) if block_given?
+                        end
+                    end
+                end
+
+                if test_bin
+                    in_prefix do
+                        assert(system(test_bin))
+                    end
                 end
             end
 

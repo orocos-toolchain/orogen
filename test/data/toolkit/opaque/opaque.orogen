@@ -1,4 +1,4 @@
-name "TestOpaque"
+name "opaque"
 toolkit do
     opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D',
         :includes => [File.expand_path('opaque.h', File.dirname(component.deffile))]

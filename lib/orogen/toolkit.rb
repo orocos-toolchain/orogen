@@ -261,7 +261,7 @@ module Typelib
 
 	def self.convertion_code_helper(method, toolkit, result, path, indent)
 	    length.times do |i|
-                deference.send(method, result, path + "[#{i}]", indent + "    ") << "\n"
+                deference.send(method, toolkit, result, path + "[#{i}]", indent + "    ") << "\n"
             end
 	    result
 	end

@@ -27,115 +27,75 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             end
         end
 
-        assert_raises(ArgumentError) do
+        assert_raises(RuntimeError) do
             component.toolkit do
                 load 'does_not_exist.h'
             end
         end
     end
 
-    def check_output_file(name)
-        output   = File.read(name)
-        expected = File.read(File.join(TEST_DATA_DIR, name))
+    def check_output_file(basedir, name)
+        output   = File.read(File.join(TEST_DIR, "wc", "prefix", name))
+        expected = File.read(File.join(TEST_DATA_DIR, basedir, name))
         assert_equal(expected, output)
     end
 
     def test_opaque(with_corba = true)
-        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
-        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.cpp')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
-
-        component = Component.new
-        in_wc do
-            component.load 'test_toolkit_opaque.orogen'
-            if with_corba
-                component.enable_corba
-            else
-                component.disable_corba
-            end
-
-            component.generate
-        end
-
-        copy_in_wc File.join(TEST_DATA_DIR, 'TestOpaqueToolkitUser.cpp'), 'toolkit'
-        compile_and_test(component, 'bin/test_toolkit') do |cmake|
+        build_test_component(File.join(TEST_DATA_DIR, 'toolkit/opaque'), with_corba, "bin/test") do |cmake|
             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
-            cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit_opaque.cpp)"
-            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit TestOpaque-toolkit-${OROCOS_TARGET})"
-            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
-            cmake << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
+            cmake << "\nADD_EXECUTABLE(test test.cpp)"
+            cmake << "\nTARGET_LINK_LIBRARIES(test opaque-toolkit-${OROCOS_TARGET})"
+            cmake << "\nTARGET_LINK_LIBRARIES(test ${OROCOS_COMPONENT_LIBRARIES})"
+            cmake << "\nINSTALL(TARGETS test RUNTIME DESTINATION bin)"
             cmake << "\n"
 	end
 
-	in_prefix do
-            check_output_file('test_toolkit_opaque.xml')
-            check_output_file('test_toolkit_opaque.cpf')
-            check_output_file('test_toolkit_composed_opaque.xml')
-            check_output_file('test_toolkit_composed_opaque.cpf')
-	end
+        check_output_file('toolkit/opaque', 'opaque.xml')
+        check_output_file('toolkit/opaque', 'opaque.cpf')
+        check_output_file('toolkit/opaque', 'composed_opaque.xml')
+        check_output_file('toolkit/opaque', 'composed_opaque.cpf')
     end
     def test_opaque_without_corba; test_opaque(false) end
 
     def test_opaque_validation
+        # Copy in place of wc
+        wc_dirname = File.join(TEST_DIR, "wc")
+        FileUtils.rm_rf wc_dirname
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "toolkit/opaque"), wc_dirname
+
         component = Component.new
-        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
         in_wc do
-            component.load 'test_toolkit_opaque.orogen'
+            component.load 'opaque.orogen'
             assert_nothing_raised { component.generate }
         end
         clear_wc
 
+        wc_dirname = File.join(TEST_DIR, "wc")
+        FileUtils.rm_rf wc_dirname
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "toolkit/opaque"), wc_dirname
+
         component = Component.new
-        copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit_opaque.orogen')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque.h')
-        copy_in_wc File.join(TEST_DATA_DIR, 'opaque_intermediates.h')
         in_wc do
-            component.load 'test_toolkit_opaque.orogen'
-            component.toolkit.load File.join(TEST_DATA_DIR, 'test_toolkit_opaque_invalid_1.h')
+            component.load 'opaque.orogen'
+            component.toolkit.load File.join(TEST_DATA_DIR, 'opaque_invalid.h')
             assert_raises(NotImplementedError) { component.generate }
         end
         clear_wc
     end
 
-    def test_generation(with_corba = true)
-	component = Component.new
-        component.load File.join(TEST_DATA_DIR, 'test_toolkit_generation.orogen')
-        if with_corba
-            component.enable_corba
-        else
-            component.disable_corba
+    def test_simple(with_corba = true)
+        build_test_component(File.join(TEST_DATA_DIR, 'toolkit/simple'), with_corba, "bin/test") do |cmake|
+             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
+             cmake << "\nADD_EXECUTABLE(test test.cpp)"
+             cmake << "\nTARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET})"
+             cmake << "\nTARGET_LINK_LIBRARIES(test ${OROCOS_COMPONENT_LIBRARIES})"
+             cmake << "\nINSTALL(TARGETS test RUNTIME DESTINATION bin)"
+             cmake << "\n"
         end
 
-	copy_in_wc File.join(TEST_DATA_DIR, 'test_toolkit.cpp')
-	in_wc do
-	    component.generate
-	    if with_corba
-		assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkitCorba.hpp')))
-		assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.idl')))
-	    else
-		assert(!File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkitCorba.hpp')))
-		assert(!File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.idl')))
-	    end
-	    assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.hpp')))
-	    assert(File.file?( File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'TestToolkit.cpp')))
-	end
-
-        compile_and_test(component, 'bin/test_toolkit') do |cmake|
-            cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
-            cmake << "\nADD_EXECUTABLE(test_toolkit test_toolkit.cpp)"
-            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit Test-toolkit-${OROCOS_TARGET})"
-            cmake << "\nTARGET_LINK_LIBRARIES(test_toolkit ${OROCOS_COMPONENT_LIBRARIES})"
-            cmake << "\nINSTALL(TARGETS test_toolkit RUNTIME DESTINATION bin)"
-            cmake << "\n"
-	end
-
-	in_prefix do
-            check_output_file('test_toolkit.xml')
-	end
+        check_output_file('toolkit/simple', 'simple.cpf')
+        check_output_file('toolkit/simple', 'simple.xml')
     end
-    def test_generation_without_corba; test_generation(false) end
+    def test_simple_without_corba; test_simple(false) end
 end
 

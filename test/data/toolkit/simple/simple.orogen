@@ -1,0 +1,5 @@
+name "simple"
+toolkit do
+    load 'simple.h'
+end
+

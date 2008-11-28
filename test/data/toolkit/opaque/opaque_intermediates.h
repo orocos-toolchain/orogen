@@ -13,6 +13,11 @@ namespace TestOpaque
     {
         double timestamp;
         NotOrogenCompatible::Point2D p;
+
+#ifndef __orogen
+        bool operator == (Position const& other) const
+        { return other.timestamp == timestamp && other.p == p; }
+#endif
     };
 }
 
