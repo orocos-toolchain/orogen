@@ -4,8 +4,13 @@
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
 <% for file in loads %>
-#line 1 <%= "\"#{file}\"" %>
+<% if File.exists?(file) %>
 <%= File.read(file) %>
+<% else %>
+#line 1 <%= "\"#{file}\"" %>
+#include <<%= file %>>
+<% end %>
+
 <% end %>
 
                 

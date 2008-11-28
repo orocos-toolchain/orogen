@@ -31,10 +31,12 @@
 	}
 
 	static bool doCompose(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
-	    <%= type.to_orocos_composition(toolkit) %>
+	    <%= result = ""
+		type.from_orocos_decomposition(toolkit, result, "", " " * 12)
+		result %>
             return true;
         }
-	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) {
+	bool composeTypeImpl(const RTT::PropertyBag& bag, <%= type.basename %>& out) const {
 	    return doCompose(bag, out);
 	}
     };

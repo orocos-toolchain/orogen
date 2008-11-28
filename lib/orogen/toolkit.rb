@@ -26,6 +26,19 @@ module Typelib
             index_var_stack.pop
         end
 
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+            if opaque?
+                property_name = path[1..-1]
+                result << indent << "{ PropertyBag const& inner_bag = bag.getProperty<PropertyBag>(\"#{property_name}\")->value();\n"
+                result << indent << "   #{cxx_name}TypeInfo::doCompose(inner_bag, out#{path});\n"
+                result << indent << "}"
+            else
+                orocos_type = registry.orocos_equivalent(self).cxx_name
+                property_name = path[1..-1]
+                result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(\"#{property_name}\")->get();"
+            end
+	end
+
 	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
             if opaque?
                 result << indent << "{ PropertyBag inner_bag(\"#{full_name}\");\n"
@@ -33,11 +46,9 @@ module Typelib
                 property_name = path[1..-1]
                 result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(\"#{property_name}\", \"\", inner_bag);\n"
                 result << indent << "   target_bag.add(temp_property);\n"
-                result << indent << "   flattenPropertyBag(target_bag, \".\");\n"
-                result << indent << "   target_bag.removeProperty(temp_property);\n"
                 result << indent << "}"
             else
-                orocos_type = registry.orocos_equivalent(self).basename
+                orocos_type = registry.orocos_equivalent(self).cxx_name
                 property_name = path[1..-1]
                 result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
             end
@@ -57,10 +68,10 @@ module Typelib
                 result << indent << "result#{path} = value#{path};"
             end
 	end
-	def self.to_orocos_composition(toolkit)
-	end
         def self.to_ostream(toolkit, result, path, indent)
-            result << indent << "io << data#{path};"
+            orocos_type = registry.orocos_equivalent(self).cxx_name
+            property_name = path[1..-1]
+            result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
         end
     end
 
@@ -109,7 +120,7 @@ module Typelib
                 end
             end
 	end
-	def self.to_orocos_composition(toolkit)
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
 	end
         def self.to_ostream(toolkit, result, path, indent)
             collection_iteration(:data, result, path, indent) do |element_type|
@@ -130,10 +141,24 @@ module Typelib
                 result << indent << "      enum_name = \"#{name}\";\n"
                 result << indent << "      break;\n"
             end
+	    result << indent << "    default:\n"
+	    result << indent << "      enum_name = boost::lexical_cast<std::string>(value#{path});\n"
+            result << indent << "      break;\n"
             result << indent << "  }\n"
             result << indent << "  target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", enum_name) );\n"
             result << indent << "}"
 	end
+	def self.from_orocos_decomposition(result, path, indent = "    ")
+            property_name = path[1..-1]
+            result << indent << "{ std::string enum_name;\n"
+            result << indent << "  enum_name = bag.getProperty<std::string>( \"#{property_name}\" )->get();\n"
+            keys.each do |name, _|
+		result << indent << "  if(enum_name == \"#{name}\")\n"
+		result << indent << "     out#{path} = #{name};\n"
+            end
+            result << indent << "}"
+	end
+
 
         def self.to_ostream(toolkit, result, path, indent)
             property_name = path[1..-1]
@@ -143,6 +168,9 @@ module Typelib
                 result << indent << "    io << \"#{name}\";\n"
                 result << indent << "    break;\n"
             end
+	    result << indent << "    default:\n"
+	    result << indent << "      io << data#{path};\n"
+            result << indent << "      break;\n"
             result << indent << "}\n"
         end
 	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
@@ -193,7 +221,9 @@ module Typelib
 	    result
 	end
 
-	def self.to_orocos_composition(toolkit)
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
+	    result
 	end
 
         def self.to_ostream(toolkit, result, path, indent)
@@ -216,11 +246,10 @@ module Typelib
         def self.corba_name; raise NotImplementedError end
 
 	def self.convertion_code_helper(method, toolkit, result, path, indent)
-            allocate_index do |index_var|
-                result << indent << "for (int #{index_var} = 0; #{index_var} < #{length}; ++#{index_var}) {\n" 
-                deference.send(method, toolkit, result, path + "[#{index_var}]", indent + "    ") << "\n"
-                result << indent << "}"
+	    length.times do |i|
+                deference.send(method, result, path + "[#{i}]", indent + "    ") << "\n"
             end
+	    result
 	end
 	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
 	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
@@ -232,7 +261,8 @@ module Typelib
 	    convertion_code_helper(:code_from_corba, toolkit, result, path, indent)
 	end
 
-	def self.to_orocos_composition(toolkit)
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+	    convertion_code_helper(:from_orocos_decomposition, result, path, indent)
 	end
 
         def self.to_ostream(toolkit, result, path, indent)
@@ -247,10 +277,12 @@ module Typelib
         end
     end
     class Registry
-	OROCOS_KNOWN_TYPES = ['char', 'int', 'unsigned int', 'float', 'double']
+	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'float', 'double']
 	OROCOS_KNOWN_CONVERTIONS = {
-	    'short' => 'int',
-	    'unsigned short' => 'unsigned int' }
+		'char' => 'int',
+		'unsigned char'  => 'unsigned int',
+		'unsigned short' => 'unsigned int',
+		'short' => 'int' }
 
 	attr_reader :orocos_type_equivalence
 	def build_orocos_type_equivalence
@@ -333,14 +365,7 @@ module Orocos
             # needed to load system files for which there is a "natural"
             # support in Orocos.
             def preload(file)
-                cpp_source = Tempfile.new("preload")
-
-                cpp_source.puts "#include <#{file}>"
-                cpp_source.flush
-
-                load(cpp_source.path, true)
-            ensure
-                cpp_source.close if cpp_source
+                load(file, true)
             end
 
             # Declare that the user will provide a method which converts
@@ -395,10 +420,9 @@ module Orocos
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
 	    def load(file, preload = false)
-		file = File.expand_path(file, component.base_dir)
-		if !File.file?(file)
-		    raise ArgumentError, "no such file or directory #{file}"
-		end
+                cpp_source = Tempfile.new("preload", Dir.pwd)
+                cpp_source.puts "#include <#{file}>"
+                cpp_source.flush
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
@@ -413,13 +437,15 @@ module Orocos
                     options[:include] << pkg.includedir
                 end
 
-		file_registry.import(file, 'c', options)
+		file_registry.import(cpp_source.path, 'c', options)
 
                 registry.merge(file_registry)
                 preloaded_registry.merge(file_registry) if preload
 		component.registry.merge(file_registry)
 
 		loads << file
+            ensure
+                cpp_source.close if cpp_source
 	    end
 
             # Packages defined in this component on which the toolkit should
