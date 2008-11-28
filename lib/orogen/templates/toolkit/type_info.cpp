@@ -41,6 +41,6 @@
 	}
     };
 <% rescue TypeError => e
-    raise TypeError, "cannot include #{type.name} in the toolkit: #{e}"
+    raise TypeError, "cannot include #{type.name} in the toolkit: #{e}", e.backtrace
    end %>
 
