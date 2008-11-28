@@ -665,8 +665,6 @@ module Orocos
             # Orocos::RTT.
             def data_driven
                 subclasses "RTT::DataDrivenTask"
-
-                @required_activity = true
                 default_activity 'event_driven'
             end
 
