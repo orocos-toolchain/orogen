@@ -14,12 +14,12 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 
     void* createBlob(RTT::DataSourceBase::shared_ptr data) const
     {
-        RTT::DataSource<<%= type.cxx_name %>>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<<%= type.cxx_name %>> >(data);
+        RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
 
         std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
         <%= intermediate.cxx_name %> temp;
-        to_intermediate(temp, sample);
+        <%= component.name %>::to_intermediate(temp, sample);
         Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout_<%= intermediate.method_name %>);
 
         return buffer;
@@ -36,13 +36,13 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 
     void* createBlob(RTT::DataSourceBase::shared_ptr data) const
     {
-        RTT::DataSource<<%= type.cxx_name %>>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<<%= type.cxx_name %>> >(data);
+        RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
 
         <%= type.cxx_name %>_m temp;
         <% type.each_field do |field_name, field_type| %>
             <% if field_type.opaque? %>
-                to_intermediate(temp.<%= field_name %>, sample.<%= field_name %>);
+                <%= component.name %>::to_intermediate(temp.<%= field_name %>, sample.<%= field_name %>);
             <% else %>
                 temp.<%= field_name %> = sample.<%= field_name %>;
             <% end %>

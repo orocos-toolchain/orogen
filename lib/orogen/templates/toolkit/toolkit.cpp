@@ -124,7 +124,7 @@ namespace <%= component.name %> {
 
 	RTT::TypeInfo* ti = 0;
 	<% (generated_types | opaques.map { |d| d.type }).each do |type| %>
-            ti = new <%= type.cxx_name %>TypeInfo();
+            ti = new <%= type.cxx_namespace %><%= type.method_name(false) %>TypeInfo();
             <% if corba_enabled? %>
                 ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());
             <% end %>

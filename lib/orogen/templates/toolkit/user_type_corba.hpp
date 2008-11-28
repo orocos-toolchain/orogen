@@ -15,13 +15,13 @@ struct AnyConversion< <%= type_name %> >
     <% if toolkit.blob_threshold && type.size > toolkit.blob_threshold %>
     static CorbaType* toAny(const BaseType& value) {
         IntermediateType temp;
-        to_intermediate(temp, value);
+        <%= component.name %>::to_intermediate(temp, value);
 	return new CorbaType(sizeof(IntermediateType), sizeof(IntermediateType), (CORBA::Octet*)&temp);
     }
     <% else %>
     static CorbaType* toAny(const BaseType& value) {
         IntermediateType temp;
-        to_intermediate(temp, value);
+        <%= component.name %>::to_intermediate(temp, value);
         return AnyConversion< <%= intermediate_type.cxx_name %> >::toAny(temp);
     }
     <% end %>
@@ -30,13 +30,13 @@ struct AnyConversion< <%= type_name %> >
     static void get(const CorbaType* _value, BaseType& ret) {
         IntermediateType temp;
 	temp = *((IntermediateType*)_value->get_buffer());
-        from_intermediate(ret, temp);
+        <%= component.name %>::from_intermediate(ret, temp);
     }
     <% else %>
     static void get(const CorbaType* _value, BaseType& result) {
         IntermediateType temp;
         AnyConversion< <%= intermediate_type.cxx_name %> >::get(_value, temp);
-        from_intermediate(result, temp);
+        <%= component.name %>::from_intermediate(result, temp);
     }
     <% end %>
 };

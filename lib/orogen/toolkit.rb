@@ -10,11 +10,21 @@ module Typelib
         def self.cxx_name(fullname = true)
             full_name('::', fullname).gsub("<::", "<")
         end
+        def self.cxx_basename
+            basename('::').gsub("<::", "<")
+        end
+        def self.cxx_namespace
+            namespace('::').gsub("<::", "<")
+        end
+
         def self.corba_name
             cxx_name
         end
-        def self.method_name
-            full_name('_', true).gsub(/[<>\[\]]/, '_')
+        def self.method_name(fullname = true)
+            base = if fullname then full_name('_', true)
+                   else basename('_')
+                   end
+            base.gsub(/[<>\[\]]/, '_')
         end
 
         @@index_var_stack = Array.new
@@ -42,7 +52,7 @@ module Typelib
 	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
             if opaque?
                 result << indent << "{ PropertyBag inner_bag(\"#{full_name}\");\n"
-                result << indent << "   #{cxx_name}TypeInfo::doDecompose(value#{path}, inner_bag);\n"
+                result << indent << "   #{cxx_namespace}#{method_name(false)}TypeInfo::doDecompose(value#{path}, inner_bag);\n"
                 property_name = path[1..-1]
                 result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(\"#{property_name}\", \"\", inner_bag);\n"
                 result << indent << "   target_bag.add(temp_property);\n"
