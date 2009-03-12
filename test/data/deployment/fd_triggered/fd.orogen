@@ -1,0 +1,13 @@
+name 'fd'
+
+task_context 'Consumer' do
+    fd_driven
+end
+
+static_deployment do
+    consumer = task('Consumer').
+        start
+
+    browse consumer
+end
+

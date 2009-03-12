@@ -630,9 +630,17 @@ module Orocos
                 @event_ports.concat(ports)
             end
 
-            # Declares that this task context is designed to be woren up when
-            # new data is available on a I/O file descriptor. This also requires
-            # using the fd_driven deployment type.
+            # Declares that this task context is designed to be woken up when
+            # new data is available on a I/O file descriptor. The resulting task
+            # must also use the fd_driven activity, which is done by default.
+            #
+            # The only thing you have to do in the implementation is therefore
+            #
+            #   task = task("MyDFDrivenTask").
+            #       start
+            #
+            # To configure the activity, you will have to implement the
+            # getFileDescriptor() method that is generated in the target class.
             def fd_driven
                 implements "RTT::FileDescriptorActivity::Provider", "rtt/FileDescriptorActivity.hpp"
                 default_activity "fd_driven"

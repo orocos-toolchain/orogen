@@ -33,6 +33,28 @@ class TC_GenerationDeployment < Test::Unit::TestCase
             assert_equal "U 2 4 6 8 10 ", File.read('data_trigger.txt')
         end
     end
+
+    def test_fd_driven_deployment(with_corba = false)
+        build_test_component File.join(TEST_DATA_DIR, "deployment/fd_triggered"), with_corba
+
+        # Start the resulting deployment
+        in_prefix do
+            reader, writer = IO.pipe
+            child_pid = fork do
+                writer.close
+                ENV["FD_DRIVEN_TEST_FILE"] = reader.fileno.to_s
+                exec("./bin/fd")
+            end
+
+            reader.close
+            sleep 0.5
+            writer.write([?A, ?B].pack("cc"))
+            sleep 0.5
+            writer.write([?C, ?D, ?E].pack("ccc"))
+            Process.waitpid(child_pid)
+            assert_equal(0, $?.exitstatus)
+        end
+    end
 end
 
 
