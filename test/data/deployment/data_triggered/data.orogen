@@ -1,0 +1,30 @@
+name 'data'
+
+task_context 'Consumer' do
+    read_port 'input', 'double'
+    read_port 'input2', 'int'
+
+    # Don't get triggered by 'Input2'
+    port_driven 'input'
+end
+
+# This task is used to test that the setup works well. It will produce 10
+# samples on both of its ports.
+task_context 'Producer' do
+    write_port 'output', 'double'
+    write_port 'output2', 'int'
+end
+
+static_deployment do
+    consumer = task('Consumer').
+        triggered.
+        start
+    producer = task('Producer').
+        periodic(0.1).
+        start
+
+    connect producer.output,  consumer.input, :type => :buffer, :size => 2
+    connect producer.output2, consumer.input2, :type => :buffer, :size => 2
+    browse consumer
+end
+
