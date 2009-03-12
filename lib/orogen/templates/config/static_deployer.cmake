@@ -19,7 +19,7 @@ TARGET_LINK_LIBRARIES(<%= component.name %> ${OROCOS_COMPONENT_LIBRARIES})
 <% component.used_toolkits.each do |name, _| %>
 TARGET_LINK_LIBRARIES(<%= component.name %> ${<%= name %>_TOOLKIT_LIBS})
 <% end %>
-<% if !component.tasks.empty? %>
+<% if !component.self_tasks.empty? %>
 TARGET_LINK_LIBRARIES(<%= component.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
 INSTALL(TARGETS <%= component.name %>
