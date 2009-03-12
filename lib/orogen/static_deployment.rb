@@ -94,8 +94,13 @@ module Orocos
         # The instances of this class hold the deployment-specific information
         # needed for a task.
         class TaskDeployment
-            # The task name
+            # The task name as specified by the user
             attr_reader :name
+	    # The task name as it will be during execution. It is <component_name>.<task_name>
+	    def full_name
+	    	"#{context.component.name}_#{name}"
+	    end
+
             # The TaskContext used to define this task
             attr_reader :context
 
@@ -377,8 +382,8 @@ module Orocos
                 def report(object, peek = true)
                     method = case object
                              when TaskDeployment then ["Component", peek, object, [object.name]]
-                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
-                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
+                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.full_name, object.name]]
+                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.full_name, object.name]]
                              else raise ArgumentError, "cannot report #{object}"
                              end
 
