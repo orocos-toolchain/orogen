@@ -1,7 +1,7 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_PLUGIN_HPP
 #define <%= component.name.upcase %>_TOOLKIT_PLUGIN_HPP
 
-#include <rtt/Toolkit.hpp>
+#include <rtt/ToolkitPlugin.hpp>
 
 namespace Typelib {
     class Registry;

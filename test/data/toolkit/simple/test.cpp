@@ -1,3 +1,4 @@
+#include <rtt/Toolkit.hpp>
 #include "simpleToolkitTypes.hpp"
 #include "simpleToolkit.hpp"
 

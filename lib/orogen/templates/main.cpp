@@ -1,4 +1,5 @@
 #include <rtt/os/main.h>
+<% if component.toolkit || !component.used_toolkits.empty? %>#include <rtt/Toolkit.hpp><% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>Toolkit.hpp"<% end %>
 <% component.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>Toolkit.hpp>

@@ -1,3 +1,4 @@
+#include <rtt/Toolkit.hpp>
 #include "opaqueToolkitTypes.hpp"
 #include "opaqueToolkit.hpp"
 #include "opaque.h"
