@@ -29,8 +29,10 @@ using namespace <%= component.name %>;
         _<%= prop.name %>.set(<%= prop.default_value.inspect %>);
         <% end %>
     properties()->addProperty( &_<%= prop.name %> );<% end %>
-    <% task.ports.each do |port| %>
+    <% (task.ports - task.event_ports).each do |port| %>
     ports()->addPort( &_<%= port.name %>, "<%= port.doc %>" );<% end %>
+    <% task.event_ports.each do |port| %>
+    ports()->addEventPort( &_<%= port.name %>, std::string("<%= port.doc %>") );<% end %>
     <% (task.methods + task.commands).each do |callable| 
 	argument_setup = callable.arguments.
 	    map { |n, _, d| ", \"#{n}\", \"#{d}\"" }.

@@ -451,12 +451,24 @@ module Orocos
 		@methods    = Array.new
 		@commands   = Array.new
 		@ports	    = Array.new
+                @event_ports = Array.new
                 @initial_state = 'Stopped'
 	    end
 
 	    def pretty_print(pp)
 		pp.text to_s
 	    end
+
+            # Returns the object in +set_name+ for which #name returns +name+,
+            # or ArgumentError if there is none
+            def get_object(set_name, name)
+                set = send(set_name)
+		obj = set.find { |o| o.name == name }
+                if !obj
+		    raise ArgumentError, "there is no #{name} in #{set_name}"
+		end
+                obj
+            end
 
 	    # Raises ArgumentError if an object named +name+ is already present
 	    # in the set attribute +set_name+. 
@@ -597,14 +609,25 @@ module Orocos
                 new_port
             end
 
+            # A set of ports that will trigger this task when they get updated.
+            attr_reader :event_ports
 
             # Declares that this task context is designed to be woken up when
-            # new data is available on one of its ports. This requires the
-            # RTT::DataDrivenTask class to be installed in your installation of
-            # Orocos::RTT.
-            def data_driven
-                subclasses "RTT::DataDrivenTask"
-                default_activity 'event_driven'
+            # new data is available on one of the given ports (or all already
+            # defined ports if no names are given).
+            def port_driven(*names)
+                ports = if names.empty? then ports.find_all { |p| p.kind_of?(ReadPort) }
+                        else
+                            names.map do |n|
+                                obj = get_object(:ports, n)
+                                if !obj.kind_of?(ReadPort)
+                                    raise ArgumentError, "only read ports can be used as triggers for a task context"
+                                end
+                                obj
+                            end
+                        end
+
+                @event_ports.concat(ports)
             end
 
             # Declares that this task context is designed to be woren up when

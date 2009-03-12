@@ -36,7 +36,12 @@ int <%= task.basename %>::getFileDescriptor() const
 
 // bool <%= task.basename %>::configureHook() { return true; }
 // bool <%= task.basename %>::startHook() { return true; }
+<% if task.event_ports.empty? %>
 // void <%= task.basename %>::updateHook() {}
+<% else %>
+// void <%= task.basename %>::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
+// {}
+<% end %>
 // void <%= task.basename %>::errorHook() {}
 // void <%= task.basename %>::stopHook() {}
 // void <%= task.basename %>::cleanupHook() {}

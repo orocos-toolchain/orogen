@@ -55,8 +55,18 @@ namespace <%= component.name %> {
          * the errorHook() will be called instead of updateHook() and in the
          * third case the component is stopped and resetError() needs to be
          * called before starting it again.
+        <% if task.event_ports.empty? %>
+         * 
+         * The \a updated_ports argument is the set of ports that have triggered
+         * this call. If the trigger is caused by something different (for
+         * instance, a periodic update), then this set is empty.
+        <% end %>
          */
+        <% if task.event_ports.empty? %>
         // void updateHook();
+        <% else %>
+        // void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
+        <% end %>
 
         /** This hook is called by Orocos when the component is in the
          * RunTimeError state, at each activity step. See the discussion in

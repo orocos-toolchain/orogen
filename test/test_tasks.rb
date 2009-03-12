@@ -187,6 +187,18 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	compile_wc(component)
     end
+    def test_task_ports_driven
+	component = Component.new 
+	component.name 'test'
+
+	task  = component.task_context "task"
+	read  = task.read_port 'r', 'int'
+	write = task.write_port 'w', 'int'
+
+        assert_nothing_raised { task.port_driven 'r' }
+        assert_raises(ArgumentError) { task.port_driven 'r1' }
+        assert_raises(ArgumentError) { task.port_driven 'w' }
+        assert_equal([read], task.event_ports)
 
 	compile_wc(component)
     end
