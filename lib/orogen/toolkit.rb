@@ -135,6 +135,7 @@ module Typelib
             end
 	end
 	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+	    result
 	end
         def self.to_ostream(toolkit, result, path, indent)
             collection_iteration(:data, result, path, indent) do |element_type|
@@ -196,8 +197,6 @@ module Typelib
                 result << indent << "    break;\n"
             end
             result << indent << "}\n"
-
-	    result
 	end
 	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
             namespace = self.namespace('::')
@@ -208,8 +207,6 @@ module Typelib
                 result << indent << "    break;"
             end
             result << indent << "}\n"
-
-	    result
 	end
     end
 
@@ -221,6 +218,7 @@ module Typelib
 	    each_field do |name, type|
 		type.send(method, toolkit, result, "#{path}.#{name}", indent) << "\n"
 	    end
+	    result
 	end
 	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
 	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
