@@ -45,31 +45,12 @@ module Orocos
 	    attr_reader :name
 	    # The port type
 	    attr_reader :type
-	    # The IO mode ('r', 'w' or 'rw')
-	    attr_reader :mode
 
             def used_types; [type] end
 
-            # True if it is possible to read this port
-	    def read_access?; mode =~ /r/ end
-            # True if it is possible to write this port
-	    def write_access?; mode =~ /w/ end
-            # True if this port is read-write
-	    def read_write?; read_access? && write_access? end
-
-	    def initialize(task, name, type, mode)
+	    def initialize(task, name, type)
                 name = name.to_s
-		@task, @name, @type, @mode = task, name, type, mode
-	    end
-
-            # Returns the name of the Orocos class for this port (i.e.  one of
-            # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
-	    def orocos_class
-		basename = self.class.name.gsub(/.*::/, '')
-		if read_write? then basename
-		elsif read_access? then "Read#{basename}"
-		else "Write#{basename}"
-		end
+		@task, @name, @type = task, name, task.component.find_type(type)
 	    end
 
 	    # call-seq:
@@ -80,22 +61,17 @@ module Orocos
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
-        # Representation of a data port. Instances of this class are usually
-        # created by TaskContext#data_port
-	class DataPort < Port; end
+        class WritePort < Port
+            # Returns the name of the Orocos class for this port (i.e.  one of
+            # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
+	    def orocos_class; "RTT::WritePort" end
+        end
 
-        # Representation of a buffer port. Instances of this class are usually
-        # created by TaskContext#buffer_port
-	class BufferPort < Port
-	    # The port size, which is the maximal number of items it can handle
-	    # at the same time
-	    attr_reader :size
-
-	    def initialize(task, name, type, mode, size)
-		super(task, name, type, mode)
-		@size = size
-	    end
-	end
+        class ReadPort < Port
+            # Returns the name of the Orocos class for this port (i.e.  one of
+            # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
+	    def orocos_class; "RTT::ReadPort" end
+        end
 
 	class Callable
 	    # The TaskContext instance this method is part of
@@ -363,9 +339,9 @@ module Orocos
         # attribute, of the right RTT class, added to the generated TaskContext
         # subclass. The attribute name is always the _[object name], so for
         # instance the presence of the following statement
-        #   data_port('time', 'double', 'w')
+        #   write_port('time', 'double')
         #
-        # will cause a <tt>WriteDataPort<double></tt> attribute named
+        # will cause a <tt>WritePort<double></tt> attribute named
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
 	class TaskContext
@@ -590,74 +566,37 @@ module Orocos
 	    end
 
 	    # The set of IO ports for this task context. These are either
-	    # DataPort and BufferPort objects
+	    # WritePort and ReadPort objects
 	    attr_reader :ports
 
-	    # Inserts a new port of the given class, name, type and with the
-	    # given mode.
+	    # call-seq:
+	    #	write_port 'name', '/type'
 	    #
-	    # This is an internal helper method used to implement #data_port
-	    # and #buffer_port
-	    def port(klass, name, type, mode, *additional_args) # :nodoc:
+            # Add a new write port with the given name and type, and returns the
+            # corresponding WritePort object.
+	    #
+	    # See also #read_port
+	    def write_port(name, type)
 		check_uniqueness(:ports, name)
-		mode = mode.to_s
-		unless %w{r w rw }.any? { |v| v == mode }
-		    raise ArgumentError, "invalid mode specification #{mode}. Expected one of: r, w, rw"
-		end
-		type = component.find_type(type)
-
-		ports << klass.new(self, name, type, mode, *additional_args)
-		ports.last
+                new_port = WritePort.new(self, name, type)
+                ports << new_port
+                new_port
 	    end
-	    private :port
 
 	    # call-seq:
-	    #	buffer_port 'name', '/type', 'r'
-	    #	buffer_port 'name', '/type', buffer_size, 'rw'
-	    #	buffer_port 'name', '/type', buffer_size, 'w'
+	    #	read_port 'name', '/type'
 	    #
-            # Add a new buffer port with the given name, type, size and mode.
-            # Mode defines in what direction the port accept data: it is a
-            # string and can be one of r, w, and rw. +type+ is either a
-            # Typelib::Type object or a type name defined in the component
-            # (i.e.  either defined in its own toolkit or loaded with
-            # Component#load_toolkit). The size is, for write ports, how many
-            # items can be buffered at the same time in the port. It should not
-            # be provided for read-only ports.
+            # Add a new write port with the given name and type, and returns the
+            # corresponding ReadPort object.
 	    #
-	    # See also #data_port
-	    def buffer_port(name, type, *spec)
-		spec << 'r' if spec.empty?
+	    # See also #write_port
+	    def read_port(name, type)
+		check_uniqueness(:ports, name)
+                new_port = ReadPort.new(self, name, type)
+                ports << new_port
+                new_port
+            end
 
-		mode_or_size = spec.shift
-		if mode_or_size.respond_to?(:to_str)
-		    if mode_or_size.to_str != 'r'
-			raise ArgumentError, "write access needs a buffer size to be defined"
-		    end
-		    mode = 'r'
-		    size = nil
-		else
-		    mode = spec.shift.to_s
-		    if mode == 'r'
-			raise ArgumentError, "buffer size provided for read-only buffer port"
-                    elsif !mode
-                        raise ArgumentError, "mode not specified"
-		    end
-
-		    size = Integer(mode_or_size)
-		end
-
-		port(BufferPort, name, type, mode, size) 
-	    end
-
-	    # Add a new buffer port with the given name, type and mode.
-	    # Mode defines in what direction the port accept data: it is a
-	    # string and can be one of r, w, and rw. +type+ is either a
-	    # Typelib::Type object or a type name defined in the component (i.e.
-            # either defined in its own toolkit or loaded with Component#load_toolkit).
-	    #
-	    # See also #buffer_port
-	    def data_port(name, type, mode = 'rw'); port(DataPort, name, type, mode) end
 
             # Declares that this task context is designed to be woken up when
             # new data is available on one of its ports. This requires the

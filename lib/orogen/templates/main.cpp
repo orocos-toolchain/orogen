@@ -135,14 +135,17 @@ int ORO_main(int argc, char* argv[])
     task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
 <% end %>
 
-<% deployer.connections.each do |src, dst|
+<% deployer.connections.each do |src, dst, policy|
     if src.kind_of?(TaskDeployment) %>
         task_<%= a.activity.name %>.connectPorts(&task_<%= a.activity.name %>);
     <% else %>
     {
-        PortInterface* src = task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>");
-        PortInterface* dst = task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>");
-        src->connectTo(dst);
+        <%= policy.to_code("policy") %>
+        WritePortInterface* src = dynamic_cast<WritePortInterface*>(
+                task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
+        ReadPortInterface* dst = dynamic_cast<ReadPortInterface*>(
+                task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
+        src->createConnection(*dst, policy);
     }
     <% end %>
 <% end %>

@@ -18,9 +18,7 @@ using namespace <%= component.name %>;
     <% task.properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
     <% task.ports.each do |port| %>
-    <% if port.kind_of?(BufferPort) && port.write_access? %>, _<%= port.name %>("<%= port.name %>", <%= port.size %>)
-    <% else %>, _<%= port.name %>("<%= port.name %>")<% end %>
-    <% end %>
+    , _<%= port.name %>("<%= port.name %>")<% end %>
     <% task.methods.each do |meth| %>
     , _<%= meth.name %>("<%= meth.name %>", &<%= task.name %>::<%= meth.method_name %>, &_self)<% end %>
     <% task.commands.each do |cmd| %>

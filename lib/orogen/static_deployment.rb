@@ -19,6 +19,78 @@ module Orocos
         class MethodDeployment   < GenericObjectDeployment; end
         class CommandDeployment  < GenericObjectDeployment; end
 
+        class ConnPolicy
+            # The connection type. Can be either :data (the default) or :buffer
+            attr_accessor :type
+            # The connection lock type. Can be either :lock_free (the default) or :locked
+            attr_accessor :lock_policy
+            # If false (the default), samples are pushed across process
+            # boundaries automatically. If true, then the accessor side has to
+            # require the sample to be transferred.
+            attr_accessor :pull
+            # If +type+ is :buffer, the size of the buffer
+            attr_accessor :size
+
+            def initialize
+                @type      = :data
+                @lock_policy = :lock_free
+                @pull      = false
+                @size      = 0
+            end
+
+            # Creates a new ConnPolicy object from a hash. For instance,
+            #
+            #   ConnPolicy.to_hash :type => :data, :lock_policy => :lock_free
+            #
+            # Would create a connection policy with the given type and lock
+            # type, using default values for the rest. See attributes of
+            # ConnPolicy for valid parameters and valid values.
+            def self.from_hash(hash)
+                hash = hash.to_hash.dup
+
+                policy = ConnPolicy.new
+                type = hash.delete(:type) || :data
+                if type == :data || type == :buffer
+                    policy.type = type
+                else
+                    raise ArgumentError, "'type' can only be either :data or :buffer"
+                end
+                    
+                lock_policy = hash.delete(:lock_policy) || :lock_free
+                if lock_policy == :lock_free || lock_policy == :locked
+                    policy.lock_policy = lock_policy
+                else
+                    raise ArgumentError, "'lock_policy' can only be either :lock_free or :locked"
+                end
+
+                policy.pull = !!hash.delete(:pull)
+
+                size = hash.delete(:size)
+                if type == :data && size
+                    raise ArgumentError, "data connections don't have any size"
+                end
+                policy.size = Integer(size || 0)
+
+                if !hash.empty?
+                    raise ArgumentError, "unknown policy specification options #{hash.keys.join(", ")}"
+                elsif type == :buffer && policy.size == 0
+                    raise ArgumentError, "you have to specify the buffer size"
+                end
+
+                policy
+            end
+
+            def to_code(varname)
+                str = "ConnPolicy #{varname};\n"
+                str << "#{varname}.type      = RTT::ConnPolicy::#{type.to_s.upcase};\n"
+                str << "#{varname}.lock_policy = RTT::ConnPolicy::#{lock_policy.to_s.upcase};\n"
+                str << "#{varname}.init      = false;\n"
+                str << "#{varname}.pull      = #{pull ? "true" : "false"};\n"
+                str << "#{varname}.size      = #{size};\n"
+                str
+            end
+        end
+
         # The instances of this class hold the deployment-specific information
         # needed for a task.
         class TaskDeployment
@@ -377,10 +449,20 @@ module Orocos
             # of [from, to] PortDeployment objects.
             attr_reader :connections
 
-            # Connects the two given ports
-            def connect(from, to)
+            # Connects the two given ports or tasks
+            def connect(from, to, policy = Hash.new)
                 add_peers from.activity, to.activity
-                connections << [from, to]
+
+                if from.kind_of?(Port)
+                    if !from.kind_of?(WritePort)
+                        raise ArgumentError, "in connect(a, b), 'a' must be a writer port"
+                    elsif !to.kind_of?(ReadPort)
+                        raise ArgumentError, "in connect(a, b), 'b' must be a reader port"
+                    end
+                end
+
+                connections << [from, to, ConnPolicy.from_hash(policy)]
+                self
             end
 
             # Declare that the given tasks are peers

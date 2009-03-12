@@ -34,7 +34,7 @@ namespace <%= component.name %> {
 
 	<% unless task.ports.empty? %>/** Ports */<% end %>
     <% task.ports.each do |port| %>
-	RTT::<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
+	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
     <% end %>
 
 	<% unless task.methods.empty? %>/** Methods */<% end %>
