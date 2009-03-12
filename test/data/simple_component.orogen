@@ -7,7 +7,7 @@ end
 
 static_deployment do
     simple_task = task('SimpleTask').
-        period(0.1).
+        periodic(0.1).
         start
 end
 

@@ -209,8 +209,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	task = component.task_context "task"
         assert_raises(ArgumentError) { task.default_activity(:bla) }
-        task.default_activity :period, 10
-        assert_equal([:period, 10], task.default_activity)
+        task.default_activity :periodic, 10
+        assert_equal([:periodic, 10], task.default_activity)
 
         deployment = component.static_deployment
         activity = deployment.task "task"

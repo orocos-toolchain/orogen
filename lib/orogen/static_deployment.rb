@@ -116,6 +116,9 @@ module Orocos
 		@priority = :lowest
                 @max_overruns = 5
 
+                # Set the default activity
+                sequential
+
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
                     :methods  => MethodDeployment,
@@ -174,20 +177,33 @@ module Orocos
             # input ports.
             def event_driven; activity_type 'EventDrivenActivity'; self end
 
+	    # Returns the task period, or nil if the task is not periodic. Call
+            # #periodic to define a periodic task and one of the other
+            # triggering methods otherwise.
+            attr_reader :period
+
 	    # call-seq:
-	    #	period(period_in_seconds) => period_in_seconds
-	    #
-	    # Sets or gets the task period. Call #aperiodic to make it
-	    # aperiodic
-	    dsl_attribute(:period) do |value|
-                value = Float(value)
+	    #	periodic(period_in_seconds) => self
+            #
+            # Sets this task as being periodic. Call #period to return the
+            # current task's period (or nil if the task is not periodic), and
+            # one of the other triggering methods if you want a different
+            # activity type.
+            def periodic(value)
+                @period = Float(value)
                 activity_type 'PeriodicActivity'
-                value
+                self
             end
 
-	    # Marks this task as being aperiodic (the default). To make it
-	    # periodic, call #period with the required period
-	    def aperiodic; activity_type 'NonPeriodicActivity'; self end
+            # Marks this task as being explicitely triggered (the default). To
+            # make it periodic, call #period with the required period
+	    def triggered; activity_type 'NonPeriodicActivity'; self end
+
+            # Marks this task as being "sequential". Sequential tasks are
+            # thread-less, and are triggered by the component that is calling
+            # step() on them, or -- in the case of port-driven tasks -- by the
+            # component that wrote on their read ports.
+            def sequential; activity_type "SequentialActivity"; self end
 
             # Call to make the deployer start this task when the component is
             # launched
