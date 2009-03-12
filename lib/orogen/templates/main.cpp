@@ -64,7 +64,6 @@ int ORO_main(int argc, char* argv[])
     ControlTaskServer::InitOrb(argc, argv);
 <% end %>
 
-    TaskContext* main_task = 0;
 <% deployer.task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.full_name %>");
     RTT::<%= task.activity_type %> activity_<%= task.name%>(
