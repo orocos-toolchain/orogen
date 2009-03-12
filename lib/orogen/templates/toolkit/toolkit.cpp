@@ -145,3 +145,7 @@ namespace <%= component.name %> {
 
     ToolkitPlugin Toolkit;
 }
+
+// Export the toolkit as a deployer-compatible plugin
+ORO_TOOLKIT_PLUGIN(<%= component.name %>::Toolkit);
+
