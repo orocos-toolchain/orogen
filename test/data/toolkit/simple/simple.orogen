@@ -3,3 +3,6 @@ toolkit do
     load 'simple.h'
 end
 
+static_deployment do
+end
+

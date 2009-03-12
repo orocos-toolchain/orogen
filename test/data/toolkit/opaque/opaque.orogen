@@ -6,3 +6,6 @@ toolkit do
     load 'opaque_intermediates.h'
 end
 
+static_deployment do
+end
+

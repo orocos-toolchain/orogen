@@ -24,6 +24,8 @@ using RTT::Corba::ControlTaskServer;
 #include <ocl/TaskBrowser.hpp>
 <% end %>
 
+#include <rtt/Logger.hpp>
+#include <rtt/ActivityInterface.hpp>
 class Deinitializer
 {
     friend Deinitializer& operator << (Deinitializer&, RTT::ActivityInterface&);
@@ -47,7 +49,7 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::ActivityInterface& activ
     return deinit;
 }
 
-using namespace Orocos;
+using namespace RTT;
 int ORO_main(int argc, char* argv[])
 {
    <% if deployer.loglevel %>
@@ -154,7 +156,7 @@ int ORO_main(int argc, char* argv[])
     ControlTaskServer::RunOrb();
     ControlTaskServer::DestroyOrb();
 <% elsif deployer.browse %>
-    TaskBrowser browser(& task_<%= deployer.browse.name %>);
+    OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
     browser.loop();
 <% end %>
 
