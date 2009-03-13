@@ -1,3 +1,6 @@
+# This module tests the generation of modules that include and deploy
+# port-driven tasks. It also does a functional test by running the generated
+# module.
 name 'data'
 
 task_context 'Consumer' do

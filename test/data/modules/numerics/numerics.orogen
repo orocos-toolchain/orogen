@@ -1,3 +1,5 @@
+# This module tests the generation of modules that are using various numeric
+# types
 name 'numerics'
 version '0.1'
 

@@ -1,3 +1,4 @@
+# This module tests the generation and functionality of a simple toolkit
 name "simple"
 toolkit do
     load 'simple.h'

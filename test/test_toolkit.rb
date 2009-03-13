@@ -41,7 +41,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
 
     def test_opaque(with_corba = true)
-        build_test_component(File.join(TEST_DATA_DIR, 'toolkit/opaque'), with_corba, "bin/test") do |cmake|
+        build_test_component(File.join(TEST_DATA_DIR, 'modules/opaque'), with_corba, "bin/test") do |cmake|
             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
             cmake << "\nADD_EXECUTABLE(test test.cpp)"
             cmake << "\nTARGET_LINK_LIBRARIES(test opaque-toolkit-${OROCOS_TARGET})"
@@ -50,10 +50,10 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             cmake << "\n"
 	end
 
-        check_output_file('toolkit/opaque', 'opaque.xml')
-        check_output_file('toolkit/opaque', 'opaque.cpf')
-        check_output_file('toolkit/opaque', 'composed_opaque.xml')
-        check_output_file('toolkit/opaque', 'composed_opaque.cpf')
+        check_output_file('modules/opaque', 'opaque.xml')
+        check_output_file('modules/opaque', 'opaque.cpf')
+        check_output_file('modules/opaque', 'composed_opaque.xml')
+        check_output_file('modules/opaque', 'composed_opaque.cpf')
     end
     def test_opaque_without_corba; test_opaque(false) end
 
@@ -61,7 +61,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         # Copy in place of wc
         wc_dirname = File.join(TEST_DIR, "wc")
         FileUtils.rm_rf wc_dirname
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "toolkit/opaque"), wc_dirname
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/opaque"), wc_dirname
 
         component = Component.new
         in_wc do
@@ -72,7 +72,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
         wc_dirname = File.join(TEST_DIR, "wc")
         FileUtils.rm_rf wc_dirname
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "toolkit/opaque"), wc_dirname
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/opaque"), wc_dirname
 
         component = Component.new
         in_wc do
@@ -84,7 +84,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
 
     def test_simple(with_corba = true)
-        build_test_component(File.join(TEST_DATA_DIR, 'toolkit/simple'), with_corba, "bin/test") do |cmake|
+        build_test_component(File.join(TEST_DATA_DIR, 'modules/simple'), with_corba, "bin/test") do |cmake|
              cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
              cmake << "\nADD_EXECUTABLE(test test.cpp)"
              cmake << "\nTARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET})"
@@ -93,8 +93,8 @@ class TC_GenerationToolkit < Test::Unit::TestCase
              cmake << "\n"
         end
 
-        check_output_file('toolkit/simple', 'simple.cpf')
-        check_output_file('toolkit/simple', 'simple.xml')
+        check_output_file('modules/simple', 'simple.cpf')
+        check_output_file('modules/simple', 'simple.xml')
     end
     def test_simple_without_corba; test_simple(false) end
 end

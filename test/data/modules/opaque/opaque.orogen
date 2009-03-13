@@ -1,3 +1,5 @@
+# This module test the generation and functionality of toolkits that include
+# opaque types
 name "opaque"
 toolkit do
     opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D',
