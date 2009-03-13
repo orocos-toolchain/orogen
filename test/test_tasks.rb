@@ -15,10 +15,14 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { component.generate }
 
         component.instance_variable_set(:@deffile, "bla.orogen")
-        component.generate
+
+        create_wc("tasks/generation_validation")
+        in_wc do
+            component.generate
+        end
     end
 
-    def test_task
+    def test_task_context
 	component = Component.new
 	component.name 'test'
 
@@ -37,10 +41,11 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_raises(ArgumentError) { component.task_context("bla!bla") }
 	assert_raises(ArgumentError) { component.task_context("bla/bla") }
 
-	compile_wc(component)
+        create_wc("tasks/task_context")
+        compile_wc(component)
     end
 
-    def test_task_property
+    def test_property
 	component = Component.new
 	component.name 'test'
 
@@ -60,6 +65,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal(type, property.type.full_name)
 	assert_equal(doc,  property.doc)
 
+        create_wc("tasks/property")
 	compile_wc(component)
     end
 
@@ -106,6 +112,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("void(std::string, double)", meth.signature(false))
 	assert_equal(expected_arguments, meth.arguments)
 
+        create_wc("tasks/method")
 	compile_wc(component)
     end
 
@@ -161,6 +168,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("()", cmd.completion_signature)
 	assert_equal("()", cmd.completion_signature(false))
 
+        create_wc("tasks/command")
 	compile_wc(component)
     end
 
@@ -185,6 +193,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_raises(ArgumentError) { task.write_port 'r', 'int' }
 	assert_raises(ArgumentError) { task.write_port 'w', 'int' }
 
+        create_wc("tasks/ports")
 	compile_wc(component)
     end
     def test_task_ports_driven
@@ -200,6 +209,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { task.port_driven 'w' }
         assert_equal([read], task.event_ports)
 
+        create_wc("tasks/port_driven")
 	compile_wc(component)
     end
 
@@ -216,6 +226,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         activity = deployment.task "task"
         assert_equal("PeriodicActivity", activity.activity_type)
 
+        create_wc("tasks/default_activity")
 	compile_wc(component)
     end
 end

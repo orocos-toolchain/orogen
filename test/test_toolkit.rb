@@ -2,7 +2,6 @@ require 'orogen/test'
 
 class TC_GenerationToolkit < Test::Unit::TestCase
     include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
     def test_orocos_type_equivalence
 	registry = Typelib::Registry.new
@@ -35,13 +34,13 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     end
 
     def check_output_file(basedir, name)
-        output   = File.read(File.join(TEST_DIR, "wc", "prefix", name))
+        output   = File.read(File.join(prefix_directory, name))
         expected = File.read(File.join(TEST_DATA_DIR, basedir, name))
         assert_equal(expected, output)
     end
 
     def test_opaque(with_corba = true)
-        build_test_component(File.join(TEST_DATA_DIR, 'modules/opaque'), with_corba, "bin/test") do |cmake|
+        build_test_component('modules/toolkit_opaque', with_corba, "bin/test") do |cmake|
             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
             cmake << "\nADD_EXECUTABLE(test test.cpp)"
             cmake << "\nTARGET_LINK_LIBRARIES(test opaque-toolkit-${OROCOS_TARGET})"
@@ -50,29 +49,29 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             cmake << "\n"
 	end
 
-        check_output_file('modules/opaque', 'opaque.xml')
-        check_output_file('modules/opaque', 'opaque.cpf')
-        check_output_file('modules/opaque', 'composed_opaque.xml')
-        check_output_file('modules/opaque', 'composed_opaque.cpf')
+        check_output_file('modules/toolkit_opaque', 'opaque.xml')
+        check_output_file('modules/toolkit_opaque', 'opaque.cpf')
+        check_output_file('modules/toolkit_opaque', 'composed_opaque.xml')
+        check_output_file('modules/toolkit_opaque', 'composed_opaque.cpf')
     end
     def test_opaque_without_corba; test_opaque(false) end
 
     def test_opaque_validation
-        # Copy in place of wc
-        wc_dirname = File.join(TEST_DIR, "wc")
-        FileUtils.rm_rf wc_dirname
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/opaque"), wc_dirname
+        # First, check that the actual opaque module generates properly
+        create_wc("modules/toolkit_opaque_validation_ok")
+        FileUtils.rm_rf working_directory
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/toolkit_opaque"), working_directory
 
         component = Component.new
         in_wc do
             component.load 'opaque.orogen'
             assert_nothing_raised { component.generate }
         end
-        clear_wc
 
-        wc_dirname = File.join(TEST_DIR, "wc")
-        FileUtils.rm_rf wc_dirname
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/opaque"), wc_dirname
+        # Second, check that it fails if an invalid file is loaded
+        create_wc("modules/toolkit_opaque_validation_fail")
+        FileUtils.rm_rf working_directory
+        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/toolkit_opaque"), working_directory
 
         component = Component.new
         in_wc do
@@ -80,11 +79,10 @@ class TC_GenerationToolkit < Test::Unit::TestCase
             component.toolkit.load File.join(TEST_DATA_DIR, 'opaque_invalid.h')
             assert_raises(NotImplementedError) { component.generate }
         end
-        clear_wc
     end
 
     def test_simple(with_corba = true)
-        build_test_component(File.join(TEST_DATA_DIR, 'modules/simple'), with_corba, "bin/test") do |cmake|
+        build_test_component('modules/toolkit_simple', with_corba, "bin/test") do |cmake|
              cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
              cmake << "\nADD_EXECUTABLE(test test.cpp)"
              cmake << "\nTARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET})"
@@ -93,8 +91,8 @@ class TC_GenerationToolkit < Test::Unit::TestCase
              cmake << "\n"
         end
 
-        check_output_file('modules/simple', 'simple.cpf')
-        check_output_file('modules/simple', 'simple.xml')
+        check_output_file('modules/toolkit_simple', 'simple.cpf')
+        check_output_file('modules/toolkit_simple', 'simple.xml')
     end
     def test_simple_without_corba; test_simple(false) end
 end

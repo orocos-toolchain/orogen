@@ -8,8 +8,17 @@ module Orocos
 	    include Orocos
 	    include Orocos::Generation
 
-	    TEST_DIR = File.expand_path('../../test', File.dirname(__FILE__))
+	    TEST_DIR      = File.expand_path('../../test', File.dirname(__FILE__))
+            TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
+            WC_ROOT  = File.join(TEST_DIR, 'wc')
+
 	    attr_reader :working_directory
+
+            def prefix_directory
+                File.join(WC_ROOT, "prefix", *subdir)
+            end
+
+            attr_reader :subdir
 
 	    def setup
 		super if defined? super
@@ -20,24 +29,25 @@ module Orocos
 		super if defined? super
 	    end
 
-	    def create_wc
-		if !working_directory
-		    @working_directory = File.join(TEST_DIR, 'wc')
+	    def create_wc(*subdir)
+                required_wc = File.join(TEST_DIR, 'wc', *subdir)
+		if working_directory != required_wc
+		    @working_directory = required_wc
 		    FileUtils.mkdir_p working_directory
+                    @subdir = subdir
 		end
 	    end
 
             def clear_wc
 		unless ENV['TEST_KEEP_WC']
-		    if working_directory && File.directory?(working_directory)
-			FileUtils.rm_rf working_directory
+		    if File.directory?(WC_ROOT)
+			FileUtils.rm_rf WC_ROOT
                         @working_directory = nil
 		    end
 		end
             end
 
 	    def copy_in_wc(file, destination = nil)
-		create_wc
 		if destination
 		    destination = File.expand_path(destination, working_directory)
 		    FileUtils.mkdir_p destination
@@ -47,11 +57,9 @@ module Orocos
 	    end
 
 	    def in_wc(&block)
-		create_wc
 		Dir.chdir(working_directory, &block)
 	    end
             def in_prefix(&block)
-		create_wc
                 old_pkgconfig = ENV['PKG_CONFIG_PATH']
                 in_wc do
                     Dir.chdir("build") do
@@ -60,8 +68,8 @@ module Orocos
                         end
                     end
 
-                    ENV['PKG_CONFIG_PATH'] += ":" + File.join(working_directory, 'prefix', 'lib', 'pkgconfig')
-                    Dir.chdir("prefix", &block)
+                    ENV['PKG_CONFIG_PATH'] += ":" + File.join(prefix_directory, 'lib', 'pkgconfig')
+                    Dir.chdir(prefix_directory, &block)
                 end
             ensure
                 ENV['PKG_CONFIG_PATH'] = old_pkgconfig
@@ -77,7 +85,7 @@ module Orocos
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
-			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{working_directory}/prefix ..")
+			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..")
 			    raise "failed to configure"
 			elsif !system("make")
 			    raise "failed to build"
@@ -88,10 +96,12 @@ module Orocos
 
             def build_test_component(dirname, with_corba, test_bin = nil)
                 if !ENV['TEST_SKIP_REBUILD']
+                    source = File.join(TEST_DATA_DIR, dirname)
+                    create_wc(dirname)
+
                     # Copy +dirname+ in place of wc
-                    wc_dirname = File.join(TEST_DIR, "wc")
-                    FileUtils.rm_rf wc_dirname
-                    FileUtils.cp_r dirname, wc_dirname
+                    FileUtils.rm_rf working_directory
+                    FileUtils.cp_r source, working_directory
 
                     in_wc do
                         spec = Dir.glob("*.orogen").to_a.first

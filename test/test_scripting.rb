@@ -6,7 +6,7 @@ class TC_Scripting < Test::Unit::TestCase
 
     # Test that numeric calls are handled properly for all defined numeric types
     def test_numerics(with_corba = false)
-        build_test_component File.join(TEST_DATA_DIR, "modules/numerics"), with_corba
+        build_test_component "modules/numerics", with_corba
     end
     def test_numerics_on_corba
         test_numerics(true)

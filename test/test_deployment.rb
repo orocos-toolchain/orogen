@@ -26,7 +26,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
     end
 
     def test_data_driven_deployment(with_corba = false)
-        build_test_component File.join(TEST_DATA_DIR, "modules/data_triggered"), with_corba, "bin/data"
+        build_test_component "modules/data_triggered", with_corba, "bin/data"
 
         # Check the resulting file
         in_prefix do
@@ -35,7 +35,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
     end
 
     def test_fd_driven_deployment(with_corba = false)
-        build_test_component File.join(TEST_DATA_DIR, "modules/fd_triggered"), with_corba
+        build_test_component "modules/fd_triggered", with_corba
 
         # Start the resulting deployment
         in_prefix do
@@ -54,6 +54,9 @@ class TC_GenerationDeployment < Test::Unit::TestCase
             Process.waitpid(child_pid)
             assert_equal(0, $?.exitstatus)
         end
+    end
+
+    def test_cross_dependencies
     end
 end
 

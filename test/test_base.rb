@@ -20,6 +20,7 @@ class TC_GenerationBase < Test::Unit::TestCase
     end
 
     def test_save_user
+        create_wc "base"
 	base_file = File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	assert_raises(ArgumentError) { Orocos::Generation.save_user }
 
@@ -39,6 +40,7 @@ class TC_GenerationBase < Test::Unit::TestCase
     end
 
     def test_save_automatic
+        create_wc "base"
 	base_file = File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	assert_raises(ArgumentError) { Orocos::Generation.save_automatic }
 
@@ -107,6 +109,7 @@ class TC_GenerationBase < Test::Unit::TestCase
     end
 
     def test_component_generate
+        create_wc "base"
 	in_wc do
             # No name, no orogen file
 	    component = Generation::Component.new
