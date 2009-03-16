@@ -225,6 +225,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         deployment = component.static_deployment
         activity = deployment.task "task"
         assert_equal("PeriodicActivity", activity.activity_type)
+        assert_equal(10, activity.period)
 
         create_wc("tasks/default_activity")
 	compile_wc(component)

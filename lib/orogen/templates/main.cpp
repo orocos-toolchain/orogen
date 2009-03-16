@@ -15,6 +15,7 @@ using RTT::Corba::ControlTaskServer;
 <% require 'set'
     activity_types = deployer.task_activities.
     map { |t| t.activity_type }.
+    compact.
     to_set %>
 <% activity_types.each do |activity_klassname| %>
 #include <rtt/<%= activity_klassname%>.hpp>
@@ -69,6 +70,7 @@ int ORO_main(int argc, char* argv[])
 
 <% deployer.task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.full_name %>");
+    <% if task.activity_type %>
     RTT::<%= task.activity_type %> activity_<%= task.name%>(
             <%= task.rtt_scheduler %>,
             <%= task.rtt_priority %>,
@@ -79,6 +81,9 @@ int ORO_main(int argc, char* argv[])
         dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>.thread());
     thread_<%= task.name %>->setMaxOverrun(<%= task.max_overruns %>);
     <% end %>
+    <% else %>
+    RTT::ActivityInterface& activity_<%= task.name %> = *task_<%= task.name %>.getActivity();
+    <% end # activity_type %>
     <% task.properties.each do |prop|
         if prop.value %>
     task_<%= task.name %>.properties()->getProperty<<%= prop.interface_object.type.full_name('::', true) %>>("<%= prop.name %>")->set(<%= prop.value.inspect %>);

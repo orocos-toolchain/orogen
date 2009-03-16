@@ -115,9 +115,9 @@ module Orocos
 		@realtime = false
 		@priority = :lowest
                 @max_overruns = 5
-
-                # Set the default activity
-                sequential
+                if context.default_activity
+                    send(*context.default_activity)
+                end
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
@@ -203,7 +203,7 @@ module Orocos
             # thread-less, and are triggered by the component that is calling
             # step() on them, or -- in the case of port-driven tasks -- by the
             # component that wrote on their read ports.
-            def sequential; activity_type "SequentialActivity"; self end
+            def sequential; @activity_type = nil; self end
 
             # Call to make the deployer start this task when the component is
             # launched
@@ -354,21 +354,11 @@ module Orocos
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
-
-                if task_context.default_activity
-                    deployment.send(*task_context.default_activity)
-                end
                 deployment
             end
 
             # Generates the code associated with this deployment setup
             def generate
-                task_activities.each do |task|
-                    if !task.activity_type
-                        raise ArgumentError, "no activity type defined for the #{task.name} task. Chose one"
-                    end
-                end
-
                 deployer = self
 
 		# Generate the main.cpp file, which includes the ORO_main entry
