@@ -69,7 +69,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% deployer.task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>("<%= task.full_name %>");
+    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
     <% if task.activity_type %>
     RTT::<%= task.activity_type %> activity_<%= task.name%>(
             <%= task.rtt_scheduler %>,

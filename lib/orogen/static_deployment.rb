@@ -96,11 +96,6 @@ module Orocos
         class TaskDeployment
             # The task name as specified by the user
             attr_reader :name
-	    # The task name as it will be during execution. It is <component_name>.<task_name>
-	    def full_name
-	    	"#{context.component.name}_#{name}"
-	    end
-
             # The TaskContext used to define this task
             attr_reader :context
 
@@ -341,16 +336,31 @@ module Orocos
             # component itself.
             def disable_corba; @corba_enabled = false end
 
-            # Deploys a new task using the given context name, and returns the
-            # corresponding TaskDeployment object. This instance can be used to
-            # configure the task further (for instance specifying the activity)
-            def task(name, context = name)
-                name    = name.to_s
-                context = context.to_s
-
+            # call-seq:
+            #   task name, task_context => task_deployment
+            #   task task_context => task_deployment
+            #
+            # Deploys a new task using the given task context type, and returns
+            # the corresponding TaskDeployment object. This instance can be used
+            # to configure the task further (for instance specifying the
+            # activity). See TaskDeployment documentation for available options.
+            #
+            # If only +task_context+ is given, the name of the task will be
+            # derived from it
+            def task(name, context = nil)
+                if context
+                    name    = name.to_s
+                    context = context.to_s
+                else
+                    context = name.to_s
+                    name = nil
+                end
+                
                 unless task_context = component.find_task_context(context)
                     raise "no such task context: #{context}"
                 end
+
+                name ||= task_context.name.gsub /::/, '_'
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
@@ -388,8 +398,8 @@ module Orocos
                 def report(object, peek = true)
                     method = case object
                              when TaskDeployment then ["Component", peek, object, [object.name]]
-                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.full_name, object.name]]
-                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.full_name, object.name]]
+                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
+                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
                              else raise ArgumentError, "cannot report #{object}"
                              end
 

@@ -4,6 +4,20 @@ class TC_GenerationDeployment < Test::Unit::TestCase
     include Orocos::Generation::Test
     TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
+    def test_task_name
+	component = Component.new 
+	component.name 'test'
+
+	context    = component.task_context "task"
+        deployment = component.static_deployment
+        task       = deployment.task "task"
+
+        assert_equal "test_task", task.name
+
+        task       = deployment.task "my_name", "task"
+        assert_equal "my_name", task.name
+    end
+
     def test_connpolicy
         policy = ConnPolicy.from_hash :type => :buffer, :lock_policy => :locked, :size => 10
         assert_equal(:buffer, policy.type)
