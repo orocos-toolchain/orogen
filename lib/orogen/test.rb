@@ -59,6 +59,15 @@ module Orocos
 	    def in_wc(&block)
 		Dir.chdir(working_directory, &block)
 	    end
+            def install
+                in_wc do
+                    Dir.chdir("build") do
+                        if !system("make", "install")
+                            raise "failed to install"
+                        end
+                    end
+                end
+            end
             def in_prefix(&block)
                 old_pkgconfig = ENV['PKG_CONFIG_PATH']
                 in_wc do
@@ -95,28 +104,30 @@ module Orocos
 	    end
 
             def build_test_component(dirname, with_corba, test_bin = nil)
-                if !ENV['TEST_SKIP_REBUILD']
-                    source = File.join(TEST_DATA_DIR, dirname)
-                    create_wc(dirname)
+                source             = File.join(TEST_DATA_DIR, dirname)
+                @working_directory = File.join(TEST_DIR, 'wc', dirname)
+                @subdir = [dirname]
 
+                if !ENV['TEST_DONT_CLEAN'] || !File.directory?(working_directory)
                     # Copy +dirname+ in place of wc
                     FileUtils.rm_rf working_directory
+                    FileUtils.mkdir_p File.dirname(working_directory)
                     FileUtils.cp_r source, working_directory
+                end
 
-                    in_wc do
-                        spec = Dir.glob("*.orogen").to_a.first
-                        component = Component.load(spec)
-                        if with_corba
-                            component.enable_corba
-                        else
-                            component.disable_corba
-                        end
+                in_wc do
+                    spec = Dir.glob("*.orogen").to_a.first
+                    component = Component.load(spec)
+                    if with_corba
+                        component.enable_corba
+                    else
+                        component.disable_corba
+                    end
 
-                        compile_wc(component) do
-                            FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
-                            File.open('CMakeLists.txt', 'a') do |io|
-                                yield(io) if block_given?
-                            end
+                    compile_wc(component) do
+                        FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
+                        File.open('CMakeLists.txt', 'a') do |io|
+                            yield(io) if block_given?
                         end
                     end
                 end

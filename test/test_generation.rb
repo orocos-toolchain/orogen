@@ -9,10 +9,7 @@ class TC_GenerationErrorCases < Test::Unit::TestCase
     # problems that are hidden by the complexity of full-fledged components
     def test_simple(with_corba = true)
         build_test_component('modules/simple', with_corba)
-
-        # Force install in prefix
-        in_prefix do
-        end
+        install
     end
     def test_simple_without_corba
         test_simple(false)
