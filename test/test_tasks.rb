@@ -77,7 +77,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	meth = task.method("MethodName").
 	    doc("the method to test")
-	assert_equal([meth], task.methods)
+	assert_equal([meth], task.self_methods)
 
 	assert_kind_of(Generation::Method, meth)
 	assert_equal("MethodName", meth.name)
@@ -124,7 +124,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	cmd = task.command("Cmd").
 	    doc("the command to test")
-	assert_equal([cmd], task.commands)
+	assert_equal([cmd], task.self_commands)
 
 	assert_kind_of(Generation::Command, cmd)
 	assert_equal("Cmd", cmd.name)

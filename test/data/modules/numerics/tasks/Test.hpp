@@ -18,7 +18,7 @@ namespace numerics {
     
 
     public:
-        Test(std::string const& name = "numerics::Test");
+        Test(std::string const& name = "numerics::Test", TaskCore::TaskState initial_state = Stopped);
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the

@@ -1,8 +1,6 @@
 #include "Producer.hpp"
-#include <iostream>
 
-using namespace std;
-using namespace data;
+using namespace cross_producer;
 
 Producer::Producer(std::string const& name, TaskCore::TaskState initial_state)
     : ProducerBase(name, initial_state) {}
@@ -22,15 +20,13 @@ Producer::Producer(std::string const& name, TaskCore::TaskState initial_state)
 
 void Producer::updateHook()
 {
-    static int idx = 0;
-    ++idx;
-
-    if (idx == 11) // finish on a non-triggering write to have a more deterministic test
+    static int i = 0;
+    NotOrogenCompatible::Point2D point;
+    point.x() = ++i;
+    point.y() = ++i;
+    _point.write(point);
+    if (i == 20)
         exit(0);
-
-    if (idx % 2 == 0)
-        _output.write(idx);
-    else _output2.write(idx);
 }
 
 // void Producer::errorHook() {}

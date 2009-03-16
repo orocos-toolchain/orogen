@@ -1,0 +1,21 @@
+name 'cross_deployment'
+
+using_task_library "cross_producer"
+using_task_library "cross_consumer"
+
+task_context "Consumer" do
+    subclasses "cross_consumer::Consumer"
+end
+
+static_deployment do
+    producer = task("cross_producer::Producer").
+        periodic(0.1).
+        start
+    consumer = task("Consumer").
+        start
+
+    connect(producer.point, consumer.point)
+
+    browse producer
+end
+

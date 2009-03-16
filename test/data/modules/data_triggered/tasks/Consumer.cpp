@@ -5,8 +5,8 @@
 using namespace std;
 using namespace data;
 
-Consumer::Consumer(std::string const& name)
-    : ConsumerBase(name) {}
+Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
+    : ConsumerBase(name, initial_state) {}
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Consumer.hpp for more detailed

@@ -2,8 +2,8 @@
 
 using namespace numerics;
 
-Test::Test(std::string const& name)
-    : TestBase(name) {}
+Test::Test(std::string const& name, TaskCore::TaskState initial_state)
+    : TestBase(name, initial_state) {}
 
 
 int Test::m1(short a, unsigned short b, char c, unsigned char d) {

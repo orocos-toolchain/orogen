@@ -56,7 +56,27 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         end
     end
 
-    def test_cross_dependencies
+    def test_cross_dependencies(with_corba = false)
+        # Generate and build all the modules that are needed ...
+        build_test_component "modules/toolkit_opaque", with_corba
+        install
+        ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
+        puts ENV['PKG_CONFIG_PATH'].inspect
+
+        build_test_component "modules/cross_producer", with_corba
+        install
+        producer_pkgconfig = File.join(prefix_directory, "lib", "pkgconfig")
+        build_test_component "modules/cross_consumer", with_corba
+        install
+
+        ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{producer_pkgconfig}:#{ENV['PKG_CONFIG_PATH']}"
+        build_test_component "modules/cross_deployment", with_corba, "bin/cross_deployment"
+        install
+
+        in_prefix do
+            assert_equal "[1 2] [3 4] [5 6] [7 8] [9 10] [11 12] [13 14] [15 16] [17 18] [19 20] ",
+                File.read('cross_dependencies.txt')
+        end
     end
 end
 

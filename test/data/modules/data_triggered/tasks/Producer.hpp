@@ -12,7 +12,7 @@ namespace data {
     
 
     public:
-        Producer(std::string const& name = "data::Producer");
+        Producer(std::string const& name = "data::Producer", TaskCore::TaskState initial_state = Stopped);
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -50,14 +50,8 @@ namespace data {
          * the errorHook() will be called instead of updateHook() and in the
          * third case the component is stopped and resetError() needs to be
          * called before starting it again.
-        
-         * 
-         * The \a updated_ports argument is the set of ports that have triggered
-         * this call. If the trigger is caused by something different (for
-         * instance, a periodic update), then this set is empty.
-        
+         *
          */
-        
         void updateHook();
         
 

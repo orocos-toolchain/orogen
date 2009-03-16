@@ -123,7 +123,7 @@ int ORO_main(int argc, char* argv[])
     deinit << activity_<%= task.name%>;
 
     <% if task.start?
-        if task.context.initial_state == 'PreOperational' %>
+        if task.context.needs_configuration? %>
     if (!task_<%= task.name %>.configure())
     {
         log(Error) << "cannot configure <%= task.name %>" << endlog();

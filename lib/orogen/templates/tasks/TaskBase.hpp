@@ -11,9 +11,9 @@
 <% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 
-<% unless task.methods.empty? %>#include <rtt/Method.hpp><% end %>
-<% unless task.commands.empty? %>#include <rtt/Command.hpp><% end %>
-<% unless task.ports.empty? %>#include <rtt/Ports.hpp><% end %>
+<% unless task.self_methods.empty? %>#include <rtt/Method.hpp><% end %>
+<% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
+<% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
@@ -23,32 +23,32 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
-    <% unless task.methods.empty? && task.commands.empty? %>
+    <% unless task.self_methods.empty? && task.self_commands.empty? %>
 	<%= task.basename %>& _self;
     <% end %>
 
-	<% unless task.properties.empty? %>/** Properties */<% end %>
-    <% task.properties.each do |prop| %>
+	<% unless task.self_properties.empty? %>/** Properties */<% end %>
+    <% task.self_properties.each do |prop| %>
 	RTT::Property< <%= prop.type.cxx_name %> > _<%= prop.name %>;
     <% end %>
 
-	<% unless task.ports.empty? %>/** Ports */<% end %>
-    <% task.ports.each do |port| %>
+	<% unless task.self_ports.empty? %>/** Ports */<% end %>
+    <% task.self_ports.each do |port| %>
 	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
     <% end %>
 
-	<% unless task.methods.empty? %>/** Methods */<% end %>
-    <% task.methods.each do |meth| %>
+	<% unless task.self_methods.empty? %>/** Methods */<% end %>
+    <% task.self_methods.each do |meth| %>
 	RTT::Method< <%= meth.signature(false) %> > _<%= meth.name %>;
     <% end %>
 
-	<% unless task.commands.empty? %>/** Commands */<% end %>
-    <% task.commands.each do |cmd| %>
+	<% unless task.self_commands.empty? %>/** Commands */<% end %>
+    <% task.self_commands.each do |cmd| %>
 	RTT::Command< bool<%= cmd.work_signature(false) %> > _<%= cmd.name %>;
     <% end %>
 
     public:
-	<%= task.basename %>Base(std::string const& name);
+	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
     };
 }
 

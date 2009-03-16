@@ -123,7 +123,7 @@ module Orocos
                     :ports    => PortDeployment,
                     :methods  => MethodDeployment,
                     :commands => CommandDeployment }.each do |collection_name, klass|
-                        deployed_objects = context.send(collection_name).map do |obj|
+                        deployed_objects = context.send("all_#{collection_name}").map do |obj|
                             klass.new(self, obj)
                         end
                         instance_variable_set "@#{collection_name}", deployed_objects

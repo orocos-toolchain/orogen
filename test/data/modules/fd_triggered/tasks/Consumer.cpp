@@ -8,8 +8,8 @@
 using namespace std;
 using namespace fd;
 
-Consumer::Consumer(std::string const& name)
-    : ConsumerBase(name)
+Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
+    : ConsumerBase(name, initial_state)
 {
     // The test suite must create a pipe and give us the FD for the read side
     // through the FD_DRIVEN_TEST_FILE environment variable.

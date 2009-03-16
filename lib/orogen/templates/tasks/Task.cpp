@@ -2,15 +2,15 @@
 
 using namespace <%= task.component.name %>;
 
-<%= task.basename %>::<%= task.basename %>(std::string const& name)
-    : <%= task.basename %>Base(name) {}
+<%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
+    : <%= task.basename %>Base(name<%= ", initial_state" unless task.fixed_initial_state? %>) {}
 
-<% task.methods.each do |meth| %>
+<% task.self_methods.each do |meth| %>
 <%= meth.signature.gsub('(', " #{task.basename}::#{meth.method_name}(") %> {
 }
 <% end %>
 
-<% task.commands.each do |cmd| %>
+<% task.self_commands.each do |cmd| %>
 bool <%= task.basename %>::<%= cmd.work_method_name %><%= cmd.work_signature %> {
     return true;
 }

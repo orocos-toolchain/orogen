@@ -1,23 +1,18 @@
-#ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
-#define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#ifndef CROSS_PRODUCER_PRODUCER_TASK_HPP
+#define CROSS_PRODUCER_PRODUCER_TASK_HPP
 
-#include "<%= component.name.downcase %>/<%= task.basename %>Base.hpp"
+#include "cross_producer/ProducerBase.hpp"
 
-namespace <%= component.name %> {
-    class <%= task.basename %> : public <%= task.basename %>Base
+namespace cross_producer {
+    class Producer : public ProducerBase
     {
-	friend class <%= task.basename %>Base;
+	friend class ProducerBase;
     protected:
-    <% task.self_methods.each do |meth| %>
-	<%= meth.signature.gsub('(', " #{meth.method_name}(") %>;
-    <% end %>
-    <% task.self_commands.each do |cmd| %>
-	bool <%= cmd.work_method_name %><%= cmd.work_signature %>;
-	bool <%= cmd.completion_method_name %><%= cmd.completion_signature %>;
-    <% end %>
+    
+    
 
     public:
-        <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
+        Producer(std::string const& name = "cross_producer::Producer", TaskCore::TaskState initial_state = Stopped);
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -55,14 +50,10 @@ namespace <%= component.name %> {
          * the errorHook() will be called instead of updateHook() and in the
          * third case the component is stopped and resetError() needs to be
          * called before starting it again.
-         *<% if !task.event_ports.empty? %>
-         * The \a updated_ports argument is the set of ports that have triggered
-         * this call. If the trigger is caused by something different (for
-         * instance, a periodic update), then this set is empty.<% end %>
+         *
          */
-        <% if task.event_ports.empty? %>// void updateHook();
-        <% else %>// void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
-        <% end %>
+        void updateHook();
+        
 
         /** This hook is called by Orocos when the component is in the
          * RunTimeError state, at each activity step. See the discussion in
@@ -83,12 +74,7 @@ namespace <%= component.name %> {
          */
         // void cleanupHook();
 
-        <% if task.implements?("RTT::FileDescriptorActivity::Provider") %>
-        /** This method is called after the configuration step by the
-         * FileDescriptorActivity to get the file descriptor
-         */
-        int getFileDescriptor() const;
-        <% end %>
+        
 
     };
 }
