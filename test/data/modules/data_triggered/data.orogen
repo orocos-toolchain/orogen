@@ -1,8 +1,12 @@
-# This module tests the generation of modules that include and deploy
-# port-driven tasks. It also does a functional test by running the generated
-# module.
+# This module is used in TC_GenerationDeployment#test_data_driven_deployment in
+# test_deployment.rb.
+#
+# This module demonstrates the definition and deployment of port-driven tasks.
 name 'data'
 
+# This consumer component will be driven by one of its input ports only. It
+# writes a file in which the data it received is written, using 'U' if it has
+# been triggered by an unknown port (i.e. not triggered by its 'input' port).
 task_context 'Consumer' do
     read_port 'input', 'double'
     read_port 'input2', 'int'
@@ -11,8 +15,9 @@ task_context 'Consumer' do
     port_driven 'input'
 end
 
-# This task is used to test that the setup works well. It will produce 10
-# samples on both of its ports.
+# This producer component writes alternatively on both its ports, and exits
+# using exit(0) after 10 cycles. It is used in the following static deployment
+# to test the port-driven behaviour.
 task_context 'Producer' do
     write_port 'output', 'double'
     write_port 'output2', 'int'

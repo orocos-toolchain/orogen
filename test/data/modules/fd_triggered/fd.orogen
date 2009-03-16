@@ -1,11 +1,20 @@
-# This module test the generation and functionality of IO-driven tasks
+# This module is used in TC_GenerationDeployment#test_fd_driven_deployment in
+# test_deployment.rb.
+#
+# It demonstrates IO-driven tasks
 name 'fd'
 
+# This task context will be IO-driven. It requires the FD_DRIVEN_TEST_FILE
+# environment variable to contain the file descriptor it should listen to, and
+# expects the character sequence 'ABCDE' to be written on it. It will exit(0) if
+# the right sequence is sent, and exit(1) otherwise.
 task_context 'Consumer' do
     fd_driven
 end
 
 static_deployment do
+    # There is no need to specify the activity. The FileDescriptorActivity
+    # activity is defined as default for Consumer
     consumer = task('Consumer').
         start
 

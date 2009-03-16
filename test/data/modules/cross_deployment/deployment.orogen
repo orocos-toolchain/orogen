@@ -1,12 +1,25 @@
+# This module is used in TC_GenerationDeployment#test_cross_dependencies test in
+# test_deployment.rb.
+#
+# It demonstrates the cross-project abilities of orogen. This project will use
+# the Producer component from cross_producer and subclass its own Consumer
+# component, using cross_consumer::Consumer as a base class. Then, it deploys
+# both components.
 name 'cross_deployment'
 
+# Load the two task libraries we need
 using_task_library "cross_producer"
 using_task_library "cross_consumer"
 
+# The task context. This task context subclasses a component that is defined in
+# the cross_consumer task library, and will add some functionality in it.
 task_context "Consumer" do
     subclasses "cross_consumer::Consumer"
 end
 
+# Static deployment for testing. The Producer component will generate sequential
+# points, that are then written in a file by the Consumer component. After 10
+# points, the producer component aborts the execution using exit(0).
 static_deployment do
     producer = task("cross_producer::Producer").
         periodic(0.1).

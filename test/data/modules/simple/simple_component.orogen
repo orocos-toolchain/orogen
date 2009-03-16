@@ -1,5 +1,11 @@
-# The name of the component is not the same than the name of the .orogen file,
-# THIS IS INTENTIONAL
+# This module is used in TC_GenerationErrorCases#test_simple in
+# test_generation.rb.
+#
+# It checks that generation is fine even though the orogen's project name and
+# the orogen file name differ.
+#
+# Therefore IT IS INTENTIONAL that the name of the component is not the same
+# than the name of the .orogen file
 name "simple"
 
 task_context "SimpleTask" do

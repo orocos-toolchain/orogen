@@ -1,7 +1,14 @@
+# This module is used in TC_GenerationDeployment#test_cross_dependencies test in
+# test_deployment.rb.
+#
+# See cross_deployment
 name 'cross_consumer'
 
+# This toolkit defines NotOrogenCompatible::Point2D. See toolkit_opaque for a
+# more in-depth description
 using_toolkit "opaque"
 
+# The actual task component
 task_context "Consumer" do
     read_port "point", "NotOrogenCompatible/Point2D"
 

@@ -1,3 +1,7 @@
+# This module is used in TC_GenerationDeployment#test_cross_dependencies test in
+# test_deployment.rb.
+#
+# See cross_deployment for more information
 name 'cross_producer'
 
 using_toolkit "opaque"

@@ -1,5 +1,8 @@
-# This module tests the generation and functionality of a simple toolkit
+# This module is used in TC_GenerationToolkit#test_simple in test_toolkit.rb.
+#
+# It demonstrates orogen's toolkit generation capabilities for simple types.
 name "simple"
+
 toolkit do
     load 'simple.h'
 end

@@ -1,5 +1,7 @@
-# This module tests the generation of modules that are using various numeric
-# types
+# This module is used in TC_GenerationScripting#test_numeric in
+# test_scripting.rb.
+#
+# It tests the generation of modules that use various numeric types.
 name 'numerics'
 version '0.1'
 
