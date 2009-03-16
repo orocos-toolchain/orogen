@@ -654,10 +654,10 @@ module Orocos
                     flatten.to_value_set.to_a
 
                 types.map do |t|
-                    tk, reg = component.used_toolkits.find do |_, reg|
+                    tk, pkg, reg = component.used_toolkits.find do |_, _, reg|
                         reg.get(t.name)
                     end
-                    tk
+                    [tk, pkg] if tk
                 end.compact.to_value_set.to_a
             end
 

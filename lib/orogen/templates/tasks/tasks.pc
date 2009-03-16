@@ -8,5 +8,12 @@ Name: <%= component.name %>Tasks
 Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
 Libs: -L${libdir} -l<%= component.name %>-tasks-<%= component.orocos_target %>
-Cflags: -I${includedir}
+<% # Get all toolkits that are needed to define the tasks, and list them in the
+   # includes. We don't have to link explicitely to them, unless we're using
+   # them explicitely (and therefore we will link to them anyway)
+  list = component.tasks.
+            inject([]) { |list, t| list.concat(t.used_toolkits) }.
+            uniq
+%>
+Cflags: -I${includedir} <%= list.map { |_, pkg, _| pkg.cflags if pkg }.compact.join(" ") %>
 

@@ -199,7 +199,7 @@ module Orocos
 
                 registry.merge(toolkit_registry)
 
-		used_toolkits << [name, toolkit_registry]
+		used_toolkits << [name, pkg, toolkit_registry]
 	    end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
