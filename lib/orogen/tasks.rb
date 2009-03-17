@@ -105,11 +105,19 @@ module Orocos
 
             # Defines the next argument of this method. +name+ is the argument
             # name and +type+ is either the type name as a string, or a
-            # Typelib::Type object. In both cases, the required type must
-            # be defined in the component, either because it is part of its
-            # own toolkit or because it has been imported by a Component#load_toolkit
-            # call.
+            # Typelib::Type object. In both cases, the required type must be
+            # defined in the component, either because it is part of its own
+            # toolkit or because it has been imported by a
+            # Component#load_toolkit call.
+            #
+            # Note that Orocos::RTT does not support having more than 4
+            # arguments for a method, and trying that will therefore raise an
+            # error
 	    def argument(name, type, doc = "")
+                if arguments.size == 4
+                    raise ArgumentError, "Orocos does not support having more than 4 arguments for a method"
+                end
+
 		type = task.component.find_type(type)
 		arguments << [name, type, doc]
 		self

@@ -112,6 +112,11 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("void(std::string, double)", meth.signature(false))
 	assert_equal(expected_arguments, meth.arguments)
 
+        meth.argument "arg3", "double", "third argument"
+        meth.argument "arg4", "double", "fourth argument"
+        # Should raise if there is more than 4 arguments
+        assert_raises(ArgumentError) { meth.argument "arg5", "double", "fifth argument" }
+
         create_wc("tasks/method")
 	compile_wc(component)
     end
@@ -167,6 +172,11 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	cmd.completion_no_arguments
 	assert_equal("()", cmd.completion_signature)
 	assert_equal("()", cmd.completion_signature(false))
+
+        cmd.argument "arg3", "double", "third argument"
+        cmd.argument "arg4", "double", "fourth argument"
+        # Should raise if there is more than 4 arguments
+        assert_raises(ArgumentError) { cmd.argument "arg5", "double", "fifth argument" }
 
         create_wc("tasks/command")
 	compile_wc(component)
