@@ -10,7 +10,7 @@ using_toolkit "opaque"
 
 # The actual task component
 task_context "Consumer" do
-    read_port "point", "NotOrogenCompatible/Point2D"
+    input_port "point", "NotOrogenCompatible/Point2D"
 
     port_driven "point"
 end

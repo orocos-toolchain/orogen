@@ -8,8 +8,8 @@ name 'data'
 # writes a file in which the data it received is written, using 'U' if it has
 # been triggered by an unknown port (i.e. not triggered by its 'input' port).
 task_context 'Consumer' do
-    read_port 'input', 'double'
-    read_port 'input2', 'int'
+    input_port 'input', 'double'
+    input_port 'input2', 'int'
 
     # Don't get triggered by 'Input2'
     port_driven 'input'
@@ -19,8 +19,8 @@ end
 # using exit(0) after 10 cycles. It is used in the following static deployment
 # to test the port-driven behaviour.
 task_context 'Producer' do
-    write_port 'output', 'double'
-    write_port 'output2', 'int'
+    output_port 'output', 'double'
+    output_port 'output2', 'int'
 end
 
 static_deployment do

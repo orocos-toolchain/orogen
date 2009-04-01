@@ -61,16 +61,16 @@ module Orocos
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
-        class WritePort < Port
+        class OutputPort < Port
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
-	    def orocos_class; "RTT::WritePort" end
+	    def orocos_class; "RTT::OutputPort" end
         end
 
-        class ReadPort < Port
+        class InputPort < Port
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
-	    def orocos_class; "RTT::ReadPort" end
+	    def orocos_class; "RTT::InputPort" end
         end
 
 	class Callable
@@ -347,9 +347,9 @@ module Orocos
         # attribute, of the right RTT class, added to the generated TaskContext
         # subclass. The attribute name is always the _[object name], so for
         # instance the presence of the following statement
-        #   write_port('time', 'double')
+        #   output_port('time', 'double')
         #
-        # will cause a <tt>WritePort<double></tt> attribute named
+        # will cause a <tt>OutputPort<double></tt> attribute named
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
 	class TaskContext
@@ -598,33 +598,33 @@ module Orocos
 	    end
 
 	    # The set of IO ports for this task context. These are either
-	    # WritePort and ReadPort objects
+	    # OutputPort and InputPort objects
             def all_ports; @ports + (superclass ? superclass.all_ports : []) end
             def self_ports; @ports end
 
 	    # call-seq:
-	    #	write_port 'name', '/type'
+	    #	output_port 'name', '/type'
 	    #
             # Add a new write port with the given name and type, and returns the
-            # corresponding WritePort object.
+            # corresponding OutputPort object.
 	    #
-	    # See also #read_port
-	    def write_port(name, type)
+	    # See also #input_port
+	    def output_port(name, type)
 		check_uniqueness(:ports, name)
-                @ports << WritePort.new(self, name, type)
+                @ports << OutputPort.new(self, name, type)
                 @ports.last
 	    end
 
 	    # call-seq:
-	    #	read_port 'name', '/type'
+	    #	input_port 'name', '/type'
 	    #
             # Add a new write port with the given name and type, and returns the
-            # corresponding ReadPort object.
+            # corresponding InputPort object.
 	    #
-	    # See also #write_port
-	    def read_port(name, type)
+	    # See also #output_port
+	    def input_port(name, type)
 		check_uniqueness(:ports, name)
-                @ports << ReadPort.new(self, name, type)
+                @ports << InputPort.new(self, name, type)
                 @ports.last
             end
 
@@ -635,11 +635,11 @@ module Orocos
             # new data is available on one of the given ports (or all already
             # defined ports if no names are given).
             def port_driven(*names)
-                relevant_ports = if names.empty? then all_ports.find_all { |p| p.kind_of?(ReadPort) }
+                relevant_ports = if names.empty? then all_ports.find_all { |p| p.kind_of?(InputPort) }
                                  else
                                      names.map do |n|
                                          obj = get_object(:ports, n)
-                                         if !obj.kind_of?(ReadPort)
+                                         if !obj.kind_of?(InputPort)
                                              raise ArgumentError, "only read ports can be used as triggers for a task context"
                                          end
                                          obj

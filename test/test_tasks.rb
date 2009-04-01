@@ -187,21 +187,21 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	component.name 'test'
 
 	task = component.task_context "task"
-	read = task.read_port 'r', 'int'
-	assert_kind_of(ReadPort, read)
-	assert_equal("RTT::ReadPort", read.orocos_class)
+	read = task.input_port 'r', 'int'
+	assert_kind_of(InputPort, read)
+	assert_equal("RTT::InputPort", read.orocos_class)
 	assert_equal("int", read.type.full_name('::', true))
 
-	write = task.write_port 'w', 'int'
-	assert_kind_of(WritePort, write)
-	assert_equal("RTT::WritePort", write.orocos_class)
+	write = task.output_port 'w', 'int'
+	assert_kind_of(OutputPort, write)
+	assert_equal("RTT::OutputPort", write.orocos_class)
 	assert_equal("int", write.type.full_name('::', true))
 
 	# read buffer do not have any size
-	assert_raises(ArgumentError) { task.read_port 'r', 'int' }
-	assert_raises(ArgumentError) { task.read_port 'w', 'int' }
-	assert_raises(ArgumentError) { task.write_port 'r', 'int' }
-	assert_raises(ArgumentError) { task.write_port 'w', 'int' }
+	assert_raises(ArgumentError) { task.input_port 'r', 'int' }
+	assert_raises(ArgumentError) { task.input_port 'w', 'int' }
+	assert_raises(ArgumentError) { task.output_port 'r', 'int' }
+	assert_raises(ArgumentError) { task.output_port 'w', 'int' }
 
         create_wc("tasks/ports")
 	compile_wc(component)
@@ -211,8 +211,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	component.name 'test'
 
 	task  = component.task_context "task"
-	read  = task.read_port 'r', 'int'
-	write = task.write_port 'w', 'int'
+	read  = task.input_port 'r', 'int'
+	write = task.output_port 'w', 'int'
 
         assert_nothing_raised { task.port_driven 'r' }
         assert_raises(ArgumentError) { task.port_driven 'r1' }

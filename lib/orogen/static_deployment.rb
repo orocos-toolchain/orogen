@@ -475,9 +475,9 @@ module Orocos
                 add_peers from.activity, to.activity
 
                 if from.kind_of?(Port)
-                    if !from.kind_of?(WritePort)
+                    if !from.kind_of?(OutputPort)
                         raise ArgumentError, "in connect(a, b), 'a' must be a writer port"
-                    elsif !to.kind_of?(ReadPort)
+                    elsif !to.kind_of?(InputPort)
                         raise ArgumentError, "in connect(a, b), 'b' must be a reader port"
                     end
                 end

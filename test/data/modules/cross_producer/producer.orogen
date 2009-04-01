@@ -7,6 +7,6 @@ name 'cross_producer'
 using_toolkit "opaque"
 
 task_context "Producer" do
-    write_port "point", "NotOrogenCompatible/Point2D"
+    output_port "point", "NotOrogenCompatible/Point2D"
 end
 
