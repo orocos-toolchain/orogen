@@ -1,24 +1,15 @@
-<% 
-   include_files = []
-   task_files = []
-   component.self_tasks.each do |task| 
-     if !task_files.empty?
-	 task_files << "\n    "
-     end
-     task_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.cpp"
-     task_files << "#{task.basename}.cpp"
-     include_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.hpp"
-     include_files << "#{task.basename}.hpp"
-   end
-%>
+include(<%= component.name %>TaskLib)
+ADD_LIBRARY(${<%= component.name.upcase %>_TASKLIB_NAME} SHARED 
+    ${<%= component.name.upcase %>_TASKLIB_SOURCES})
 
-SET(libname <%= component.name %>-tasks-${OROCOS_TARGET})
-ADD_LIBRARY(${libname} SHARED <%= task_files.join(" ") %>)
-TARGET_APPEND_LDFLAGS(${libname} "${DEPENDENCIES_LDFLAGS}")
+TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}
+    ${OrocosRTT_LIBRARIES}
+    ${<%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES})
 
-INSTALL(TARGETS ${libname}
+INSTALL(TARGETS ${<%= component.name.upcase %>_TASKLIB_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
 
-INSTALL(FILES <%= include_files.join(" ") %>
+INSTALL(FILES ${<%= component.name.upcase %>_TASKLIB_HEADERS}
     DESTINATION include/orocos/<%= component.name.downcase %>)
+

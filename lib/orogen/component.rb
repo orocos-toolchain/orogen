@@ -252,19 +252,34 @@ module Orocos
 		self
 	    end
 
+            CMAKE_GENERATED_CONFIG = %w{Base.cmake TaskLib.cmake}
+
             # Generate the CMake build system for this component
 	    def generate_build_system
 		component = self
 
-		FileUtils.mkdir_p(Generation::AUTOMATIC_AREA_NAME)
-		FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
-                if !File.exists?(include_symlink = File.join(Generation::AUTOMATIC_AREA_NAME, name.downcase))
+		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
+                target_dir = Generation::AUTOMATIC_AREA_NAME
+                Dir.glob File.join(Generation.template_path('config'), '*') do |path|
+                    basename = File.basename(path)
+                    target_name = File.join(Generation::AUTOMATIC_AREA_NAME, 'config', basename)
+                    if !CMAKE_GENERATED_CONFIG.include?(basename) &&
+                        (!File.exists?(target_name) || File.read(target_name) != File.read(path))
+                        Generation.logger.info "copying #{path}"
+                        FileUtils.cp path, target_name
+                    end
+                end
+
+		# FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
+                if !self_tasks.empty? && !File.exists?(include_symlink = File.join(Generation::AUTOMATIC_AREA_NAME, name.downcase))
                     FileUtils.ln_sf 'tasks', include_symlink
                 end
 
-		# Generate the automatic part of the root cmake file
-		cmake = Generation.render_template "config", "OrocosComponent.cmake", binding
-		Generation.save_automatic "config", "OrocosComponent.cmake", cmake
+		# Generate the automatic part of the root cmake configuration
+                CMAKE_GENERATED_CONFIG.each do |file|
+                    cmake = Generation.render_template "config", file, binding
+                    Generation.save_automatic "config", "#{name}#{file}", cmake
+                end
 		
 		# Generate CMakeLists.txt if there is one in the template directory,
 		# and the target directory exists. We check first for the user area

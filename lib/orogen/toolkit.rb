@@ -336,6 +336,12 @@ module Orocos
 	class Toolkit
 	    attr_reader :component
 	    attr_reader :imports, :loads
+            def external_loads
+                loads.find_all do |name|
+                    name !~ /#{Regexp.quote(component.base_dir)}/
+                end
+            end
+
 	    attr_reader :registry
             attr_reader :preloaded_registry
             attr_reader :opaques
@@ -432,32 +438,35 @@ module Orocos
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
 	    def load(file, preload = false)
-                cpp_source = Tempfile.new("preload", Dir.pwd)
-                cpp_source.puts "#include <#{file}>"
-                cpp_source.flush
+                # Find where +file+ is
+                include_dirs = []
+                include_dirs << component.base_dir if component.base_dir
+                include_dirs.concat(component.used_libraries.map { |pkg| pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_task_libraries.map { |pkg| pkg.include_dirs }.flatten)
+
+                if File.exists?(file)
+                    file = File.expand_path(file)
+                else
+                    dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
+                    if !dir
+                        raise ArgumentError, "cannot find #{file}"
+                    end
+                    file = File.join(dir, file)
+                end
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
                 options = { :define => '__orogen', :opaques_ignore => true }
-                options[:include] = []
-                options[:include] << component.base_dir if component.base_dir
-                component.used_libraries.each do |pkg|
-                    options[:include] << pkg.includedir
-                end
-                component.used_task_libraries.each do |pkg|
-                    options[:include] << pkg.includedir
-                end
+                options[:include] = include_dirs.dup
 
-		file_registry.import(cpp_source.path, 'c', options)
+		file_registry.import(file, 'c', options)
 
                 registry.merge(file_registry)
                 preloaded_registry.merge(file_registry) if preload
 		component.registry.merge(file_registry)
 
 		loads << file
-            ensure
-                cpp_source.close if cpp_source
 	    end
 
             # Packages defined in this component on which the toolkit should
@@ -615,6 +624,7 @@ module Orocos
 		toolkit = self
                 handle_opaques_generation
 
+                # Generate the C++ and IDL files
 		types, hpp, cpp, corba, idl = to_code
 		if toolkit.corba_enabled?
 		    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba)
@@ -635,15 +645,20 @@ module Orocos
                 end
                 Generation.save_automatic "toolkit", "#{component.name}.tlb", doc.to_xml
 
+                # Generate the pkg-config file
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
+                # Generate the user part for opaque types
                 if !opaques.empty?
                     user_hh = Generation.render_template 'toolkit/user.hpp', binding
                     user_cc = Generation.render_template 'toolkit/user.cpp', binding
                     Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
                     Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
                 end
+
+                # Finished, create the timestamp file
+                FileUtils.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'stamp')
 	    end
 	end
     end

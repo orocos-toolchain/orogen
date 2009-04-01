@@ -1,4 +1,6 @@
-# This module is used in TC_GenerationToolkit#test_simple in test_toolkit.rb.
+# This module is used primarily in TC_GenerationToolkit#test_simple in
+# test_toolkit.rb. It is also used in TC_GenerationBuild#test_auto_regen_toolkit
+# to test the automatic regeneration of toolkits when input files change.
 #
 # It demonstrates orogen's toolkit generation capabilities for simple types.
 name "simple"

@@ -1,46 +1,57 @@
+# What does the toolkit need ?
+#   - it needs RTT stuff
+#   - it optionally needs CORBA support as well
+#
 # Corba-related generation: IDL, Corba-to-Orocos conversion code. This is done
 # only if the user does not have disabled Corba support by calling
 # #disable_corba
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
 <% if !toolkit.opaques.empty? %>
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/toolkit)
+include_directories(${CMAKE_SOURCE_DIR}/toolkit)
 <% end %>
 
-IF (<%= is_corba_enabled = (toolkit.corba_enabled? ? 1 : 0) ; is_corba_enabled %>)
-    IF (NOT OrocosCORBA_Toolkit_FOUND)
-	MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
-    ENDIF(NOT OrocosCORBA_Toolkit_FOUND)
+<% if toolkit.corba_enabled? %>
+# Set up generation of IDL files for CORBA support
+IF (NOT OrocosCORBA_Toolkit_FOUND)
+    MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
+ENDIF(NOT OrocosCORBA_Toolkit_FOUND)
 
-    SET(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitC.cpp)
-    IF(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-        LIST(APPEND CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitDynSK.cpp)
-    ENDIF(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+SET(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitC.cpp)
+IF(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+    LIST(APPEND CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitDynSK.cpp)
+ENDIF(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
 
-    ADD_CUSTOM_COMMAND(OUTPUT ${CORBA_FILES}
-	COMMAND ${OrocosCORBA_IDL} ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl)
+ADD_CUSTOM_COMMAND(OUTPUT ${CORBA_FILES}
+    COMMAND ${OrocosCORBA_IDL} ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl)
 
-    ADD_DEFINITIONS(${OrocosCORBA_Toolkit_DEFINES})
-    INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-    INCLUDE_DIRECTORIES(${OrocosCORBA_Toolkit_INCLUDE_DIR})
-    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
-	DESTINATION include/orocos/toolkit
-	RENAME <%= component.name %>.idl)
-ENDIF (<%= is_corba_enabled %>)
+ADD_DEFINITIONS(${OrocosCORBA_Toolkit_DEFINES})
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${OrocosCORBA_Toolkit_INCLUDE_DIRS})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
+    DESTINATION include/orocos/toolkit
+    RENAME <%= component.name %>.idl)
+<% end %>
 
-INCLUDE_DIRECTORIES(${TYPELIB_INCLUDE_DIRECTORIES})
-LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
+INCLUDE_DIRECTORIES(${TYPELIB_INCLUDE_DIRS})
 
-# Add the include directories to the component dependencies to the include path
+# Add the include directories to the component dependencies to the include path,
+# so that we can use headers that come from those dependencies
 <% component.used_libraries.each do |pkg| %>
 pkg_check_modules(<%= pkg.name %> REQUIRED <%= pkg.name %>)
 INCLUDE_DIRECTORIES(${<%= pkg.name %>_INCLUDE_DIRS})
 <% end %>
 
+LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
+<% if toolkit.corba_enabled? %>
+LINK_DIRECTORIES(${OrocosRTT_LIBRARY_DIRS})
+<% end %>
+
 # Generate the toolkit shared library
 SET(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
-ADD_LIBRARY(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES}
+add_library(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES}
     <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" unless toolkit.opaques.empty? %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 
@@ -49,17 +60,40 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.hpp" unless toolkit.opaques.empty? %>
     DESTINATION include/orocos/toolkit)
 
-TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES})
-IF (<%= is_corba_enabled %>)
-    LINK_DIRECTORIES(${OROCOS_RTT_LINK_DIRS})
-    TARGET_LINK_LIBRARIES(${libname} orocos-rtt-corba-${OROCOS_TARGET})
-ENDIF (<%= is_corba_enabled %>)
+TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
+<% if toolkit.corba_enabled? %>
+TARGET_LINK_LIBRARIES(${libname} orocos-rtt-corba-${OROCOS_TARGET})
+<% end %>
+
+target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-${OROCOS_TARGET})
+<% if toolkit.corba_enabled? %>
+target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-corba-${OROCOS_TARGET})
+<% end %>
+# Automatic regeneration if one the type definition files changed
+<% external_loads = toolkit.external_loads
+   if !external_loads.empty? %>
+set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
+add_custom_command(
+    OUTPUT <%= external_loads.join(" ") %>
+    COMMENT "External header definition files changed, regenerating ..."
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND orogen <%= "--corba" if toolkit.corba_enabled? %> <%= toolkit.component.deffile %>)
+<% end %>
+
+add_custom_command(
+    OUTPUT "${TK_STAMP}"
+    DEPENDS <%= toolkit.loads.join(" ") %>
+    COMMENT "Toolkit input changed, regenerating ..."
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND orogen <%= "--corba" if toolkit.corba_enabled? %> <%= toolkit.component.deffile %>
+    COMMAND touch "${TK_STAMP}")
+add_custom_target(regen-toolkit DEPENDS "${TK_STAMP}")
+add_dependencies(${libname} regen-toolkit)
 
 # Generate the pkg-config file and install it
 SET(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-toolkit-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= component.name %>-toolkit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 INSTALL(FILES ${PKG_CONFIG_FILE} DESTINATION lib/pkgconfig)
 
-SET(TLB_FILE ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb)
-INSTALL(FILES ${TLB_FILE} DESTINATION share/orogen)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb DESTINATION share/orogen)
 

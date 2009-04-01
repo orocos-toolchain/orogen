@@ -21,11 +21,14 @@ module Orocos
             attr_reader :subdir
 
 	    def setup
+                @subdir = Array.new
+                @old_pkg_config = ENV['PKG_CONFIG_PATH'].dup
 		super if defined? super
 	    end
 
 	    def teardown
                 clear_wc
+                ENV['PKG_CONFIG_PATH'] = @old_pkg_config
 		super if defined? super
 	    end
 
@@ -103,9 +106,9 @@ module Orocos
 		end
 	    end
 
-            def build_test_component(dirname, with_corba, test_bin = nil)
+            def build_test_component(dirname, with_corba, test_bin = nil, wc_dirname = nil)
                 source             = File.join(TEST_DATA_DIR, dirname)
-                @working_directory = File.join(TEST_DIR, 'wc', dirname)
+                @working_directory = File.join(TEST_DIR, 'wc', wc_dirname || dirname)
                 @subdir = [dirname]
 
                 if !ENV['TEST_DONT_CLEAN'] || !File.directory?(working_directory)

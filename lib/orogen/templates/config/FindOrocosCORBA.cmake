@@ -14,7 +14,7 @@ ELSE(NOT OrocosCORBA_FOUND)
     LIST(APPEND OROCOS_COMPONENT_INCLUDE ${OrocosCORBA_INCLUDE_DIRS})
 
     # First, find the actual implementation of the used ORB (TAO or OMNIORB)
-    FIND_FILE( OrocosCORBA_config rtt/corba/rtt-corba-config.h ${OROCOS_RTT_INCLUDE_DIRS})
+    FIND_FILE( OrocosCORBA_config rtt/corba/rtt-corba-config.h ${OrocosRTT_INCLUDE_DIRS})
     FILE(STRINGS ${OrocosCORBA_config} CORBA_IMPLEMENTATION
         REGEX "define RTT_CORBA_IMPLEMENTATION ")
     STRING(STRIP ${CORBA_IMPLEMENTATION} CORBA_IMPLEMENTATION)
