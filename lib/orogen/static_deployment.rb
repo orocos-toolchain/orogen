@@ -300,7 +300,7 @@ module Orocos
                 @task_activities = Array.new
                 @component      = component
                 @file_reporters = Hash.new
-                @data_loggers   = Hash.new
+                @loggers   = Hash.new
                 @connections    = Array.new
                 @tcp_reporters  = Hash.new
                 @peers          = Set.new
@@ -395,11 +395,11 @@ module Orocos
                     @component, @task, @config = component, task, Array.new
                 end
 
-                def report(object, peek = true)
+                def report(object)
                     method = case object
-                             when TaskDeployment then ["Component", peek, object, [object.name]]
-                             when PortDeployment then ["Port",     peek, object.activity, [object.activity.name, object.name]]
-                             when PropertyDeployment then ["Data", peek, object.activity, [object.activity.name, object.name]]
+                             when TaskDeployment then ["Component", object, [object.name]]
+                             when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
+                             when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
                              else raise ArgumentError, "cannot report #{object}"
                              end
 
@@ -417,48 +417,20 @@ module Orocos
                 collection[key] ||= Logger.new(self, yield)
             end
 
-            # The set of file reporters, as filename => [reporter_task, method_specifications]
-            attr_reader :file_reporters
-
-            # Sets up a file reporter for the given object (property, port or
-            # task context)
-            def file_report(filename)
-                filename = filename.to_s
-                logger_for(file_reporters, filename) do
-                    reporter = task "FileReporter#{file_reporters.size}", "OCL::FileReporting"
-                    reporter.ReportFile = filename
-                    reporter
-                end
-            end
-
-            attr_reader :data_loggers
+            attr_reader :loggers
 
             # Gets a data logger object, defined from the logger component, for
             # the given file
-            def data_logger(filename = nil)
+            def logger(filename = nil)
                 filename ||= component.name + '.log'
                 if !component.used_task_libraries.find { |t| t.name == "logger" }
                     component.using_task_library "logger"
                 end
 
-                logger_for(data_loggers, filename.to_s) do
-                    logger = task("DataLogger#{data_loggers.size}", "logger::Logger")
+                logger_for(loggers, filename.to_s) do
+                    logger = task("DataLogger#{loggers.size}", "logger::Logger")
                     logger.file = filename.to_s
                     logger
-                end
-            end
-            
-            # The set of tcp reporters, as port => [reporter_task, method_specifications]
-            attr_reader :tcp_reporters
-
-            # Sets up a tcp reporter for the given object (property, port or
-            # task context) on the given port
-            def tcp_report(port)
-                port = Integer(port)
-                logger_for(tcp_reporters, port) do
-                    reporter = task("TCPReporter#{tcp_reporters.size}", "OCL::TCPReporting")
-                    reporter.port = port
-                    reporter
                 end
             end
 
