@@ -20,13 +20,15 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 	component = Component.new
         component.name 'test_toolkit_load'
 
-        assert_raises(RuntimeError) do
+        # Load a file with errors
+        assert_raises(ArgumentError) do
             component.toolkit do
                 load File.join(TEST_DATA_DIR, 'exists')
             end
         end
 
-        assert_raises(RuntimeError) do
+        # Load a file that does not exist
+        assert_raises(ArgumentError) do
             component.toolkit do
                 load 'does_not_exist.h'
             end

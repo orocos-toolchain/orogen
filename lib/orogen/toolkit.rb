@@ -460,11 +460,14 @@ module Orocos
                 options = { :define => '__orogen', :opaques_ignore => true }
                 options[:include] = include_dirs.dup
 
-		file_registry.import(file, 'c', options)
-
-                registry.merge(file_registry)
-                preloaded_registry.merge(file_registry) if preload
-		component.registry.merge(file_registry)
+                begin
+                    file_registry.import(file, 'c', options)
+                    registry.merge(file_registry)
+                    preloaded_registry.merge(file_registry) if preload
+                    component.registry.merge(file_registry)
+                rescue RuntimeError => e
+                    raise ArgumentError, "cannot load #{file}: #{e.message}", e.backtrace
+                end
 
 		loads << file
 	    end
