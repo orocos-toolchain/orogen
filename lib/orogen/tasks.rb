@@ -179,7 +179,7 @@ module Orocos
 	    end
 
             def used_types
-                [return_type] + super
+                [return_type].compact + super
             end
 
 	    # The return type of this method, as a Typelib::Type object.
