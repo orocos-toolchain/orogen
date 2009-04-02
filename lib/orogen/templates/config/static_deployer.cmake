@@ -4,7 +4,7 @@ include_directories(${OrocosOCL_INCLUDE_DIRS})
 link_directories(${OrocosOCL_LIBRARY_DIRS})
 <% end %>
 
-<% if component.corba_enabled? %>
+<% if deployer.corba_enabled? %>
 include_directories(${OrocosCORBA_INCLUDE_DIRS})
 link_directories(${OrocosCORBA_LIBRARY_DIRS})
 <% end %>
@@ -49,7 +49,7 @@ configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= component.name %>.pc.i
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= component.name %>.pc
     DESTINATION lib/pkgconfig)
 
-<% if component.corba_enabled? %>
+<% if deployer.corba_enabled? %>
 target_link_libraries(<%= component.name %> ${OrocosCORBA_LIBRARIES})
 <% elsif deployer.browse %>
 target_link_libraries(<%= component.name %> ${OrocosOCL_LIBRARIES})
