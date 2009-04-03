@@ -27,14 +27,13 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 # Check for Doxygen and enable documentation building if available
 FIND_PACKAGE( Doxygen )
-IF ( DOXYGEN )
-  MESSAGE( "Found Doxygen -- documentation can be built" )
-ELSE ( DOXYGEN )
-  MESSAGE( "Doxygen not found -- unable to build documentation" )
-ENDIF ( DOXYGEN )
-
-include(CMakeDependentOption)
-CMAKE_DEPENDENT_OPTION( DOC_GENERATE "Generate Doxygen documentation" ON "DOXYGEN" OFF )
+IF ( DOXYGEN_FOUND )
+  MESSAGE(STATUS "documentation can be built" )
+  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY)
+  ADD_CUSTOM_TARGET(doc doxygen Doxyfile)
+ELSE ( DOXYGEN_FOUND )
+  MESSAGE(STATUS "documentation generation disabled" )
+ENDIF ( DOXYGEN_FOUND )
 
 #
 # Start setting up the build itself

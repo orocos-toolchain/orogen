@@ -244,6 +244,9 @@ module Orocos
                 ignorefile = Generation.render_template "gitignore", binding
                 Generation.save_user ".gitignore", ignorefile
 
+                doxygen = Generation.render_template "Doxyfile.in", binding
+                Generation.save_user "Doxyfile.in", doxygen
+
                 if !deployers.empty?
                     deployers.each { |t| t.generate }
                 end
