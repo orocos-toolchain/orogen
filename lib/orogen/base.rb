@@ -87,6 +87,12 @@ module Orocos
 	    attr_reader :templates
 	end
 
+        # Returns the directory where Orogen's lib part sits (i.e. where
+        # autobuild.rb and autobuild/ are)
+        def self.base_dir
+	    File.expand_path('..', File.dirname(__FILE__))
+        end
+
 	# call-seq:
 	#   template_path(path1, path2, ..., file_name)
 	#

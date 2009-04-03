@@ -26,6 +26,11 @@ parser = OptionParser.new do |opt|
         Orocos::Generation.clean
         exit 0
     end
+    opt.on("--base-dir", "the directory where orogen lib part is installed") do
+        puts Orocos::Generation.base_dir
+        exit 0
+    end
+
     opt.on("-V", "--version", "displays the current orogen version") do
         puts "orogen v#{Orocos::Generation::VERSION}"
         puts "Copyright 2008 DFKI"
