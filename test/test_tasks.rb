@@ -240,5 +240,10 @@ class TC_GenerationTasks < Test::Unit::TestCase
         create_wc("tasks/default_activity")
 	compile_wc(component)
     end
+
+    def test_needs_configuration
+        build_test_component('modules/with_configuration', false)
+        install
+    end
 end
 

@@ -527,7 +527,7 @@ module Orocos
                 elsif fixed_initial_state? && !needs_configuration?
                     raise ArgumentError, "cannot change the start state of this task context: #fixed_initial_state has been specified for it"
                 end
-                @initial_state = 'PreOperational'
+                @needs_configuration = true
             end
 
 	    # The set of properties for this task

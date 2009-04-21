@@ -1,0 +1,21 @@
+# This module is used in TC_GenerationTasks#test_needs_configuration in
+# test_tasks.rb.
+#
+# It checks that #needs_configuration works, and does so by checking that the
+# task's base class does not require an initial_state parameter as usual.
+# Moreover, it checks that #start call configure() before start(), by starting
+# the deployment (if that was not the case, start() would fail and the
+# deployment would return an error).
+#
+name "with_configuration"
+
+task_context "Configurable" do
+    needs_configuration
+end
+
+static_deployment do
+    t = task('Configurable').
+        periodic(0.1).
+        start
+end
+
