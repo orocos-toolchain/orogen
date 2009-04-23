@@ -3,7 +3,7 @@ require './lib/orogen/version'
 begin
     require 'hoe'
     config = Hoe.new('orogen', Orocos::Generation::VERSION) do |p|
-        p.developer("Sylvain Joyeux", "sylvain.joyeux@m4x.org")
+        p.developer("Sylvain Joyeux", "sylvain.joyeux@dfki.de")
 
         p.summary = 'Component generation for Orocos::RTT'
         p.description = p.paragraphs_of('README.txt', 3..6).join("\n\n")
