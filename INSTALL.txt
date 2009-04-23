@@ -1,0 +1,13 @@
+Orogen depends on the following libraries:
+ - util.rb, a Ruby toolkit. It is available as a gem.
+ - the Typelib library. This a C++ library with Ruby bindings. See
+   typelib.sourceforge.net for installation instructions. Make sure you are
+   building the Ruby bindings.
+ - util--, a C++ toolkit. See utilmm.sourceforge.net for installation
+   instructions.
+
+Generated modules of course depend on the Orocos Realtime Toolkit (RTT). Having
+enabled CORBA support in the RTT is optional. Moreover, they depend on the
+following libraries:
+ - typelib, which is already a dependency of orogen itself
+
