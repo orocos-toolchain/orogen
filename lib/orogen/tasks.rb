@@ -635,6 +635,7 @@ module Orocos
             # new data is available on one of the given ports (or all already
             # defined ports if no names are given).
             def port_driven(*names)
+                names = names.map { |n| n.to_s }
                 relevant_ports = if names.empty? then all_ports.find_all { |p| p.kind_of?(InputPort) }
                                  else
                                      names.map do |n|
