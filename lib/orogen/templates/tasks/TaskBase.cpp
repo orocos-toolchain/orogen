@@ -22,8 +22,23 @@ using namespace <%= component.name %>;
     <% task.self_ports.each do |port| %>
     , _<%= port.name %>("<%= port.name %>")<% end %>
     <% task.self_methods.each do |meth| %>
+    // If you get the following error:
+    //   <%= meth.method_name %> is not a member of <%= task.name %>
+    // it means that you did not implement the "<%= meth.method_name %>" method
+    // in <%= task.name %>. Please update tasks/<%= task.basename %>.*
+    // See
+    //   templates/tasks/<%= task.basename %>.hpp and
+    //   templates/tasks/<%= task.basename %>.cpp
     , _<%= meth.name %>("<%= meth.name %>", &<%= task.name %>::<%= meth.method_name %>, &_self)<% end %>
     <% task.self_commands.each do |cmd| %>
+    // If you get one of the following errors:
+    //   <%= cmd.work_method_name %> is not a member of <%= task.name %>
+    //   <%= cmd.completion_method_name %> is not a member of <%= task.name %>
+    // it means that you did not implement one of those two methods in in
+    // <%= task.name %>. Please update tasks/<%= task.basename %>.*
+    // See
+    //   templates/tasks/<%= task.basename %>.hpp and
+    //   templates/tasks/<%= task.basename %>.cpp
     , _<%= cmd.name %>("<%= cmd.name %>", &<%= task.name %>::<%= cmd.work_method_name %>, &<%= task.name %>::<%= cmd.completion_method_name %>, &_self)<% end %>
 {
     <% task.self_properties.each do |prop|
