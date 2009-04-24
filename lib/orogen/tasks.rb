@@ -280,7 +280,7 @@ module Orocos
 	    # created.
 	    def initialize(task, name)
 		super
-		@work_method_name = name.dup
+		@work_method_name = self.name.dup
 		work_method_name[0, 1] = work_method_name[0, 1].downcase
 		@completion_method_name = "is#{name}Completed"
 

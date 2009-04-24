@@ -117,6 +117,9 @@ class TC_GenerationTasks < Test::Unit::TestCase
         # Should raise if there is more than 4 arguments
         assert_raises(ArgumentError) { meth.argument "arg5", "double", "fifth argument" }
 
+        task.method(:symbol_name).
+            doc "this method's name is a symbol"
+
         create_wc("tasks/method")
 	compile_wc(component)
     end
