@@ -3,7 +3,7 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
 includedir=${prefix}/include/orocos
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
-toolkits=<%= component.used_toolkits.map { |tk| tk.name }.join(" ") %> <%= component.name if component.toolkit %>
+toolkits=<%= component.used_toolkits.map { |_, tk, _| tk.name.gsub(/-toolkit.*/, '') }.join(" ") %> <%= component.name if component.toolkit %>
 
 Name: <%= component.name %>
 Version: <%= component.version %>
