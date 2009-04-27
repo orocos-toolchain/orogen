@@ -7,6 +7,21 @@ module Orocos
         def self.enable_corba;   @corba = true end
         def self.disable_corba;  @corba = false end
 
+        def self.orocos_target=(target)
+            @orocos_target = target.to_s
+        end
+
+        def self.orocos_target
+            user_target = ENV['OROCOS_TARGET']
+            if @orocos_target
+                @orocos_target.dup
+            elsif user_target && !user_target.empty?
+                user_target
+            else
+                'gnulinux'
+            end
+        end
+
 	class Component
 	    # The set of tasks whose definition is available
 	    attr_reader :tasks
@@ -23,12 +38,7 @@ module Orocos
             # The target OS for orocos. Uses the OROCOS_TARGET environment
             # variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
-                user_target = ENV['OROCOS_TARGET']
-                if user_target && !user_target.empty?
-                    user_target
-                else
-                    'gnulinux'
-                end
+                Orocos::Generation.orocos_target.dup
             end
 
             # True if the orocos target is gnulinux

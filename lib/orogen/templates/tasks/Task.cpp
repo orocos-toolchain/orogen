@@ -1,6 +1,18 @@
 #include "<%= task.basename %>.hpp"
+<% if task.default_activity
+      activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
+%>
+#include <rtt/<%= activity_type %>.hpp>
+<% end %>
 
 using namespace <%= task.component.name %>;
+
+<% if task.default_activity
+    activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
+%>
+RTT::<%= activity_type %>* <%= task.basename %>::get<%= activity_type %>()
+{ return dynamic_cast< <%= activity_type %>* >(getActivity().get()); }
+<% end %>
 
 <%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
     : <%= task.basename %>Base(name<%= ", initial_state" unless task.fixed_initial_state? %>)
@@ -22,16 +34,6 @@ bool <%= task.basename %>::<%= cmd.work_method_name %><%= cmd.work_signature %>
 bool <%= task.basename %>::<%= cmd.completion_method_name %><%= cmd.completion_signature %>
 {
     return true;
-}
-<% end %>
-
-<% if task.implements?("RTT::FileDescriptorActivity::Provider") %>
-/** This method is called after the configuration step by the
- * FileDescriptorActivity to get the file descriptor
- */
-int <%= task.basename %>::getFileDescriptor() const
-{
-    return -1;
 }
 <% end %>
 

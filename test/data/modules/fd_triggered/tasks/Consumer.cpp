@@ -4,9 +4,13 @@
 #include <fcntl.h>
 #include <iostream>
 #include <boost/lexical_cast.hpp>
+#include <rtt/FileDescriptorActivity.hpp>
 
 using namespace std;
 using namespace fd;
+
+RTT::FileDescriptorActivity* Consumer::getFileDescriptorActivity()
+{ return dynamic_cast< RTT::FileDescriptorActivity* >(getActivity().get()); }
 
 Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
     : ConsumerBase(name, initial_state)
@@ -16,22 +20,20 @@ Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
     m_fd = boost::lexical_cast<int>(getenv("FD_DRIVEN_TEST_FILE"));
 }
 
-/** This method is called after the configuration step by the
- * FileDescriptorActivity to get the file descriptor
- */
-int Consumer::getFileDescriptor() const
+Consumer::~Consumer()
 {
-    // See comment in constructor
-    return m_fd;
+    close(m_fd);
 }
-
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Consumer.hpp for more detailed
 // documentation about them.
 
 // bool Consumer::configureHook() { return true; }
-// bool Consumer::startHook() { return true; }
+bool Consumer::startHook() {
+    getFileDescriptorActivity()->watch(m_fd);
+    return true;
+}
 
 void Consumer::updateHook()
 {

@@ -3,6 +3,16 @@ require 'utilrb/value_set'
 
 module Orocos
     module Generation
+        ACTIVITY_TYPES = {
+            :fd_driven  => 'FileDescriptorActivity',
+            :irq_driven => 'IRQActivity',
+            :slave      => 'SlaveActivity',
+            :event_driven => 'EventDrivenActivity',
+            :periodic     => 'PeriodicActivity',
+            :triggered    => 'NonPeriodicActivity',
+            :sequential   => 'SequentialActivity'
+        }
+
 	class Property
             # The task on which this property is attached
             attr_reader :task
@@ -400,7 +410,7 @@ module Orocos
                 end
 
                 type = type.to_sym
-                if !TaskDeployment.method_defined?(type)
+                if !ACTIVITY_TYPES.has_key?(type)
                     raise ArgumentError, "#{type} is not a valid activity type"
                 end
                 [type, *args]
@@ -662,8 +672,12 @@ module Orocos
             # To configure the activity, you will have to implement the
             # getFileDescriptor() method that is generated in the target class.
             def fd_driven
-                implements "RTT::FileDescriptorActivity::Provider", "rtt/FileDescriptorActivity.hpp"
                 default_activity "fd_driven"
+            end
+
+            # True if this task context's default activity is a FD-driven activity
+            def fd_driven?
+                default_activity.first == :fd_driven
             end
 
             # Looks at the various data objects defined on this task, and

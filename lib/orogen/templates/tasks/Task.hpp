@@ -3,6 +3,15 @@
 
 #include "<%= component.name.downcase %>/<%= task.basename %>Base.hpp"
 
+<% if task.default_activity
+      activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
+%>
+namespace RTT
+{
+    class <%= activity_type %>;
+}
+<% end %>
+
 namespace <%= component.name %> {
     class <%= task.basename %> : public <%= task.basename %>Base
     {
@@ -18,6 +27,10 @@ namespace <%= component.name %> {
 
     public:
         <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
+
+        <% if task.default_activity
+              activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
+        %>RTT::<%= activity_type %>* get<%= activity_type %>();<% end %>
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -82,14 +95,6 @@ namespace <%= component.name %> {
          * before calling start() again.
          */
         // void cleanupHook();
-
-        <% if task.implements?("RTT::FileDescriptorActivity::Provider") %>
-        /** This method is called after the configuration step by the
-         * FileDescriptorActivity to get the file descriptor
-         */
-        int getFileDescriptor() const;
-        <% end %>
-
     };
 }
 

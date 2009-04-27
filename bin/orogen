@@ -11,6 +11,16 @@ parser = OptionParser.new do |opt|
         else Orocos::Generation.disable_corba
         end
     end
+    opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
+        target = target.to_s
+        if target !~ /^(gnulinux|xenomai)$/
+            STDERR.puts "unknown target '#{target}', possible values are gnulinux and xenomai"
+            exit 1
+        end
+
+        Orocos::Generation.orocos_target = target.to_s
+    end
+
     opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO }
     opt.on("-d", "--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
     opt.on("-h", "--help", "this help message") do
