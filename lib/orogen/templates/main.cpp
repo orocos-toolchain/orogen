@@ -76,6 +76,7 @@ int ORO_main(int argc, char* argv[])
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
             task_<%= task.name%>.engine());
+    task_<%= task.name %>.setActivity(&activity_<%= task.name %>);
     <% if task.period %>
     RTT::OS::PeriodicThread* thread_<%= task.name %> =
         dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>.thread());
