@@ -11,7 +11,7 @@ using namespace <%= task.component.name %>;
     activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
 %>
 RTT::<%= activity_type %>* <%= task.basename %>::get<%= activity_type %>()
-{ return dynamic_cast< <%= activity_type %>* >(getActivity().get()); }
+{ return dynamic_cast< RTT::<%= activity_type %>* >(getActivity().get()); }
 <% end %>
 
 <%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
