@@ -673,6 +673,7 @@ module Orocos
             # getFileDescriptor() method that is generated in the target class.
             def fd_driven
                 default_activity "fd_driven"
+                needs_configuration
             end
 
             # True if this task context's default activity is a FD-driven activity

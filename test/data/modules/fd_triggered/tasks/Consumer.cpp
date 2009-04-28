@@ -12,8 +12,8 @@ using namespace fd;
 RTT::FileDescriptorActivity* Consumer::getFileDescriptorActivity()
 { return dynamic_cast< RTT::FileDescriptorActivity* >(getActivity().get()); }
 
-Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
-    : ConsumerBase(name, initial_state)
+Consumer::Consumer(std::string const& name)
+    : ConsumerBase(name)
 {
     // The test suite must create a pipe and give us the FD for the read side
     // through the FD_DRIVEN_TEST_FILE environment variable.
@@ -29,10 +29,9 @@ Consumer::~Consumer()
 // hooks defined by Orocos::RTT. See Consumer.hpp for more detailed
 // documentation about them.
 
-// bool Consumer::configureHook() { return true; }
-bool Consumer::startHook() {
+bool Consumer::configureHook() {
     getFileDescriptorActivity()->watch(m_fd);
-    return true;
+    return TaskContext::configureHook();
 }
 
 void Consumer::updateHook()

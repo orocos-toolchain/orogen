@@ -18,11 +18,10 @@ namespace fd {
         int m_fd;
 
     public:
-        Consumer(std::string const& name = "fd::Consumer", TaskCore::TaskState initial_state = Stopped);
+        Consumer(std::string const& name = "fd::Consumer");
         ~Consumer();
 
         RTT::FileDescriptorActivity* getFileDescriptorActivity();
-        
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -37,14 +36,14 @@ namespace fd {
          *     ...
          *   end
          */
-        // bool configureHook();
+        bool configureHook();
 
         /** This hook is called by Orocos when the state machine transitions
          * from Stopped to Running. If it returns false, then the component will
          * stay in Stopped. Otherwise, it goes into Running and updateHook()
          * will be called.
          */
-        bool startHook();
+        // bool startHook();
 
         /** This hook is called by Orocos when the component is in the Running
          * state, at each activity step. Here, the activity gives the "ticks"
