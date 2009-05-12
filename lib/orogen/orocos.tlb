@@ -4,6 +4,7 @@
      the Orocos::RTT toolkit -->
 
     <null name="/std/string" />
+    <alias name="/string" source="/std/string"/>
     <container name="/std/vector&lt;/double&gt;" of="/double" kind="/std/vector" />
 </typelib>
 
