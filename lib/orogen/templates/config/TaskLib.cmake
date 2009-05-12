@@ -45,6 +45,7 @@ pkg_check_modules(<%= name %>_TASKLIB REQUIRED <%= name %>-tasks-${OROCOS_TARGET
 INCLUDE_DIRECTORIES(${<%= name %>_TASKLIB_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_TASKLIB_LIBRARY_DIRS})
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_TASKLIB_LIBRARIES})
+list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= name %>_TASKLIB_LIBRARIES})
 <% end %>
 
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= component.name %>-tasks.pc.in
