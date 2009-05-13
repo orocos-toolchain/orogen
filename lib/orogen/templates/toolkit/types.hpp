@@ -13,6 +13,19 @@
 
 <% end %>
 
+<% generated_types.each do |type|
+    next if toolkit.intermediate_type?(type) %>
+#ifdef ORO_EXECUTION_PORTS_HPP
+    extern template class RTT::OutputPort<<%= type.cxx_name %>>;
+    extern template class RTT::InputPort<<%= type.cxx_name %>>;
+#endif
+#ifdef ORO_PROPERTY_HPP
+    extern template class RTT::Property<<%= type.cxx_name %>>;
+#endif
+#ifdef ORO_CORELIB_ATTRIBUTE_HPP
+    extern template class RTT::Attribute<<%= type.cxx_name %>>;
+#endif
+<% end %>
                 
 <%= 
     catch(:nothing_to_define) do
