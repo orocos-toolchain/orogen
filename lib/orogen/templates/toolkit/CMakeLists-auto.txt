@@ -69,20 +69,11 @@ target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-${OROCOS_TA
 <% if toolkit.corba_enabled? %>
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-corba-${OROCOS_TARGET})
 <% end %>
-# Automatic regeneration if one the type definition files changed
-<% external_loads = toolkit.external_loads
-   if !external_loads.empty? %>
+
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 add_custom_command(
-    OUTPUT <%= external_loads.join(" ") %>
-    COMMENT "External header definition files changed, regenerating ..."
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND orogen <%= "--corba" if toolkit.corba_enabled? %> <%= toolkit.component.deffile %>)
-<% end %>
-
-add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS <%= toolkit.loads.join(" ") %>
+    DEPENDS <%= toolkit.loads.join(" ") %> <%= toolkit.external_loads.join(" ") %>
     COMMENT "Toolkit input changed, regenerating ..."
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND orogen <%= "--corba" if toolkit.corba_enabled? %> <%= toolkit.component.deffile %>
