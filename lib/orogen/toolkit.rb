@@ -506,7 +506,6 @@ module Orocos
 		toolkit = self
 
                 registry = self.registry.minimal(preloaded_registry)
-		type_header = Generation.render_template('toolkit/types.hpp', binding)
 
 		generated_types = []
 		registry.each_type do |type|
@@ -515,6 +514,7 @@ module Orocos
 		    end
 		end
 
+		type_header = Generation.render_template('toolkit/types.hpp', binding)
 		if corba_enabled?
 		    corba  = Generation.render_template 'toolkit/corba.hpp', binding
 		    idl    = Orocos::Generation.render_template "toolkit/corba.idl", binding
