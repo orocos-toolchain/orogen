@@ -294,7 +294,9 @@ module Typelib
 		'char' => 'int',
 		'unsigned char'  => 'unsigned int',
 		'unsigned short' => 'unsigned int',
-		'short' => 'int' }
+                'uint64_t'       => 'unsigned int',
+                'int64_t'        => 'int',
+		'short'          => 'int' }
 
 	attr_reader :orocos_type_equivalence
 	def build_orocos_type_equivalence
