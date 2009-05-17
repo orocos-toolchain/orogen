@@ -16,6 +16,10 @@
 #include "<%= component.name %>ToolkitUser.hpp"
 <% end %>
 
+#include <rtt/Ports.hpp>
+#include <rtt/Attribute.hpp>
+#include <rtt/Property.hpp>
+
 using RTT::Property;
 using RTT::PropertyBag;
 using RTT::TypeInfoRepository;
@@ -47,6 +51,14 @@ using RTT::DataSourceBase;
 <% end %>
 
 <%= Generation.adapt_namespace(namespace, '/') %>
+
+<% generated_types.each do |type|
+    next if toolkit.intermediate_type?(type) %>
+    template class RTT::OutputPort<<%= type.cxx_name %>>;
+    template class RTT::InputPort<<%= type.cxx_name %>>;
+    template class RTT::Property<<%= type.cxx_name %>>;
+    template class RTT::Attribute<<%= type.cxx_name %>>;
+<% end %>
 
 namespace <%= component.name %> {
     template<typename T>

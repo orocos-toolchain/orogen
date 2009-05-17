@@ -3,6 +3,10 @@
 
 #include <string>
 #include <<%= task.superclass.header_file %>>
+<% unless task.self_methods.empty? %>#include <rtt/Method.hpp><% end %>
+<% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
+<% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
+
 <% task.used_toolkits.each do |name, _| %>
 #include <toolkit/<%= name %>ToolkitTypes.hpp>
 <% end %>
@@ -11,9 +15,6 @@
 <% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
 
-<% unless task.self_methods.empty? %>#include <rtt/Method.hpp><% end %>
-<% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
-<% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
