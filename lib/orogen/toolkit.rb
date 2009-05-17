@@ -442,7 +442,7 @@ module Orocos
                 include_dirs = []
                 include_dirs << component.base_dir if component.base_dir
                 include_dirs.concat(component.used_libraries.map { |pkg| pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_task_libraries.map { |pkg| pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_task_libraries.map { |component| component.pkg.include_dirs }.flatten)
 
                 if File.exists?(file)
                     file = File.expand_path(file)

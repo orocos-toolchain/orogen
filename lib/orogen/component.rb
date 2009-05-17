@@ -118,7 +118,7 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        component = TaskLibrary.load(self, File.expand_path(orogen, File.dirname(__FILE__)))
+                        component = TaskLibrary.load(self, nil, File.expand_path(orogen, File.dirname(__FILE__)))
                         @@standard_tasks.concat component.tasks
                     end
                 end
@@ -414,11 +414,8 @@ module Orocos
                 pkg = Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
                 orogen = pkg.deffile
 
-                component = TaskLibrary.load(self, orogen)
+                component = TaskLibrary.load(self, pkg, orogen)
                 tasks.concat component.tasks
-                if component.has_toolkit?
-                    using_toolkit component.name
-                end
                 used_task_libraries << component
             end
 
@@ -452,15 +449,17 @@ module Orocos
         class TaskLibrary < Component
             # The component in which the library has been imported
             attr_reader :base_component
+            # The pkg-config file defining this task library
+            attr_reader :pkg
 
             # Import in the +base+ component the task library whose orogen
             # specification is included in +file+
-            def self.load(base, file)
-                new(base).load(file)
+            def self.load(base, pkg, file)
+                new(base, pkg).load(file)
             end
 
-            def initialize(component)
-                @base_component = component
+            def initialize(component, pkg)
+                @base_component, @pkg = component, pkg
                 super()
             end
 
@@ -477,6 +476,7 @@ module Orocos
                 if args.empty? && !block_given?
                     super
                 else
+                    using_toolkit name
                     self.has_toolkit = true
                 end
                 nil
