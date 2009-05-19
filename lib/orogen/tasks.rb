@@ -430,7 +430,7 @@ module Orocos
                     library_name, name = self.name.split("::")
                     "#{library_name.downcase}/#{name}.hpp"
                 else
-                    "tasks/#{basename}.hpp"
+                    "#{component.name.downcase}/#{basename}.hpp"
                 end
             end
 
