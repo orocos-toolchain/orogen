@@ -7,14 +7,18 @@ require 'nokogiri'
 
 module Typelib
     class Type
+        def self.normalize_cxxname(name)
+            name.gsub("<::", "<").gsub('>>', '> >')
+        end
+
         def self.cxx_name(fullname = true)
-            full_name('::', fullname).gsub("<::", "<")
+            normalize_cxxname(full_name('::', fullname))
         end
         def self.cxx_basename
-            basename('::').gsub("<::", "<")
+            normalize_cxxname(basename('::'))
         end
         def self.cxx_namespace
-            namespace('::').gsub("<::", "<")
+            namespace('::')
         end
 
         def self.corba_name
@@ -90,6 +94,9 @@ module Typelib
     end
 
     class ContainerType
+        def self.corba_name
+            "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
+        end
         def self.collection_iteration(varname, result, path, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
@@ -212,7 +219,7 @@ module Typelib
 
     class CompoundType
         def self.corba_name
-            "#{namespace('::')}Corba::#{basename.gsub('<::', '< ::')}"
+            "#{namespace('::')}Corba::#{normalize_cxxname(basename)}"
         end
 	def self.convertion_code_helper(method, toolkit, result, path, indent)
 	    each_field do |name, type|
