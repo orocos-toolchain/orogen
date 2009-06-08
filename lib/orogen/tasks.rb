@@ -707,6 +707,18 @@ module Orocos
                 return if external_definition?
                 used_toolkits
 
+                # Create a symbolic link in .orogen/tasks that points to
+                # tasks/File.hpp. This is needed for proper
+                # inter-module-dependency management, as the task file needs to
+                # be referred to as <project>/<task>.hpp
+                symlink = File.join(AUTOMATIC_AREA_NAME, 'tasks', "#{basename}.hpp")
+                if !File.exists?(symlink)
+                    Dir.chdir(File.dirname(symlink)) do
+                        FileUtils.ln_sf File.join("..", "..", "tasks", "#{basename}.hpp"), "#{basename}.hpp"
+                    end
+                end
+
+
 		# Make this task be available in templates as 'task'
 		task = self
 	    
