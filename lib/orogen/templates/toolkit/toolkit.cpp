@@ -25,8 +25,14 @@ using RTT::PropertyBag;
 using RTT::TypeInfoRepository;
 using RTT::DataSourceBase;
 
-<% opaques.each do |opaque_def|
+<% generated_type_info = ValueSet.new
+    opaques.each do |opaque_def|
     type = component.find_type(opaque_def.intermediate)
+    if generated_type_info.include?(type)
+        next
+    end
+    generated_type_info << type
+
     code = Generation.adapt_namespace(namespace, type.namespace)
     namespace = type.namespace %>
 <%= code %>

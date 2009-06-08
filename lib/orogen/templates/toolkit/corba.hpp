@@ -70,8 +70,14 @@ namespace RTT {
         };
     }
 
-<% opaques.each do |opaque_def|
-    type = component.find_type(opaque_def.intermediate) %>
+<% generated_intermediate_types = ValueSet.new
+opaques.each do |opaque_def|
+    type = component.find_type(opaque_def.intermediate)
+    if generated_intermediate_types.include?(type)
+        next
+    end
+    generated_intermediate_types << type
+%>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 
