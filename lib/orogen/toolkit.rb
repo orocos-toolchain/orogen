@@ -296,14 +296,15 @@ module Typelib
         end
     end
     class Registry
-	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'float', 'double']
+	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'double']
 	OROCOS_KNOWN_CONVERTIONS = {
 		'char' => 'int',
 		'unsigned char'  => 'unsigned int',
 		'unsigned short' => 'unsigned int',
                 'uint64_t'       => 'unsigned int',
                 'int64_t'        => 'int',
-		'short'          => 'int' }
+		'short'          => 'int',
+                'float'          => 'double' }
 
 	attr_reader :orocos_type_equivalence
 	def build_orocos_type_equivalence
