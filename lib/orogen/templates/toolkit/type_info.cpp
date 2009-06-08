@@ -18,7 +18,7 @@
 	    : RTT::TemplateTypeInfo<<%= type.cxx_name %>, true>("<%= type.full_name %>") {}
 
 	static bool doDecompose(const <%= type.cxx_name %>& value, RTT::PropertyBag& target_bag) {
-        <%= result = ""
+<%= result = ""
 	    type.to_orocos_decomposition(toolkit, result, "", " " * 12) 
 	    result
 	    %> 
@@ -31,7 +31,7 @@
 	}
 
 	static bool doCompose(const RTT::PropertyBag& bag, <%= type.cxx_name %>& out) {
-	    <%= result = ""
+<%= result = ""
 		type.from_orocos_decomposition(toolkit, result, "", " " * 12)
 		result %>
             return true;
