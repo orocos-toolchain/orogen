@@ -7,13 +7,13 @@ deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
 Name: <%= component.name %>Tasks
 Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
+Requires:
 Libs: -L${libdir} -l<%= component.name %>-tasks-<%= component.orocos_target %>
 <% # Get all toolkits that are needed to define the tasks, and list them in the
    # includes. We don't have to link explicitely to them, unless we're using
    # them explicitely (and therefore we will link to them anyway)
-  list = component.tasks.
-            inject([]) { |list, t| list.concat(t.used_toolkits) }.
-            uniq
+  used_toolkits = component.tasks.
+            inject(ValueSet.new) { |set, t| set | t.used_toolkits }
 %>
-Cflags: -I${includedir} <%= list.map { |_, pkg, _| pkg.cflags if pkg }.compact.join(" ") %>
+Cflags: -I${includedir} <%= used_toolkits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.join(" ") %>
 

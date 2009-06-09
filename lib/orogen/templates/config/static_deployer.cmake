@@ -11,8 +11,8 @@ link_directories(${OrocosCORBA_LIBRARY_DIRS})
 
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 
-<% component.used_toolkits.each do |name, _| %>
-pkg_check_modules(<%= name %>_TOOLKIT REQUIRED <%= name %>-toolkit-${OROCOS_TARGET})
+<% component.used_toolkits.each do |tk| %>
+pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.pkg.name %>)
 include_directories(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
 link_directories(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
 <% end %>
@@ -29,8 +29,8 @@ add_executable(<%= component.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMAT
 <% if component.toolkit %>
 target_link_libraries(<%= component.name %> <%= component.name %>-toolkit-${OROCOS_TARGET})
 <% end %>
-<% component.used_toolkits.each do |name, _| %>
-target_link_libraries(<%= component.name %> ${<%= name %>_TOOLKIT_LIBRARIES})
+<% component.used_toolkits.each do |tk| %>
+target_link_libraries(<%= component.name %> ${<%= tk.name %>_TOOLKIT_LIBRARIES})
 <% end %>
 <% component.used_task_libraries.each do |pkg|
     name = pkg.name%>

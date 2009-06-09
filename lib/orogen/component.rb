@@ -188,7 +188,8 @@ module Orocos
             # The deployment modes that are required for this generation
             attr_reader :deployers
 
-	    # The set of toolkits that are to be used in this component
+	    # The set of toolkits that are to be used in this component. This is
+            # a set of ImportedToolkit instances.
 	    attr_reader :used_toolkits
 
             # Import an orogen-generated toolkit to be used by this component.
@@ -200,7 +201,7 @@ module Orocos
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
 	    def using_toolkit(name)
-		if used_toolkits.any? { |n, _| n == name }
+		if used_toolkits.any? { |tk| tk.name == name }
 		    return
 		end
 
@@ -208,9 +209,14 @@ module Orocos
 		toolkit_registry = Typelib::Registry.import pkg.type_registry
 
                 registry.merge(toolkit_registry)
-
-		used_toolkits << [name, pkg, toolkit_registry]
+		used_toolkits << ImportedToolkit.new(name, pkg, toolkit_registry)
 	    end
+
+            # Returns true if +typename+ has been defined by a toolkit imported
+            # by using_toolkit
+            def imported_type?(typename)
+                used_toolkits.any? { |tk| tk.includes?(typename) }
+            end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
@@ -448,6 +454,21 @@ module Orocos
                 deployer
             end
 	end
+
+        # Instances of this class represent a toolkit that has been imported
+        # using Component#using_toolkit.
+        class ImportedToolkit
+            attr_reader :name
+            attr_reader :pkg
+            attr_reader :registry
+
+            def initialize(name, pkg, registry)
+                @name, @pkg, @registry = name, pkg, registry
+            end
+            def includes?(name)
+                registry.includes?(name)
+            end
+        end
 
         # Instances of this class represent a task library loaded in a
         # component, i.e.  a set of TaskContext defined externally and imported

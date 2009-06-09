@@ -7,8 +7,8 @@
 <% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
-<% task.used_toolkits.each do |name, _| %>
-#include <toolkit/<%= name %>ToolkitTypes.hpp>
+<% task.used_toolkits.each do |tk| %>
+#include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
 <% end %>
 <% task.implemented_classes.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>

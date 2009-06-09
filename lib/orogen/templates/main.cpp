@@ -1,8 +1,8 @@
 #include <rtt/os/main.h>
 <% if component.toolkit || !component.used_toolkits.empty? %>#include <rtt/Toolkit.hpp><% end %>
 <% if component.toolkit %>#include "toolkit/<%= component.name %>Toolkit.hpp"<% end %>
-<% component.used_toolkits.each do |name, _| %>
-#include <toolkit/<%= name %>Toolkit.hpp>
+<% component.used_toolkits.each do |tk| %>
+#include <toolkit/<%= tk.name %>Toolkit.hpp>
 <% end %>
 <% deployer.task_activities.each do |task| %>
 #include <<%= task.context.header_file %>>
@@ -60,8 +60,8 @@ int ORO_main(int argc, char* argv[])
    <% end %>
 
    <% if component.toolkit %>RTT::Toolkit::Import( <%= component.name %>::Toolkit );<% end %>
-   <% component.used_toolkits.each do |name, _| %>
-   RTT::Toolkit::Import( <%= name %>::Toolkit );
+   <% component.used_toolkits.each do |tk| %>
+   RTT::Toolkit::Import( <%= tk.name %>::Toolkit );
    <% end %>
 
 <% if deployer.corba_enabled? %>

@@ -726,19 +726,16 @@ module Orocos
                 default_activity.first == :fd_driven
             end
 
-            # Looks at the various data objects defined on this task, and
-            # returns the list of toolkits that define them
+            # Returns the set of imported toolkits that are needed to run this
+            # task properly.
             def used_toolkits
                 types = (all_properties + all_methods + all_commands + all_ports).
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
 
                 types.map do |t|
-                    tk, pkg, reg = component.used_toolkits.find do |_, _, reg|
-                        reg.get(t.name)
-                    end
-                    [tk, pkg] if tk
-                end.compact.to_value_set.to_a
+                    component.used_toolkits.find_all { |tk| tk.includes?(t.name) }
+                end.flatten.compact.to_value_set
             end
 
 	    # Generate the code files for this task. This builds to classes:

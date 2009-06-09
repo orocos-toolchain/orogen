@@ -689,7 +689,7 @@ module Orocos
 
 		generated_types = []
 		registry.each_type do |type|
-		    if type < Typelib::CompoundType && !component.used_toolkits.any? { |_, _, r| r.get(type.name) }
+		    if type < Typelib::CompoundType && !component.imported_type?(type.name)
 			generated_types << type
 		    end
 		end
@@ -734,8 +734,10 @@ module Orocos
             def m_type?(type)
                 typename = type.name
                 return false if typename !~ /_m$/
-                if base_type = registry.get($`)
+                begin
+                    base_type = registry.get($`)
                     contains_opaques?(base_type)
+                rescue Typelib::NotFound
                 end
             end
 
@@ -824,7 +826,7 @@ module Orocos
             # reference sequence types directly (you have to typedef them first)
             def generate_container_typedefs(registry)
 		registry.each_type do |type|
-		    if type < Typelib::ContainerType && !component.used_toolkits.any? { |_, _, r| r.get(type.name) }
+		    if type < Typelib::ContainerType && !component.imported_type?(type.name)
                         registry.alias type.namespace + type.basename.gsub(/[^\w]/, '_'), type.name
 		    end
 		end
