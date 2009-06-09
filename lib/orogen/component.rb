@@ -219,7 +219,17 @@ module Orocos
 	    def find_type(type)
 		if type
 		    if type.respond_to?(:to_str)
-			registry.build(type.to_str)
+                        type = Typelib::Type.normalize_typename(type)
+                        begin
+                            registry.build(type)
+                        rescue Typelib::NotFound
+                            # We may need to define this type for ourselves, so
+                            # make the toolkit define it ...
+                            toolkit { find_type(type) }
+                            # ... and return our own version of it, not the
+                            # toolkit's one
+                            registry.build(type)
+                        end
 		    elsif type.kind_of?(Class) && type <= Typelib::Type
                         type
                     else
@@ -367,11 +377,10 @@ module Orocos
 	    def toolkit(&block)
 		if !block_given?
 		    return @toolkit
-                elsif @toolkit
-                    raise ArgumentError, "a toolkit is already defined for this component"
+                else
+                    @toolkit ||= Toolkit.new(self, &block)
+                    @toolkit.instance_eval(&block)
 		end
-
-		@toolkit = Toolkit.new(self, &block)
 	    end
 
             # Creates a new task context class of this name. The generated

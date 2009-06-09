@@ -40,31 +40,45 @@ module Typelib
             index_var_stack.pop
         end
 
-	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+        # Generate the code needed to initialize a C++ variable from an Orocos
+        # PropertyBag.
+        #
+        # +toolkit+ is the toolkit on which we act. +result+ is the generated
+        # code as a string. +var+ is the name of the variable that holds the
+        # value which should be decomposed. +property_name+ is the name the
+        # property should have in the property bag and finally +indent+ is the
+        # indentation of the code (needed to have a readable code in the end).
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+            property_name ||= "\"#{path[1..-1]}\""
             if opaque?
-                property_name = path[1..-1]
-                result << indent << "{ PropertyBag const& inner_bag = bag.getProperty<PropertyBag>(\"#{property_name}\")->value();\n"
+                result << indent << "{ PropertyBag const& inner_bag = bag.getProperty<PropertyBag>(#{property_name})->value();\n"
                 result << indent << "   #{cxx_name}TypeInfo::doCompose(inner_bag, out#{path});\n"
                 result << indent << "}"
             else
                 orocos_type = registry.orocos_equivalent(self).cxx_name
-                property_name = path[1..-1]
-                result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(\"#{property_name}\")->get();"
+                result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(#{property_name})->get();"
             end
 	end
 
-	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+        # Generate the code needed to decompose a give C++ type into a
+        # propertybag (for further marshalling by Orocos).
+        #
+        # +toolkit+ is the toolkit on which we act. +result+ is the generated
+        # code as a string. +var+ is the name of the variable that holds the
+        # value which should be decomposed. +property_name+ is the name the
+        # property should have in the property bag and finally +indent+ is the
+        # indentation of the code (needed to have a readable code in the end).
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+            property_name ||= "\"#{path[1..-1]}\""
             if opaque?
                 result << indent << "{ PropertyBag inner_bag(\"#{full_name}\");\n"
                 result << indent << "   #{cxx_namespace}#{method_name(false)}TypeInfo::doDecompose(value#{path}, inner_bag);\n"
-                property_name = path[1..-1]
-                result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(\"#{property_name}\", \"\", inner_bag);\n"
+                result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(#{property_name}, \"\", inner_bag);\n"
                 result << indent << "   target_bag.add(temp_property);\n"
                 result << indent << "}"
             else
                 orocos_type = registry.orocos_equivalent(self).cxx_name
-                property_name = path[1..-1]
-                result << indent << "target_bag.add( new Property<#{orocos_type}>(\"#{property_name}\", \"\", value#{path}) );"
+                result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", value#{path}) );"
             end
 	end
 
@@ -97,51 +111,74 @@ module Typelib
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
         end
-        def self.collection_iteration(varname, result, path, indent)
+
+        def self.collection_iteration(varname, result, path, indent, iterator = "const_iterator")
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
-            result << "#{indent}for(#{cxx_name}::const_iterator it = #{varname}#{path}.begin(); it != #{varname}#{path}.end(); ++it)\n"
+            result << "#{indent}for(#{cxx_name}::#{iterator} it = #{varname}#{path}.begin(); it != #{varname}#{path}.end(); ++it)\n"
             result << "#{indent}{\n"
             yield(element_type)
             result << "#{indent}}\n"
         end
 
 	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
-            collection_iteration(:value, result, path, indent) do |element_type|
-                result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
-                element_type.to_orocos_decomposition(toolkit, result, "", indent + "  ") << "\n"
+            allocate_index do |i|
+                result << "#{indent}size_t #{i} = 0;\n"
+                # Save the collection size
+                collection_iteration(:value, result, path, indent) do |element_type|
+                    result << "#{indent}  #{element_type.cxx_name} const& value_#{i} = *it;\n"
+                    result << "#{indent}  std::string property_name = \"#{path}[\" + boost::lexical_cast<std::string>(#{i}) + \"]\";\n"
+                    element_type.to_orocos_decomposition(toolkit, result, "_#{i}", indent + "  ", "property_name") << "\n"
+                    result << "#{indent}  ++#{i};\n"
+                end
+                result << indent << "target_bag.add( new Property<int>(\"#{path}[size]\", \"\", #{i}) );"
             end
 	end
 
 	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
             result << "#{indent}result#{path}.length(value#{path}.size());\n"
-            allocate_index do |index_var|
-                result << "#{indent}int #{index_var} = 0;\n"
+            allocate_index do |i|
+                result << "#{indent}int #{i} = 0;\n"
                 collection_iteration(:value, result, path, indent) do |element_type|
                     result << "#{indent}  #{element_type.cxx_name} const& value = *it;\n"
                     result << "#{indent}  CorbaType& real_result = result;\n"
                     result << "#{indent}  #{element_type.corba_name} result;\n"
                     element_type.code_to_corba(toolkit, result, "", indent + "  ") << "\n";
-                    result << "#{indent}  real_result#{path}[#{index_var}] = result;\n"
-                    result << "#{indent}  ++#{index_var};\n"
+                    result << "#{indent}  real_result#{path}[#{i}] = result;\n"
+                    result << "#{indent}  ++#{i};\n"
                 end
             end
 	end
 	def self.code_from_corba(toolkit, result, path = "", indent = "    ")
-            result << "#{indent}result#{path}.resize(value#{path}.length());\n"
-            allocate_index do |index_var|
-                result << "#{indent}int #{index_var} = 0;\n"
-                collection_iteration(:result, result, path, indent) do |element_type|
+            collection_name, element_type = container_kind, deference.name
+            element_type = registry.build(element_type)
+            allocate_index do |i|
+                result << "#{indent}size_t size_#{i} = value#{path}.length();\n"
+                result << "#{indent}for (size_t #{i} = 0; #{i} < size_#{i}; ++#{i})\n"
+                result << "#{indent}{\n"
                     result << "#{indent}  CorbaType const& real_value = value;\n"
-                    result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{index_var}];\n"
+                    result << "#{indent}  BaseType& real_result = result;\n"
+                    result << "#{indent}  #{element_type.corba_name} const& value = real_value#{path}[#{i}];\n"
                     result << "#{indent}  #{element_type.cxx_name} result;\n"
                     element_type.code_from_corba(toolkit, result, "", indent + "  ") << "\n";
-                    result << "#{indent}  ++#{index_var};\n"
-                end
+                    result << "#{indent}  real_result#{path}.push_back(result);\n"
+                result << "#{indent}}\n"
             end
 	end
 	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+            collection_name, element_type = container_kind, deference.name
+            element_type = registry.build(element_type)
+            allocate_index do |i|
+                result << "#{indent}size_t size_#{i} = bag.getProperty<int>(\"#{path}[size]\")->get();\n"
+                result << "#{indent}for (size_t #{i} = 0; #{i} < size_#{i}; ++#{i})\n"
+                result << "#{indent}{\n"
+                    result << "#{indent}  #{element_type.cxx_name} out_#{i};\n"
+                    result << "#{indent}  std::string property_name = \"#{path}[\" + boost::lexical_cast<std::string>(#{i}) + \"]\";\n"
+                    element_type.from_orocos_decomposition(toolkit, result, "_#{i}", indent + "  ", "property_name") << "\n"
+                    result << "#{indent}  out#{path}.push_back(out_#{i});\n"
+                result << "#{indent}}\n"
+            end
 	    result
 	end
         def self.to_ostream(toolkit, result, path, indent)
@@ -364,6 +401,30 @@ module Orocos
 		end
 	    end
 
+	    def find_type(type)
+		if type
+		    if type.respond_to?(:to_str)
+                        type = Typelib::Type.normalize_typename(type)
+                        begin
+                            registry.build(type)
+                        rescue Typelib::NotFound
+                            if type =~ /^([^<]+)<(.*)>$/
+                                container_name = $1
+                                element_name   = $2
+                                element_type   = find_type(element_name)
+                                component.registry.define_container(container_name,
+                                                component.registry.build(element_name))
+                                registry.define_container(container_name, element_type)
+                            end
+                        end
+		    elsif type.kind_of?(Class) && type <= Typelib::Type
+                        type
+                    else
+			raise ArgumentError, "expected a type object, got #{type}"
+		    end
+		end
+	    end
+
             # True if we are generating for Linux
             def linux?;     component.linux? end
             # True if we are generating for Xenomai
@@ -524,6 +585,8 @@ module Orocos
 		    end
 		end
 
+                generate_container_typedefs(registry)
+
 		type_header = Generation.render_template('toolkit/types.hpp', binding)
 		if corba_enabled?
 		    corba  = Generation.render_template 'toolkit/corba.hpp', binding
@@ -537,7 +600,7 @@ module Orocos
 	    end
 
             def opaque_specification(type_def)
-                type = component.find_type(type_def)
+                type = find_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
 
@@ -545,7 +608,7 @@ module Orocos
             end
 
             def contains_opaques?(type)
-                type = component.find_type(type)
+                type = find_type(type)
                 return true  if type.opaque?
                 return false unless type < Typelib::CompoundType
 
@@ -633,8 +696,20 @@ module Orocos
                 end
             end
 
+            # This generates typedefs for container types. These typedefs are
+            # needed because IDL and the CORBA C++ mapping do not allow to
+            # reference sequence types directly (you have to typedef them first)
+            def generate_container_typedefs(registry)
+		registry.each_type do |type|
+		    if type < Typelib::ContainerType && !component.used_toolkits.any? { |_, _, r| r.get(type.name) }
+                        registry.alias type.namespace + type.basename.gsub(/[^\w]/, '_'), type.name
+		    end
+		end
+            end
+
 	    def generate
 		toolkit = self
+
                 handle_opaques_generation
 
                 # Generate the C++ and IDL files
