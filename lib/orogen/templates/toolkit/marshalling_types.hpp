@@ -5,7 +5,12 @@
     next if type.opaque?
     next unless contains_opaques?(type)
 
-    if !generate_all_marshalling_types && current_def = registry.get("#{type.full_name}_m")
+    current_def = begin
+                      registry.get("#{type.full_name}_m")
+                  rescue Typelib::NotFound
+                  end
+
+    if !generate_all_marshalling_types && current_def
         # Check that the current definition matches what we want
         if !(current_def < Typelib::CompoundType) || current_def.fields.size != type.fields.size
             raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
