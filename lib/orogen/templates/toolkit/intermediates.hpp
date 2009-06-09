@@ -1,11 +1,14 @@
-#ifndef <%= component.name %>_USER_MARSHALLING_HH
-#define <%= component.name %>_USER_MARSHALLING_HH
+#ifndef <%= component.name %>_INTERMEDIATE_MARSHALLING_HH
+#define <%= component.name %>_INTERMEDIATE_MARSHALLING_HH
 
 #include <<%= component.name %>ToolkitTypes.hpp>
+<% if has_opaques_with_templates? %>
+#include <<%= component.name %>ToolkitUser.hpp>
+<% end %>
 
 namespace <%= component.name %>
 {
-    <% toolkit.opaques.find_all { |op| op.generate_templates? }.each do |opaque_def|
+    <% toolkit.opaques.find_all { |op| !op.generate_templates? }.each do |opaque_def|
         from = opaque_def.type
         into = component.find_type(opaque_def.intermediate)
         if opaque_def.needs_copy? %>
@@ -19,4 +22,5 @@ namespace <%= component.name %>
 }
 
 #endif
+
 

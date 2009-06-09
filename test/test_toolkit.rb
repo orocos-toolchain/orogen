@@ -55,8 +55,18 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         check_output_file('modules/toolkit_opaque', 'opaque.cpf')
         check_output_file('modules/toolkit_opaque', 'composed_opaque.xml')
         check_output_file('modules/toolkit_opaque', 'composed_opaque.cpf')
+        check_output_file('modules/toolkit_opaque', 'shared_ptr__opaque_type.xml')
+        check_output_file('modules/toolkit_opaque', 'shared_ptr__opaque_type.cpf')
+        check_output_file('modules/toolkit_opaque', 'shared_ptr__shared_ptr.xml')
+        check_output_file('modules/toolkit_opaque', 'shared_ptr__shared_ptr.cpf')
+        check_output_file('modules/toolkit_opaque', 'readonlypointer.xml')
+        check_output_file('modules/toolkit_opaque', 'readonlypointer.cpf')
     end
     def test_opaque_without_corba; test_opaque(false) end
+
+    def test_opaque_autodef(with_corba = true)
+        build_test_component('modules/toolkit_autodef', with_corba)
+    end
 
     def test_opaque_validation
         # First, check that the actual opaque module generates properly

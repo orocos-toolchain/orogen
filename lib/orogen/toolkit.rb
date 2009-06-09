@@ -7,6 +7,10 @@ require 'nokogiri'
 
 module Typelib
     class Type
+        def self.normalize_typename(name)
+            name.to_str.gsub(/<(\w)/) { "</#{$1}" }
+        end
+
         def self.normalize_cxxname(name)
             name.gsub("<::", "<").gsub('>>', '> >')
         end
@@ -332,6 +336,7 @@ module Typelib
             result << indent << "io << \" ]\";\n"
         end
     end
+
     class Registry
 	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'double']
 	OROCOS_KNOWN_CONVERTIONS = {
@@ -378,7 +383,20 @@ end
 
 module Orocos
     module Generation
-        OpaqueDefinition = Struct.new :type, :intermediate, :includes
+        class OpaqueDefinition
+            attr_reader :type
+            attr_reader :intermediate
+            attr_reader :options
+            attr_reader :code_generator
+
+            def initialize(type, intermediate, options, code_generator)
+                @type, @intermediate, @options, @code_generator =
+                    type, intermediate, options, code_generator
+            end
+            def includes; options[:includes] end
+            def needs_copy?; !!options[:needs_copy] end
+            def generate_templates?; !code_generator end
+        end
 
 	class Toolkit
 	    attr_reader :component
@@ -430,7 +448,7 @@ module Orocos
             # True if we are generating for Xenomai
             def xenomai?;   component.xenomai? end
 
-	    def initialize(component, &block)
+	    def initialize(component)
 		@component = component
 
                 @internal_dependencies = []
@@ -445,8 +463,6 @@ module Orocos
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
-
-		instance_eval(&block) if block_given?
 	    end
 
             # Loads the types defined in +file+, with the same constraints as
@@ -457,31 +473,124 @@ module Orocos
                 load(file, true)
             end
 
+            # Ask to support a smart-pointer implementation on the given type.
+            # For instance, after the call
+            #  
+            #   smart_ptr "boost::smart_ptr", "int"
+            #
+            # You will be able to use the following type in your task
+            # definitions:
+            #
+            #   boost::smart_ptr_name<T>
+            #
+            # The smart pointer class needs to meet the following requirements:
+            #  * the memory should be automatically managed (allocated/deallocated)
+            #  * the star operator can be used to get a const reference on the
+            #    managed value (i.e. <tt>*pointer</tt> returns the object)
+            #  * the smart pointer must define a #reset method to set a new
+            #    managed memory zone.
+            #
+            # The Toolkit#ro_ptr and Toolkit#shared_ptr shortcuts are defined
+            # for boost::shared_ptr and RTT::ReadOnlyPointer.
+            def smart_ptr(name, base_type, options = Hash.new)
+                opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
+                    code = Generation.render_template('toolkit/smart_ptr.cpp', binding)
+                end
+            end
+
+            # Make the toolkit define the specialization of RTT::ReadOnlyPointer
+            # for the given type.
+            #
+            # See #smart_ptr for more information.
+            def ro_ptr(name, options = Hash.new)
+                options[:includes] ||= Array.new
+                options[:includes] << 'rtt/ReadWritePointer.hpp'
+                smart_ptr("/RTT/ReadOnlyPointer", find_type(name), options)
+            end
+
+            # Make the toolkit define the specialization of boost::shared_ptr
+            # for the given type.
+            #
+            # See #smart_ptr for more information.
+            def shared_ptr(name, options = Hash.new)
+                options[:includes] ||= Array.new
+                options[:includes] << 'boost/shared_ptr.hpp'
+                smart_ptr("/boost/shared_ptr", find_type(name), options)
+            end
+
+
             # Declare that the user will provide a method which converts
             # +base_type+ into the given intermediate type. Orogen will then use
             # that intermediate representation to marshal the data.
             #
-            # +base_type+ is defined as an opaque type in the component's
-            # registry
+            # Orogen has a specific support for data held by smart pointers. See #smart_ptr.
             #
-            # +includes+ is an optional set of headers needed to define
-            # +base_type+
-            def opaque_type(base_type, intermediate_type, options = {})
+            # The following options are available:
+            # 
+            # +:includes+ is an optional set of headers needed to define
+            # +base_type+. For instance:
+            #
+            #   opaque_type "Eigen::Vector3f", "imu::Vector3f", :includes => ["/usr/include/eigen2", "/opt/boost/include"]
+            #
+            # If there is only one include, the array can be omitted
+            #
+            #   opaque_type "Eigen::Vector3f", "imu::Vector3f", :includes => "/usr/include/eigen2"
+            #
+            # +:needs_copy+ is a flag telling how the opaque type should
+            # be converted. If true (the default), orogen will generate
+            # convertion methods whose signature are:
+            #
+            #   void project_name::to_intermediate(intermediate_type& intermediate, base_type const& sample)
+            #   void project_name::from_intermediate(base_type& sample, intermediate_type const& intermediate)
+            #
+            # In the first examples above, this would be (assuming an "imu" orogen project)
+            #
+            #   void imu::to_intermediate(imu::Vector3f& intermediate, Eigen::Vector3f const& sample)
+            #   void imu::from_intermediate(Eigen::Vector3f& sample, imu::Vector3f& intermediate)
+            #
+            # Note that in from_intermediate, the +intermediate+ argument in
+            # non-const. It is actually allows to modify it, as for instance to
+            # get better performance (example: use +vector<>.swap()+ instead of
+            # doing a big copy).
+            #
+            # If +:needs_copy+ is false, then we assume that a copy is not
+            # needed. In that case, the to_intermediate convertion method will
+            # return the intermediate type directly. The signature will
+            # therefore be changed to
+            #
+            #   intermediate_type& project_name::to_intermediate(base_type const& sample)
+            #   bool project_name::from_intermediate(base_type& sample, intermediate_type* intermediate)
+            #
+            # Note that in from_intermediate the +intermediate+ argument is now
+            # given as a non-const pointer.  The convertion function can choose
+            # to take ownership on that value, in which case it has to return
+            # true. If the function returns false, then the sample is deleted after
+            # the method call.
+            def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
                 options = validate_options options,
-                    :includes => nil
+                    :includes => nil,
+                    :needs_copy => true
 
-                if base_type.respond_to?(:to_str)
-                    typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{0}\" /></typelib>"
-
-                    opaque_def = Typelib::Registry.from_xml(typedef)
-                    opaque_registry.merge opaque_def
-                    registry.merge opaque_def
-                    component.registry.merge opaque_def
+                base_type = base_type.to_str
+                if intermediate_type.kind_of?(Class) && intermediate_type < Typelib::Type
+                    intermediate_type = intermediate_type.name
                 end
 
-                @opaques << OpaqueDefinition.new(component.find_type(base_type),
-                                                 intermediate_type,
-                                                 options[:includes])
+                typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{0}\" /></typelib>"
+                opaque_def = Typelib::Registry.from_xml(typedef)
+                opaque_registry.merge opaque_def
+                registry.merge opaque_def
+                component.registry.merge opaque_def
+
+                opaque_type = find_type(base_type)
+                orogen_def = OpaqueDefinition.new(opaque_type,
+                                                 intermediate_type, options, convert_code_generator) 
+                @opaques << orogen_def
+            end
+
+            # True if some opaques require to generate templates
+            def has_opaques_with_templates?
+                opaques.any? { |op| op.generate_templates? }
             end
 
             # call-seq:
@@ -520,7 +629,7 @@ module Orocos
                 else
                     dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
                     if !dir
-                        raise ArgumentError, "cannot find #{file}"
+                        raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
                     end
                     file = File.join(dir, file)
                 end
@@ -619,7 +728,15 @@ module Orocos
             end
 
             def intermediate_type?(type)
-                opaques.find { |opaque_def| component.find_type(opaque_def.intermediate) == type }
+                opaques.find { |spec| find_type(spec.intermediate) == find_type(type.name) }
+            end
+
+            def m_type?(type)
+                typename = type.name
+                return false if typename !~ /_m$/
+                if base_type = registry.get($`)
+                    contains_opaques?(base_type)
+                end
             end
 
             # Builds a map telling where are the opaque fields used in this
@@ -640,7 +757,7 @@ module Orocos
                 type.each_field do |field_name, field_type|
                     if field_type.opaque?
                         spec = opaque_specification(field_type)
-                        result << [field_type, component.find_type(spec.intermediate), field_name]
+                        result << [field_type, find_type(spec.intermediate), field_name]
                     elsif field_type < Typelib::CompoundType
                         inner = build_opaque_map(field_type)
                         if !inner.empty?
@@ -680,6 +797,12 @@ module Orocos
 		toolkit = self
 
                 validate_opaque_types
+
+                # Make sure all opaque intermediate types are existing or can be
+                # instanciated
+                opaques.each do |opaque_def|
+                    find_type(opaque_def.intermediate)
+                end
 
                 # Generate some type definitions for the pocosim marshalling. In
                 # practice, we generate C code that we merge back into the
@@ -738,11 +861,16 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
                 # Generate the user part for opaque types
+
                 if !opaques.empty?
-                    user_hh = Generation.render_template 'toolkit/user.hpp', binding
-                    user_cc = Generation.render_template 'toolkit/user.cpp', binding
-                    Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
-                    Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
+                    intermediates = Generation.render_template 'toolkit/intermediates.hpp', binding
+                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates)
+                    if has_opaques_with_templates?
+                        user_hh = Generation.render_template 'toolkit/user.hpp', binding
+                        user_cc = Generation.render_template 'toolkit/user.cpp', binding
+                        Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
+                        Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
+                    end
                 end
 
                 # Finished, create the timestamp file

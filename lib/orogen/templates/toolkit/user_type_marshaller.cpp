@@ -18,9 +18,13 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
         <%= type.cxx_name %> sample = obj->get();
 
         std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        <% if opaque_specification(type).needs_copy? %>
         <%= intermediate.cxx_name %> temp;
         <%= component.name %>::to_intermediate(temp, sample);
-        Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout_<%= intermediate.method_name %>);
+        <% else %>
+        <%= intermediate.cxx_name %> const& temp = <%= component.name %>::to_intermediate(sample);
+        <% end %>
+        Typelib::dump(reinterpret_cast<uint8_t const*>(&temp), *buffer, layout_<%= intermediate.method_name %>);
 
         return buffer;
     }
@@ -42,7 +46,11 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
         <%= type.cxx_name %>_m temp;
         <% type.each_field do |field_name, field_type| %>
             <% if field_type.opaque? %>
+                <% if opaque_specification(field_type).needs_copy? %>
                 <%= component.name %>::to_intermediate(temp.<%= field_name %>, sample.<%= field_name %>);
+                <% else %>
+                temp.<%= field_name %> = <%= component.name %>::to_intermediate(sample.<%= field_name %>);
+                <% end %>
             <% else %>
                 temp.<%= field_name %> = sample.<%= field_name %>;
             <% end %>

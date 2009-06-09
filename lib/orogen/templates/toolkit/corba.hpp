@@ -4,7 +4,7 @@
 #include "<%= component.name %>ToolkitC.h"
 #include <rtt/corba/CorbaConversion.hpp>
 <% if !toolkit.opaques.empty? %>
-#include "<%= component.name %>ToolkitUser.hpp"
+#include "<%= component.name %>ToolkitIntermediates.hpp"
 <% end %>
 
 namespace RTT {
@@ -83,12 +83,14 @@ opaques.each do |opaque_def|
 
 <% opaques.each do |opaque_def|
     type = opaque_def.type
-    intermediate_type = component.find_type(opaque_def.intermediate) %>
+    intermediate_type = component.find_type(opaque_def.intermediate)
+%>
 <%= Orocos::Generation.render_template 'toolkit/user_type_corba.hpp', binding %>
 <% end %>
 
 <% generated_types.each do |type|
-    next if toolkit.intermediate_type?(type) %>
+    next if toolkit.intermediate_type?(type)
+%>
 <%= Orocos::Generation.render_template 'toolkit/type_corba.hpp', binding %>
 <% end %>
 }

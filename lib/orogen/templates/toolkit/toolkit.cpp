@@ -13,7 +13,7 @@
 #include "<%= component.name %>ToolkitCorba.hpp"
 <% end %>
 <% if !opaques.empty? %>
-#include "<%= component.name %>ToolkitUser.hpp"
+#include "<%= component.name %>ToolkitIntermediates.hpp"
 <% end %>
 
 #include <rtt/Ports.hpp>
@@ -49,7 +49,7 @@ using RTT::DataSourceBase;
 <% end %>
 
 <% generated_types.each do |type| 
-      next if toolkit.intermediate_type?(type)
+      next if toolkit.m_type?(type) || toolkit.intermediate_type?(type)
       code = Generation.adapt_namespace(namespace, type.namespace)
       namespace = type.namespace %>
 <%= code %>
@@ -58,8 +58,14 @@ using RTT::DataSourceBase;
 
 <%= Generation.adapt_namespace(namespace, '/') %>
 
+<% toolkit.opaques.find_all { |op| !op.generate_templates? }.each do |opaque_def|
+    from = opaque_def.type
+    into = component.find_type(opaque_def.intermediate) %>
+<%= opaque_def.code_generator.call(from, into) %>
+<% end %>
+
 <% generated_types.each do |type|
-    next if toolkit.intermediate_type?(type) %>
+    next if toolkit.m_type?(type) %>
     template class RTT::OutputPort<<%= type.cxx_name %>>;
     template class RTT::InputPort<<%= type.cxx_name %>>;
     template class RTT::Property<<%= type.cxx_name %>>;
@@ -141,7 +147,8 @@ namespace <%= component.name %> {
         }
 
 	RTT::TypeInfo* ti = 0;
-	<% (generated_types | opaques.map { |d| d.type }).each do |type| %>
+	<% (generated_types | opaques.map { |d| d.type }).each do |type|
+            next if toolkit.m_type?(type) %>
             ti = new <%= type.cxx_namespace %><%= type.method_name(false) %>TypeInfo();
             <% if corba_enabled? %>
                 ti->addProtocol(ORO_CORBA_PROTOCOL_ID, new RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >());

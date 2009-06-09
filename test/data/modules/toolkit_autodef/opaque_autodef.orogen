@@ -1,0 +1,23 @@
+# This module is used primarily in TC_GenerationToolkit#test_autogen in
+# test_toolkit.rb.
+#
+# It tests the ability of orogen to auto-define some toolkit types when needed.
+# Namely, it checks that, if used in a task context's definition, the following
+# types are automatically added to the project's toolkit:
+#
+#   vector<type>
+#   shared_ptr(type)
+#   and ro_ptr(type)
+#
+name "opaque_autodef"
+
+task_context "Test" do
+    input_port 'in', '/std/vector<int>'
+    output_port 'out', shared_ptr('/std/vector<int>')
+    output_port 'out_ro', ro_ptr('/std/vector<int>')
+end
+
+# Generate an empty deployment for testing
+static_deployment do
+end
+

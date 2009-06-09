@@ -31,9 +31,24 @@ namespace TestOpaque {
     extern std::ostream& operator << (std::ostream& io, Position const& data);
     extern std::ostream& operator << (std::ostream& io, Position_m const& data);
 }
-
+namespace std {
+    extern std::ostream& operator << (std::ostream& io, std::vector<float> const& data);
+    extern std::ostream& operator << (std::ostream& io, std::vector<int> const& data);
+}
 template<typename T>
-bool generic_type_handling_test(std::string const& name, T const& testValue, TypeInfo const& ti)
+T identity(T const& value) { return value; }
+
+/* This is a generic test of type handling.
+ * - it marshals the type into a XML file. This file can then be compared
+ *   with an expected content by the Ruby test case.
+ * - it does the same with a CPF file
+ * - it unmarshals the CPF file and checks that both values are equal
+ * - if the test is done with CORBA, it also converts to/from any and compares
+ *   the two values.
+ */
+template<typename T, typename Getter>
+bool generic_type_handling_test(std::string const& name, T const& testValue, TypeInfo const& ti,
+        Getter get_test_value)
 {
     ConstantDataSource<T>* source
         = new ConstantDataSource<T>(testValue);
@@ -69,10 +84,10 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
         }
 
         T value = reader->get();
-        if (!(value == testValue))
+        if (!(get_test_value(value) == get_test_value(testValue)))
         {
-            cerr << "error. Expected\n\n" << testValue <<
-                "\n\nand got\n\n" << value << endl;
+            cerr << "error. Expected\n\n" << get_test_value(testValue) <<
+                "\n\nand got\n\n" << get_test_value(value) << endl;
         }
     }
 
@@ -83,10 +98,10 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
         reader->ref();
         reader->updateBlob(ORO_CORBA_PROTOCOL_ID, result);
         T value = reader->get();
-        if (!(value == testValue))
+        if (!(get_test_value(value) == get_test_value(testValue)))
         {
-            cerr << "error. Expected\n\n" << testValue <<
-                "\n\nand got\n\n" << value << endl;
+            cerr << "error. Expected\n\n" << get_test_value(testValue) <<
+                "\n\nand got\n\n" << get_test_value(value) << endl;
         }
     }
 #endif
@@ -106,7 +121,7 @@ bool test_plain_opaque()
     }
 
     NotOrogenCompatible::Point2D testValue(10, 20);
-    generic_type_handling_test("opaque", testValue, *type);
+    generic_type_handling_test("opaque", testValue, *type, &identity<NotOrogenCompatible::Point2D> );
 
     // Now, try the marshalling thing
     std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
@@ -154,7 +169,7 @@ bool test_composed_opaque()
     testValue.p.x() = 20;
     testValue.p.y() = 30;
 
-    generic_type_handling_test("composed_opaque", testValue, *type);
+    generic_type_handling_test("composed_opaque", testValue, *type, &identity<TestOpaque::Position> );
 
     std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
     {
@@ -176,14 +191,166 @@ bool test_composed_opaque()
                 p.p.x != testValue.p.x() ||
                 p.p.y != testValue.p.y())
         {
-            cerr << "error in pocosim marshalling" << endl;
-            cerr << "expected\n\n" << testValue << "\n\ngot\n\n" << p << endl;
+            cerr << "error in pocosim marshalling for TestOpaque::Position_m" << endl;
             return false;
         }
     }
 
     return true;
 }
+
+template<typename T>
+T get_ptr_content(boost::shared_ptr<T> const& left)
+{ return *left; }
+
+template<typename T>
+T get_ro_ptr_content(RTT::ReadOnlyPointer<T> const& left)
+{ return *left; }
+
+bool test_shared_pointer()
+{
+    cerr << "======== Testing shared pointer ========" << endl;
+
+    TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
+    TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</float>>");
+    if (! type)
+    {
+	cerr << "cannot find /boost/shared_ptr</std/vector</float>> in the type info repository" << endl;
+	return 1;
+    }
+
+    boost::shared_ptr< std::vector<float> > testValue( new std::vector<float> );
+    std::vector<float>& data = *testValue;
+
+    for (int i = 0; i < 10; ++i)
+        data.push_back(i);
+
+
+    generic_type_handling_test("shared_ptr__opaque_type", testValue, *type, &get_ptr_content< std::vector<float> >);
+
+    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    {
+        ConstantDataSource<boost::shared_ptr< std::vector<float> > >* source
+            = new ConstantDataSource<boost::shared_ptr< std::vector<float> > >(testValue);
+        source->ref();
+        std::vector<uint8_t>* result =
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+
+        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        if (size != (*testValue).size())
+        {
+            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<float> >" << endl;
+            return false;
+        }
+
+        float* data = reinterpret_cast<float*>(&(*result)[sizeof(size)]);
+        for (int i = 0; i < size; ++i)
+            if (data[i] != (*testValue)[i])
+            {
+            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<float> >" << endl;
+            return false;
+            }
+    }
+
+    return true;
+}
+
+bool test_shared_ptr_shortcut()
+{
+    cerr << "======== Testing shared pointer (from #shared_ptr) ========" << endl;
+
+    TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
+    TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</int>>");
+    if (! type)
+    {
+	cerr << "cannot find /boost/shared_ptr</std/vector</int>> in the type info repository" << endl;
+	return 1;
+    }
+
+    boost::shared_ptr< std::vector<int> > testValue( new std::vector<int> );
+    std::vector<int>& data = *testValue;
+
+    for (int i = 0; i < 10; ++i)
+        data.push_back(i);
+
+
+    generic_type_handling_test("shared_ptr__shared_ptr", testValue, *type, &get_ptr_content< std::vector<int> >);
+
+    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    {
+        ConstantDataSource<boost::shared_ptr< std::vector<int> > >* source
+            = new ConstantDataSource<boost::shared_ptr< std::vector<int> > >(testValue);
+        source->ref();
+        std::vector<uint8_t>* result =
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+
+        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        if (size != (*testValue).size())
+        {
+            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<int> >" << endl;
+            return false;
+        }
+
+        int* data = reinterpret_cast<int*>(&(*result)[sizeof(size)]);
+        for (int i = 0; i < size; ++i)
+            if (data[i] != (*testValue)[i])
+            {
+            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<int> >" << endl;
+            return false;
+            }
+    }
+
+    return true;
+}
+
+bool test_ro_ptr()
+{
+    cerr << "======== Testing ReadOnlyPointer (from #ro_ptr) ========" << endl;
+
+    TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
+    TypeInfo* type = ti->type("/RTT/ReadOnlyPointer</std/vector</int>>");
+    if (! type)
+    {
+	cerr << "cannot find /RTT/ReadOnlyPointer</std/vector</int>> in the type info repository" << endl;
+	return 1;
+    }
+
+    std::vector<int>* data = new std::vector<int>();
+    for (int i = 0; i < 10; ++i)
+        data->push_back(i);
+
+    RTT::ReadOnlyPointer< std::vector<int> > testValue(data);
+
+
+    generic_type_handling_test("readonlypointer", testValue, *type, &get_ro_ptr_content< std::vector<int> >);
+
+    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    {
+        ConstantDataSource<RTT::ReadOnlyPointer< std::vector<int> > >* source
+            = new ConstantDataSource<RTT::ReadOnlyPointer< std::vector<int> > >(testValue);
+        source->ref();
+        std::vector<uint8_t>* result =
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+
+        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        if (size != (*testValue).size())
+        {
+            cerr << "error in pocosim marshalling for RTT::ReadOnlyPointer< std::vector<int> >" << endl;
+            return false;
+        }
+
+        int* data = reinterpret_cast<int*>(&(*result)[sizeof(size)]);
+        for (int i = 0; i < size; ++i)
+            if (data[i] != (*testValue)[i])
+            {
+            cerr << "error in pocosim marshalling for RTT::ReadOnlyPointer< std::vector<int> >" << endl;
+            return false;
+            }
+    }
+
+    return true;
+}
+
 
 int ORO_main(int argc, char** argv)
 {
@@ -198,6 +365,21 @@ int ORO_main(int argc, char** argv)
     if (!test_composed_opaque())
     {
         cerr << "composed_opaque failed" << endl;
+        return 1;
+    }
+    if (!test_shared_pointer())
+    {
+        cerr << "shared_ptr failed" << endl;
+        return 1;
+    }
+    if (!test_shared_ptr_shortcut())
+    {
+        cerr << "shared_ptr (from #shared_ptr) failed" << endl;
+        return 1;
+    }
+    if (!test_ro_ptr())
+    {
+        cerr << "ReadOnlyPointer failed" << endl;
         return 1;
     }
 

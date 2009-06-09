@@ -574,6 +574,51 @@ module Orocos
 	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
             def self_methods; @methods end
 
+
+            # This method is an easier way use boost::shared_ptr in a task
+            # context interface. For instance, instead of writing
+            #
+            #   input_port 'image', '/boost/shared_ptr</Image>'
+            #
+            # you can write
+            #
+            #   input_port 'image', shared_ptr('/Image')
+            #
+            # Additionally, this method makes sure that the corresponding type
+            # is actually defined on the project's toolkit.
+            def shared_ptr(name)
+                base_type = component.find_type(name)
+                full_name = "/boost/shared_ptr<#{base_type.name}>"
+                begin
+                    component.find_type(full_name)
+                rescue Typelib::NotFound
+                    component.toolkit { shared_ptr(name) }
+                    component.find_type(full_name)
+                end
+            end
+
+            # This method is an easier way use boost::shared_ptr in a task
+            # context interface. For instance, instead of writing
+            #
+            #   input_port 'image', '/RTT/ReadOnlyPointer</Image>'
+            #
+            # you can write
+            #
+            #   input_port 'image', ro_ptr('/Image')
+            #
+            # Additionally, this method makes sure that the corresponding type
+            # is actually defined on the project's toolkit.
+            def ro_ptr(name)
+                base_type = component.find_type(name)
+                full_name = "/RTT/ReadOnlyPointer<#{base_type.name}>"
+                begin
+                    component.find_type(full_name)
+                rescue Typelib::NotFound
+                    component.toolkit { ro_ptr(name) }
+                    component.find_type(full_name)
+                end
+            end
+
 	    # Create a new method with the given name. Use the returned Method
 	    # object to configure the method further.
 	    #
@@ -705,9 +750,6 @@ module Orocos
 	    #   subclass of the Base class.
 	    def generate
                 return if external_definition?
-                used_toolkits
-
-
 
 		# Make this task be available in templates as 'task'
 		task = self

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "cpf.dtd">
+<properties>
+  <simple name="[0]" type="double"><value>0</value></simple>
+  <simple name="[1]" type="double"><value>1</value></simple>
+  <simple name="[2]" type="double"><value>2</value></simple>
+  <simple name="[3]" type="double"><value>3</value></simple>
+  <simple name="[4]" type="double"><value>4</value></simple>
+  <simple name="[5]" type="double"><value>5</value></simple>
+  <simple name="[6]" type="double"><value>6</value></simple>
+  <simple name="[7]" type="double"><value>7</value></simple>
+  <simple name="[8]" type="double"><value>8</value></simple>
+  <simple name="[9]" type="double"><value>9</value></simple>
+  <simple name="[size]" type="long"><value>10</value></simple>
+</properties>

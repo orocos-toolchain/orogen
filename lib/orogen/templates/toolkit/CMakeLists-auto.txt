@@ -52,7 +52,7 @@ LINK_DIRECTORIES(${OrocosRTT_LIBRARY_DIRS})
 # Generate the toolkit shared library
 SET(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
 add_library(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES}
-    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" unless toolkit.opaques.empty? %>)
+    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" if toolkit.has_opaques_with_templates? %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp

@@ -36,5 +36,9 @@ namespace Test {
 	uint32_t sec;
 	uint32_t usec;
     };
+
+    struct Image {
+        std::vector<uint8_t> data;
+    };
 }
 
