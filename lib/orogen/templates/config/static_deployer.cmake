@@ -13,14 +13,13 @@ link_directories(${OrocosRTT_LIBRARY_DIRS})
 
 <% component.used_toolkits.each do |tk| %>
 pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.pkg.name %>)
-include_directories(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
-link_directories(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
+include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
+link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
 <% end %>
-<% component.used_task_libraries.each do |pkg|
-    name = pkg.name %>
-pkg_check_modules(<%= name %>_TASKLIB REQUIRED <%= name %>-tasks-${OROCOS_TARGET})
-include_directories(${<%= name %>_TASKLIB_INCLUDE_DIRS})
-link_directories(${<%= name %>_TASKLIB_LIBRARY_DIRS})
+<% component.used_task_libraries.each do |pkg| %>
+pkg_check_modules(<%= pkg.name %>_TASKLIB REQUIRED <%= pkg.name %>-tasks-${OROCOS_TARGET})
+include_directories(${<%= pkg.name %>_TASKLIB_INCLUDE_DIRS})
+link_directories(${<%= pkg.name %>_TASKLIB_LIBRARY_DIRS})
 <% end %>
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
