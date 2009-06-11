@@ -187,6 +187,21 @@ module Orocos
                 end
             end
 
+            # Returns true if there is, in the type registry, a namespace with
+            # the given name.
+            def has_namespace?(name)
+                if name[0] != '/'
+                    name = '/' + name
+                end
+                if name[-1] != '/'
+                    name << '/'
+                end
+
+                registry.enum_for(:each_type).any? do |type|
+                    type.namespace =~ /^#{Regexp.quote(name)}/
+                end
+            end
+
             # The deployment modes that are required for this generation
             attr_reader :deployers
 
@@ -416,6 +431,8 @@ module Orocos
 	    def task_context(name, &block)
 		if find_task_context(name)
 		    raise ArgumentError, "there is already a #{name} task"
+                elsif has_namespace?(name)
+		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
 		end
 
 		new_task = TaskContext.new(self, "#{self.name}::#{name}")

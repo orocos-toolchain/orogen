@@ -2,24 +2,18 @@ require 'orogen/test'
 
 class TC_GenerationTasks < Test::Unit::TestCase
     include Orocos::Generation::Test
+    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
     TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
 
-    def test_generation_validation
-	component = Component.new
-
-        # Should raise because there is no name
-        assert_raises(ArgumentError) { component.generate }
-
-        component.name "test"
-        # Should raise because there is no orogen file
-        assert_raises(ArgumentError) { component.generate }
-
-        component.instance_variable_set(:@deffile, "bla.orogen")
-
-        create_wc("tasks/generation_validation")
-        in_wc do
-            component.generate
+    # Orogen should refuse to create a task context which has the same name than
+    # one namespace of the type registry (that would not compile)
+    def test_task_name_should_not_clash_with_namespace_name
+        component = Component.new
+        component.toolkit do
+            load File.join(TEST_DATA_DIR, 'modules', 'toolkit_simple', 'simple.h')
         end
+
+        assert_raises(ArgumentError) { component.task_context("Test") {} }
     end
 
     def test_task_context
