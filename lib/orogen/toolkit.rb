@@ -685,6 +685,11 @@ module Orocos
 	    def to_code
 		toolkit = self
 
+                # Save all the types that this specific toolkit handles
+                Generation.save_automatic "toolkit", "#{component.name}.typelist",
+                    generated_types.
+                        map { |type| type.name }.
+                        join("\n")
                 registry = self.registry.minimal(preloaded_registry)
 
 		generated_types = []

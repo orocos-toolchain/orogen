@@ -3,6 +3,7 @@
 
 <% registry.each_type do |type|
     next if type.opaque?
+    next if component.imported_type?(type)
     next unless contains_opaques?(type)
 
     current_def = begin

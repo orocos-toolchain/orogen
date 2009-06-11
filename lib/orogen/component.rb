@@ -141,7 +141,9 @@ module Orocos
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
-		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
+                rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
+                @rtt_registry = Typelib::Registry.import rtt_tlb
+		registry.import rtt_tlb
 	    end
 
             # Returns the TaskContext object for the default task contexts
@@ -207,15 +209,24 @@ module Orocos
 
 		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
 		toolkit_registry = Typelib::Registry.import pkg.type_registry
+                toolkit_typelist = File.readlines(File.join(File.dirname(pkg.type_registry), "#{name}.typelist")).
+                    map { |line| line.chomp }
 
                 registry.merge(toolkit_registry)
-		used_toolkits << ImportedToolkit.new(name, pkg, toolkit_registry)
+		used_toolkits << ImportedToolkit.new(name, pkg, toolkit_registry, toolkit_typelist)
 	    end
+
+	    attr_reader :rtt_registry
 
             # Returns true if +typename+ has been defined by a toolkit imported
             # by using_toolkit
             def imported_type?(typename)
-                used_toolkits.any? { |tk| tk.includes?(typename) }
+		if typename.respond_to?(:name)
+		    typename = typename.name
+		end
+
+                @rtt_registry.includes?(typename) ||
+                    used_toolkits.any? { |tk| tk.includes?(typename) }
             end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
@@ -461,12 +472,13 @@ module Orocos
             attr_reader :name
             attr_reader :pkg
             attr_reader :registry
+            attr_reader :typelist
 
-            def initialize(name, pkg, registry)
-                @name, @pkg, @registry = name, pkg, registry
+            def initialize(name, pkg, registry, typelist)
+                @name, @pkg, @registry, @typelist = name, pkg, registry, typelist
             end
             def includes?(name)
-                registry.includes?(name)
+                typelist.include?(name)
             end
         end
 
