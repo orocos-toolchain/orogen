@@ -158,7 +158,7 @@ module Orocos
 		    if overwrite
 			logger.info "  overwriting #{file_path}"
 		    else
-			logger.warn "  will not overwrite #{file_path}"
+			logger.info "  will not overwrite #{file_path}"
 			return
 		    end
 		else
