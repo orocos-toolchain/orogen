@@ -4,6 +4,24 @@ require 'orogen'
 
 module Orocos
     module Generation
+        # This module includes common methods used by orogen's test suite. The
+        # basic idea is to have a set of methods that allow:
+        #  - each module to be built and installed in a separate directory
+        #  - that working directory to be automatically removed at teardown
+        #
+        # Moreover, two environment variables allow to change the cleanup
+        # behaviour.
+        #
+        # Normally, when a module build is requested, whatever files that are in
+        # the module's working directory is deleted, and that same directory is
+        # removed at teardown.
+        #
+        # If TEST_KEEP_WC is set, the module's working directory won't be
+        # deleted at teardown.
+        #
+        # If TEST_DONT_CLEAN is set, the module's working directory is not
+        # cleaned. It speeds up the testing process when the test files don't
+        # change but orogen does change.
 	module Test
 	    include Orocos
 	    include Orocos::Generation
