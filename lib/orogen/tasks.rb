@@ -58,7 +58,7 @@ module Orocos
 	end
 
         # Generic representation of ports. The actual ports are either
-        # instance of DataPort or of BufferPort.
+        # instance of InputPort or OutputPort
 	class Port
 	    # The port task
 	    attr_reader :task
