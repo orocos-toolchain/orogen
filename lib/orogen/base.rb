@@ -1,4 +1,4 @@
-require 'logger'
+require 'utilrb/logger'
 require 'fileutils'
 require 'erb'
 require 'typelib'
@@ -80,6 +80,7 @@ module Orocos
 	@logger = Logger.new(STDOUT)
 	logger.level = Logger::WARN
         logger.formatter = lambda { |severity, time, progname, msg| "#{severity}: #{msg}\n" }
+	extend Logger::Forward
  
 	@templates = Hash.new
 	class << self
