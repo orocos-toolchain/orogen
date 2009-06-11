@@ -23,14 +23,15 @@ using std::cerr;
 using std::endl;
 
 namespace Test {
-    extern std::ostream& operator << (std::ostream& io, Simple const& data);
+    extern std::ostream& operator << (std::ostream& io, Test::BaseTypes const& data);
 }
 
 template<typename T>
 bool generic_type_handling_test(std::string const& name, T const& testValue, TypeInfo const& ti)
 {
-    ConstantDataSource<Test::Simple>* source
-        = new ConstantDataSource<Test::Simple>(testValue);
+    cerr << "Testing decomposition to XML formats" << endl;
+    ConstantDataSource<Test::BaseTypes>* source
+        = new ConstantDataSource<Test::BaseTypes>(testValue);
     source->ref();
 
     PropertyBag bag;
@@ -94,16 +95,30 @@ int ORO_main(int argc, char** argv)
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
 
-    TypeInfo* type = ti->type("/Test/Simple");
+    TypeInfo* type = ti->type("/Test/BaseTypes");
     if (! type)
     {
-	cerr << "cannot find /Test/Simple in the type info repository" << endl;
+	cerr << "cannot find /Test/BaseTypes in the type info repository" << endl;
 	return 1;
     }
+    cerr << dynamic_cast<EmptyTypeInfo*>(type) << endl;
+    cerr << type->getName() << endl;
 
-    // Create a structure of type Test::Simple, inject it into Orocos and check
+    // Create a structure of type Test::BaseTypes, inject it into Orocos and check
     // that it is able to generate a XML representation of it
-    Test::Simple testValue = { 10, Test::VALUE_1, "" };
+    Test::BaseTypes testValue;
+    testValue.v0 = true;
+    testValue.v1 = -100;
+    testValue.v2 = 200;
+    testValue.v3 = -1024;
+    testValue.v4 = 40000;
+    testValue.v5 = -100000;
+    testValue.v6 = 3000000000UL;
+    testValue.v7 = -100000;
+    testValue.v8 = 3000000000UL;
+    testValue.v9 = -6000000000LL;
+    testValue.v10 = 6000000000ULL;
+    testValue.e   = Test::VALUE_20;
     for (int i = 0; i < 20; ++i)
 	testValue.a[i] = 'a' + i;
 

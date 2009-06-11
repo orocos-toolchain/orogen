@@ -1,7 +1,7 @@
 <% namespace = '/'
    did_something = false %>
 
-<% registry.each_type do |type|
+<% generated_types.each do |type|
     next if type.opaque?
     next if component.imported_type?(type)
     next unless contains_opaques?(type)

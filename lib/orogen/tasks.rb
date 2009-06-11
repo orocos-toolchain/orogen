@@ -2,6 +2,14 @@ require 'utilrb/module/attr_predicate'
 require 'utilrb/value_set'
 
 module Orocos
+    def self.validate_toplevel_type(type)
+        if type < Typelib::ArrayType
+            raise ArgumentError, "array types can be used only in a structure"
+        elsif type < Typelib::NumericType && !Typelib::Registry.base_rtt_type?(type)
+            raise ArgumentError, "#{type.name} cannot be used as a toplevel type"
+        end
+    end
+
     module Generation
         ACTIVITY_TYPES = {
             :fd_driven  => 'FileDescriptorActivity',
@@ -35,6 +43,9 @@ module Orocos
 		    raise ArgumentError, "invalid task name #{name}"
 		end
 
+                type = task.component.find_type(type)
+                Orocos.validate_toplevel_type(type)
+
 		@name, @type, @default_value = name, type, default_value
 	    end
 
@@ -60,7 +71,12 @@ module Orocos
 
 	    def initialize(task, name, type)
                 name = name.to_s
-		@task, @name, @type = task, name, task.component.find_type(type)
+                type = task.component.find_type(type)
+                Orocos.validate_toplevel_type(type)
+                if type.name == "/std/vector<double>"
+                    Orocos::Generation.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
+                end
+		@task, @name, @type = task, name, type
 	    end
 
 	    # call-seq:
@@ -129,9 +145,11 @@ module Orocos
                 end
 
 		type = task.component.find_type(type)
+                Orocos.validate_toplevel_type(type)
 		arguments << [name, type, doc]
 		self
 	    end
+
 
             def used_types
                 arguments.map { |_, t, _| t }
@@ -203,6 +221,7 @@ module Orocos
             # Component#load_toolkit call.
 	    def returns(type);
 		type = task.component.find_type(type)
+                Orocos.validate_toplevel_type(type)
 		@return_type = type
 		self
 	    end

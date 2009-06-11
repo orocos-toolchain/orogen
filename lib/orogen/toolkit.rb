@@ -35,6 +35,10 @@ module Typelib
             base.gsub(/[<>\[\]]/, '_')
         end
 
+	def self.contains_int64?
+	    false
+	end
+
         @@index_var_stack = Array.new
         def self.index_var_stack; @@index_var_stack end
         def self.allocate_index
@@ -59,7 +63,7 @@ module Typelib
                 result << indent << "   #{cxx_name}TypeInfo::doCompose(inner_bag, out#{path});\n"
                 result << indent << "}"
             else
-                orocos_type = registry.orocos_equivalent(self).cxx_name
+                orocos_type = registry.base_rtt_type_for(self).cxx_name
                 result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(#{property_name})->get();"
             end
 	end
@@ -81,7 +85,7 @@ module Typelib
                 result << indent << "   target_bag.add(temp_property);\n"
                 result << indent << "}"
             else
-                orocos_type = registry.orocos_equivalent(self).cxx_name
+                orocos_type = registry.base_rtt_type_for(self).cxx_name
                 result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", value#{path}) );"
             end
 	end
@@ -104,17 +108,39 @@ module Typelib
             if opaque?
                 result << indent << "io << data#{path};"
             else
-                orocos_type = registry.orocos_equivalent(self).cxx_name
+                orocos_type = registry.base_rtt_type_for(self).cxx_name
                 property_name = path[1..-1]
                 result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
             end
         end
     end
 
+    class NumericType
+	def self.cxx_name
+	    if integer?
+		if name == "/bool"
+		    "bool"
+		else
+		    "boost::#{'u' if unsigned?}int#{size * 8}_t"
+		end
+	    else
+		basename
+	    end
+	end
+
+	def self.contains_int64?
+	    size == 8 && integer?
+	end
+    end
+
     class ContainerType
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
         end
+
+	def self.contains_int64?
+	    deference.contains_int64?
+	end
 
         def self.collection_iteration(varname, result, path, indent, iterator = "const_iterator")
             collection_name, element_type = container_kind, deference.name
@@ -259,6 +285,10 @@ module Typelib
     end
 
     class CompoundType
+	def self.contains_int64?
+	    enum_for(:each_field).any? { |_, type| type.contains_int64? }
+	end
+
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename)}"
         end
@@ -303,7 +333,13 @@ module Typelib
         end
     end
     class ArrayType
-        def self.corba_name; raise NotImplementedError end
+	def self.contains_int64?
+	    deference.contains_int64?
+	end
+
+        def self.corba_name
+            "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
+        end
 
 	def self.convertion_code_helper(method, toolkit, result, path, indent)
 	    length.times do |i|
@@ -338,46 +374,31 @@ module Typelib
     end
 
     class Registry
-	OROCOS_KNOWN_TYPES = ['int', 'unsigned int', 'double']
-	OROCOS_KNOWN_CONVERTIONS = {
-		'char' => 'int',
-		'unsigned char'  => 'unsigned int',
-		'unsigned short' => 'unsigned int',
-                'uint64_t'       => 'unsigned int',
-                'int64_t'        => 'int',
-		'short'          => 'int',
-                'float'          => 'double' }
+        def self.base_rtt_type?(type)
+            if type.name == "/std/string"
+                return true
+            elsif !(type <= Typelib::NumericType)
+                return false
+            end
 
-	attr_reader :orocos_type_equivalence
-	def build_orocos_type_equivalence
-	    @orocos_type_equivalence = Hash.new
-
-	    orocos_known_types = OROCOS_KNOWN_TYPES.map { |name| get(name) }
-	    orocos_known_convertions = OROCOS_KNOWN_CONVERTIONS.map { |from, to| [get(from), get(to)] }
-	    each_type do |type|
-		next if type < CompoundType || type < ArrayType
-
-		if eqv = orocos_known_types.find { |known_t| known_t == type }
-		    orocos_type_equivalence[type] = eqv
-		elsif eqv = orocos_known_convertions.find { |from_t, to_t| from_t == type }
-		    orocos_type_equivalence[type] = eqv[1]
-		end
-	    end
-	end
-
-	def orocos_equivalent(user_type)
-	    if !orocos_type_equivalence
-		build_orocos_type_equivalence
-	    end
-
-	    if type = orocos_type_equivalence[user_type]
-		type
-            elsif user_type < EnumType
-                get("/std/string")
+            if type.integer?
+                type.name == "/bool" || type.size == 4 || type.size == 8
             else
-		raise TypeError, "#{user_type.name} does not have an equivalent in the Orocos RTT toolkit"
-	    end
-	end
+                true
+            end
+        end
+        def base_rtt_type_for(type)
+	    if Registry.base_rtt_type?(type)
+		type
+            elsif type < Typelib::NumericType
+                # 64 bit types are directly defined in RTT
+                if type.unsigned? then get("/unsigned int")
+                else get("/int")
+                end
+            else
+                raise ArgumentError, "no type equivalent for #{type.name} in Orocos"
+            end
+        end
     end
 end
 
@@ -682,7 +703,7 @@ module Orocos
             def enable_corba;  @corba_enabled = true end
 	    def disable_corba; @corba_enabled = false end
 
-	    def to_code
+	    def to_code(generated_types, registry)
 		toolkit = self
 
                 # Save all the types that this specific toolkit handles
@@ -690,16 +711,8 @@ module Orocos
                     generated_types.
                         map { |type| type.name }.
                         join("\n")
-                registry = self.registry.minimal(preloaded_registry)
 
-		generated_types = []
-		registry.each_type do |type|
-		    if type < Typelib::CompoundType && !component.imported_type?(type.name)
-			generated_types << type
-		    end
-		end
-
-                generate_container_typedefs(registry)
+                generate_typedefs(generated_types, registry)
 
 		type_header = Generation.render_template('toolkit/types.hpp', binding)
 		if corba_enabled?
@@ -800,7 +813,7 @@ module Orocos
                 end
             end
 
-            def handle_opaques_generation
+            def handle_opaques_generation(generated_types, registry)
 		toolkit = self
 
                 validate_opaque_types
@@ -826,24 +839,51 @@ module Orocos
                 end
             end
 
-            # This generates typedefs for container types. These typedefs are
-            # needed because IDL and the CORBA C++ mapping do not allow to
-            # reference sequence types directly (you have to typedef them first)
-            def generate_container_typedefs(registry)
-		registry.each_type do |type|
-		    if type < Typelib::ContainerType && !component.imported_type?(type.name)
+            # This generates typedefs for container types. These
+            # typedefs are needed because IDL and the CORBA C++ mapping do not
+            # allow to reference sequence types directly (you have to typedef
+            # them first, or use them in a compound)
+            def generate_typedefs(generated_types, registry)
+		generated_types.each do |type|
+                    next if component.imported_type?(type.name)
+		    if type < Typelib::ContainerType
                         registry.alias type.namespace + type.basename.gsub(/[^\w]/, '_'), type.name
 		    end
 		end
             end
 
+	    def issue_warnings(generated_types, registry)
+		generated_types.each do |type|
+		    if type.contains_int64?
+			Orocos::Generation.warn "you will not be able to marshal #{type.name} as XML, it contains 64bit integers"
+		    end
+		end
+	    end
+
 	    def generate
 		toolkit = self
 
-                handle_opaques_generation
+		# Remove all unneeded types from imported toolkits
+		registry = self.registry.
+		    minimal(preloaded_registry).
+		    minimal(component.rtt_registry)
+		registry = component.used_toolkits.
+		    inject(registry) { |reg, tk| reg.minimal(tk.registry) }
+
+		generated_types = []
+		registry.each_type do |type|
+                    next if component.imported_type?(type.name)
+		    if type < Typelib::CompoundType || type < Typelib::ContainerType
+			generated_types << type
+		    end
+		end
+
+
+		issue_warnings(generated_types, registry)
+                handle_opaques_generation(generated_types, registry)
 
                 # Generate the C++ and IDL files
-		types, hpp, cpp, corba, idl = to_code
+		types, hpp, cpp, corba, idl = to_code(generated_types, registry)
 		if toolkit.corba_enabled?
 		    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba)
 		    Generation.save_automatic("toolkit", "#{component.name}Toolkit.idl", idl)
@@ -868,7 +908,6 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
                 # Generate the user part for opaque types
-
                 if !opaques.empty?
                     intermediates = Generation.render_template 'toolkit/intermediates.hpp', binding
                     Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates)

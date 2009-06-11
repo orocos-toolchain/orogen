@@ -2,6 +2,7 @@
 #define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
 
 #include <string>
+#include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
 <% unless task.self_methods.empty? %>#include <rtt/Method.hpp><% end %>
 <% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>

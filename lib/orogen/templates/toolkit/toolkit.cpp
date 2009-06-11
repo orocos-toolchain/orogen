@@ -1,3 +1,4 @@
+#include <boost/cstdint.hpp>
 #include <rtt/Types.hpp>
 #include <rtt/TemplateTypeInfo.hpp>
 #include <rtt/PropertyBag.hpp>
