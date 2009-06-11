@@ -3,7 +3,6 @@ require 'orogen/test'
 class TC_GenerationTasks < Test::Unit::TestCase
     include Orocos::Generation::Test
     TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-    TEST_DATA_DIR = File.join( TEST_DIR, 'generation', 'data' )
 
     # Orogen should refuse to create a task context which has the same name than
     # one namespace of the type registry (that would not compile)
@@ -16,51 +15,67 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { component.task_context("Test") {} }
     end
 
-    def test_task_context
+    # Test the definition of a basic task context
+    def test_empty_task
 	component = Component.new
 	component.name 'test'
+	task = component.task_context("Task")
+        create_wc("tasks/task_context")
+        compile_wc(component)
+    end
 
-	name = 'task_name'
-	doc  = 'task doc'
+    def test_task_name
+	component = Component.new
+	component.name 'test'
+	task = component.task_context("Task")
+        assert_equal("test::Task", task.name)
+    end
 
-	task = component.task_context(name)
-	assert_raises(ArgumentError) { component.task_context(name) }
-
-	assert_kind_of(Generation::TaskContext, task)
-	assert_equal("test::#{name}", task.name)
-
-	# Check name validation
+    def test_task_name_validation
+	component = Component.new
 	assert_raises(ArgumentError) { component.task_context("bla bla") }
 	assert_raises(ArgumentError) { component.task_context("bla(bla") }
 	assert_raises(ArgumentError) { component.task_context("bla!bla") }
 	assert_raises(ArgumentError) { component.task_context("bla/bla") }
-
-        create_wc("tasks/task_context")
-        compile_wc(component)
+    end
+    def test_no_duplicate_task_names
+	component = Component.new
+	component.task_context("task_name")
+	assert_raises(ArgumentError) { component.task_context(name) }
     end
 
     def test_property
 	component = Component.new
 	component.name 'test'
 
-	name = 'property_name'
-	doc  = 'property doc'
-	type = '/std/vector</double>'
-
-	task = component.task_context(name)
-
-	property = task.property(name, type).
-	    doc(doc)
-	assert_raises(ArgumentError) { task.property(name) }
-	assert_raises(ArgumentError) { task.property("bla bla") }
-
-	assert_kind_of(Generation::Property, property)
-	assert_equal(name, property.name)
-	assert_equal(type, property.type.full_name)
-	assert_equal(doc,  property.doc)
+	task = component.task_context("task_name")
+        %w{/double /std/vector</double>}.each_with_index do |typename, i|
+            property = task.property("p#{i}", typename).doc("property #{i}")
+            assert_kind_of(Generation::Property, property)
+            assert_equal("p#{i}", property.name)
+            assert_equal(typename, property.type.full_name)
+            assert_equal("property #{i}",  property.doc)
+        end
 
         create_wc("tasks/property")
 	compile_wc(component)
+    end
+
+    def test_no_duplicate_property_name
+	component = Component.new
+        component.name "project"
+        task = component.task_context "Task"
+	task.property("bla", "/double")
+	assert_raises(ArgumentError) { task.property("bla", "/double") }
+    end
+    def test_property_name_validation
+	component = Component.new
+        component.name "project"
+        task = component.task_context "Task"
+	assert_raises(ArgumentError) { task.property("bla bla", "/double") }
+	assert_raises(ArgumentError) { task.property("bla(bla", "/double") }
+	assert_raises(ArgumentError) { task.property("bla!bla", "/double") }
+	assert_raises(ArgumentError) { task.property("bla/bla", "/double") }
     end
 
     def test_task_method
