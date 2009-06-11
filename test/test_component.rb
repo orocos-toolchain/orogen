@@ -56,6 +56,10 @@ class TC_GenerationComponent < Test::Unit::TestCase
         # The container should have been defined on the toolkit as well
         assert_equal c.toolkit.registry.get("/std/vector</int>"), t
     end
+    def test_containers_of_opaques_is_forbidden
+        c = Component.new
+        assert_raises(ArgumentError) { c.find_type "/std/vector</string>" }
+    end
 
     def test_imported_toolkits
         # Build the simple toolkit first
