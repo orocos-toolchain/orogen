@@ -108,7 +108,10 @@ namespace <%= component.name %> {
     };
 
 <% (generated_types + opaques.map { |opdef| opdef.type }).each do |type|
-    if type < Typelib::CompoundType && !type.opaque?
+    # Container types are not allowed to have opaques for elements. We
+    # just have to manage the compounds
+    next unless type < Typelib::CompoundType
+    if !type.opaque?
         opaque_map = build_opaque_map(type)
         next if opaque_map.empty?
     end %>

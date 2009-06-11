@@ -4,7 +4,7 @@
 <% generated_types.each do |type|
     next if type.opaque?
     next if component.imported_type?(type)
-    next unless contains_opaques?(type)
+    next unless type.contains_opaques?
 
     current_def = begin
                       registry.get("#{type.full_name}_m")

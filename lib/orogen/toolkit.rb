@@ -35,9 +35,8 @@ module Typelib
             base.gsub(/[<>\[\]]/, '_')
         end
 
-	def self.contains_int64?
-	    false
-	end
+	def self.contains_int64?; false end
+        def self.contains_opaques?; opaque? end
 
         @@index_var_stack = Array.new
         def self.index_var_stack; @@index_var_stack end
@@ -128,9 +127,7 @@ module Typelib
 	    end
 	end
 
-	def self.contains_int64?
-	    size == 8 && integer?
-	end
+	def self.contains_int64?; size == 8 && integer?  end
     end
 
     class ContainerType
@@ -138,9 +135,8 @@ module Typelib
             "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
         end
 
-	def self.contains_int64?
-	    deference.contains_int64?
-	end
+	def self.contains_int64?; deference.contains_int64?  end
+        def self.contains_opaques?; deference.contains_opaques? end
 
         def self.collection_iteration(varname, result, path, indent, iterator = "const_iterator")
             collection_name, element_type = container_kind, deference.name
@@ -285,9 +281,8 @@ module Typelib
     end
 
     class CompoundType
-	def self.contains_int64?
-	    enum_for(:each_field).any? { |_, type| type.contains_int64? }
-	end
+	def self.contains_int64?; enum_for(:each_field).any? { |_, type| type.contains_int64? } end
+	def self.contains_opaques?; enum_for(:each_field).any? { |_, type| type.contains_opaques? } end
 
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename)}"
@@ -333,9 +328,8 @@ module Typelib
         end
     end
     class ArrayType
-	def self.contains_int64?
-	    deference.contains_int64?
-	end
+	def self.contains_int64?; deference.contains_int64?  end
+        def self.contains_opaques?; deference.contains_opaques? end
 
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
@@ -451,6 +445,9 @@ module Orocos
                                 container_name = $1
                                 element_name   = $2
                                 element_type   = find_type(element_name)
+                                if element_type.contains_opaques?
+                                    raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
+                                end
                                 component.registry.define_container(container_name,
                                                 component.registry.build(element_name))
                                 registry.define_container(container_name, element_type)
@@ -734,17 +731,6 @@ module Orocos
                 opaques.find { |opaque_def| opaque_def.type == type }
             end
 
-            def contains_opaques?(type)
-                type = find_type(type)
-                return true  if type.opaque?
-                return false unless type < Typelib::CompoundType
-
-                type.each_field do |field_name, field_type|
-                    return true if contains_opaques?(field_type)
-                end
-                false
-            end
-
             def intermediate_type?(type)
                 opaques.find { |spec| find_type(spec.intermediate) == find_type(type.name) }
             end
@@ -753,8 +739,7 @@ module Orocos
                 typename = type.name
                 return false if typename !~ /_m$/
                 begin
-                    base_type = registry.get($`)
-                    contains_opaques?(base_type)
+                    registry.get($`).contains_opaques?
                 rescue Typelib::NotFound
                 end
             end
@@ -805,7 +790,7 @@ module Orocos
                 registry.each_type do |type|
                     if type < Typelib::CompoundType
                         type.each_field do |_, field_type|
-                            if !field_type.opaque? && contains_opaques?(field_type)
+                            if !field_type.opaque? && field_type.contains_opaques?
                                 raise NotImplementedError, "opaques types can only be used at toplevel and at one-level indirection"
                             end
                         end
