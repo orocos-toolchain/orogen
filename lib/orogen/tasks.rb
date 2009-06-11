@@ -752,9 +752,11 @@ module Orocos
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
 
-                types.map do |t|
-                    component.used_toolkits.find_all { |tk| tk.includes?(t.name) }
-                end.flatten.compact.to_value_set
+                component.used_toolkits.find_all do |tk|
+                    types.any? do |type|
+                        tk.includes?(type.name)
+                    end
+                end.to_value_set
             end
 
 	    # Generate the code files for this task. This builds to classes:
