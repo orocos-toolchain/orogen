@@ -1,6 +1,10 @@
 include(<%= component.name %>TaskLib)
 ADD_LIBRARY(${<%= component.name.upcase %>_TASKLIB_NAME} SHARED 
     ${<%= component.name.upcase %>_TASKLIB_SOURCES})
+<% if component.toolkit %>
+add_dependencies(${<%= component.name.upcase %>_TASKLIB_NAME}
+    regen-toolkit)
+<% end %>
 
 TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}
     ${OrocosRTT_LIBRARIES}
