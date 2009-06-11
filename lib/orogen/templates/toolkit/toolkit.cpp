@@ -67,10 +67,10 @@ using RTT::DataSourceBase;
 
 <% generated_types.each do |type|
     next if toolkit.m_type?(type) %>
-    template class RTT::OutputPort<<%= type.cxx_name %>>;
-    template class RTT::InputPort<<%= type.cxx_name %>>;
-    template class RTT::Property<<%= type.cxx_name %>>;
-    template class RTT::Attribute<<%= type.cxx_name %>>;
+    template class RTT::OutputPort< <%= type.cxx_name %> >;
+    template class RTT::InputPort< <%= type.cxx_name %> >;
+    template class RTT::Property< <%= type.cxx_name %> >;
+    template class RTT::Attribute< <%= type.cxx_name %> >;
 <% end %>
 
 namespace <%= component.name %> {
