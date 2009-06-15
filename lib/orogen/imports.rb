@@ -48,14 +48,26 @@ module Orocos
             # True if this task library defines a toolkit
             attr_predicate :has_toolkit?, true
 
-            def toolkit(*args, &block) # :nodoc:
-                if args.empty? && !block_given?
+            def import_types_from(name, *args)
+                if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
+                    using_toolkit name
+                    base_component.using_toolkit name
+                else
+                    using_toolkit self.name
+                    base_component.using_toolkit self.name
+                end
+                import_types_from(*args) unless args.empty?
+            end
+
+            def toolkit(create = nil, &block) # :nodoc:
+                if !create && !block_given?
                     super
                 else
                     using_toolkit name
+                    base_component.using_toolkit name
                     self.has_toolkit = true
+                    nil
                 end
-                nil
             end
 
             # Task library objects represent an import, and as such they cannot

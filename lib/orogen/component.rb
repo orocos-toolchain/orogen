@@ -200,6 +200,23 @@ module Orocos
             # a set of ImportedToolkit instances.
 	    attr_reader :used_toolkits
 
+
+            # Imports the types defined by the given argument
+            #
+            # +name+ can either be another orogen project or a header file. In
+            # the first case, the current project will be reusing the type
+            # definitions and marshalling support already compiled by the other
+            # project. In the second case, it will build and install a library
+            # to support the new types.
+            def import_types_from(name, *args)
+                if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
+                    using_toolkit name
+                else
+                    toolkit(true).load name
+                end
+                import_types_from(*args) unless args.empty?
+            end
+
             # Import an orogen-generated toolkit to be used by this component.
             # The toolkit is searched by name through the pkg-config tool. It
             # means that, if PREFIX is the installation prefix where the component
@@ -248,7 +265,7 @@ module Orocos
                         rescue Typelib::NotFound
                             # We may need to define this type for ourselves, so
                             # make the toolkit define it ...
-                            toolkit { find_type(type) }
+                            toolkit(true).find_type(type)
                             # ... and return our own version of it, not the
                             # toolkit's one
                             registry.build(type)
@@ -397,12 +414,19 @@ module Orocos
 	    #
             # The second form returns a Toolkit object if one is defined, and
             # nil otherwise.
-	    def toolkit(&block)
+	    def toolkit(create = nil, &block)
+                if create.nil?
+                    create = true if block_given?
+                end
+                if create
+                    @toolkit ||= Toolkit.new(self)
+                end
+
 		if !block_given?
 		    return @toolkit
                 else
-                    @toolkit ||= Toolkit.new(self, &block)
                     @toolkit.instance_eval(&block)
+                    nil
 		end
 	    end
 
