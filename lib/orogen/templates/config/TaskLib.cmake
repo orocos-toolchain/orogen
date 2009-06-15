@@ -27,9 +27,11 @@
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
 <% end %>
 <% related_toolkits = component.tasks.inject(ValueSet.new) { |set, task| set | task.used_toolkits }
- related_toolkits.each do |tk| %>
+related_toolkits.each do |tk| %>
 pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.name %>-toolkit-${OROCOS_TARGET})
 include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
+link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
+list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= tk.name %>_TOOLKIT_LIBRARIES})
 <% end %>
 
 <% component.used_libraries.each do |pkg|
