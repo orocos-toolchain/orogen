@@ -421,17 +421,30 @@ module Orocos
 
             attr_reader :loggers
 
+            def add_default_logger
+                task = logger(nil, "#{name}_Logger")
+                task_activities.each do |act|
+                    add_peers task, act
+                end
+                task
+            end
+
             # Gets a data logger object, defined from the logger component, for
             # the given file
-            def logger(filename = nil)
-                filename ||= component.name + '.log'
+            def logger(file_name = nil, task_name = nil)
+                file_name ||= name + '.log'
+                file_name = file_name.to_str
+
                 if !component.used_task_libraries.find { |t| t.name == "logger" }
                     component.using_task_library "logger"
                 end
 
-                logger_for(loggers, filename.to_s) do
-                    logger = task("DataLogger#{loggers.size}", "logger::Logger")
-                    logger.file = filename.to_s
+                logger_for(loggers, file_name) do
+                    task_name ||= "#{name}_DataLogger#{loggers.size}"
+                    task_name = task_name.to_str
+
+                    logger = task(task_name, "logger::Logger")
+                    logger.file = file_name
                     logger
                 end
             end
