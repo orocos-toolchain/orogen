@@ -5,7 +5,7 @@ includedir=${prefix}/include/orocos
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
 toolkits=<%= component.used_toolkits.map { |tk| tk.name }.join(" ") %> <%= component.name if component.toolkit %>
 
-Name: <%= component.name %>
+Name: <%= deployer.name %>
 Version: <%= component.version %>
-Description: the static deployment defined for the <%= component.name %> component
+Description: the static deployment defined for the <%= deployer.name %> deployment
 

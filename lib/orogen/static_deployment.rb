@@ -291,6 +291,8 @@ module Orocos
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
+            def name; component.name end
+
             # True if we are generating for Linux
             def linux?;     component.linux? end
             # True if we are generating for Xenomai
@@ -376,7 +378,7 @@ module Orocos
 		main = Generation.render_template 'main.cpp', binding
 		Generation.save_automatic 'main.cpp', main
                 pkg  = Generation.render_template 'deployment.pc', binding
-                Generation.save_automatic "#{component.name}.pc.in", pkg
+                Generation.save_automatic "#{name}.pc.in", pkg
             end
 
             def cmake_code # :nodoc:
