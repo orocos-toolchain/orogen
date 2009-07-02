@@ -412,7 +412,9 @@ module Orocos
             # True if the task context implements a parent class which matches
             # +name+. +name+ can either be a string or a regular expression.
             def implements?(name)
-                @implemented_classes.any? { |class_name, _| name === class_name }
+                class_name == name ||
+                    (superclass && superclass == name) ||
+                    @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
             # The kind of activity that should be used by default. This is the
