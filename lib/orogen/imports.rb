@@ -23,7 +23,8 @@ module Orocos
         # For the task contexts imported this way,
         # TaskContext#external_definition?  returns true.
         class TaskLibrary < Component
-            # The component in which the library has been imported
+            # The component in which the library has been imported, or nil if
+            # there is none
             attr_reader :base_component
             # The pkg-config file defining this task library
             attr_reader :pkg
@@ -51,10 +52,10 @@ module Orocos
             def import_types_from(name, *args)
                 if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
                     using_toolkit name
-                    base_component.using_toolkit name
+                    base_component.using_toolkit name if base_component
                 else
                     using_toolkit self.name
-                    base_component.using_toolkit self.name
+                    base_component.using_toolkit self.name if base_component
                 end
                 import_types_from(*args) unless args.empty?
             end
@@ -64,7 +65,7 @@ module Orocos
                     super
                 else
                     using_toolkit name
-                    base_component.using_toolkit name
+                    base_component.using_toolkit name if base_component
                     self.has_toolkit = true
                     nil
                 end
