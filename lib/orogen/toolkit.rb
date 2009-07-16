@@ -148,7 +148,7 @@ module Typelib
             result << "#{indent}}\n"
         end
 
-	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
             allocate_index do |i|
                 result << "#{indent}size_t #{i} = 0;\n"
                 # Save the collection size
@@ -192,7 +192,7 @@ module Typelib
                 result << "#{indent}}\n"
             end
 	end
-	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
             allocate_index do |i|
@@ -217,7 +217,7 @@ module Typelib
     end
 
     class EnumType
-	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
             property_name = path[1..-1]
             result << indent << "{ std::string enum_name;\n"
             result << indent << "  switch(value#{path}) {\n"
@@ -233,7 +233,7 @@ module Typelib
             result << indent << "  target_bag.add( new Property<std::string>(\"#{property_name}\", \"\", enum_name) );\n"
             result << indent << "}"
 	end
-	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
             property_name = path[1..-1]
             result << indent << "{ std::string enum_name;\n"
             result << indent << "  enum_name = bag.getProperty<std::string>( \"#{property_name}\" )->get();\n"
@@ -287,14 +287,14 @@ module Typelib
         def self.corba_name
             "#{namespace('::')}Corba::#{normalize_cxxname(basename)}"
         end
-	def self.convertion_code_helper(method, toolkit, result, path, indent)
+	def self.convertion_code_helper(method, toolkit, result, path, indent, *args)
 	    each_field do |name, type|
-		type.send(method, toolkit, result, "#{path}.#{name}", indent) << "\n"
+		type.send(method, toolkit, result, "#{path}.#{name}", indent, *args) << "\n"
 	    end
 	    result
 	end
-	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent, property_name)
 	    result
 	end
 	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
@@ -306,8 +306,8 @@ module Typelib
 	    result
 	end
 
-	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent)
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent, property_name)
 	    result
 	end
 
@@ -335,14 +335,14 @@ module Typelib
             "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
         end
 
-	def self.convertion_code_helper(method, toolkit, result, path, indent)
+	def self.convertion_code_helper(method, toolkit, result, path, indent, *args)
 	    length.times do |i|
-                deference.send(method, toolkit, result, path + "[#{i}]", indent + "    ") << "\n"
+                deference.send(method, toolkit, result, path + "[#{i}]", indent + "    ", *args) << "\n"
             end
 	    result
 	end
-	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent)
+	def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+	    convertion_code_helper(:to_orocos_decomposition, toolkit, result, path, indent, property_name)
 	end
 	def self.code_to_corba(toolkit, result, path = "", indent = "    ")
 	    convertion_code_helper(:code_to_corba, toolkit, result, path, indent)
@@ -351,8 +351,8 @@ module Typelib
 	    convertion_code_helper(:code_from_corba, toolkit, result, path, indent)
 	end
 
-	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ")
-	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent)
+	def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
+	    convertion_code_helper(:from_orocos_decomposition, toolkit, result, path, indent, property_name)
 	end
 
         def self.to_ostream(toolkit, result, path, indent)
