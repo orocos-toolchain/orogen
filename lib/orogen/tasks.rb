@@ -485,6 +485,7 @@ module Orocos
                 @superclass = component.default_task_superclass
                 @implemented_classes = []
 		@name = name
+                default_activity 'triggered'
 
 		@properties = Array.new
 		@methods    = Array.new
