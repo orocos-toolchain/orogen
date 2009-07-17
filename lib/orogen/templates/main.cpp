@@ -71,19 +71,19 @@ int ORO_main(int argc, char* argv[])
 <% deployer.task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
     <% if task.activity_type %>
-    RTT::<%= task.activity_type %> activity_<%= task.name%>(
+    RTT::<%= task.activity_type %>* activity_<%= task.name%> = new RTT::<%= task.activity_type %>(
             <%= task.rtt_scheduler %>,
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
             task_<%= task.name%>.engine());
-    task_<%= task.name %>.setActivity(&activity_<%= task.name %>);
+    task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% if task.period %>
     RTT::OS::PeriodicThread* thread_<%= task.name %> =
-        dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>.thread());
+        dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>->thread());
     thread_<%= task.name %>->setMaxOverrun(<%= task.max_overruns %>);
     <% end %>
     <% else %>
-    RTT::ActivityInterface& activity_<%= task.name %> = *task_<%= task.name %>.getActivity();
+    RTT::ActivityInterface* activity_<%= task.name %> = task_<%= task.name %>.getActivity().get();
     <% end # activity_type %>
     <% task.properties.each do |prop|
         if prop.value %>
@@ -109,7 +109,7 @@ int ORO_main(int argc, char* argv[])
 
     // Start some activities
 <% deployer.task_activities.each do |task| %>
-    deinit << activity_<%= task.name%>;
+    deinit << *activity_<%= task.name%>;
 
     <% if task.start?
         if task.context.needs_configuration? %>
