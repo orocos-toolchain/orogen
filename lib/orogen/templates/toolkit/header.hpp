@@ -9,7 +9,6 @@ namespace Typelib {
 
 namespace <%= component.name %> {
     static const int ORO_UNTYPED_PROTOCOL_ID = 42;
-    class BufferGetterBase;
 
     class ToolkitPlugin
 	: public RTT::ToolkitPlugin

@@ -85,10 +85,17 @@ namespace <%= component.name %> {
 
         void* createBlob(RTT::DataSourceBase::shared_ptr data) const
         {
+            std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+            return reuseBlob(buffer, data);
+        }
+
+        void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+        {
             typename RTT::DataSource<T>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<T> >(data);
             T sample = obj->get();
 
-            std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+            std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
+            buffer->clear();
             Typelib::dump(reinterpret_cast<uint8_t*>(&sample), *buffer, layout);
             return buffer;
         }

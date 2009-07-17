@@ -14,10 +14,17 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 
     void* createBlob(RTT::DataSourceBase::shared_ptr data) const
     {
+        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        return reuseBlob(buffer, data);
+    }
+
+    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    {
         RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
 
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
+        buffer->clear();
         <% if opaque_specification(type).needs_copy? %>
         <%= intermediate.cxx_name %> temp;
         <%= component.name %>::to_intermediate(temp, sample);
@@ -40,6 +47,12 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
 
     void* createBlob(RTT::DataSourceBase::shared_ptr data) const
     {
+        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        return reuseBlob(buffer, data);
+    }
+
+    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    {
         RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
 
@@ -56,7 +69,8 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
             <% end %>
         <% end %>
 
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
+        buffer->clear();
         Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout);
 
         return buffer;
