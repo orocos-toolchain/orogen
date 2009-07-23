@@ -1,0 +1,31 @@
+<bag type="/Test/BaseTypes">
+<bool id=".v0" description="">1</bool>
+<int id=".v1" description="">-100</int>
+<uint id=".v2" description="">200</uint>
+<int id=".v3" description="">-1024</int>
+<uint id=".v4" description="">40000</uint>
+<int id=".v5" description="">-100000</int>
+<uint id=".v6" description="">3000000000</uint>
+<string id=".e" description="">VALUE_20</string>
+<int id=".a[0]" description="">97</int>
+<int id=".a[1]" description="">98</int>
+<int id=".a[2]" description="">99</int>
+<int id=".a[3]" description="">100</int>
+<int id=".a[4]" description="">101</int>
+<int id=".a[5]" description="">102</int>
+<int id=".a[6]" description="">103</int>
+<int id=".a[7]" description="">104</int>
+<int id=".a[8]" description="">105</int>
+<int id=".a[9]" description="">106</int>
+<int id=".a[10]" description="">107</int>
+<int id=".a[11]" description="">108</int>
+<int id=".a[12]" description="">109</int>
+<int id=".a[13]" description="">110</int>
+<int id=".a[14]" description="">111</int>
+<int id=".a[15]" description="">112</int>
+<int id=".a[16]" description="">113</int>
+<int id=".a[17]" description="">114</int>
+<int id=".a[18]" description="">115</int>
+<int id=".a[19]" description="">116</int>
+<int id=".a.size" description="">20</int>
+</bag>

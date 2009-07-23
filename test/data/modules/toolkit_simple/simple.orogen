@@ -5,24 +5,5 @@
 # It demonstrates orogen's toolkit generation capabilities for simple types.
 name "simple"
 
-toolkit do
-    load 'simple.h'
-end
-
-task_context 'Task' do
-    ['int', 'unsigned int', 'long', 'unsigned long',
-        'long long', 'unsigned long long',
-        '/Test/BaseTypes'].each_with_index do |typename, i|
-        property "base#{i}", typename
-    end
-
-    input_port 'in1', '/std/vector<uint8_t>'
-    input_port 'in2', '/Test/BASIC_ENUM'
-    input_port 'in3', '/Test/BaseTypes'
-    input_port 'in4', '/Test/Timestamp'
-    input_port 'in5', '/Test/Image'
-end
-
-static_deployment do
-end
+import_types_from "simple.h"
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "cpf.dtd">
+<properties>
+  <simple name=".v0" type="boolean"><value>0</value></simple>
+  <simple name=".v1" type="long"><value>0</value></simple>
+  <simple name=".v2" type="ulong"><value>0</value></simple>
+  <simple name=".v3" type="long"><value>0</value></simple>
+  <simple name=".v4" type="ulong"><value>0</value></simple>
+  <simple name=".v5" type="long"><value>0</value></simple>
+  <simple name=".v6" type="ulong"><value>0</value></simple>
+</properties>

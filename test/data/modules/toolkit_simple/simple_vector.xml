@@ -1,0 +1,24 @@
+<bag type="/Test/SimpleVector">
+<uint id=".field" description="">10</uint>
+<uint id=".data[0]" description="">97</uint>
+<uint id=".data[1]" description="">98</uint>
+<uint id=".data[2]" description="">99</uint>
+<uint id=".data[3]" description="">100</uint>
+<uint id=".data[4]" description="">101</uint>
+<uint id=".data[5]" description="">102</uint>
+<uint id=".data[6]" description="">103</uint>
+<uint id=".data[7]" description="">104</uint>
+<uint id=".data[8]" description="">105</uint>
+<uint id=".data[9]" description="">106</uint>
+<uint id=".data[10]" description="">107</uint>
+<uint id=".data[11]" description="">108</uint>
+<uint id=".data[12]" description="">109</uint>
+<uint id=".data[13]" description="">110</uint>
+<uint id=".data[14]" description="">111</uint>
+<uint id=".data[15]" description="">112</uint>
+<uint id=".data[16]" description="">113</uint>
+<uint id=".data[17]" description="">114</uint>
+<uint id=".data[18]" description="">115</uint>
+<uint id=".data[19]" description="">116</uint>
+<int id=".data.size" description="">20</int>
+</bag>

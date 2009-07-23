@@ -95,16 +95,25 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
     def test_simple(with_corba = true)
         build_test_component('modules/toolkit_simple', with_corba, "bin/test") do |cmake|
-             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
-             cmake << "\nADD_EXECUTABLE(test test.cpp)"
-             cmake << "\nTARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET})"
-             cmake << "\nTARGET_LINK_LIBRARIES(test ${OROCOS_COMPONENT_LIBRARIES})"
-             cmake << "\nINSTALL(TARGETS test RUNTIME DESTINATION bin)"
-             cmake << "\n"
+            cmake << "ADD_DEFINITIONS(-DWITH_CORBA)\n" if with_corba
+            cmake << <<-EOT
+link_directories(${OrocosCORBA_LIBDIR} ${OrocosRTT_LIBDIR})
+ADD_EXECUTABLE(test test.cpp)
+TARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET}
+    simple-transport-corba-${OROCOS_TARGET})
+TARGET_LINK_LIBRARIES(test ${OrocosRTT_LIBRARIES} ${OrocosCORBA_LIBRARIES})
+INSTALL(TARGETS test RUNTIME DESTINATION bin)
+            EOT
         end
 
-        check_output_file('modules/toolkit_simple', 'simple.cpf')
-        check_output_file('modules/toolkit_simple', 'simple.xml')
+        check_output_file('modules/toolkit_simple', 'basic.cpf')
+        check_output_file('modules/toolkit_simple', 'basic.xml')
+        check_output_file('modules/toolkit_simple', 'simple_vector.cpf')
+        check_output_file('modules/toolkit_simple', 'simple_vector.xml')
+        check_output_file('modules/toolkit_simple', 'complex_vector.cpf')
+        check_output_file('modules/toolkit_simple', 'complex_vector.xml')
+        check_output_file('modules/toolkit_simple', 'complex_array.cpf')
+        check_output_file('modules/toolkit_simple', 'complex_array.xml')
     end
     def test_simple_without_corba; test_simple(false) end
 end
