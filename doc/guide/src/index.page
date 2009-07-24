@@ -1,0 +1,185 @@
+---
+title: The basics
+sort_info: 0
+--- name:content pipeline:tags,markdown,blocks
+This documentation will guide you through the process of writing an orogen file,
+and how to do specific things easily thanks to orogen. We will first outline the
+basics of the Orocos component model, and then go on with using orogen to write
+those components.
+
+
+Basics of the Orocos component model in orogen
+----------------------------------------------
+In Orocos, a _component_ is called a task context. These task contexts are
+structured in three ways:
+ * an interface, that allows the rest of the system to communicate with it
+ * a state machine, that allows to cleanly split the computation code into the
+   different phases of the task's lifetime. The Orocos' C++ TaskContext class
+   defines a default state machine and also allows to define more complex ones
+   using state machine scripts. This part of the task implementation is left to
+   the component developer (you), Orogen does not handle it.
+ * an assignation of tasks to threads.
+ * triggering mechanisms, which dictate when the task should perform its
+   computation. Examples are periodic triggers (the component is triggered at a
+   fixed time period), triggered by data availability on file descriptors,
+   triggered by IRQs (the component is triggered when an IRQ is fired, only
+   available on Xenomai), ...
+
+It is important to note that the definition of task contexts (writing the task
+context's C++ class) is completely separated from the _deployment_:
+instanciating a task context, assigning it to a thread, linking the task
+contexts together, ...
+
+This structure is found in orogen project files as well. There is mainly two
+parts in them:
+ * the task context definitions block
+ * the deployment block
+
+The first part defines the task contexts classes, the second part uses them to
+create a process in which one or more task context instances are running.
+
+Orogen projects
+---------------
+To use orogen, one needs to write a project file. This project file usually ends
+with .orogen. It is in fact Ruby code, but you don't need to know Ruby to write
+one.
+
+Each orogen project allows to define:
+ - a set of task contexts
+ - a static deployment, i.e. a process in which some task contexts are
+   instanciated and associated to particular threads
+
+Basic orogen file
+-----------------
+One needs to give a name to the orogen project, and optionally a version
+
+{coderay:: ruby}
+name 'example'
+version '0.1'
+{coderay}
+
+The project is then generated with
+  
+orogen example.orogen
+{.commandline}
+
+or, if corba support is required
+  
+orogen --corba example.orogen
+{.commandline}
+
+The generated code is a CMake package. Files are sorted into three places:
+ * the .orogen/ directory under which are files that should not be touched by
+   the component's developer. Any change to those files would be erased at
+   the next component generation.
+ * the templates/ directory in which orogen puts freshly generated files. 
+ * the rest, which are files that are meant to be modified by the component's
+   developer. These files will never be touched again by orogen: orogen will
+   limit itself to generate the missing ones (as for instance new task context
+   definitions).
+   
+In some cases, modifications to the orogen project require some modifications to
+the C++ task definitions. In that case, one can copy/paste the corresponding
+code from the templates/ files. These cases will be detailed in this guide.
+
+Once the project is generated, you can compile it as any CMake-based package.
+
+mkdir build<br />
+cmake -DCMAKE_INSTALL_PREFIX=/installation/directory ..<br />
+make
+{.commandline}
+
+and the regeneration can be triggered with
+
+make regen
+{.commandline}
+
+Defining types
+--------------
+To allow, at runtime, to properly handle the input and output of Orocos
+components, one must first declare what types are to be used in the component's
+interface. Using Orogen, only the type description is required. Orogen then
+takes care of integrating those types in the RTT.
+
+The type definitions are done in a subset of C/C++. The following limitations
+apply:
+ * orogen understands basic C types, types defined with stdint.h (uint8_t,
+   int64_t, ...), structs and enums.
+ * all types must be so-called "value types": no virtual methods and no
+   inheritance
+ * namespaces are recognized as well
+ * std::vector<> can be used, but must be referred to as std::vector<>, not
+   vector<>.
+ * 'std::string' can be used directly (i.e. directly as a method/command
+   argument or as a port type for instance), but cannot be used in a struct or
+   vector
+
+So, for instance, a valid type definition file named <tt>exampleTypes.h</tt>
+would be:
+{coderay:: cpp}
+namespace example
+{
+    struct Time
+    {
+        uint64_t microseconds;
+    };
+    struct Values
+    {
+        Time timestamp;
+        std::vector<double> values;
+    };
+}
+{coderay}
+
+that can be loaded in the orogen file with the following statement:
+{coderay:: ruby}
+import_types_from 'exampleTypes.h'
+{coderay}
+
+If you change the type definition files, you <b>must</b> regenerate the project,
+either by calling the orogen tool directly or by using the 'make regen' command.
+
+We will see in the suite of this guide where the type definitions are used. In
+all those places, though, the types must be referred to by their fullname. The
+library used for type handling in orogen uses '/' as a namespace marker, so one
+will have to write <tt>/example/Time</tt> to refer to <tt>example::Time</tt>
+
+More advanced topics cover:
+ * adding methods to the type definitions
+ * using types that orogen cannot understand
+ * using smart pointers
+
+Task Contexts
+-------------
+
+A new task context model is defined with
+
+{coderay:: ruby}
+task_context "ClassName" do
+  
+end
+{coderay}
+
+This generates a task context class named <tt>project_name::ClassName</tt> in
+<tt>tasks/ClassName.cpp</tt> and <tt>tasks/ClassName.hpp</tt>. In general, you
+will only need to implement the state hooks, commands and methods. The
+definition of the task interface (methods, commands, ports and properties) is
+part of the orogen task definition.
+
+The definition of the task interface, and the corresponding usage in hooks, is
+covered later.
+
+Static deployments
+------------------
+A static deployment is one single executable file in which a certain set of
+task contexts have been instanciated into tasks, and associated to activities
+(if you don't know what activities are, think of them as threads)
+
+The deployment is defined with
+
+{coderay:: ruby}
+static_deployment do
+
+end
+{coderay}
+

@@ -1,0 +1,28 @@
+---
+title: IO Triggering
+---
+
+The IO triggering mechanism, if enabled, will make sure that updateHook() is
+called whenever new data is made available on a file descriptor. It allows to
+very easily implement drivers, that are waiting for new data on the driver
+communication line(s).
+
+Declaration
+-----------
+The IO-driven mechanism is a deployment choice, and therefore it is not required
+to declare a task context as IO-driven. Nonetheless, since some actions are
+required from the task context's implementation (namely listing the IOs the task
+is listening to), declaring them as IO-driven can help deployment and usage of
+the said tasks (since people will know that they may be used as IO-driven).
+
+To declare a task context as IO-driven, one adds
+{coderay:: ruby}
+io_driven
+{coderay}
+
+to the task context definition block. It is all that is required.
+
+C++ task implementation
+-----------------------
+
+

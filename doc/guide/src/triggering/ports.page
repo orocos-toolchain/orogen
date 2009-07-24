@@ -1,0 +1,119 @@
+---
+title: Data-Driven Tasks
+sort_info: 200
+---
+A data-driven task is a task that wants to perform computations whenever new
+data is available on its input ports. In general, data-processing tasks (as for
+instance image processing tasks) fall into that category: their goal is to take
+data from their input, process it, and push it to their outputs.
+
+Note that in Orocos, port-triggering is a mechanism that can be overlaid on top
+of other triggering mechanisms like periodic or file-descriptor triggerings.
+
+Declaration
+-----------
+A data-driven task is declared by using the <tt>#port_driven</tt> statement.
+
+Let's look at the following example declaration:
+
+{coderay:: ruby}
+task_context "Task" do
+    input_port  'image', '/Camera/Frame'
+    input_port  'parameters', '/SIFT/Parameters'
+    output_port 'features' '/SIFT/FeatureSet'
+
+    port_driven 'image'
+end
+{coderay}
+
+During runtime, the <tt>updateHook()</tt> method of the corresponding C++ task
+will be called when new data arrives on the listed ports (in this case 'image').
+Other input ports are ignored by the triggering mechanism.
+
+Note that, obviously, the listed ports must be input ports. Moreover, they must
+be declared _before_ the call to <tt>port_driven</tt>.
+
+Finally, if called without arguments, <tt>port_driven</tt> will activate the
+port triggering on all input ports declared before it is called. This means
+that, in
+
+{coderay:: ruby}
+task_context "Task" do
+    input_port  'image', '/Camera/Frame'
+    input_port  'parameters', '/SIFT/Parameters'
+    output_port 'features' '/SIFT/FeatureSet'
+
+    port_driven
+end
+{coderay}
+
+both 'parameters' and 'image' are triggering. Now, in
+
+{coderay:: ruby}
+task_context "Task" do
+    input_port  'image', '/Camera/Frame'
+    port_driven
+    input_port  'parameters', '/SIFT/Parameters'
+    output_port 'features' '/SIFT/FeatureSet'
+end
+{coderay}
+
+only 'image' is.
+
+C++ task implementation
+-----------------------
+In the C++ task implementation, the only needed change is the possibility to use
+an overloaded version of the <tt>updateHook()</tt> call. As soon as the
+port\_driven statement is used, orogen will generate that other updateHook()
+instead of the standard one.
+
+The overloaded updateHook() reads:
+
+{coderay:: cpp}
+void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
+{coderay}
+
+As usual, if you add a port\_driven statement to an existing task definition, you
+will have to define the other updateHook() yourself as orogen will not touch
+your code. You can copy/paste it from the relevant file in
+<tt>templates/tasks/</tt>.
+{.warning}
+
+The vector passed to overloaded updateHook() lists all input ports that have
+triggered this update. To test for a particular port, one must do:
+
+{coderay:: cpp}
+if (isPortUpdated(_image))
+{
+}
+else if (isPortUpdated(_parameters))
+{
+}
+{coderay}
+
+Deployment
+----------
+As we mentionned at the beginning of this page, the port-triggering mechanism
+can be overlaid on top of the other mechanisms.
+
+If one uses the default task declaration
+
+{coderay:: ruby}
+static_deployment do
+    t = task('Task')
+end
+{coderay}
+
+then the deployed task instance will only be triggered when new data is received
+on its input ports. But if another triggering mechanism is also specified:
+
+{coderay:: ruby}
+static_deployment do
+    t = task('Task').
+        periodic(0.1)
+end
+{coderay}
+
+then the deployed task instance will be triggered in both cases. This can be
+used, for instance, for timeout purposes.
+

@@ -19,3 +19,14 @@ rescue Exception => e
     STDERR.puts "error message is: #{e.message}"
 end
 
+require 'webgen/webgentask'
+namespace 'doc' do
+    Webgen::WebgenTask.new('guide') do |website|
+        website.clobber_outdir = true
+        website.directory = File.join(Dir.pwd, 'doc', 'guide')
+        website.config_block = lambda do |config|
+            config['output'] = ['Webgen::Output::FileSystem', File.join(Dir.pwd, 'doc', 'html')]
+        end
+    end
+end
+

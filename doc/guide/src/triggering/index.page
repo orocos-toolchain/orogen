@@ -1,0 +1,8 @@
+---
+title: Triggering Mechanisms
+---
+
+This section covers the various possibilities for triggering mechanism
+declarations in orogen. For each mechanisms, you will see how to declare them in
+the orogen project file and what changes may be needed in your C++ code to
+handle them,

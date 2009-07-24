@@ -6,7 +6,8 @@
 # *~
 .*.swp
 .*.swo
-doc
+doc/html
+webgen.cache
 
 *autobuild-stamp
 test/wc
