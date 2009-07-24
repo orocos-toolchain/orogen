@@ -1,1 +1,1 @@
-<%= registry.export 'idl', :namespace_suffix => 'Corba', :opaque_as_any => true %>
+<%= minimal_registry.export 'idl', :namespace_suffix => 'Corba', :opaque_as_any => true %>

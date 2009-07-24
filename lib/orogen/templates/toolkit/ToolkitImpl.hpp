@@ -9,7 +9,7 @@
 #include <iosfwd>
 
 namespace orogen_toolkits {
-    <% converted_types.each do |type| %>
+    <% (converted_types + opaque_types).each do |type| %>
     bool toPropertyBag(std::string const& basename, <%= type.arg_type %> value, RTT::PropertyBag& target_bag);
     bool fromPropertyBag(std::string const& basename, <%= type.ref_type %> value, RTT::PropertyBag const& target_bag);
     bool toStream(std::string const& basename, <%= type.arg_type %> value, std::ostream&);

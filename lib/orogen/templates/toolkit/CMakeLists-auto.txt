@@ -8,7 +8,7 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
-<% if !toolkit.has_opaques_with_templates? %>
+<% if toolkit.has_opaques_with_templates? %>
 include_directories(${CMAKE_SOURCE_DIR}/toolkit)
 <% end %>
 
@@ -46,7 +46,7 @@ INCLUDE_DIRECTORIES(${<%= pkg.name %>_INCLUDE_DIRS})
 
 LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
 <% if toolkit.corba_enabled? %>
-LINK_DIRECTORIES(${OrocosRTT_LIBRARY_DIRS})
+LINK_DIRECTORIES(${OrocosCORBA_LIBRARY_DIRS})
 <% end %>
 
 # Generate the base toolkit shared library
@@ -54,7 +54,9 @@ SET(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
 add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
     <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" if toolkit.has_opaques_with_templates? %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
-TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
+
+target_link_libraries(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
+
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-${OROCOS_TARGET})
 SET(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-toolkit-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= component.name %>-toolkit.pc.in ${PKG_CONFIG_FILE} @ONLY)

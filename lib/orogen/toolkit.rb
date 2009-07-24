@@ -28,6 +28,8 @@ module Typelib
         def self.corba_name
             if inlines_code?
                 normalize_cxxname(basename)
+            elsif contains_opaques?
+                "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
             else
                 "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
             end
@@ -660,30 +662,28 @@ module Orocos
 	    end
 
 	    def find_type(type)
-		if type
-		    if type.respond_to?(:to_str)
-                        type = Typelib::Type.normalize_typename(type)
-                        begin
-                            registry.build(type)
-                        rescue Typelib::NotFound
-                            if type =~ /^([^<]+)<(.*)>$/
-                                container_name = $1
-                                element_name   = $2
-                                element_type   = find_type(element_name)
-                                if element_type.contains_opaques?
-                                    raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
-                                end
-                                component.registry.define_container(container_name,
-                                                component.registry.build(element_name))
-                                registry.define_container(container_name, element_type)
+                if type.respond_to?(:to_str)
+                    type = Typelib::Type.normalize_typename(type)
+                    begin
+                        registry.build(type)
+                    rescue Typelib::NotFound
+                        if type =~ /^([^<]+)<(.*)>$/
+                            container_name = $1
+                            element_name   = $2
+                            element_type   = find_type(element_name)
+                            if element_type.contains_opaques?
+                                raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
                             end
+                            component.registry.define_container(container_name,
+                                            component.registry.build(element_name))
+                            registry.define_container(container_name, element_type)
                         end
-		    elsif type.kind_of?(Class) && type <= Typelib::Type
-                        type
-                    else
-			raise ArgumentError, "expected a type object, got #{type}"
-		    end
-		end
+                    end
+                elsif type.kind_of?(Class) && type <= Typelib::Type
+                    type
+                else
+                    raise ArgumentError, "expected a type object, got #{type}"
+                end
 	    end
 
             # True if we are generating for Linux
@@ -998,36 +998,7 @@ module Orocos
                 result
             end
 
-            # This method performs sanity checks on the use of opaque types.
-            # The only limitation is that an opaque opaque_t can only be
-            # used at toplevel and in a struct. The following is forbidden:
-            #
-            #   struct S0
-            #   {
-            #       opaque_t field;
-            #   };
-            #
-            #   struct S1
-            #   {
-            #       S0 field;
-            #   };
-            def validate_opaque_types
-                registry.each_type do |type|
-                    if type < Typelib::CompoundType
-                        type.each_field do |_, field_type|
-                            if !field_type.opaque? && field_type.contains_opaques?
-                                raise NotImplementedError, "opaques types can only be used at toplevel and at one-level indirection"
-                            end
-                        end
-                    end
-                end
-            end
-
-            def handle_opaques_generation(generated_types, registry)
-		toolkit = self
-
-                validate_opaque_types
-
+            def handle_opaques_generation(generated_types)
                 # Make sure all opaque intermediate types are existing or can be
                 # instanciated
                 opaques.each do |opaque_def|
@@ -1038,6 +1009,9 @@ module Orocos
                 # practice, we generate C code that we merge back into the
                 # repository
                 generate_all_marshalling_types = false
+                generated_types = registry.enum_for(:each_type).
+                    find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
+		toolkit = self
                 catch(:nothing_to_define) do
                     Tempfile.open('orogen') do |io|
                         marshalling_code = Generation.render_template 'toolkit/marshalling_types.hpp', binding
@@ -1070,15 +1044,35 @@ module Orocos
 		end
 	    end
 
+            # Helper method that returns the code needed to get an
+            # +intermediate+ variable of the right type, containing the data in
+            # +value+.
+            def code_toIntermediate(intermediate_type, needs_copy, indent)
+                if needs_copy
+                    "#{indent}#{intermediate_type.cxx_name} intermediate;\n" +
+                    "#{indent}#{component.name}::to_intermediate(intermediate, value);\n"
+                else
+                    "#{intermediate_type.cxx_name} const& intermediate = #{component.name}::to_intermediate(value);"
+                end
+            end
+
+            # Helper method that returns the code needed to update an opaque
+            # type based on the data from an intermediate variable
+            def code_fromIntermediate(intermediate_type, needs_copy, indent)
+                if needs_copy
+                    "#{indent}#{component.name}::from_intermediate(value, intermediate);\n"
+                else
+                    "#{indent}if (#{component.name}::from_intermediate(value, intermediate.get()))\n" +
+                    "#{indent}    intermediate.release();\n"
+                end
+            end
+
 	    def generate
 		toolkit = self
 
-		# Remove all unneeded types from imported toolkits
-		registry = self.registry.
-		    minimal(preloaded_registry).
-		    minimal(component.rtt_registry)
-		registry = component.used_toolkits.
-		    inject(registry) { |reg, tk| reg.minimal(tk.registry) }
+                # Generate opaque-related stuff first, so that we see them in
+                # the rest of the typelib-registry-manipulation code
+                handle_opaques_generation(registry)
 
 		generated_types = []
 		registry.each_type do |type|
@@ -1088,25 +1082,25 @@ module Orocos
 		    end
 		end
 
-		issue_warnings(generated_types, registry)
-                handle_opaques_generation(generated_types, registry)
-
                 opaque_types = opaques.map { |opdef| opdef.type }
                 opaque_intermediates = opaques.map do |opdef|
                     component.find_type(opdef.intermediate)
                 end
-                generate_typedefs(generated_types, registry)
 
+		# Do some registry mumbo-jumbo to remove unneeded types to the
+                # dumped registry
+		minimal_registry = self.registry.
+		    minimal(preloaded_registry).
+		    minimal(component.rtt_registry)
+		minimal_registry = component.used_toolkits.
+		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
 
-		# if toolkit.corba_enabled?
-		#     Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba)
-		#     Generation.save_automatic("toolkit", "#{component.name}Toolkit.idl", idl)
-		# end
-		# Generation.save_automatic("toolkit", "#{component.name}Toolkit.hpp", hpp)
-		# Generation.save_automatic("toolkit", "#{component.name}Toolkit.cpp", cpp)
+		issue_warnings(generated_types, minimal_registry)
+                generate_typedefs(generated_types, minimal_registry)
 
-                # Add opaque-related information in the TLB file
-                plain_registry = registry.to_xml
+                # Generate the XML representation of the generated type library,
+                # and add opaque information to it
+                plain_registry = minimal_registry.to_xml
                 doc = Nokogiri::XML(plain_registry)
                 doc.xpath('//opaque').each do |opaque_entry|
                     spec = opaque_specification(opaque_entry['name'])
@@ -1129,12 +1123,15 @@ module Orocos
                 # The two arrays are sorted so that we don't have to recompile
                 # unncessary (the original sets are hashes, and therefore don't
                 # have a stable order).
-                converted_types = (generated_types + opaque_types + opaque_intermediates).
-                    find_all { |type| !toolkit.m_type?(type) }.
-                    sort_by { |type| type.name }
-                registered_types = (generated_types + opaque_types + opaque_intermediates).
+                converted_types = generated_types.
+                    find_all { |type| !type.opaque? && !toolkit.m_type?(type) }.
+                    sort_by { |type| type.name }.uniq
+                puts generated_types.map { |t| t.name }
+                puts
+                puts converted_types.map { |t| t.name }
+                registered_types = generated_types.
                     find_all { |type| !toolkit.m_type?(type) && !(type <= Typelib::ArrayType) }.
-                    sort_by { |type| type.name }
+                    sort_by { |type| type.name }.uniq
 
                 # Generate the C++ and IDL files
                 tk_hpp = Generation.render_template "toolkit/Toolkit.hpp", binding
@@ -1161,15 +1158,13 @@ module Orocos
                     Generation.save_automatic("toolkit", "#{component.name}-transport-corba.pc.in", pkg_config)
 		end
 
-                # Generate the pkg-config file
-
                 # Generate the user part for opaque types
                 if !opaques.empty?
-                    intermediates = Generation.render_template 'toolkit/intermediates.hpp', binding
+                    intermediates = Generation.render_template 'toolkit/ToolkitIntermediates.hpp', binding
                     Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates)
                     if has_opaques_with_templates?
-                        user_hh = Generation.render_template 'toolkit/user.hpp', binding
-                        user_cc = Generation.render_template 'toolkit/user.cpp', binding
+                        user_hh = Generation.render_template 'toolkit/ToolkitUser.hpp', binding
+                        user_cc = Generation.render_template 'toolkit/ToolkitUser.cpp', binding
                         Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
                         Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
                     end

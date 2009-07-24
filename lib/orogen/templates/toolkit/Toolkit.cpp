@@ -5,6 +5,9 @@
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 #include <rtt/Toolkit.hpp>
+<% if has_opaques_with_templates? %>
+#include "<%= component.name %>ToolkitIntermediates.hpp"
+<% end %>
 
 using RTT::Property;
 
@@ -48,6 +51,47 @@ bool orogen_toolkits::fromStream(std::string const& basename, <%= type.ref_type 
     return false;
 }
 <% end %>
+
+<% opaques.each do |opdef|
+    type = opdef.type
+    intermediate_type = component.find_type(opdef.intermediate)
+    %>
+<%= if opdef.code_generator
+      opdef.code_generator.call(type, intermediate_type)
+    end %>
+bool orogen_toolkits::toPropertyBag(std::string const& basename, <%= type.arg_type %> value, RTT::PropertyBag& target_bag)
+{
+    <%= toolkit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>
+    return toPropertyBag(basename, intermediate, target_bag);
+}
+
+bool orogen_toolkits::fromPropertyBag(std::string const& basename, <%= type.ref_type %> value, RTT::PropertyBag const& bag)
+{
+    <% if opdef.needs_copy? %>
+    <%= intermediate_type.cxx_name %> intermediate;
+    if (!fromPropertyBag(basename, intermediate, bag))
+        return false;
+    <%= toolkit.code_fromIntermediate(intermediate_type, true, "    ") %>
+    <% else %>
+    std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>);
+    if (!fromPropertyBag(basename, *intermediate, bag))
+        return false;
+    <%= toolkit.code_fromIntermediate(intermediate_type, false, "    ") %>
+    <% end %>
+    return true;
+}
+bool orogen_toolkits::toStream(std::string const& basename, <%= type.arg_type %> value, std::ostream& io)
+{
+    <%= toolkit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>
+    return toStream(basename, intermediate, io);
+}
+bool orogen_toolkits::fromStream(std::string const& basename, <%= type.ref_type %> value, std::istream& io)
+{
+    return false;
+}
+<% end %>
+
+
 
 <% namespace = '/' %>
 <% registered_types.each do |type| %>
@@ -103,6 +147,8 @@ bool orogen_toolkits::<%= component.name %>ToolkitPlugin::loadTypes()
     ti = new <%= type.method_name(true) %>TypeInfo();
     ti_repository->addType( ti );
     <% end %>
+
+    return true;
 }
 
 bool orogen_toolkits::<%= component.name %>ToolkitPlugin::loadOperators()

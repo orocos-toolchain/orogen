@@ -1,6 +1,9 @@
 #include "<%= component.name %>ToolkitCorba.hpp"
 #include "<%= component.name %>ToolkitCorbaImpl.hpp"
 #include <rtt/Toolkit.hpp>
+<% if has_opaques_with_templates? %>
+#include "<%= component.name %>ToolkitIntermediates.hpp"
+<% end %>
 using namespace RTT;
 
 <% converted_types.each do |type| %>
@@ -22,12 +25,45 @@ bool orogen_toolkits::fromCORBA( <%= type.corba_arg_type %> corba, <%= type.ref_
 }
 <% end %>
 
+<% opaques.each do |opdef|
+    type = opdef.type
+    intermediate_type = component.find_type(opdef.intermediate)
+    %>
+bool orogen_toolkits::toCORBA( <%= intermediate_type.corba_ref_type %> corba, <%= type.arg_type %> value )
+{
+<%= toolkit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>
+    return toCORBA(corba, intermediate);
+}
+bool orogen_toolkits::fromCORBA( <%= intermediate_type.corba_arg_type %> corba, <%= type.ref_type %> value )
+{
+    <% if opdef.needs_copy? %>
+    <%= intermediate_type.cxx_name %> intermediate;
+    if (!fromCORBA(corba, intermediate))
+        return false;
+<%= toolkit.code_fromIntermediate(intermediate_type, true, "    ") %>
+    <% else %>
+    std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>);
+    if (!fromCORBA(corba, *intermediate))
+        return false;
+<%= toolkit.code_fromIntermediate(intermediate_type, false, "    ") %>
+    <% end %>
+    return true;
+}
+<% end %>
+
 <% registered_types.each do |type| %>
 namespace orogen_toolkits {
     struct <%= type.method_name %>CorbaMarshaller
         : public RTT::detail::CorbaTemplateProtocol< <%= type.cxx_name %> >
     {
+        <% if type.opaque?
+             opdef = toolkit.opaque_specification(type)
+             intermediate_type = toolkit.find_type(opdef.intermediate)
+        %>
+        typedef <%= intermediate_type.corba_name %> CorbaType;
+        <% else %>
         typedef <%= type.corba_name %> CorbaType;
+        <% end %>
         typedef <%= type.cxx_name %>   BaseType;
 
         virtual void* createBlob( RTT::DataSourceBase::shared_ptr source) const;
