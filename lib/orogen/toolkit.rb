@@ -466,6 +466,11 @@ module Orocos
             # True if we are generating for Xenomai
             def xenomai?;   component.xenomai? end
 
+	    # Set of directories in which the header files that have been
+	    # loaded lie. It is used to generate the Cflags: line in the
+	    # pkg-config file
+	    attr_reader :loaded_files_dirs
+
 	    def initialize(component)
 		@component = component
 
@@ -476,6 +481,7 @@ module Orocos
 		@preloaded_registry = Typelib::Registry.new
 		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
+		@loaded_files_dirs  = Set.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
@@ -642,13 +648,14 @@ module Orocos
                 include_dirs.concat(component.used_libraries.map { |pkg| pkg.include_dirs }.flatten)
                 include_dirs.concat(component.used_task_libraries.map { |component| component.pkg.include_dirs }.flatten)
 
-                if File.exists?(file)
+                if File.exists?(file) # Local file
                     file = File.expand_path(file)
-                else
+                else # File from used libraries/task libraries
                     dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
                     if !dir
                         raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
                     end
+		    loaded_files_dirs << dir
                     file = File.join(dir, file)
                 end
 
