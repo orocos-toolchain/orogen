@@ -286,23 +286,30 @@ module Orocos
         # instanciated and associated with specific Activity classes.
         #
         class StaticDeployment
+	    # The deployment name
+	    attr_reader :name
             # The underlying Component object
             attr_reader :component
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
-            def name; component.name end
+	    # Do not install that deployment
+	    def do_not_install; @install = false end
+	    # True if this deployment should be installed
+	    def install?; !!@install end
 
             # True if we are generating for Linux
             def linux?;     component.linux? end
             # True if we are generating for Xenomai
             def xenomai?;   component.xenomai? end
 
-            def initialize(component, &block)
+            def initialize(component, name, &block)
+		@name		= name
+		@install	= true
                 @task_activities = Array.new
                 @component      = component
                 @file_reporters = Hash.new
-                @loggers   = Hash.new
+                @loggers	= Hash.new
                 @connections    = Array.new
                 @tcp_reporters  = Hash.new
                 @peers          = Set.new
@@ -373,18 +380,12 @@ module Orocos
             def generate
                 deployer = self
 
-		# Generate the main.cpp file, which includes the ORO_main entry
-		# point, and the pkgconfig file describing that deployment
 		main = Generation.render_template 'main.cpp', binding
-		Generation.save_automatic 'main.cpp', main
+		Generation.save_automatic "main-#{name}.cpp", main
                 pkg  = Generation.render_template 'deployment.pc', binding
                 Generation.save_automatic "#{name}.pc.in", pkg
-            end
-
-            def cmake_code # :nodoc:
-                deployer = self
-
-                Generation.render_template 'config/static_deployer.cmake', binding
+                cmake = Generation.render_template 'config/Deployment.cmake', binding
+                Generation.save_automatic "config/#{name}Deployment.cmake", cmake
             end
 
             dsl_attribute :main_task do |task|

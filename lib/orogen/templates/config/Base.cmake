@@ -70,7 +70,7 @@ ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
 
 # Finally, add deployment code
-<% component.deployers.each do |deploy| %>
-    <%= deploy.cmake_code %>
+<% component.deployers.each do |deployer| %>
+include(<%= Generation::AUTOMATIC_AREA_NAME %>/config/<%= deployer.name %>Deployment.cmake)
 <% end %>
 

@@ -24,7 +24,7 @@ link_directories(${<%= pkg.name %>_TASKLIB_LIBRARY_DIRS})
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
-add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main.cpp)
+add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if component.toolkit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-toolkit-${OROCOS_TARGET})
 <% end %>
@@ -40,8 +40,10 @@ target_link_libraries(<%= deployer.name %> ${<%= name %>_TASKLIB_LIBRARIES})
 <% if !component.self_tasks.empty? %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
+<% if deployer.install? %>
 install(TARGETS <%= deployer.name %>
     RUNTIME DESTINATION bin)
+<% end %>
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)

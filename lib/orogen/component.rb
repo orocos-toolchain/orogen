@@ -477,27 +477,34 @@ module Orocos
                 used_task_libraries << component
             end
 
+	    # Deprecated. Use #deployment instead
+            def static_deployment(&block)
+		deployment = deployment("test_#{name}", &block)
+		deployment.do_not_install
+		deployment
+            end
+
             # call-seq:
-            #   static_deployment do
+            #   deployment name[, options] do
             #     ... deployment specification ...
             #   end
             #
-            # Define a static deployment, i.e. the definition of TaskContext
-            # instances, to which Activity instances they should be linked and
-            # a set of connections.
-            #
-            # The deployment is represented by a StaticDeployment instance. The
-            # deployment specification is made of a set of method calls on that
-            # instance, so see the documentation of that class for the list of
-            # possible operations.
-            def static_deployment(&block)
-                deployer = StaticDeployment.new(self, &block)
+	    # Defines a deployment, i.e. an Unix executable in which a certain
+	    # number of TaskContext are instanciated, associated with threads
+	    # and triggers and (optionally) connected to each other and/or
+	    # started.
+	    #
+	    # The statements in the given block are method calls to a
+	    # StaticDeployment instance, so see the documentation of that class
+	    # for more information.
+	    def deployment(name, &block)
+                deployer = StaticDeployment.new(self, name, &block)
                 deployer.instance_eval(&block) if block_given?
                 @deployers << deployer
                 deployer
-            end
+	    end
 
-            # Apply the component specification included in +file+ to +self+
+            # Apply the project description included in +file+ to +self+
             #
             # NOTE: this method MUST be the last method of the file. This is
             # needed for filter_backtrace (which provides the errors in the
