@@ -26,12 +26,12 @@
 <% if component.toolkit %>
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
 <% end %>
-<% related_toolkits = component.tasks.inject(ValueSet.new) { |set, task| set | task.used_toolkits }
-related_toolkits.each do |tk| %>
-pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.name %>-toolkit-${OROCOS_TARGET})
-include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
-link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= tk.name %>_TOOLKIT_LIBRARIES})
+<% related_toolkits = component.tasks.inject(Set.new) { |set, task| set | task.used_toolkits.map(&:name) }
+related_toolkits.each do |name| %>
+pkg_check_modules(<%= name %>_TOOLKIT REQUIRED <%= name %>-toolkit-${OROCOS_TARGET})
+include_directories(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
+link_directories(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
+list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_TOOLKIT_LIBRARIES})
 <% end %>
 
 <% component.used_libraries.each do |pkg|
@@ -42,8 +42,8 @@ LINK_DIRECTORIES(${<%= name %>_LIBRARY_DIRS})
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_LIBRARIES})
 <% end %>
 
-<% component.used_task_libraries.each do |pkg|
-    name = pkg.name %>
+<% related_libraries = component.tasks.inject(Set.new) { |set, task| set | task.used_task_libraries.map(&:name) }
+related_libraries.each do |name| %>
 pkg_check_modules(<%= name %>_TASKLIB REQUIRED <%= name %>-tasks-${OROCOS_TARGET})
 INCLUDE_DIRECTORIES(${<%= name %>_TASKLIB_INCLUDE_DIRS})
 LINK_DIRECTORIES(${<%= name %>_TASKLIB_LIBRARY_DIRS})

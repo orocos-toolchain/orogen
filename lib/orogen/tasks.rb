@@ -747,6 +747,16 @@ module Orocos
             def fd_driven?
                 default_activity.first == :fd_driven
             end
+	    
+	    # The set of task libraries from which we depend on, because of our 
+	    # superclasses and implements
+	    def used_task_libraries
+		component.used_task_libraries.find_all do |tasklib|
+		    tasklib.tasks.any? do |task|
+			task.component == tasklib && implements?(task.name)
+		    end
+		end
+	    end
 
             # Returns the set of imported toolkits that are needed to run this
             # task properly.
