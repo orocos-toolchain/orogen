@@ -46,6 +46,19 @@ module Orocos
                 task
             end
 
+	    def find_type(type)
+		if type
+		    if type.respond_to?(:to_str)
+                        type = Typelib::Type.normalize_typename(type)
+			registry.get(type)
+		    elsif type.kind_of?(Class) && type <= Typelib::Type
+                        type
+                    else
+			raise ArgumentError, "expected a type object, got #{type}"
+		    end
+		end
+	    end
+
             # True if this task library defines a toolkit
             attr_predicate :has_toolkit?, true
 
