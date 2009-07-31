@@ -2,41 +2,90 @@
 title: The basics
 sort_info: 0
 --- name:content pipeline:tags,markdown,blocks
-This documentation will guide you through the process of writing an orogen file,
-and how to do specific things easily thanks to orogen. We will first outline the
-basics of the Orocos component model, and then go on with using orogen to write
-those components.
 
+This part will introduce you with the basics of component definition and
+implementation using oroGen. First, we present the Orocos RealTime Toolkit (RTT)
+which provides the execution layer used in oroGen projects. Then, we go in more
+details on how to use oroGen and present some of the basic functionalities. More
+specific information is available in the rest of the guide.
 
-Basics of the Orocos component model in orogen
-----------------------------------------------
-In Orocos, a _component_ is called a task context. These task contexts are
-structured in three ways:
- * an interface, that allows the rest of the system to communicate with it
- * a state machine, that allows to cleanly split the computation code into the
-   different phases of the task's lifetime. The Orocos' C++ TaskContext class
-   defines a default state machine and also allows to define more complex ones
-   using state machine scripts. This part of the task implementation is left to
-   the component developer (you), Orogen does not handle it.
- * an assignation of tasks to threads.
- * triggering mechanisms, which dictate when the task should perform its
-   computation. Examples are periodic triggers (the component is triggered at a
-   fixed time period), triggered by data availability on file descriptors,
-   triggered by IRQs (the component is triggered when an IRQ is fired, only
-   available on Xenomai), ...
+An overview of the Orocos RealTime Toolkit (RTT)
+------------------------------------------------
 
-It is important to note that the definition of task contexts (writing the task
-context's C++ class) is completely separated from the _deployment_:
-instanciating a task context, assigning it to a thread, linking the task
-contexts together, ...
+The Orocos RealTime Toolkit is a C++ library that allow to build and execute
+component-oriented layers. The goal of such an approach is to make each
+component as independent to the other components as possible. One benefit is
+code reusability: a given component can be used in two completely different
+systems. Another less advertised one is robustness: a component can validate its
+inputs and assess its own state without having to care about the rest of the
+other components.
 
-This structure is found in orogen project files as well. There is mainly two
-parts in them:
- * the task context definitions block
- * the deployment block
+Definition and implementation of RTT components
+-----------------------------------------------
 
-The first part defines the task contexts classes, the second part uses them to
-create a process in which one or more task context instances are running.
+To *define* an Orocos component (called a _task context_), one must:
+
+ * define an interface, i.e. all the means of communication that exist with this
+   component
+ * implement the actual component functionality
+
+At the C++ level, a component is a subclass of the <tt>RTT::TaskContext</tt>
+class. This class provides all the base services needed to plug your code into
+Orocos' execution engine.
+
+On the one side, the component's interface is split into three parts (see figure below):
+
+ * the _configuration interface_, allows to set up the component's parameters
+   before it is started. This is done through _properties_. This is for instance
+   the specification of a device file for a driver. The corresponding RTT class
+   is <tt>RTT::Property</tt>.
+ * the _data flow_ transports the runtime data from one component to another.
+   This is done through the listing of input and output ports. The corresponding
+   RTT class is <tt>RTT::InputPort</tt> and <tt>RTT::OutputPort</tt>.
+ * the _control flow_ allows to change the component's behaviour. This is done
+   through _methods_ and _commands_. The corresponding RTT classes are
+   <tt>RTT::Method</tt> and <tt>RTT::Command</tt>.
+
+On the other side, Orocos components offers a state machine (see below). The
+component's functionality is split into C++ methods, each of them being called
+for one of the state machine transitions. By default, these methods will do
+nothing, but you will be able to reimplement them to hook the desired
+functionality in the your components.
+
+Deployment
+----------
+What we saw above is how to define a component: how we can communicate with it
+(the interface), and how it offers an execution model (the state machine)
+allowing to integrate its functionality.
+
+To transform this definition into a running system, one must define a few more
+things:
+
+ * in which condition(s) and in what thread context the component's
+   functionality should be called. This includes putting components in separated
+   processes so that one crashing does not affect others.
+ * how to configure, i.e. their properties should be set to values valid for the
+   current platform.
+ * the data flow between the components needs to be created.
+
+In the RTT, that step is called the _deployment_. While the last two points is
+quite common in modular architectures, the ability to associate _at deployment
+time_ a component with a thread/process and a triggering mechanism is quite
+unique to Orocos/RTT.
+
+What is oroGen ?
+----------------
+
+oroGen is a tool that automates the definition and creation of task contexts,
+and of deployments. More specifically, it allows the following:
+
+ * define one or many task context interfaces. oroGen creates a certain number of
+   C++ classes that match the task context definitions.
+ * define one or many deployments. Deployments in oroGen are usually only used
+   to create binaries in which task contexts are instanciated and associated to
+   activities (threads and triggers). oroGen also allows to pre-wire, i.e. add
+   connections between the task ports, but it is preferred to use a dynamic
+   method for that (like CORBA for instance).
 
 Orogen projects
 ---------------
