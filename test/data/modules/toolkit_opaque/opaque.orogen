@@ -16,6 +16,9 @@ toolkit do
     opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D',
         :includes => [File.expand_path('opaque.h', File.dirname(component.deffile))]
 
+    # opaque_type name_of_real_type, name_of_intermediate_type,
+    #    :includes => [include_file_1, include_file_2]
+
     # We want to use boost::shared_ptr to hold vector<float>, to avoid
     # unnecessary copies
     opaque_type '/boost/shared_ptr</std/vector</float>>', '/std/vector</float>',
