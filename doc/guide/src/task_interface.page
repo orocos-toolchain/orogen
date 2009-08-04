@@ -20,18 +20,20 @@ Ports
 Ports are defined with
 
 {coderay:: ruby}
-input_port('in', 'type').
+input_port('in', 'my_type').
   doc('documentation string')
-output_port('out', 'type').
+output_port('out', 'another_type').
   doc('documentation string')
 {coderay}
 
 Ports can be accessed in the C++ code with
 {coderay:: cpp}
+my_type sample;
 if (_in.read(sample))
 {
     // got a new sample, do something with it
 }
+another_type data = calculateData();
 _out.write(data);
 {coderay}
 
@@ -41,21 +43,43 @@ there is a data provider that will send data to input ports
 (<tt>in.connected()</tt>) or if there is a listener component that will get the
 samples written on output ports.
 
+For instance,
+{coderay:: cpp}
+if (_out.connected())
+{
+    // generate the data for _out. This is useful if generating
+    // the data is costly
+    another_type data = calculateData();
+    _out.write(data);
+}
+{coderay}
+
 Properties
 ----------
 Properties are defined with
 {coderay:: ruby}
-property('name', 'type').
+property('name', 'configuration_type').
     doc 'what this property is about'
+{coderay}
+
+And can be accessed in the code with
+
+{coderay:: cpp}
+configuration_type configuration_value = _name.get();
+// Validate configuration_type, and change the value
+_name.set(configuration_value)
 {coderay}
 
 Commands
 --------
+The basic interface is 
+
 {coderay:: ruby}
 command('commandName')
 {coderay}
 
-To add arguments to the method, one does
+Then; one can declare arguments with
+
 {coderay:: ruby}
 command('commandName').
     arg('arg0', '/arg/type').
@@ -66,15 +90,21 @@ omitted, will lead to syntax errors.
 
 In the generated task class, the command is implemented with two methods:
 {coderay:: cpp}
-bool commandNameStart(arg::type const& arg0, example::other_arg const& arg1);
-bool commandNameWorker(arg::type const& arg0, example::other_arg const& arg1);
+bool commandName(arg::type const& arg0, example::other_arg const& arg1);
+bool iscommandNameFinished(arg::type const& arg0, example::other_arg const& arg1);
 {coderay}
 
-The start method is called once when the command is received by the task
-context, and should return true if the command is accepted, false otherwise. The
-Worker method is called <b>in the same thread than the updateHook</b> each time
-the updateHook is called. In other words, commands do not have any
-multithreading issues with the task context's state machine.
+The first method is called once when the command is received by the task
+context, and should return true if the command is accepted, false otherwise. It
+is called in the same thread than the component's state machine, so there should
+be no multi-threading issues associated with it. In general, it will set a flag
+so that the updateHook() handles the actual execution of the command.
+
+Then, the <tt>iscommandNameFinished</tt> method is called each time a remote
+component requires to know if the command is finished or not. It is *not* called
+in the same thread than the rest of the component, so multi-threading should be
+taken into account. It should return true if the command is finished, and false
+otherwise.
 
 We already mentionned that Orogen does not touch your C++ code in tasks/. So, if
 you add a new command to your task definition, you will need to add the
@@ -104,10 +134,15 @@ if omitted, will lead to syntax errors.
 
 In the generated task class, the method simply maps to a C++ method:
 {coderay:: cpp}
-return_type methodNae(arg::type const& arg0, example::other_arg const& arg1);
+return_type methodName(arg::type const& arg0, example::other_arg const& arg1);
 {coderay}
 
 the default return type is 'void'.
+
+Methods, unlike commands, are synchronous from the point of view of the caller.
+It means that the method is in general called in a thread different than the
+component's thread. It should therefore take care of possible multi-threading
+issues.
 
 As for the commands, if you add a new method to your task definition, you will
 need to add the corresponding method to the C++ task implementation as well. To
@@ -116,16 +151,16 @@ in templates/tasks/.
 
 C++ objects representing the interface elements
 -----------------------------------------------
-This is a more advanced topic. For each element of the interface, Orogen
-declares the corresponding RTT C++ object as an attribute of the task
-implementation. The attribute's name is the object name with an underscore
-prepended. For instance, the command declared with
+For each element of the interface, Orogen declares the corresponding RTT C++
+object as an attribute of the task implementation. The attribute's name is the
+object name with an underscore prepended. For instance, the command declared
+with
 {coderay:: ruby}
 command('commandName')
 {coderay}
 
 is mapped to an attribute named <tt>_commandName</tt>, of type
-<tt>RTT::Method</tt>.
+<tt>RTT::Command</tt>.
 
 The mappings are as follows:
  * commands are RTT::Command

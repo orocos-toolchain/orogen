@@ -15,14 +15,102 @@ required from the task context's implementation (namely listing the IOs the task
 is listening to), declaring them as IO-driven can help deployment and usage of
 the said tasks (since people will know that they may be used as IO-driven).
 
-To declare a task context as IO-driven, one adds
+To declare a task context as IO-driven, one adds the following statement to the
+task context definition block:
 {coderay:: ruby}
 io_driven
 {coderay}
 
-to the task context definition block. It is all that is required.
+In this case, the io-driven triggering mechanism is declared as optional. If it
+is required, then do
 
-C++ task implementation
------------------------
+{coderay:: ruby}
+requires :io_driven
+{coderay}
 
+
+Configuration in the C++ task
+-----------------------------
+
+On the C++ side, the triggering mechanism relies on a specific activity type,
+i.e. it puts the component in its own thread.
+
+To access more detailed information on the trigger reason, and to set up the
+trigger mechanism, one must access the underlying activity. To do that, a
+<tt>getFileDescriptorActivity()</tt> method is available. The set up has to be
+done in <tt>configureHook()</tt> as follows:
+
+{coderay:: cpp}
+bool MyTask::configureHook()
+{
+    // Open the device that is listed in the _device string property
+    int fd = open(_device.get().c_str(), O_RDONLY);
+    if (fd == -1)
+        return false;
+
+    RTT::FileDescriptorActivity* activity = getFileDescriptorActivity();
+    activity->watch(fd);
+    return true;
+}
+{coderay}
+
+This only works *if the activity is required*. Indeed, with another activity,
+the component will crash as getFileDescriptorActivity() returns NULL;
+
+If the use of an io-driven activity is optional, simply test for activity:
+
+{coderay:: cpp}
+bool MyTask::configureHook()
+{
+    // Open the device that is listed in the _device string property
+    int fd = open(_device.get().c_str(), O_RDONLY);
+    if (fd == -1)
+        return false;
+
+    RTT::FileDescriptorActivity* activity = getFileDescriptorActivity();
+    if (activity)
+        activity->watch(fd);
+    return true;
+}
+{coderay}
+
+It is possible to list multiple file descriptors by having multiple calls to
+watch(). 
+
+Finally, it is possible to set a timeout in milliseconds with
+
+{coderay:: cpp}
+    activity->setTimeout(100);
+{coderay}
+
+Runtime use in updateHook()
+---------------------------
+
+The FileDescriptorActivity class offers a few ways to get more information
+related to the trigger reason (data availability, timeout, error on a file
+descriptor). These different conditions can be tested with:
+
+{coderay:: cpp}
+FileDescriptorActivity* fd_activity = getFileDescriptorActivity();
+if (fd_activity)
+{
+  if (fd_activity->hasError())
+  {
+  }
+  else if (fd_activity->hasTimeout())
+  {
+  }
+  else
+  {
+    // If there is more than one FD, discriminate. Otherwise,
+    // we don't need to use isUpdated
+    if (fd_activity->isUpdated(device_fd))
+    {
+    }
+    else if (fd_activity->isUpdated(another_fd))
+    {
+    }
+  }
+}
+{coderay}
 

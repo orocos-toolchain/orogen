@@ -99,7 +99,7 @@ can be overlaid on top of the other mechanisms.
 If one uses the default task declaration
 
 {coderay:: ruby}
-static_deployment do
+deployment "test" do
     t = task('Task')
 end
 {coderay}
@@ -108,7 +108,7 @@ then the deployed task instance will only be triggered when new data is received
 on its input ports. But if another triggering mechanism is also specified:
 
 {coderay:: ruby}
-static_deployment do
+deployment "test" do
     t = task('Task').
         periodic(0.1)
 end

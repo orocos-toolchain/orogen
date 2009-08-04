@@ -33,7 +33,7 @@ At the C++ level, a component is a subclass of the <tt>RTT::TaskContext</tt>
 class. This class provides all the base services needed to plug your code into
 Orocos' execution engine.
 
-On the one side, the component's interface is split into three parts (see figure below):
+On the one side, the component's interface is split into three parts:
 
  * the _configuration interface_, allows to set up the component's parameters
    before it is started. This is done through _properties_. This is for instance
@@ -94,9 +94,12 @@ with .orogen. It is in fact Ruby code, but you don't need to know Ruby to write
 one.
 
 Each orogen project allows to define:
- - a set of task contexts
- - a static deployment, i.e. a process in which some task contexts are
-   instanciated and associated to particular threads
+ - one or many task contexts
+ - one or many deployments
+
+Moreover, orogen will handle automatically the marshalling/unmarshalling of
+the data types you use in your projects. For instance, it will handle the
+transport over CORBA when required.
 
 Basic orogen file
 -----------------
@@ -117,18 +120,19 @@ or, if corba support is required
 orogen --corba example.orogen
 {.commandline}
 
-The generated code is a CMake package. Files are sorted into three places:
+The generated code is a CMake package. In it, files are sorted into three places:
+
  * the .orogen/ directory under which are files that should not be touched by
    the component's developer. Any change to those files would be erased at
    the next component generation.
  * the templates/ directory in which orogen puts freshly generated files. 
- * the rest, which are files that are meant to be modified by the component's
+ * the user part, which are files that are meant to be modified by the component's
    developer. These files will never be touched again by orogen: orogen will
    limit itself to generate the missing ones (as for instance new task context
    definitions).
    
-In some cases, modifications to the orogen project require some modifications to
-the C++ task definitions. In that case, one can copy/paste the corresponding
+In some cases, modifications to the orogen project will require some modifications to
+the user part as well. In that case, you will have to copy/paste the corresponding
 code from the templates/ files. These cases will be detailed in this guide.
 
 Once the project is generated, you can compile it as any CMake-based package.
@@ -187,13 +191,15 @@ import_types_from 'exampleTypes.h'
 
 If you change the type definition files, you <b>must</b> regenerate the project,
 either by calling the orogen tool directly or by using the 'make regen' command.
+Orogen will try to regenerate by himself if a change is detected, but this is
+still an experimental feature.
 
 We will see in the suite of this guide where the type definitions are used. In
 all those places, though, the types must be referred to by their fullname. The
 library used for type handling in orogen uses '/' as a namespace marker, so one
 will have to write <tt>/example/Time</tt> to refer to <tt>example::Time</tt>
 
-More advanced topics cover:
+More advanced topics are covered later in this guide. It includes:
  * adding methods to the type definitions
  * using types that orogen cannot understand
  * using smart pointers
@@ -216,19 +222,22 @@ definition of the task interface (methods, commands, ports and properties) is
 part of the orogen task definition.
 
 The definition of the task interface, and the corresponding usage in hooks, is
-covered later.
+covered later in this guide.
 
-Static deployments
-------------------
-A static deployment is one single executable file in which a certain set of
-task contexts have been instanciated into tasks, and associated to activities
-(if you don't know what activities are, think of them as threads)
+Deployments
+-----------
+In orogen, a deployment is one single executable file in which a certain set of task
+contexts have been instanciated into tasks, and associated to both threads and
+triggering mechanisms.
 
 The deployment is defined with
 
 {coderay:: ruby}
-static_deployment do
+deployment "deployment_name" do
 
 end
 {coderay}
+
+Deployments are also detailed later in this guide.
+
 
