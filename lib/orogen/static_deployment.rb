@@ -406,6 +406,12 @@ module Orocos
                              else raise ArgumentError, "cannot report #{object}"
                              end
 
+                    task = if object.kind_of?(TaskDeployment)
+                               object
+                           else object.activity
+                           end
+                    component.add_peers self.task, task
+
                     config << method
                     self
                 end
