@@ -1,5 +1,6 @@
 ---
 title: IO Triggering
+sort_info: 300
 ---
 
 The IO triggering mechanism, if enabled, will make sure that updateHook() is
