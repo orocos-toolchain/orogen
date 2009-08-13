@@ -19,14 +19,14 @@ the said tasks (since people will know that they may be used as IO-driven).
 To declare a task context as IO-driven, one adds the following statement to the
 task context definition block:
 {coderay:: ruby}
-io_driven
+fd_driven
 {coderay}
 
 In this case, the io-driven triggering mechanism is declared as optional. If it
 is required, then do
 
 {coderay:: ruby}
-requires :io_driven
+required_activity :fd_driven
 {coderay}
 
 

@@ -148,7 +148,7 @@ module Orocos
             # The subclass of ActivityInterface which should be used to run this task
             dsl_attribute :activity_type do |type|
                 if context.required_activity? && activity_type
-                    raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity"
+                    raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity, you cannot change it"
                 end
                 type.to_s
             end

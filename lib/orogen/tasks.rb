@@ -12,10 +12,9 @@ module Orocos
 
     module Generation
         ACTIVITY_TYPES = {
-            :fd_driven  => 'FileDescriptorActivity',
-            :irq_driven => 'IRQActivity',
-            :slave      => 'SlaveActivity',
-            :event_driven => 'EventDrivenActivity',
+            :fd_driven    => 'FileDescriptorActivity',
+            :irq_driven   => 'IRQActivity',
+            :slave        => 'SlaveActivity',
             :periodic     => 'PeriodicActivity',
             :triggered    => 'NonPeriodicActivity',
             :sequential   => 'SequentialActivity'
@@ -417,6 +416,20 @@ module Orocos
                     @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
+            # The kind of activity that must be used for this task context. This
+            # is the name of the corresponding method on the deployment objects.
+            # See ACTIVITY_TYPES for the list of known activity types.
+            #
+            # See also #default_activity
+            dsl_attribute :required_activity do |type, *args|
+                if respond_to?(type.to_sym)
+                    send(type.to_sym)
+                else
+                    default_activity type, *args
+                end
+                self.required_activity = true
+            end
+
             # The kind of activity that should be used by default. This is the
             # name of the corresponding method on the deployment objects
             # (:periodic, :aperiodic, :slave, :irq_driven, :fd_driven)
@@ -425,6 +438,8 @@ module Orocos
             # is not mandatory. If #required_activity is set to true, then
             # this activity is the only kind of activity that can be used
             # with this task context.
+            #
+            # See also #required_activity
             dsl_attribute :default_activity do |type, *args|
                 if required_activity? && @default_activity
                     raise ArgumentError, "the #{default_activity[0]} activity is required, you cannot change it"
