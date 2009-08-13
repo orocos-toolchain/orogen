@@ -56,9 +56,6 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/task
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
 
-INSTALL(FILES <%= component.deffile %>
-    DESTINATION share/orogen)
-
 <% 
    include_files = []
    task_files = []

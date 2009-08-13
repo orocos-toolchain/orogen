@@ -69,6 +69,9 @@ ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/task
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
 
+INSTALL(FILES <%= component.deffile %>
+    DESTINATION share/orogen)
+
 # Finally, add deployment code
 <% component.deployers.each do |deployer| %>
 include(<%= Generation::AUTOMATIC_AREA_NAME %>/config/<%= deployer.name %>Deployment.cmake)
