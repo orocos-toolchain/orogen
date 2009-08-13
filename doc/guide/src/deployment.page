@@ -1,0 +1,181 @@
+---
+title: Deployments
+sort_info: 150
+---
+
+In orogen, each deployment is a separate binary (UNIX process) in which a
+certain number of tasks have been _instanciated_. In other words, certain task
+contexts classes are tied to a thread and one or multiple triggering mechanisms.
+
+This page will deal with the generics of deployment. The different triggering
+mechanisms are developped later in this guide.
+
+The deployment block
+--------------------
+
+Each deployment block declares one binary. For instance:
+
+{coderay:: ruby}
+deployment "test" do
+  <deployment statements>
+end
+{coderay}
+
+will generate a "test" binary. By default, it will be installed by CMake. If
+that is not desired, for instance if it is for testing purposes only, add the
+<tt>do_not_install</tt> statement in the block:
+
+{coderay:: ruby}
+deployment "test" do
+  do_not_install
+  <other deployment statements>
+end
+{coderay}
+
+In the block, the following conditions can be tested:
+
+ * the target OS. You can use the <tt>xenomai?</tt> and <tt>gnulinux?</tt>
+   predicates to enable/disable some parts based on the target OS.
+ * the fact that the binary will be interfaced with CORBA or not. Use the
+   corba\_enabled? predicate to test this. CORBA is the target if the
+   <tt>--corba</tt> flag is given to orogen during generation, or if the
+   enable\_corba statement is added in the deployment block. It is also possible
+   to forcefully disable it by adding the disable\_corba statement in the
+   deployment.
+
+Instanciating tasks
+-------------------
+
+The basic thing to be done in a deployment is listing the tasks that should be
+instanciated. It is done by using the 'task' statement:
+
+{coderay:: ruby}
+  task 'TaskName', 'orogen_project::TaskClass'
+{coderay}
+
+It will create a task with the given name and class. By default, that task will
+have its own thread.
+
+Threading
+---------
+
+There are mainly two options with respect to threading. In the first case, when
+a task is triggered, the associated thread is woken up and the task will be
+asynchronously triggered in its own thread when the OS scheduler decides to do
+so. It is the safest option (and the default) as the different tasks are made
+independent from each other.
+
+In the second case, the task does *not* have its own thread. Instead, the thread
+that triggers it will be used to run the task. In other words, task triggering
+stops to be asynchronous, but instead is seen as a method call. This is mainly
+useful for tasks that are triggered by data coming in their input port (this
+triggering mechanism is described here). The main advantage is that the OS
+scheduler is removed from the equation, which can reduce latency.
+
+The first case does not requires a specific declaration in the deployment block.
+Nonetheless, the underlying thread can be parametrized with a scheduling class
+(realtime/non-realtime) and a priority. By default, a task is non-realtime and
+with the lowest priority possible. Changing it is done with the following
+statements:
+
+{coderay:: ruby}
+  task('TaskName', 'orogen_project::TaskClass').
+    realtime.
+    priority(<priority value>)
+{coderay}
+
+Note the dot at the end of the first two lines. It is important and not adding
+it would lead to a NoMethodError error during generation.
+{.warning}
+
+The priority value being a number between 1 (lowest) and 99 (highest).
+Moreover, note that the periodic and IO triggering mechanisms _require_ the task
+to be in its own thread.
+
+The second case is called a sequential activity and is declared with:
+
+{coderay:: ruby}
+  task('TaskName', 'orogen_project::TaskClass').
+    sequential
+{coderay}
+
+Initial setup of the generated deployment
+-----------------------------------------
+
+It is possible to statically specify an initial setup of the task contexts
+present in the deployment. The following
+
+First, it is possible to set the task properties. To do so:
+
+{coderay:: ruby}
+my_task.property = new_value
+{coderay}
+
+where <tt>new_value</tt> is compatible with the property's type. For simple
+types (like numbers or strings), this can be a simple Ruby litteral (resp.
+number or string). For compounds, one must initialize first the corresponding
+object with:
+
+{coderay:: ruby}
+initial_value = my_task.property.new
+<set up initial_value>
+my_task.property = initial_value
+{coderay}
+
+Second, you can 
+
+Logger integration
+------------------
+
+If you installed orogen's logger component, specific statements are made
+available to you in the deployment block.
+
+First, the <tt>add\_default\_logger</tt> statement would create a logger task
+(i) whose name is deploymentname\_Logger and (ii) which log file is
+deploymentname.log. This convention is used by orocos.rb, for instance, to
+implement automated logging setup.
+
+If this default logger does not suit you, you can also add specific loggers
+with:
+
+{coderay:: ruby}
+logger("file name", "task_name").
+    report(other_task.output_port_name).
+    report(third_task.another_output_port)
+{coderay}
+
+Task browser integration
+------------------------
+
+The task browser is an Orocos component which offers to interactively control
+task contexts through a command line. It is part of the Orocos Component Library
+(OCL). Therefore, to use this feature, you must have installed the OCL
+beforehand.
+
+This feature is only available for non-CORBA deployments
+{.warning}
+
+To initialize a TaskBrowser on a particular task, you will have to do two
+things:
+ 
+ * put the result of the task() declaration statement in a variable
+ * call the <tt>browse</tt> statement
+ 
+{coderay:: ruby}
+this_task = task('Name', 'Class')
+browse this_task
+{coderay}
+
+Or, if you want to be able to build this deployment with a CORBA interface as
+well:
+
+{coderay:: ruby}
+this_task = task('Name', 'Class')
+if !corba_enabled?
+    browse this_task
+end
+{coderay}
+
+The presence of the TaskBrowser component will be tested by CMake at
+configuration time.
+
