@@ -256,24 +256,32 @@ module Orocos
             # Typelib::Type object directly, or a type name. In both cases, the
             # type must have been defined either by the component's own toolkit
             # or by the ones imported by #using_toolkit
-	    def find_type(type)
-		if type
-		    if type.respond_to?(:to_str)
-                        type = Typelib::Type.normalize_typename(type)
-                        begin
-                            registry.build(type)
-                        rescue Typelib::NotFound
-                            # We may need to define this type for ourselves, so
-                            # make the toolkit define it ...
-                            toolkit(true).find_type(type)
-                            # ... and return our own version of it, not the
-                            # toolkit's one
-                            registry.build(type)
+	    def find_type(typename)
+		if typename
+		    if typename.kind_of?(Class) && typename <= Typelib::Type
+                        type = typename
+                        typename = type.name
+                    end
+
+		    if typename.respond_to?(:to_str)
+                        typename = Typelib::Type.normalize_typename(typename)
+                        found_type = begin
+                                         registry.build(typename)
+                                     rescue Typelib::NotFound
+                                         # We may need to define this type for ourselves, so
+                                         # make the toolkit define it ...
+                                         toolkit(true).find_type(typename)
+                                         # ... and return our own version of it, not the
+                                         # toolkit's one
+                                         registry.build(typename)
+                                     end
+
+                        if type && found_type != type
+                            raise ArgumentError, "type definition mismatch between #{type} and #{found_type}"
                         end
-		    elsif type.kind_of?(Class) && type <= Typelib::Type
-                        type
+                        found_type
                     else
-			raise ArgumentError, "expected a type object, got #{type}"
+			raise ArgumentError, "expected a type name or a type object, got #{typename}"
 		    end
 		end
 	    end
