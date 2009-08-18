@@ -257,5 +257,25 @@ class TC_GenerationTasks < Test::Unit::TestCase
         build_test_component('modules/with_configuration', false)
         install
     end
+
+    def test_dynamic_ports
+	component = Component.new 
+	component.name 'test'
+
+	task = component.task_context "task"
+        task.dynamic_input_port /r$/, "/int"
+        task.dynamic_output_port /w$/, "/double"
+
+        assert task.dynamic_input_port?("hgkur", "/int")
+        assert !task.dynamic_input_port?("hgkur", "/double")
+        assert !task.dynamic_input_port?("hgkuw", "/int")
+
+        assert task.dynamic_output_port?("hgkuw", "/double")
+        assert !task.dynamic_output_port?("hgkur", "/double")
+        assert !task.dynamic_output_port?("hgkuw", "/int")
+
+        create_wc("tasks/dynamic_ports")
+	compile_wc(component)
+    end
 end
 

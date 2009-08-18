@@ -69,7 +69,13 @@ module Orocos
             def used_types; [type] end
 
 	    def initialize(task, name, type)
-                name = name.to_s
+                if !name.kind_of?(Regexp)
+                    name = name.to_s
+                    if name !~ /^\w+$/
+                        raise ArgumentError, "invalid port name #{name}"
+                    end
+                end
+
                 type = task.component.find_type(type)
                 Orocos.validate_toplevel_type(type)
                 if type.name == "/std/vector<double>"
@@ -390,6 +396,9 @@ module Orocos
             attr_reader :superclass
             # A set of classes the TaskContext has to implement as well
             attr_reader :implemented_classes
+            # A set of Port objects that can be created at runtime
+            attr_reader :dynamic_ports
+
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
             # TaskContext instance. In both cases, it must be defined in the
@@ -506,6 +515,7 @@ module Orocos
 		@methods    = Array.new
 		@commands   = Array.new
 		@ports	    = Array.new
+                @dynamic_ports = Array.new
                 @event_ports = Array.new
                 @initial_state = 'Stopped'
 	    end
@@ -610,7 +620,6 @@ module Orocos
 	    # The set of methods for this task.
 	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
             def self_methods; @methods end
-
 
             # This method is an easier way use boost::shared_ptr in a task
             # context interface. For instance, instead of writing
@@ -718,6 +727,40 @@ module Orocos
 		check_uniqueness(:ports, name)
                 @ports << InputPort.new(self, name, type)
                 @ports.last
+            end
+
+            # call-seq:
+            #   dynamic_input_port name_regex, typename
+            #
+            # Declares that a port whose name matches name_regex can be declared
+            # at runtime, with the type. This is not used by orogen himself, but
+            # can be used by potential users of the orogen specification.
+            def dynamic_input_port(name, type)
+                dynamic_ports << InputPort.new(self, name, type)
+                dynamic_ports.last
+            end
+
+            # call-seq:
+            #   dynamic_output_port name_regex, typename
+            #
+            # Declares that a port whose name matches name_regex can be declared
+            # at runtime, with the type. This is not used by orogen himself, but
+            # can be used by potential users of the orogen specification.
+            def dynamic_output_port(name, type)
+                dynamic_ports << OutputPort.new(self, name, type)
+                dynamic_ports.last
+            end
+
+            # Returns true if an input port of the given name and type could be
+            # created at runtime.
+            def dynamic_input_port?(name, type)
+                dynamic_ports.any? { |p| p.kind_of?(InputPort) && p.type == component.find_type(type) && p.name === name }
+            end
+
+            # Returns true if an output port of the given name and type could be
+            # created at runtime.
+            def dynamic_output_port?(name, type)
+                dynamic_ports.any? { |p| p.kind_of?(OutputPort) && p.type == component.find_type(type) && p.name === name }
             end
 
             # A set of ports that will trigger this task when they get updated.
