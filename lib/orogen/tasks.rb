@@ -39,7 +39,7 @@ module Orocos
 	    def initialize(task, name, type, default_value)
                 name = name.to_s
 		if name !~ /^\w+$/
-		    raise ArgumentError, "invalid task name #{name}"
+		    raise ArgumentError, "invalid property name #{name}"
 		end
 
                 type = task.component.find_type(type)
