@@ -12,9 +12,14 @@ link_directories(${OrocosCORBA_LIBRARY_DIRS})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 
 <% component.used_toolkits.each do |tk| %>
-pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.pkg.name %>)
+pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.pkg_name %>)
 include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
 link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
+<% if deployer.corba_enabled? %>
+pkg_check_modules(<%= tk.name %>_TRANSPORT_CORBA REQUIRED <%= tk.pkg_corba_name %>)
+include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
+link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
+<% end %>
 <% end %>
 <% component.used_task_libraries.each do |pkg| %>
 pkg_check_modules(<%= pkg.name %>_TASKLIB REQUIRED <%= pkg.name %>-tasks-${OROCOS_TARGET})
@@ -27,9 +32,15 @@ add_definitions(${OrocosRTT_CFLAGS_OTHER})
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main.cpp)
 <% if component.toolkit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-toolkit-${OROCOS_TARGET})
+<% if deployer.corba_enabled? %>
+target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-corba-${OROCOS_TARGET})
+<% end %>
 <% end %>
 <% component.used_toolkits.each do |tk| %>
 target_link_libraries(<%= deployer.name %> ${<%= tk.name %>_TOOLKIT_LIBRARIES})
+<% if deployer.corba_enabled? %>
+target_link_libraries(<%= deployer.name %> ${<%= tk.name %>_TRANSPORT_CORBA_LIBRARIES})
+<% end %>
 <% end %>
 <% component.used_task_libraries.each do |pkg|
     name = pkg.name%>

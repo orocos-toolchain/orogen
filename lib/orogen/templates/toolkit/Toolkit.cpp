@@ -56,9 +56,6 @@ bool orogen_toolkits::fromStream(std::string const& basename, <%= type.ref_type 
     type = opdef.type
     intermediate_type = component.find_type(opdef.intermediate)
     %>
-<%= if opdef.code_generator
-      opdef.code_generator.call(type, intermediate_type)
-    end %>
 bool orogen_toolkits::toPropertyBag(std::string const& basename, <%= type.arg_type %> value, RTT::PropertyBag& target_bag)
 {
     <%= toolkit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>

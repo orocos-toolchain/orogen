@@ -52,7 +52,12 @@ LINK_DIRECTORIES(${OrocosCORBA_LIBRARY_DIRS})
 # Generate the base toolkit shared library
 SET(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
 add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
-    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" if toolkit.has_opaques_with_templates? %>)
+    <% if !toolkit.opaques.empty? %>
+    <% if toolkit.has_opaques_with_templates? %>
+    ${PROJECT_SOURCE_DIR}/toolkit/<%= component.name %>ToolkitUser.cpp
+    <% end %>
+    <%= component.name %>ToolkitIntermediates.cpp
+    <% end %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 
 target_link_libraries(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
@@ -82,7 +87,12 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitCorba.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitCorbaImpl.hpp
     <% end %>
-    <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.hpp" unless toolkit.opaques.empty? %>
+    <% if !toolkit.opaques.empty? %>
+    <% if toolkit.has_opaques_with_templates? %>
+    ${PROJECT_SOURCE_DIR}/toolkit/<%= component.name %>ToolkitUser.hpp
+    <% end %>
+    ${PROJECT_SOURCE_DIR}/toolkit/<%= component.name %>ToolkitIntermediates.hpp
+    <% end %>
     DESTINATION include/orocos/toolkit)
 
 # Add a regeneration target

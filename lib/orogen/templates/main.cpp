@@ -1,6 +1,11 @@
 #include <rtt/os/main.h>
 <% if component.toolkit || !component.used_toolkits.empty? %>#include <rtt/Toolkit.hpp><% end %>
-<% if component.toolkit %>#include "toolkit/<%= component.name %>Toolkit.hpp"<% end %>
+<% if component.toolkit %>
+#include "toolkit/<%= component.name %>Toolkit.hpp"
+<% if deployer.corba_enabled? %>
+#include "toolkit/<%= component.name %>ToolkitCorba.hpp"
+<% end %>
+<% end %>
 <% component.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>Toolkit.hpp>
 <% end %>
@@ -59,9 +64,17 @@ int ORO_main(int argc, char* argv[])
    }
    <% end %>
 
-   <% if component.toolkit %>RTT::Toolkit::Import( <%= component.name %>::Toolkit );<% end %>
+   <% if component.toolkit %>
+   RTT::Toolkit::Import( orogen_toolkits::<%= component.name %>Toolkit );
+   <% if deployer.corba_enabled? %>
+   RTT::Toolkit::Import( orogen_toolkits::<%= component.name %>CorbaTransport );
+   <% end %>
+   <% end %>
    <% component.used_toolkits.each do |tk| %>
-   RTT::Toolkit::Import( <%= tk.name %>::Toolkit );
+   RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>Toolkit );
+   <% if deployer.corba_enabled? %>
+   RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>CorbaTransport );
+   <% end %>
    <% end %>
 
 <% if deployer.corba_enabled? %>

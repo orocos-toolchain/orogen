@@ -11,6 +11,12 @@ module Orocos
             def initialize(name, pkg, registry, typelist)
                 @name, @pkg, @registry, @typelist = name, pkg, registry, typelist
             end
+            def pkg_name
+                pkg.name
+            end
+            def pkg_corba_name
+                PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
+            end
             def includes?(name)
                 typelist.include?(name)
             end

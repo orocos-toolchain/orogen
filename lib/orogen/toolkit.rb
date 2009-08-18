@@ -93,12 +93,6 @@ module Typelib
             orocos_type = registry.base_rtt_type_for(self).cxx_name
             result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", #{varname}) );\n"
         end
-        def self.inline_toCORBA(toolkit, result, corbavar, cxxvar, indent)
-            result << indent << "#{corbavar} = #{cxxvar};\n";
-        end
-        def self.inline_fromCORBA(toolkit, result, corbavar, cxxvar, indent)
-            result << indent << "#{cxxvar} = #{corbavar};\n";
-        end
 
         # Generate the code needed to initialize a C++ variable from an Orocos
         # PropertyBag.
@@ -244,6 +238,40 @@ module Typelib
 	    result
 	end
 
+        def self.code_copy(toolkit, result, indent, dest, src, method)
+            collection_name, element_type = container_kind, deference.name
+            element_type = registry.build(element_type)
+
+            if (container_kind == "vector")
+                result << "#{indent}#{dest}.reserve(#{src}.size());\n"
+            end
+
+            result << <<-EOT
+#{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it)
+#{indent}{
+            EOT
+
+            if yield(element_type)
+                result << "#{indent}    #{dest}.push_back(*it);\n"
+            else
+                result << "#{indent}    #{dest}.push_back(<%= cxx_name %>::value_type());\n"
+                result << "#{indent}    #{method}(*#{dest}.rbegin(), *it);\n";
+            end
+
+            result << "#{indent}}\n";
+        end
+
+        def self.to_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+                !type.contains_opaques?
+            end
+        end
+        def self.from_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+                !type.contains_opaques?
+            end
+        end
+
         def self.to_corba(toolkit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
@@ -257,7 +285,7 @@ module Typelib
                 EOT
 
                 if element_type.inlines_code?
-                    element_type.inline_toCORBA(toolkit, result, "corba[#{element_idx}]", "(*it)", indent + "    ")
+                    result << "#{indent}corba[#{element_idx}] = (*it)"
                 else
                     result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
                 end
@@ -283,9 +311,9 @@ module Typelib
                 EOT
 
                 if element_type.inlines_code?
-                    element_type.inline_fromCORBA(toolkit, result, "corba[#{element_idx}]", "value[#{element_idx}]", indent + "    ")
+                    result << "#{indent}    corba[#{element_idx}] = value[#{element_idx}]"
                 else
-                    result << indent << "    fromCORBA(corba[#{element_idx}], value[#{element_idx}]);\n";
+                    result << "#{indent}    fromCORBA(corba[#{element_idx}], value[#{element_idx}]);\n";
                 end
 
                 result << "#{indent}}\n";
@@ -429,25 +457,39 @@ else
             end
 	    result
 	end
-        def self.to_corba(toolkit, result, indent)
+
+        def self.code_copy(toolkit, result, indent, dest, src, method, error_handling)
             each_field do |field_name, field_type|
-                if field_type.inlines_code?
-                    field_type.inline_toCORBA(toolkit, result, "corba.#{field_name}", "value.#{field_name}", indent)
+                if yield(field_name, field_type)
+                    result << "#{indent}#{dest}.#{field_name} = #{src}.#{field_name};\n"
+                elsif error_handling
+                    result << "#{indent}if (!#{method}(#{dest}.#{field_name}, #{src}.#{field_name})) return false;\n";
                 else
-                    result << "#{indent}if (!toCORBA(corba.#{field_name}, value.#{field_name})) return false;\n";
+                    result << "#{indent}#{method}(#{dest}.#{field_name}, #{src}.#{field_name});\n"
                 end
             end
 	    result
         end
-        def self.from_corba(toolkit, result, indent)
-            each_field do |field_name, field_type|
-                if field_type.inlines_code?
-                    field_type.inline_fromCORBA(toolkit, result, "corba.#{field_name}", "value.#{field_name}", indent)
-                else
-                    result << "#{indent}if (!fromCORBA(corba.#{field_name}, value.#{field_name})) return false;\n";
-                end
+
+        def self.to_corba(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "corba", "value", "toCORBA", true) do |field_name, field_type|
+                field_type.inlines_code?
             end
-	    result
+        end
+        def self.from_corba(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA", true) do |field_name, field_type|
+                field_type.inlines_code?
+            end
+        end
+        def self.to_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate", false) do |field_name, field_type|
+                !field_type.contains_opaques?
+            end
+        end
+        def self.from_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate", false) do |field_name, field_type|
+                !field_type.contains_opaques?
+            end
         end
 
 	def self.from_property_bag(toolkit, result, indent)
@@ -512,7 +554,7 @@ else
 	    result
 	end
 
-        def self.to_corba(toolkit, result, indent)
+        def self.code_copy(toolkit, result, indent, dest, src, method)
             element_type = registry.build(deference.name)
 
             allocate_index do |i|
@@ -521,34 +563,35 @@ else
 #{indent}{
                 EOT
 
-                if element_type.inlines_code?
-                    element_type.inline_toCORBA(toolkit, result, "corba[#{i}]", "value[#{i}]", indent + "    ")
+                if yield(element_type)
+                    result << "#{indent}    #{dest}[#{i}] = #{src}[#{i}]"
                 else
-                    result << indent << "    if (!toCORBA(corba[#{i}], value[#{i}])) return false;\n";
+                    result << "#{indent}    if (!#{method}(#{dest}[#{i}], #{src}[#{i}])) return false;\n";
                 end
 
                 result << "#{indent}}\n";
             end
 	    result
         end
-        def self.from_corba(toolkit, result, indent)
-            element_type = registry.build(deference.name)
-
-            allocate_index do |i|
-                result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < #{length}; ++#{i})
-#{indent}{
-                EOT
-
-                if element_type.inlines_code?
-                    element_type.inline_fromCORBA(toolkit, result, "corba[#{i}]", "value[#{i}]", indent + "    ")
-                else
-                    result << indent << "    if (!fromCORBA(corba[#{i}], value[#{i}])) return false;\n";
-                end
-
-                result << "#{indent}}\n";
+        def self.to_corba(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type|
+                type.inlines_code?
             end
-	    result
+        end
+        def self.from_corba(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type|
+                type.inlines_code?
+            end
+        end
+        def self.to_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+                !type.contains_opaques?
+            end
+        end
+        def self.from_intermediate(toolkit, result, indent)
+            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+                !type.contains_opaques?
+            end
         end
         def self.to_stream(toolkit, result, indent)
             element_type = registry.build(deference.name)
@@ -1126,9 +1169,7 @@ module Orocos
                 converted_types = generated_types.
                     find_all { |type| !type.opaque? && !toolkit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
-                puts generated_types.map { |t| t.name }
-                puts
-                puts converted_types.map { |t| t.name }
+
                 registered_types = generated_types.
                     find_all { |type| !toolkit.m_type?(type) && !(type <= Typelib::ArrayType) }.
                     sort_by { |type| type.name }.uniq
@@ -1158,10 +1199,12 @@ module Orocos
                     Generation.save_automatic("toolkit", "#{component.name}-transport-corba.pc.in", pkg_config)
 		end
 
-                # Generate the user part for opaque types
+                # Generate the opaque-related stuff
                 if !opaques.empty?
-                    intermediates = Generation.render_template 'toolkit/ToolkitIntermediates.hpp', binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates)
+                    intermediates_hpp = Generation.render_template 'toolkit/ToolkitIntermediates.hpp', binding
+                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates_hpp)
+                    intermediates_cpp = Generation.render_template 'toolkit/ToolkitIntermediates.cpp', binding
+                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.cpp", intermediates_cpp)
                     if has_opaques_with_templates?
                         user_hh = Generation.render_template 'toolkit/ToolkitUser.hpp', binding
                         user_cc = Generation.render_template 'toolkit/ToolkitUser.cpp', binding
