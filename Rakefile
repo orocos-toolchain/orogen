@@ -22,12 +22,14 @@ end
 do_doc = begin
              require 'webgen/webgentask'
              require 'rdoc/task'
+             true
          rescue LoadError => e
              STDERR.puts "ERROR: cannot load webgen and/or RDoc, documentation generation disabled"
              STDERR.puts "ERROR:   #{e.message}"
          end
 
 if do_doc
+    task 'doc' => 'doc:all'
     namespace 'doc' do
         task 'all' => %w{guide api}
         task 'clobber' => 'clobber_guide'
