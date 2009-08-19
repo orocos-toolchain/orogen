@@ -22,21 +22,42 @@ module Orocos
             end
         end
 
+        # This is the root class for all oroGen features: one Component instance
+        # represents one oroGen project specification.
+        #
+        # Toplevel statements in the .orogen files are instance methods on a
+        # Component instance. For instance, the
+        #   
+        #   task_context "Name" do
+        #      ...
+        #   end
+        #
+        # call is actually a call to #task_context.
+        #
+        # An existing orogen file can be loaded with Component.load
 	class Component
-	    # The set of tasks whose definition is available
+            # A set of TaskContext instances listing all the tasks whose
+            # definition is available in this project. This includes the task
+            # definitions imported from other task libraries.
+            #
+            # See #self_tasks for the set of tasks defined in this project.
 	    attr_reader :tasks
 
-            # The set of tasks defined by this component
+            # A set of TaskContext instances listing the tasks defined in this
+            # project. 
+            #
+            # See #tasks for the set of all task definitions available in the
+            # project.
             def self_tasks
                 tasks.find_all { |t| !t.external_definition? }
             end
 
-	    # The Typelib::Registry object holding all known
-	    # types defined in this component
+            # The Typelib::Registry object holding all known types defined in
+            # this project
 	    attr_reader :registry
 
-            # The target OS for orocos. Uses the OROCOS_TARGET environment
-            # variable, if set, and defaults to gnulinux otherwise.
+            # The target operating system for orocos. Uses the OROCOS_TARGET
+            # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
                 Orocos::Generation.orocos_target.dup
             end
@@ -46,8 +67,14 @@ module Orocos
             # True if the orocos target is xenomai
             def xenomai?; orocos_target == 'xenomai' end
 
-	    # The version number of this component. Defaults to
-	    # "0.0"
+            # :method: version
+            #
+	    # The version number of this component. Defaults to "0.0"
+
+            # :method: version 'new_version'
+            #
+            # Sets the version number of this project. The default is "0.0"
+
 	    dsl_attribute(:version) do |name|
 		name = name.to_s
 		if name !~ /^\d/
@@ -239,6 +266,8 @@ module Orocos
 		used_toolkits << ImportedToolkit.new(name, pkg, toolkit_registry, toolkit_typelist)
 	    end
 
+            # A Typelib::Registry object defining all the types that are defined
+            # in the RTT, as for instance vector<double> and string.
 	    attr_reader :rtt_registry
 
             # Returns true if +typename+ has been defined by a toolkit imported
@@ -326,7 +355,7 @@ module Orocos
             CMAKE_GENERATED_CONFIG = %w{Base.cmake TaskLib.cmake}
 
             # Generate the CMake build system for this component
-	    def generate_build_system
+	    def generate_build_system # :nodoc:
 		component = self
 
 		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
@@ -485,7 +514,7 @@ module Orocos
                 used_task_libraries << component
             end
 
-	    # Deprecated. Use #deployment instead
+	    # DEPRECATED. Use #deployment instead
             def static_deployment(&block)
 		deployment = deployment("test_#{name}", &block)
 		deployment.do_not_install
@@ -493,8 +522,8 @@ module Orocos
             end
 
             # call-seq:
-            #   deployment name[, options] do
-            #     ... deployment specification ...
+            #   deployment(name[, options]) do
+            #       specification
             #   end
             #
 	    # Defines a deployment, i.e. an Unix executable in which a certain
@@ -502,10 +531,10 @@ module Orocos
 	    # and triggers and (optionally) connected to each other and/or
 	    # started.
 	    #
-	    # The statements in the given block are method calls to a
-	    # StaticDeployment instance, so see the documentation of that class
-	    # for more information.
-	    def deployment(name, &block)
+            # The statements in the given block are method calls to a
+            # StaticDeployment instance, so see the documentation of that class
+            # for more information.
+	    def deployment(name, &block) # :yield:
                 deployer = StaticDeployment.new(self, name, &block)
                 deployer.instance_eval(&block) if block_given?
                 @deployers << deployer
