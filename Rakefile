@@ -2,16 +2,26 @@ require './lib/orogen/version'
 
 begin
     require 'hoe'
-    config = Hoe.new('orogen', Orocos::Generation::VERSION) do |p|
-        p.developer("Sylvain Joyeux", "sylvain.joyeux@dfki.de")
+    namespace 'dist' do
+        config = Hoe.new('orogen', Orocos::Generation::VERSION) do |p|
+            p.developer("Sylvain Joyeux", "sylvain.joyeux@dfki.de")
 
-        p.summary = 'Component generation for Orocos::RTT'
-        p.description = p.paragraphs_of('README.txt', 3..6).join("\n\n")
-        p.url         = p.paragraphs_of('README.txt', 0).first.split(/\n/)[1..-1]
-        p.changes     = p.paragraphs_of('History.txt', 0..1).join("\n\n")
+            p.summary = 'Component generation for Orocos::RTT'
+            p.description = p.paragraphs_of('README.txt', 3..6).join("\n\n")
+            p.url         = p.paragraphs_of('README.txt', 0).first.split(/\n/)[1..-1]
+            p.changes     = p.paragraphs_of('History.txt', 0..1).join("\n\n")
 
-        p.extra_deps << 'utilrb' << 'rake' << 'nokogiri'
+            p.extra_deps << 
+                ['utilrb', '>= 0'] <<
+                ['rake', '>= 0'] <<
+                ['nokogiri', '>= 0']
+        end
     end
+
+    # This sucks, I know, but Hoe's handling of documentation is not
+    # enough for me
+    tasks = Rake.application.instance_variable_get :@tasks
+    tasks.delete_if { |n, _| n =~ /dist:(re|clobber_|)docs/ }
 rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
 rescue Exception => e
@@ -30,6 +40,11 @@ do_doc = begin
 
 if do_doc
     task 'doc' => 'doc:all'
+    task 'redocs' do
+        Rake::Task['doc:clobber'].invoke
+        Rake::Task['doc'].invoke
+    end
+
     namespace 'doc' do
         task 'all' => %w{guide api}
         task 'clobber' => 'clobber_guide'
