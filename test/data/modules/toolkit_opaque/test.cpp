@@ -23,6 +23,7 @@ using namespace RTT;
 using std::cerr;
 using std::endl;
 
+static const int TYPELIB_MARSHALLER_ID = 42;
 namespace NotOrogenCompatible {
     extern std::ostream& operator << (std::ostream& io, Point2D const& data);
 }
@@ -130,7 +131,7 @@ bool test_plain_opaque()
             new ConstantDataSource<NotOrogenCompatible::Point2D>(testValue);
         source->ref();
         std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
 
         if (sizeof(TestOpaque::Point2D) != result->size())
         {
@@ -177,7 +178,7 @@ bool test_composed_opaque()
             = new ConstantDataSource<TestOpaque::Position>(testValue);
         source->ref();
         std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
 
         if (sizeof(TestOpaque::Position_m) != result->size())
         {
@@ -234,7 +235,7 @@ bool test_shared_pointer()
             = new ConstantDataSource<boost::shared_ptr< std::vector<float> > >(testValue);
         source->ref();
         std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
 
         uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
         if (size != (*testValue).size())
@@ -282,7 +283,7 @@ bool test_shared_ptr_shortcut()
             = new ConstantDataSource<boost::shared_ptr< std::vector<int> > >(testValue);
         source->ref();
         std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
 
         uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
         if (size != (*testValue).size())
@@ -330,7 +331,7 @@ bool test_ro_ptr()
             = new ConstantDataSource<RTT::ReadOnlyPointer< std::vector<int> > >(testValue);
         source->ref();
         std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(opaque::ORO_UNTYPED_PROTOCOL_ID));
+            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
 
         uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
         if (size != (*testValue).size())
@@ -355,7 +356,7 @@ bool test_ro_ptr()
 int ORO_main(int argc, char** argv)
 {
     log().setLogLevel( Logger::Debug );
-    RTT::Toolkit::Import( opaque::Toolkit );
+    RTT::Toolkit::Import( orogen_toolkits::opaqueToolkit );
 
     if (!test_plain_opaque())
     {

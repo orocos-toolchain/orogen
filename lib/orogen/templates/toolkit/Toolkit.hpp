@@ -3,11 +3,18 @@
 
 #include <rtt/ToolkitPlugin.hpp>
 
+namespace Typelib {
+    class Registry;
+}
+
 namespace orogen_toolkits {
     class <%= component.name %>ToolkitPlugin
         : public RTT::ToolkitPlugin
     {
+        Typelib::Registry* m_registry;
+
     public:
+        <%= component.name %>ToolkitPlugin();
         bool loadTypes();
         bool loadOperators();
         bool loadConstructors();

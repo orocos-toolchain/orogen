@@ -8,6 +8,14 @@
 <% if has_opaques_with_templates? %>
 #include "<%= component.name %>ToolkitIntermediates.hpp"
 <% end %>
+<% toolkit.used_toolkits.each do |tk| %>
+#include <toolkit/<%= tk.name %>ToolkitImpl.hpp>
+<% end %>
+
+#include <typelib/value_ops.hh>
+#include <typelib/pluginmanager.hh>
+#include <utilmm/configfile/pkgconfig.hh>
+using RTT::DataSourceBase;
 
 using RTT::Property;
 
@@ -135,13 +143,78 @@ bool orogen_toolkits::<%= type.method_name(true) %>TypeInfo::composeTypeImpl(con
 
 <% end %>
 
+template<typename T>
+struct BufferGetter : public RTT::detail::TypeTransporter
+{
+    Typelib::MemoryLayout layout;
+    BufferGetter(std::string const& name, Typelib::Registry const& registry)
+    {
+        layout = Typelib::layout_of(*registry.get(name), false, false);
+    }
+
+    void* createBlob(RTT::DataSourceBase::shared_ptr data) const
+    {
+        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
+        return reuseBlob(buffer, data);
+    }
+
+    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    {
+        typename RTT::DataSource<T>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<T> >(data);
+        T sample = obj->get();
+
+        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
+        buffer->clear();
+        Typelib::dump(reinterpret_cast<uint8_t*>(&sample), *buffer, layout);
+        return buffer;
+    }
+
+    bool updateBlob(const void* blob, DataSourceBase::shared_ptr target) const { return false; }
+    DataSourceBase* proxy(void* data ) const { return 0; }
+    void* server(DataSourceBase::shared_ptr source, bool assignable, void* arg) const { return 0; }
+    void* method(DataSourceBase::shared_ptr source, RTT::MethodC* orig, void* arg) const { return 0; }
+    DataSourceBase* dataProxy( RTT::PortInterface* data ) const { return 0; }
+    DataSourceBase* dataProxy( void* data ) const { return 0; }
+    void* dataServer( DataSourceBase::shared_ptr source, void* arg) const { return 0; }
+    RTT::BufferBase* bufferProxy( RTT::PortInterface* data ) const { return 0; }
+    RTT::BufferBase* bufferProxy( void* data ) const { return 0; }
+    void* bufferServer( RTT::BufferBase::shared_ptr source, void* arg) const { return 0; }
+    DataSourceBase* narrowDataSource(DataSourceBase* dsb) { return 0; }
+    DataSourceBase* narrowAssignableDataSource(DataSourceBase* dsb) { return 0; }
+};
+
+static const int ORO_TYPELIB_MARSHALLER_ID = 42;
+
+orogen_toolkits::<%= component.name %>ToolkitPlugin::<%= component.name %>ToolkitPlugin()
+    : m_registry() {}
+
+#define TOOLKIT_PACKAGE_NAME_aux0(target) #target
+#define TOOLKIT_PACKAGE_NAME_aux(target) "<%= component.name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
+#define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
 bool orogen_toolkits::<%= component.name %>ToolkitPlugin::loadTypes()
 {
     RTT::TypeInfoRepository::shared_ptr ti_repository = RTT::TypeInfoRepository::Instance();
-    RTT::TypeInfo* ti = 0;
 
+    try {
+        utilmm::pkgconfig pkg(TOOLKIT_PACKAGE_NAME);
+        std::string tlb = pkg.get("type_registry");
+        m_registry = Typelib::PluginManager::load("tlb", tlb);
+    }
+    catch(utilmm::not_found)
+    {
+        std::cerr << "cannot find the pkg-config specification associated with this toolkit:" << std::endl;
+        std::cerr << "  " << TOOLKIT_PACKAGE_NAME << std::endl;
+        std::cerr << "this is required to use the toolkit. Aborting" << std::endl;
+        return false;
+    }
+
+    RTT::TypeInfo* ti = 0;
     <% registered_types.each do |type| %>
     ti = new <%= type.method_name(true) %>TypeInfo();
+    try
+    { ti->addProtocol(ORO_TYPELIB_MARSHALLER_ID, new BufferGetter< <%= type.cxx_name %> >("<%= type.name %>", *m_registry)); }
+    catch(Typelib::NoLayout)
+    { std::cerr << "could not register a typelib marshaller for <%= type.name %>" << std::endl; }
     ti_repository->addType( ti );
     <% end %>
 

@@ -285,7 +285,7 @@ module Typelib
                 EOT
 
                 if element_type.inlines_code?
-                    result << "#{indent}corba[#{element_idx}] = (*it)"
+                    result << "    #{indent}corba[#{element_idx}] = (*it);\n"
                 else
                     result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
                 end
@@ -311,7 +311,7 @@ module Typelib
                 EOT
 
                 if element_type.inlines_code?
-                    result << "#{indent}    corba[#{element_idx}] = value[#{element_idx}]"
+                    result << "#{indent}    value[#{element_idx}] = corba[#{element_idx}];\n"
                 else
                     result << "#{indent}    fromCORBA(corba[#{element_idx}], value[#{element_idx}]);\n";
                 end
@@ -564,7 +564,7 @@ else
                 EOT
 
                 if yield(element_type)
-                    result << "#{indent}    #{dest}[#{i}] = #{src}[#{i}]"
+                    result << "#{indent}    #{dest}[#{i}] = #{src}[#{i}];\n"
                 else
                     result << "#{indent}    if (!#{method}(#{dest}[#{i}], #{src}[#{i}])) return false;\n";
                 end

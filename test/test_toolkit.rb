@@ -45,8 +45,11 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         build_test_component('modules/toolkit_opaque', with_corba, "bin/test") do |cmake|
             cmake << "\nADD_DEFINITIONS(-DWITH_CORBA)" if with_corba
             cmake << "\nADD_EXECUTABLE(test test.cpp)"
-            cmake << "\nTARGET_LINK_LIBRARIES(test opaque-toolkit-${OROCOS_TARGET})"
-            cmake << "\nTARGET_LINK_LIBRARIES(test ${OROCOS_COMPONENT_LIBRARIES})"
+            cmake << "\ntarget_link_libraries(test opaque-toolkit-${OROCOS_TARGET})"
+            if with_corba
+            cmake << "\ntarget_link_libraries(test opaque-transport-corba-${OROCOS_TARGET})"
+            end
+            cmake << "\ntarget_link_libraries(test ${OROCOS_COMPONENT_LIBRARIES})"
             cmake << "\nINSTALL(TARGETS test RUNTIME DESTINATION bin)"
             cmake << "\n"
 	end
@@ -148,7 +151,7 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
         assert_equal ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux"], deps.to_a.map(&:name).sort
     end
     def test_dependencies_without_corba
-        test_toolkit_dependencies(false)
+        test_dependencies(false)
     end
 end
 

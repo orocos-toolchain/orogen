@@ -1,8 +1,13 @@
+#include "toolkit/<%= component.name %>ToolkitC.h"
 #include "<%= component.name %>ToolkitCorba.hpp"
 #include "<%= component.name %>ToolkitCorbaImpl.hpp"
+#include <rtt/corba/CorbaTemplateProtocol.hpp>
 #include <rtt/Toolkit.hpp>
 <% if has_opaques_with_templates? %>
 #include "<%= component.name %>ToolkitIntermediates.hpp"
+<% end %>
+<% toolkit.used_toolkits.each do |tk| %>
+#include <toolkit/<%= tk.name %>ToolkitCorbaImpl.hpp>
 <% end %>
 using namespace RTT;
 
@@ -15,7 +20,7 @@ bool orogen_toolkits::toCORBA( <%= type.corba_ref_type %> corba, <%= type.arg_ty
 	%>
     return true;
 }
-bool orogen_toolkits::fromCORBA( <%= type.corba_arg_type %> corba, <%= type.ref_type %> value )
+bool orogen_toolkits::fromCORBA( <%= type.ref_type %> value, <%= type.corba_arg_type %> corba )
 {
 <%= result = ""
 	type.from_corba(toolkit, result, " " * 4)
@@ -34,16 +39,16 @@ bool orogen_toolkits::toCORBA( <%= intermediate_type.corba_ref_type %> corba, <%
 <%= toolkit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>
     return toCORBA(corba, intermediate);
 }
-bool orogen_toolkits::fromCORBA( <%= intermediate_type.corba_arg_type %> corba, <%= type.ref_type %> value )
+bool orogen_toolkits::fromCORBA( <%= type.ref_type %> value, <%= intermediate_type.corba_arg_type %> corba )
 {
     <% if opdef.needs_copy? %>
     <%= intermediate_type.cxx_name %> intermediate;
-    if (!fromCORBA(corba, intermediate))
+    if (!fromCORBA(intermediate, corba))
         return false;
 <%= toolkit.code_fromIntermediate(intermediate_type, true, "    ") %>
     <% else %>
     std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>);
-    if (!fromCORBA(corba, *intermediate))
+    if (!fromCORBA(*intermediate, corba))
         return false;
 <%= toolkit.code_fromIntermediate(intermediate_type, false, "    ") %>
     <% end %>
@@ -97,12 +102,12 @@ bool orogen_toolkits::<%= type.method_name %>CorbaMarshaller::updateBlob(const v
         CorbaType  corba;
         if (!(*any >>= corba))
             return false;
-        return fromCORBA(corba, ad->set());
+        return fromCORBA(ad->set(), corba);
         <% else %>
         CorbaType*  corba;
         if (!(*any >>= corba))
             return false;
-        bool ret = fromCORBA(*corba, ad->set());
+        bool ret = fromCORBA(ad->set(), *corba);
         delete corba;
         return ret;
         <% end %>
