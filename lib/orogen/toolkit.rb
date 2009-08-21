@@ -645,6 +645,7 @@ module Orocos
                 # Find where +file+ is
                 include_dirs = []
                 include_dirs << component.base_dir if component.base_dir
+                include_dirs.concat(component.used_toolkits.map { |tk| tk.pkg.include_dirs }.flatten)
                 include_dirs.concat(component.used_libraries.map { |pkg| pkg.include_dirs }.flatten)
                 include_dirs.concat(component.used_task_libraries.map { |component| component.pkg.include_dirs }.flatten)
 
@@ -677,6 +678,11 @@ module Orocos
 		loads << file
 	    end
 
+            # Returns the set of headers that have been loaded locally
+            def local_headers
+                loads.find_all { |path| path =~ /^#{Regexp.quote(component.base_dir)}/ }
+            end
+
             # Packages defined in this component on which the toolkit should
             # depend. See #internal_dependency.
             attr_reader :internal_dependencies
@@ -706,6 +712,26 @@ module Orocos
 	    def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
             def enable_corba;  @corba_enabled = true end
 	    def disable_corba; @corba_enabled = false end
+
+            # List of toolkits that this toolkit depends on
+            def used_toolkits
+                result = Set.new
+
+		registry.each_type do |type|
+                    component.used_toolkits.each do |tk|
+                        if tk.includes?(type)
+                            result << tk
+                            break
+                        end
+                    end
+		end
+                result
+            end
+
+            # Returns the set of pkg-config packages this toolkit depends on
+            def dependencies
+                component.used_libraries + used_toolkits.map(&:pkg)
+            end
 
 	    def to_code(generated_types, registry)
 		toolkit = self
@@ -852,6 +878,19 @@ module Orocos
 		end
 	    end
 
+            # Returns the set of types that are specifically handled by this
+            # toolkit
+            def self_types
+                generated_types = []
+		registry.each_type do |type|
+                    next if component.imported_type?(type.name)
+		    if type < Typelib::CompoundType || type < Typelib::ContainerType
+			generated_types << type
+		    end
+		end
+                generated_types
+            end
+
 	    def generate
 		toolkit = self
 
@@ -862,14 +901,7 @@ module Orocos
 		registry = component.used_toolkits.
 		    inject(registry) { |reg, tk| reg.minimal(tk.registry) }
 
-		generated_types = []
-		registry.each_type do |type|
-                    next if component.imported_type?(type.name)
-		    if type < Typelib::CompoundType || type < Typelib::ContainerType
-			generated_types << type
-		    end
-		end
-
+		generated_types = self_types
 
 		issue_warnings(generated_types, registry)
                 handle_opaques_generation(generated_types, registry)

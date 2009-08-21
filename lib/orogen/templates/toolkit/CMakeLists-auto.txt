@@ -39,9 +39,10 @@ INCLUDE_DIRECTORIES(${TYPELIB_INCLUDE_DIRS})
 
 # Add the include directories to the component dependencies to the include path,
 # so that we can use headers that come from those dependencies
-<% component.used_libraries.each do |pkg| %>
+<% toolkit.dependencies.each do |pkg| %>
 pkg_check_modules(<%= pkg.name %> REQUIRED <%= pkg.name %>)
-INCLUDE_DIRECTORIES(${<%= pkg.name %>_INCLUDE_DIRS})
+include_directories(${<%= pkg.name %>_INCLUDE_DIRS})
+link_directories(${<%= pkg.name %>_LIBRARY_DIRS})
 <% end %>
 
 LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
@@ -55,19 +56,24 @@ add_library(${libname} SHARED <%= component.name %>Toolkit.cpp ${CORBA_FILES}
     <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.cpp" if toolkit.has_opaques_with_templates? %>)
 INSTALL(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 
+# Install the main toolkit headers, as well as the local headers
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.hpp
     <%= "${PROJECT_SOURCE_DIR}/toolkit/#{component.name}ToolkitUser.hpp" unless toolkit.opaques.empty? %>
     DESTINATION include/orocos/toolkit)
 
-TARGET_LINK_LIBRARIES(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
-<% if toolkit.corba_enabled? %>
-TARGET_LINK_LIBRARIES(${libname} orocos-rtt-corba-${OROCOS_TARGET})
-<% end %>
+INSTALL(FILES <%= toolkit.local_headers.join(" ") %>
+    DESTINATION include/orocos/<%= component.name %>)
 
+target_link_libraries(${libname} ${TYPELIB_LIBRARIES} orocos-rtt-${OROCOS_TARGET})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-${OROCOS_TARGET})
 <% if toolkit.corba_enabled? %>
+target_link_libraries(${libname} orocos-rtt-corba-${OROCOS_TARGET})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-corba-${OROCOS_TARGET})
+<% end %>
+
+<% toolkit.dependencies.each do |pkg| %>
+target_link_libraries(${libname} ${<%= pkg.name %>_LIBRARIES})
 <% end %>
 
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")

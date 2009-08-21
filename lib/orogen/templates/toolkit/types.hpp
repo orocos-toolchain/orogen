@@ -5,8 +5,7 @@
 
 <% for file in loads %>
 <% if File.exists?(file) %>
-#line 1 <%= "\"#{file}\"" %>
-<%= File.read(file) %>
+#include "<%= File.basename(file) %>"
 <% else %>
 #include <<%= file %>>
 <% end %>

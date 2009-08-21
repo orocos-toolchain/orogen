@@ -1,0 +1,7 @@
+name 'tkdeps'
+
+using_library "tkdeps_lib"
+import_types_from "tkdeps_0.h"
+import_types_from "tkdeps_parent"
+import_types_from "tkdeps_1.h"
+

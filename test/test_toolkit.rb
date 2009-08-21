@@ -105,7 +105,41 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
         check_output_file('modules/toolkit_simple', 'simple.cpf')
         check_output_file('modules/toolkit_simple', 'simple.xml')
+
+        # The simple.h header should be installed in orocos/toolkit/simple.h
+        assert File.exists?( File.join(prefix_directory, "include", "orocos", "simple", "simple.h") )
     end
     def test_simple_without_corba; test_simple(false) end
+
+    def test_dependencies(with_corba = true)
+        # Install a fake library
+        libprefix = File.join(prefix_directory, "libs/toolkit_dependencies_lib")
+        FileUtils.mkdir_p File.join(libprefix, "include")
+        FileUtils.mkdir_p File.join(libprefix, "lib", "pkgconfig")
+        FileUtils.cp File.join(TEST_DATA_DIR, "modules", "toolkit_dependencies_lib", "tkdeps_lib.h"), File.join(libprefix, "include")
+        File.open(File.join(libprefix, "lib", "pkgconfig", "tkdeps_lib.pc"), 'w') do |io|
+            io << "Name: Blablabla\n"
+            io << "Description: Blablabla\n"
+            io << "Version: 0\n"
+            io << "Cflags: -I#{libprefix}/include\n"
+            io << "Libs: \n"
+        end
+        ENV['PKG_CONFIG_PATH'] += ":#{libprefix}/lib/pkgconfig"
+
+        # Install the parent toolkit (the one that will be imported in the main
+        # toolkit)
+        build_test_component 'modules/toolkit_dependencies_parent', with_corba
+        install
+        ENV['PKG_CONFIG_PATH'] += ":" + File.join(prefix_directory, 'lib', 'pkgconfig')
+
+        # And now the final one ...
+        component = build_test_component('modules/toolkit_dependencies', with_corba)
+
+        deps = component.toolkit.dependencies
+        assert_equal ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux"], deps.to_a.map(&:name).sort
+    end
+    def test_dependencies_without_corba
+        test_toolkit_dependencies(false)
+    end
 end
 

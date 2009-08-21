@@ -136,6 +136,7 @@ module Orocos
                     FileUtils.cp_r source, working_directory
                 end
 
+                component = nil
                 in_wc do
                     spec = Dir.glob("*.orogen").to_a.first
                     component = Component.load(spec)
@@ -158,6 +159,7 @@ module Orocos
                         assert(system(test_bin))
                     end
                 end
+                component
             end
 
 
