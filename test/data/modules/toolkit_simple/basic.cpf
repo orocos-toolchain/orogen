@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "cpf.dtd">
+<properties>
+  <simple name=".v0" type="boolean"><value>1</value></simple>
+  <simple name=".v1" type="long"><value>-100</value></simple>
+  <simple name=".v2" type="ulong"><value>200</value></simple>
+  <simple name=".v3" type="long"><value>-1024</value></simple>
+  <simple name=".v4" type="ulong"><value>40000</value></simple>
+  <simple name=".v5" type="long"><value>-100000</value></simple>
+  <simple name=".v6" type="ulong"><value>3000000000</value></simple>
+  <simple name=".e" type="string"><value>VALUE_20</value></simple>
+  <simple name=".a[0]" type="long"><value>97</value></simple>
+  <simple name=".a[1]" type="long"><value>98</value></simple>
+  <simple name=".a[2]" type="long"><value>99</value></simple>
+  <simple name=".a[3]" type="long"><value>100</value></simple>
+  <simple name=".a[4]" type="long"><value>101</value></simple>
+  <simple name=".a[5]" type="long"><value>102</value></simple>
+  <simple name=".a[6]" type="long"><value>103</value></simple>
+  <simple name=".a[7]" type="long"><value>104</value></simple>
+  <simple name=".a[8]" type="long"><value>105</value></simple>
+  <simple name=".a[9]" type="long"><value>106</value></simple>
+  <simple name=".a[10]" type="long"><value>107</value></simple>
+  <simple name=".a[11]" type="long"><value>108</value></simple>
+  <simple name=".a[12]" type="long"><value>109</value></simple>
+  <simple name=".a[13]" type="long"><value>110</value></simple>
+  <simple name=".a[14]" type="long"><value>111</value></simple>
+  <simple name=".a[15]" type="long"><value>112</value></simple>
+  <simple name=".a[16]" type="long"><value>113</value></simple>
+  <simple name=".a[17]" type="long"><value>114</value></simple>
+  <simple name=".a[18]" type="long"><value>115</value></simple>
+  <simple name=".a[19]" type="long"><value>116</value></simple>
+  <simple name=".a.size" type="long"><value>20</value></simple>
+</properties>

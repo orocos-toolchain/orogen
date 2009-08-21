@@ -1,1 +1,0 @@
-<%= registry.export 'idl', :namespace_suffix => 'Corba', :opaque_as_any => true %>

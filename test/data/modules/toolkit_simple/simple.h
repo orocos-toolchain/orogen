@@ -1,5 +1,6 @@
 #ifndef __orogen
 #include <stdint.h>
+#include <vector>
 #endif
 
 namespace Test {
@@ -18,10 +19,6 @@ namespace Test {
         unsigned short     v4;
         int                v5;
         unsigned int       v6;
-        long               v7;
-        unsigned long      v8;
-        long long          v9;
-        unsigned long long v10;
 
         BASIC_ENUM        e;
 	char               a[20];
@@ -36,10 +33,6 @@ namespace Test {
 	    if (other.v4 != v4) return false;
 	    if (other.v5 != v5) return false;
 	    if (other.v6 != v6) return false;
-	    if (other.v7 != v7) return false;
-	    if (other.v8 != v8) return false;
-	    if (other.v9 != v9) return false;
-	    if (other.v10 != v10) return false;
 
 	    if (other.e != e) return false;
 
@@ -53,13 +46,60 @@ namespace Test {
 #endif
     };
 
-    struct Timestamp {
-	uint32_t sec;
-	uint32_t usec;
+    struct Test64BitHandling
+    {
+        BaseTypes base;
+        long long ll;
+        unsigned long long ull;
+
+#ifndef __orogen
+        bool operator == (Test64BitHandling const& other) const
+        { 
+	    if (!(other.base == base)) return false;
+	    if (other.ll != ll) return false;
+	    if (other.ull != ull) return false;
+            return true;
+        }
+#endif
+
     };
 
-    struct Image {
+    struct SimpleVector {
+        uint32_t field;
         std::vector<uint8_t> data;
+#ifndef __orogen
+        bool operator == (SimpleVector const& other) const
+        { return field == other.field && data == other.data; }
+        bool operator != (SimpleVector const& other) const
+        { return !(*this == other); }
+#endif
+    };
+
+    struct ComplexVector
+    {
+        uint32_t field;
+        std::vector<SimpleVector> data;
+#ifndef __orogen
+        bool operator == (ComplexVector const& other) const
+        {
+            return field == other.field && data == other.data;
+        }
+#endif
+    };
+
+    struct ComplexArray
+    {
+        uint32_t field;
+        SimpleVector data[10];
+#ifndef __orogen
+        bool operator == (ComplexArray const& other) const
+        {
+            if (field != other.field) return false;
+            for (int i = 0; i < 10; ++i)
+                if (!(data[i] == other.data[i])) return false;
+            return true;
+        }
+#endif
     };
 }
 
