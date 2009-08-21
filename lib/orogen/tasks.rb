@@ -703,6 +703,17 @@ module Orocos
             def all_ports; @ports + (superclass ? superclass.all_ports : []) end
             def self_ports; @ports end
 
+            def each_port(only_self = false, &block)
+                if block_given?
+                    if !only_self && superclass
+                        superclass.each_port(false, &block)
+                    end
+                    @ports.each(&block)
+                else
+                    enum_for(:each_port, only_self)
+                end
+            end
+
 	    # call-seq:
 	    #	output_port 'name', '/type'
 	    #
@@ -715,6 +726,21 @@ module Orocos
                 @ports << OutputPort.new(self, name, type)
                 @ports.last
 	    end
+
+            # Enumerates the output ports available on this task context. If no
+            # block is given, returns the corresponding enumerator object.
+            def each_output_port(&block)
+                if block_given?
+                    ports.each do |p|
+                        yield(p) if p.kind_of?(OutputPort)
+                    end
+                    if superclass
+                        superclass.each_output_port(&block) if superclass
+                    end
+                else
+                    enum_for(:each_output_port)
+                end
+            end
 
 	    # call-seq:
 	    #	input_port 'name', '/type'
@@ -761,6 +787,21 @@ module Orocos
             # created at runtime.
             def dynamic_output_port?(name, type)
                 dynamic_ports.any? { |p| p.kind_of?(OutputPort) && p.type == component.find_type(type) && p.name === name }
+            end
+
+            # Enumerates the input ports available on this task context. If no
+            # block is given, returns the corresponding enumerator object.
+            def each_input_port
+                if block_given?
+                    ports.each do |p|
+                        yield(p) if p.kind_of?(InputPort)
+                    end
+                    if superclass
+                        superclass.each_input_port(&block) if superclass
+                    end
+                else
+                    enum_for(:each_input_port)
+                end
             end
 
             # A set of ports that will trigger this task when they get updated.
