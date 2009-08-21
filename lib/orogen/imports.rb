@@ -11,8 +11,11 @@ module Orocos
             def initialize(name, pkg, registry, typelist)
                 @name, @pkg, @registry, @typelist = name, pkg, registry, typelist
             end
-            def includes?(name)
-                typelist.include?(name)
+            def includes?(type)
+                typename = if type.respond_to?(:name) then type.name
+                           else type.to_str
+                           end
+                typelist.include?(typename)
             end
         end
 
