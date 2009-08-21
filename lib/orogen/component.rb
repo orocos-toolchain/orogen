@@ -370,11 +370,6 @@ module Orocos
                     end
                 end
 
-		# FileUtils.cp_r Generation.template_path('config'), Generation::AUTOMATIC_AREA_NAME
-                if !self_tasks.empty? && !File.exists?(include_symlink = File.join(Generation::AUTOMATIC_AREA_NAME, name.downcase))
-                    FileUtils.ln_sf 'tasks', include_symlink
-                end
-
 		# Generate the automatic part of the root cmake configuration
                 CMAKE_GENERATED_CONFIG.each do |file|
                     cmake = Generation.render_template "config", file, binding

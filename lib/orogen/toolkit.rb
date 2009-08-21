@@ -894,6 +894,20 @@ module Orocos
 	    def generate
 		toolkit = self
 
+                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'toolkit')
+
+                # Populate a fake installation directory so that the include
+                # files can be referred to as <project_name>/header.h
+                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                FileUtils.mkdir_p fake_install_dir
+
+                self.local_headers.each do |path|
+                    dest_path = File.join(fake_install_dir, File.basename(path))
+                    if !File.exists?(dest_path)
+                        FileUtils.ln_sf path, dest_path
+                    end
+                end
+
 		# Remove all unneeded types from imported toolkits
 		registry = self.registry.
 		    minimal(preloaded_registry).

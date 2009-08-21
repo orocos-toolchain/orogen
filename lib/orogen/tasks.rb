@@ -853,17 +853,18 @@ module Orocos
 		Generation.save_user "tasks", "#{basename}.cpp", code_cpp
 		Generation.save_user "tasks", "#{basename}.hpp", code_hpp
 
-                # Create a symbolic link in .orogen/tasks that points to
-                # tasks/File.hpp. This is needed for proper
-                # inter-module-dependency management, as the task file needs to
-                # be referred to as <project>/<task>.hpp
-                symlink = File.join(AUTOMATIC_AREA_NAME, 'tasks', "#{basename}.hpp")
-                if !File.exists?(symlink)
-                    Dir.chdir(File.dirname(symlink)) do
-                        FileUtils.ln_sf File.join("..", "..", "tasks", "#{basename}.hpp"), "#{basename}.hpp"
+
+                # Populate a fake installation directory managed in
+                # .orogen/<project_name> so that the includes can be referred to
+                # as <project_name>/taskNameBase.hpp.
+                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                FileUtils.mkdir_p fake_install_dir
+
+                ["#{basename}.hpp", "#{basename}Base.hpp"].each do |file|
+                    if !File.exists?(File.join(fake_install_dir, file))
+                        FileUtils.ln_sf File.join(component.base_dir, "tasks", file), File.join(fake_install_dir, file)
                     end
                 end
-
 
 		self
 	    end

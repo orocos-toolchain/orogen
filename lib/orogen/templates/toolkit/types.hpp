@@ -3,9 +3,11 @@
 
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
-<% for file in loads %>
-<% if File.exists?(file) %>
-#include "<%= File.basename(file) %>"
+<%
+    local_headers = toolkit.local_headers
+    for file in loads %>
+<% if local_headers.include?(file) %>
+#include "<%= component.name %>/<%= File.basename(file) %>"
 <% else %>
 #include <<%= file %>>
 <% end %>
