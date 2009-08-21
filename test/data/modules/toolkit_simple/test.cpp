@@ -101,8 +101,6 @@ int ORO_main(int argc, char** argv)
 	cerr << "cannot find /Test/BaseTypes in the type info repository" << endl;
 	return 1;
     }
-    cerr << dynamic_cast<EmptyTypeInfo*>(type) << endl;
-    cerr << type->getName() << endl;
 
     // Create a structure of type Test::BaseTypes, inject it into Orocos and check
     // that it is able to generate a XML representation of it
