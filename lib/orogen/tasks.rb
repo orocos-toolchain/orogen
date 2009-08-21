@@ -509,6 +509,9 @@ module Orocos
                 @superclass = component.default_task_superclass
                 @implemented_classes = []
 		@name = name
+                # This is an array, as we don't want to have it reordered
+                # unnecessarily
+                @states = Array.new
                 default_activity 'triggered'
 
 		@properties = Array.new
@@ -579,7 +582,7 @@ module Orocos
             # that some task contexts's implementation require the initial
             # state to be either PreOperational or Stopped.
             def needs_configuration
-                if superclass.fixed_initial_state?
+                if superclass && superclass.fixed_initial_state?
                     raise ArgumentError, "cannot change the start state of this task context: the superclass #{superclass.name} does not allow it"
                 elsif fixed_initial_state? && !needs_configuration?
                     raise ArgumentError, "cannot change the start state of this task context: #fixed_initial_state has been specified for it"
@@ -620,6 +623,155 @@ module Orocos
 	    # The set of methods for this task.
 	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
             def self_methods; @methods end
+
+            # Asks orogen to implement the extended state support interface in
+            # the Base class. This adds:
+            #  * a 'state' output port in which the current task's state is written
+            #  * an enumeration type named CLASS_NAME_STATES in which one value
+            #    is defined for each states
+            #
+            # Note that, for all of this to work, it is actually required that
+            # all the hooks overloaded in the task's class call their parent in
+            # the call chain.
+            def extended_state_support
+                state_port = each_port.find { |p| p.name == "state" }
+                if state_port
+                    if state_port.kind_of?(InputPort)
+                        raise ArgumentError, 
+                            "there is already an input port called 'state', cannot enable extended state support"
+                    elsif state_port.typename != "/int"
+                        raise ArgumentError, 
+                            "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.typename}"
+                    end
+                else
+                    output_port 'state', '/int'
+                end
+
+                # Force toolkit generation. The toolkit code will take care of
+                # generating the state enumeration type for us
+                component.toolkit(true)
+
+                @extended_state_support = true
+            end
+
+            # True if the extended state support is enabled
+            def extended_state_support?
+                @extended_state_support || (superclass.extended_state_support? if superclass)
+            end
+
+            # Returns true if the given state name is already used
+            def state?(name)
+                state_kind(name) || (superclass.state?(name.to_s) if superclass)
+            end
+
+            STATE_TYPES = [ :toplevel, :runtime, :error ]
+
+            # Internal method for state definition
+            def define_state(name, type) # :nodoc:
+                name = name.to_s
+                type = type.to_sym
+                if !STATE_TYPES.include?(type)
+                    raise ArgumentError, "unknown state type #{type.inspect}"
+                end
+
+                if !extended_state_support?
+                    extended_state_support
+                end
+
+                if kind = state_kind(name.to_s)
+                    if kind != type
+                        raise ArgumentError, "state #{name} is already defined as #{kind}, cannot overload into #{type}"
+                    end
+                else
+                    @states << [name, type]
+                    @states = @states.sort_by { |n, _| n }
+                end
+            end
+
+            # Returns what kind of state +name+ is
+            def state_kind(name) # :nodoc:
+                if s = each_state.find { |n, t| n == name }
+                    s[1]
+                end
+            end
+
+            # Returns the type name for the state enumeration
+            def state_type_name # :nodoc:
+                "#{basename}_STATES"
+            end
+
+            # Returns the C++ value name for the given state
+            def state_value_name(state_name, state_type) # :nodoc:
+                "#{basename}_#{state_name.upcase}"
+            end
+
+            # :method: each_runtime_state
+            #
+            # Enumerates all the runtime states
+            #
+            # See also #each_error_state and #each_state
+
+            # :method: each_error_state
+            #
+            # Enumerates all error states defined for this task context
+            #
+            # See also #each_runtime_state and #each_state
+
+            STATE_TYPES.each do |type|
+                class_eval <<-EOD
+                def each_#{type}_state
+                    if block_given?
+                        each_state do |name, type|
+                            yield(name) if type == :#{type}
+                        end
+                    else
+                        enum_for(:each_#{type}_state)
+                    end
+                end
+                EOD
+            end
+
+            # Enumerates each state defined on this task context.
+            def each_state(&block)
+                if block_given?
+                    superclass.each_state(&block) if superclass
+                    @states.each(&block)
+                else
+                    enum_for(:each_state)
+                end
+            end
+
+            # Declares a toplevel state. It should be used only to declare RTT's
+            # TaskContext states.
+            def states(*state_names) # :nodoc:
+                state_names.each do |name|
+                    define_state(name, :toplevel)
+                end
+            end
+
+            # Declares a certain number of runtime states
+            #
+            # This method will do nothing if it defines a state that is already
+            # defined by one of the superclasses.
+            #
+            # See #error_states, #each_state, #each_runtime_state
+            def runtime_states(*state_names)
+                state_names.each do |name|
+                    define_state(name, :runtime)
+                end
+            end
+
+            # Declares a certain number of error states
+            #
+            # This method will do nothing if it defines a state that is already
+            # defined by one of the superclasses.
+            #
+            # See #runtime_states, #each_state, #each_error_state
+            def error_states(*state_names)
+                state_names.each do |name|
+                    define_state(name, :error)
+                end
+            end
 
             # This method is an easier way use boost::shared_ptr in a task
             # context interface. For instance, instead of writing

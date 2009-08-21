@@ -51,6 +51,24 @@ namespace <%= component.name %> {
 
     public:
 	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
+
+        <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+        // Reimplement TaskCore base methods to export the states to the outside
+        // world
+        bool configure();
+        bool activate();
+        bool start();
+        bool stop();
+        bool cleanup();
+        bool resetError();
+        <% end %>
+
+        <% if task.extended_state_support? %>
+        void state(<%= task.state_type_name %> state);
+        void error(<%= task.state_type_name %> state);
+        void fatal(<%= task.state_type_name %> state);
+        <%= task.state_type_name %> state() const;
+        <% end %>
     };
 }
 

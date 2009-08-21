@@ -277,5 +277,68 @@ class TC_GenerationTasks < Test::Unit::TestCase
         create_wc("tasks/dynamic_ports")
 	compile_wc(component)
     end
+
+    def test_state_definitions
+        component = Component.new
+        component.name "test"
+
+        task = component.task_context "Task"
+        task.runtime_states "STATE1", "STATE3"
+        assert_equal ["STATE1", "STATE3"], task.each_runtime_state.to_a
+
+        task.error_states 'STATE2', 'STATE4'
+        assert_equal ["STATE1", "STATE3"], task.each_runtime_state.to_a
+        assert_equal ["STATE2", "STATE4"], task.each_error_state.to_a
+
+        assert_equal [['STATE1', :runtime], ['STATE2', :error], ['STATE3', :runtime], ['STATE4', :error]], task.each_state.to_a
+    end
+
+    def test_state_avoid_duplicates
+        component = Component.new
+        component.name "test"
+
+        task = component.task_context "Task"
+        task.runtime_states "STATE1"
+        task.error_states "STATE2"
+
+        assert_raises(ArgumentError) { task.error_states("STATE1") }
+        task.runtime_states("STATE1")
+        task.error_states("STATE2")
+        assert_raises(ArgumentError) { task.runtime_states("STATE2") }
+    end
+
+    def test_state_inheritance
+        component = Component.new
+        component.name "test"
+
+        parent = component.task_context "Parent"
+        parent.runtime_states "STATE1"
+        parent.error_states "STATE2"
+
+        child  = component.task_context "Child"
+        child.subclasses parent
+        assert_equal [['STATE1', :runtime], ['STATE2', :error]], child.each_state.to_a
+
+        assert_raises(ArgumentError) { child.error_states("STATE1") }
+        child.runtime_states("STATE1")
+        child.error_states("STATE2")
+        assert_raises(ArgumentError) { child.runtime_states("STATE2") }
+    end
+
+    def test_state_type_definitions
+        component = build_test_component('modules/extended_states', false)
+        install
+
+        parent = component.find_task_context "Parent"
+        child  = component.find_task_context "Child"
+
+        parent_states = component.find_type "/extstate/Parent_STATES"
+        child_states  = component.find_type "/extstate/Child_STATES"
+
+        parent_values = parent_states.keys
+        child_values  = child_states.keys
+        assert_equal parent_values['Parent_STATE1'], child_values['Child_STATE1']
+        assert_equal parent_values['Parent_STATE2'], child_values['Child_STATE2']
+    end
 end
 
