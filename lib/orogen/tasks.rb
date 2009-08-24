@@ -842,20 +842,6 @@ module Orocos
 
 		# Make this task be available in templates as 'task'
 		task = self
-	    
-                # We will populate a fake installation directory managed in
-                # .orogen/<project_name> so that the includes can be referred to
-                # as <project_name>/taskNameBase.hpp.
-                #
-                # But first, upgrade the old orogen behaviour if needed
-                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
-                if File.symlink?(fake_install_dir)
-                    FileUtils.rm_f fake_install_dir
-                    Dir.glob(File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "*")).each do |path|
-                        puts path
-                        FileUtils.rm_f path if File.symlink?(path)
-                    end
-                end
 
 		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
 		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
@@ -868,6 +854,7 @@ module Orocos
 		Generation.save_user "tasks", "#{basename}.hpp", code_hpp
 
 
+                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
                 FileUtils.mkdir_p fake_install_dir
 
                 FileUtils.ln_sf File.join(component.base_dir, "tasks", "#{basename}.hpp"),
