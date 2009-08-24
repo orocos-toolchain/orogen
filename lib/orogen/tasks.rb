@@ -860,11 +860,10 @@ module Orocos
                 fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
                 FileUtils.mkdir_p fake_install_dir
 
-                ["#{basename}.hpp", "#{basename}Base.hpp"].each do |file|
-                    if !File.exists?(File.join(fake_install_dir, file))
-                        FileUtils.ln_sf File.join(component.base_dir, "tasks", file), File.join(fake_install_dir, file)
-                    end
-                end
+                FileUtils.ln_sf File.join(component.base_dir, "tasks", "#{basename}.hpp"),
+                    File.join(fake_install_dir, "#{basename}.hpp")
+                FileUtils.ln_sf File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "#{basename}Base.hpp"),
+                    File.join(fake_install_dir, "#{basename}Base.hpp")
 
 		self
 	    end
