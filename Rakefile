@@ -3,18 +3,20 @@ require './lib/orogen/version'
 begin
     require 'hoe'
     namespace 'dist' do
-        config = Hoe.new('orogen', Orocos::Generation::VERSION) do |p|
-            p.developer("Sylvain Joyeux", "sylvain.joyeux@dfki.de")
+        config = Hoe.spec 'orogen' do
+            self.developer "Sylvain Joyeux", "sylvain.joyeux@dfki.de"
 
-            p.summary = 'Component generation for Orocos::RTT'
-            p.description = p.paragraphs_of('README.txt', 3..6).join("\n\n")
-            p.url         = p.paragraphs_of('README.txt', 0).first.split(/\n/)[1..-1]
-            p.changes     = p.paragraphs_of('History.txt', 0..1).join("\n\n")
+            self.summary = 'Component generation for Orocos::RTT'
+            self.description = paragraphs_of('README.txt', 3..6).join("\n\n")
+            self.changes     = paragraphs_of('History.txt', 0..1).join("\n\n")
 
-            p.extra_deps << 
-                ['utilrb', '>= 0'] <<
-                ['rake', '>= 0'] <<
-                ['nokogiri', '>= 0']
+            extra_deps << 
+                ['utilrb',   '>= 1.3.4'] <<
+                ['rake',     '>= 0.8'] <<
+                ['nokogiri', '>= 1.3.3']
+
+            extra_dev_deps <<
+                ['webgen', '>= 0.5.9']
         end
     end
 
@@ -40,6 +42,7 @@ do_doc = begin
 
 if do_doc
     task 'doc' => 'doc:all'
+    task 'clobber_docs' => 'doc:clobber'
     task 'redocs' do
         Rake::Task['doc:clobber'].invoke
         Rake::Task['doc'].invoke
