@@ -6,6 +6,7 @@
 # only if the user does not have disabled Corba support by calling
 # #disable_corba
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
 <% if !toolkit.opaques.empty? %>
@@ -48,6 +49,11 @@ link_directories(${<%= pkg.name %>_LIBRARY_DIRS})
 LINK_DIRECTORIES(${TYPELIB_LIBRARY_DIRS})
 <% if toolkit.corba_enabled? %>
 LINK_DIRECTORIES(${OrocosRTT_LIBRARY_DIRS})
+<% end %>
+
+link_directories(${OrocosRTT_LIBRARY_DIRS})
+<% if toolkit.corba_enabled? %>
+link_directories(${OrocosCORBA_LIBRARY_DIRS})
 <% end %>
 
 # Generate the toolkit shared library
