@@ -327,6 +327,20 @@ module Orocos
 		# For consistency in templates
 		component = self
 
+		# The toolkit and the task libraries populate a fake
+		# installation directory .orogen/<project_name> so that the
+		# includes can be referred to as <project_name>/taskNameBase.hpp.
+                #
+		# We have first to remove the way orogen was doing it before,
+		# and then let toolkit and task library do what they have to do
+                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                if File.symlink?(fake_install_dir)
+                    FileUtils.rm_f fake_install_dir
+                    Dir.glob(File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "*")).each do |path|
+                        FileUtils.rm_f path if File.symlink?(path)
+                    end
+                end
+
 		if toolkit
 		    toolkit.generate
 		end

@@ -23,6 +23,8 @@
 # These variables are used in tasks/CMakeLists.txt to actually build the shared
 # object.
 
+include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+
 <% if component.toolkit %>
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
 <% end %>

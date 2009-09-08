@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'orogen/test'
 
 class TC_Scripting < Test::Unit::TestCase

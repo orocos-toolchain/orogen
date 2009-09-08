@@ -8,6 +8,6 @@
     <alias name="/uint" source="/uint32_t"/>
     <alias name="/int64" source="/int64_t"/>
     <alias name="/uint64" source="/uint64_t"/>
-    <container name="/std/vector&lt;/double&gt;" of="/double" kind="/std/vector" />
+    <container name="/std/vector&lt;/double&gt;" of="/double" kind="/std/vector" size="0"/>
 </typelib>
 
