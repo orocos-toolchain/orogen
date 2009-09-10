@@ -313,7 +313,7 @@ module Typelib
                 if element_type.inlines_code?
                     result << "#{indent}    value[#{element_idx}] = corba[#{element_idx}];\n"
                 else
-                    result << "#{indent}    fromCORBA(corba[#{element_idx}], value[#{element_idx}]);\n";
+                    result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
                 end
 
                 result << "#{indent}}\n";
