@@ -881,6 +881,11 @@ module Orocos
             end
 
             # True if some opaques require to generate templates
+            def has_opaques?
+                !opaques.empty?
+            end
+
+            # True if some opaques require to generate templates
             def has_opaques_with_templates?
                 opaques.any? { |op| op.generate_templates? }
             end

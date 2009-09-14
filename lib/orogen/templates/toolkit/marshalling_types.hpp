@@ -1,10 +1,9 @@
 <% namespace = '/'
    did_something = false %>
 
-<% generated_types.each do |type|
-    next if type.opaque?
+<% generated_types.find_all { |type| type.contains_opaques? && !type.opaque? }.
+each do |type|
     next if component.imported_type?(type)
-    next unless type.contains_opaques?
 
     current_def = begin
                       registry.get("#{type.full_name}_m")
@@ -47,7 +46,9 @@ struct <%= type.basename %>_m
 <% type.each_field do |field_name, field_type|
     if field_type.opaque? %>
         <%= component.find_type(opaque_specification(field_type).intermediate).cxx_name %> <%= field_name %>;
-    <% else %>
+    <% elsif field_type.contains_opaques?
+        raise NotImplementedError, "in #{type.cxx_name}, #{field_name} of type #{field_type.cxx_name} contains an opaque, which is forbidden"
+       else %>
         <%= field_type.cxx_name %> <%= field_name %>;
     <% end %>
 <% end %>

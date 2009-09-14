@@ -34,6 +34,9 @@ generated_types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
         m_type = toolkit.find_type(type.name + "_m")
+        if !m_type
+            raise RuntimeError, "no intermediate marshalling type for #{type.name}"
+        end
 %>
     void to_intermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value);
     void from_intermediate(<%= type.ref_type %> value, <%= m_type.ref_type %> intermediate);

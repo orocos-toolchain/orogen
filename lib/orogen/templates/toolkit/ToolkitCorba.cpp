@@ -3,7 +3,7 @@
 #include "<%= component.name %>ToolkitCorbaImpl.hpp"
 #include <rtt/corba/CorbaTemplateProtocol.hpp>
 #include <rtt/Toolkit.hpp>
-<% if has_opaques_with_templates? %>
+<% if has_opaques? %>
 #include "<%= component.name %>ToolkitIntermediates.hpp"
 <% end %>
 <% toolkit.used_toolkits.each do |tk| %>

@@ -1,6 +1,11 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 #define <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 
+// This is a hack. We include it unconditionally as it may be required by some
+// toolkits *and* it is a standard header. Ideally, we would actually check if
+// some of the types need std::vector.
+#include <vector>
+
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
 <%
