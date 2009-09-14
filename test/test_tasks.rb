@@ -80,6 +80,24 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_raises(ArgumentError) { task.property("bla/bla", "/double") }
     end
 
+    def test_validate_toplevel_types
+	component = Component.new
+	component.name 'test'
+
+	task = component.task_context("Task")
+
+	meth = task.method("MethodName").
+	    doc("the method to test")
+
+        assert_raises(ArgumentError) { meth.argument("a", "short") }
+        assert_raises(ArgumentError) { meth.argument("a", "unsigned short") }
+        assert_raises(ArgumentError) { meth.argument("a", "char") }
+        assert_raises(ArgumentError) { meth.argument("a", "unsigned char") }
+        assert_raises(ArgumentError) { meth.argument("a", "long long") }
+        assert_raises(ArgumentError) { meth.argument("a", "unsigned long long") }
+        assert_raises(ArgumentError) { meth.argument("a", "float") }
+    end
+
     def test_task_method
 	component = Component.new
 	component.name 'test'

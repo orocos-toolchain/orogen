@@ -3,17 +3,21 @@
 using namespace numerics;
 
 Test::Test(std::string const& name, TaskCore::TaskState initial_state)
-    : TestBase(name, initial_state) {}
-
-
-int Test::m1(short a, unsigned short b, char c, unsigned char d) {
-    return 0;
+    : TestBase(name, initial_state)
+{
 }
 
-void Test::m2(int a, unsigned int b, long c, unsigned long d) {
+
+void Test::m2(int a, unsigned int b)
+{
 }
 
-void Test::m3(long long a, unsigned long long b, float c, double d) {
+void Test::m3(double d)
+{
+}
+
+void Test::m4(numerics::Bla e)
+{
 }
 
 

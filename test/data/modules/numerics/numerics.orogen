@@ -5,25 +5,18 @@
 name 'numerics'
 version '0.1'
 
-task_context "Test" do
-    method("m1").
-        returns("int").
-        argument("a", "short").
-        argument("b", "unsigned short").
-        argument("c", "char").
-        argument("d", "unsigned char")
+import_types_from "numerics.h"
 
+task_context "Test" do
     method("m2").
         argument("a", "int").
-        argument("b", "unsigned int").
-        argument("c", "long").
-        argument("d", "unsigned long")
+        argument("b", "unsigned int")
 
     method("m3").
-        argument("a", "long long").
-        argument("b", "unsigned long long").
-        argument("c", "float").
         argument("d", "double")
+
+    method("m4").
+        argument("e", "/numerics/Bla")
 end
 
 static_deployment do

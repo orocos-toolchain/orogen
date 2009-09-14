@@ -9,11 +9,11 @@ namespace numerics {
 	friend class TestBase;
     protected:
     
-	int m1(short a, unsigned short b, char c, unsigned char d);
+	void m2(int a, unsigned int b);
     
-	void m2(int a, unsigned int b, long c, unsigned long d);
+	void m3(double d);
     
-	void m3(long long a, unsigned long long b, float c, double d);
+	void m4(numerics::Bla e);
     
     
 

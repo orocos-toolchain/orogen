@@ -646,9 +646,9 @@ else
             end
 
             if type.integer?
-                type.name == "/bool" || type.size == 4 || type.size == 8
+                type.name == "/bool" || type.size == 4
             else
-                true
+                type.name == "/double"
             end
         end
         def base_rtt_type_for(type)
@@ -656,8 +656,14 @@ else
 		type
             elsif type < Typelib::NumericType
                 # 64 bit types are directly defined in RTT
-                if type.unsigned? then get("/unsigned int")
-                else get("/int")
+                if type.integer?
+                    if type.size == 8
+                        raise NotImplementedError, "there is no RTT type for 64bit integers, sorry"
+                    elsif type.unsigned? then get("/unsigned int")
+                    else get("/int")
+                    end
+                else
+                    get("/double")
                 end
             else
                 raise ArgumentError, "no type equivalent for #{type.name} in Orocos"
@@ -675,6 +681,10 @@ module Orocos
             attr_reader :code_generator
 
             def initialize(type, intermediate, options, code_generator)
+                if !type || !intermediate
+                    raise ArgumentError, "trying to create an opaque definition with nil types"
+                end
+
                 @type, @intermediate, @options, @code_generator =
                     type, intermediate, options, code_generator
             end
