@@ -11,5 +11,5 @@
   <simple name="[7]" type="long"><value>7</value></simple>
   <simple name="[8]" type="long"><value>8</value></simple>
   <simple name="[9]" type="long"><value>9</value></simple>
-  <simple name="[size]" type="long"><value>10</value></simple>
+  <simple name=".size" type="long"><value>10</value></simple>
 </properties>

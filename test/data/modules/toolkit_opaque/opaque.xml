@@ -1,5 +1,5 @@
 <bag type="/NotOrogenCompatible/Point2D">
-<int id="padding" description="">100</int>
-<double id="x" description="">10</double>
-<double id="y" description="">20</double>
+<int id=".padding" description="">100</int>
+<double id=".x" description="">10</double>
+<double id=".y" description="">20</double>
 </bag>

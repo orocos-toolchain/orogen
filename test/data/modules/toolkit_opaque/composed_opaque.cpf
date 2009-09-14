@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "cpf.dtd">
 <properties>
-  <simple name="timestamp" type="double"><value>10</value></simple>
-  <struct name="p" type="/NotOrogenCompatible/Point2D">
-     <simple name="padding" type="long"><value>100</value></simple>
-     <simple name="x" type="double"><value>20</value></simple>
-     <simple name="y" type="double"><value>30</value></simple>
-  </struct>
+  <simple name=".timestamp" type="double"><value>10</value></simple>
+  <simple name=".p.padding" type="long"><value>100</value></simple>
+  <simple name=".p.x" type="double"><value>20</value></simple>
+  <simple name=".p.y" type="double"><value>30</value></simple>
 </properties>

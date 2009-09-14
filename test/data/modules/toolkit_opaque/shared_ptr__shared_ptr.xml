@@ -9,5 +9,5 @@
 <int id="[7]" description="">7</int>
 <int id="[8]" description="">8</int>
 <int id="[9]" description="">9</int>
-<int id="[size]" description="">10</int>
+<int id=".size" description="">10</int>
 </bag>
