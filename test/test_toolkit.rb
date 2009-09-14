@@ -7,14 +7,13 @@ class TC_GenerationToolkit < Test::Unit::TestCase
     def test_orocos_type_equivalence
 	registry = Typelib::Registry.new
 
-	assert_equal(registry.get('int'), registry.orocos_equivalent(registry.get('int32_t')))
-	assert_equal(registry.get('unsigned int'), registry.orocos_equivalent(registry.get('uint32_t')))
-	assert_equal(registry.get('int'), registry.orocos_equivalent(registry.get('int16_t')))
-	assert_equal(registry.get('unsigned int'), registry.orocos_equivalent(registry.get('uint16_t')))
-	assert_equal(registry.get('int'), registry.orocos_equivalent(registry.get('short')))
-	assert_equal(registry.get('unsigned int'), registry.orocos_equivalent(registry.get('unsigned short')))
-
-	assert_raises(TypeError) { registry.orocos_equivalent(registry.get('int64_t')) }
+	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('int32_t')))
+	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('uint32_t')))
+	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('int16_t')))
+	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('uint16_t')))
+	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('short')))
+	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('unsigned short')))
+	assert_equal(registry.get('double'), registry.base_rtt_type_for(registry.get('float')))
     end
 
     def test_toolkit_load
@@ -101,13 +100,18 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         build_test_component('modules/toolkit_simple', with_corba, "bin/test") do |cmake|
             cmake << "ADD_DEFINITIONS(-DWITH_CORBA)\n" if with_corba
             cmake << <<-EOT
-link_directories(${OrocosCORBA_LIBDIR} ${OrocosRTT_LIBDIR})
-ADD_EXECUTABLE(test test.cpp)
-TARGET_LINK_LIBRARIES(test simple-toolkit-${OROCOS_TARGET}
-    simple-transport-corba-${OROCOS_TARGET})
-TARGET_LINK_LIBRARIES(test ${OrocosRTT_LIBRARIES} ${OrocosCORBA_LIBRARIES})
-INSTALL(TARGETS test RUNTIME DESTINATION bin)
+include_directories(${OrocosRTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})
+link_directories(${OrocosCORBA_LIBRARY_DIRS} ${OrocosRTT_LIBRARY_DIRS})
+add_executable(test test.cpp)
+target_link_libraries(test simple-toolkit-${OROCOS_TARGET})
+target_link_libraries(test ${OrocosRTT_LIBRARIES})
+install(TARGETS test RUNTIME DESTINATION bin)
             EOT
+
+            if with_corba
+                cmake << "target_link_libraries(test simple-transport-corba-${OROCOS_TARGET})\n"
+                cmake << "target_link_libraries(test ${OrocosCORBA_LIBRARIES})\n"
+            end
         end
 
         # The simple.h header should be installed in orocos/toolkit/simple.h

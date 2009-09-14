@@ -9,10 +9,10 @@ class TC_GenerationBase < Test::Unit::TestCase
 	assert_raises(ArgumentError) { Generation.load_template('does', 'not', 'exist') }
 
 	erb = nil
-	assert_nothing_raised { erb = Generation.load_template('toolkit', 'type_info.cpp') }
+	assert_nothing_raised { erb = Generation.load_template('toolkit', 'Toolkit.cpp') }
 	assert_kind_of(ERB, erb)
 
-	assert_same(erb, Generation.load_template('toolkit', 'type_info.cpp'))
+	assert_same(erb, Generation.load_template('toolkit', 'Toolkit.cpp'))
 
 	other_erb = nil
 	assert_nothing_raised { other_erb = Generation.load_template('CMakeLists.txt') }
@@ -21,7 +21,6 @@ class TC_GenerationBase < Test::Unit::TestCase
 
     def test_save_user
         create_wc "base"
-	base_file = File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	assert_raises(ArgumentError) { Orocos::Generation.save_user }
 
 	in_wc do
@@ -41,7 +40,6 @@ class TC_GenerationBase < Test::Unit::TestCase
 
     def test_save_automatic
         create_wc "base"
-	base_file = File.join(TEST_DATA_DIR, 'type_info_generation.h')
 	assert_raises(ArgumentError) { Orocos::Generation.save_automatic }
 
 	in_wc do
