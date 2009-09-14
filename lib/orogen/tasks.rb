@@ -224,9 +224,11 @@ module Orocos
             # type must be defined in the component, either because it is part
             # of its own toolkit or because it has been imported by a
             # Component#load_toolkit call.
-	    def returns(type);
-		type = task.component.find_type(type)
-                Orocos.validate_toplevel_type(type)
+	    def returns(type)
+                if type
+                    type = task.component.find_type(type)
+                    Orocos.validate_toplevel_type(type)
+                end
 		@return_type = type
 		self
 	    end
