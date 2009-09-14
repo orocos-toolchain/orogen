@@ -4,6 +4,7 @@
 #include "opaque.h"
 
 #ifdef WITH_CORBA
+#include "opaqueToolkitCorba.hpp"
 #include <omniORB4/CORBA.h>
 #include <rtt/corba/CorbaLib.hpp>
 #include "build/.orogen/toolkit/opaqueToolkitC.h"
@@ -357,6 +358,9 @@ int ORO_main(int argc, char** argv)
 {
     log().setLogLevel( Logger::Debug );
     RTT::Toolkit::Import( orogen_toolkits::opaqueToolkit );
+#ifdef WITH_CORBA
+    RTT::Toolkit::Import( orogen_toolkits::opaqueCorbaTransport );
+#endif
 
     if (!test_plain_opaque())
     {

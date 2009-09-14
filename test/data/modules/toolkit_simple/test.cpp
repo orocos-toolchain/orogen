@@ -2,6 +2,7 @@
 #include <rtt/Toolkit.hpp>
 #include "simpleToolkitTypes.hpp"
 #include "simpleToolkit.hpp"
+#include <string.h>
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
@@ -211,7 +212,11 @@ bool test_64bit_handling()
     }
 
     // But CORBA marshalling should work just fine
+#ifdef WITH_CORBA
     return generic_corba_test(testValue);
+#else
+    return true;
+#endif
 }
 
 bool test_simple_vector()
