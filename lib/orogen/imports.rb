@@ -15,7 +15,7 @@ module Orocos
                 pkg.name
             end
             def pkg_corba_name
-                PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
+                Utilrb::PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
             end
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
