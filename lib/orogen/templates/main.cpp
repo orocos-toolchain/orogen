@@ -6,8 +6,11 @@
 #include "toolkit/<%= component.name %>ToolkitCorba.hpp"
 <% end %>
 <% end %>
-<% component.used_toolkits.each do |tk| %>
+<% deployer.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>Toolkit.hpp>
+    <% if deployer.corba_enabled? %>
+#include <toolkit/<%= tk.name %>ToolkitCorba.hpp>
+    <% end %>
 <% end %>
 <% deployer.task_activities.each do |task| %>
 #include <<%= task.context.header_file %>>
@@ -70,11 +73,11 @@ int ORO_main(int argc, char* argv[])
    RTT::Toolkit::Import( orogen_toolkits::<%= component.name %>CorbaTransport );
    <% end %>
    <% end %>
-   <% component.used_toolkits.each do |tk| %>
+   <% deployer.used_toolkits.each do |tk| %>
    RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>Toolkit );
-   <% if deployer.corba_enabled? %>
+       <% if deployer.corba_enabled? %>
    RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>CorbaTransport );
-   <% end %>
+       <% end %>
    <% end %>
 
 <% if deployer.corba_enabled? %>

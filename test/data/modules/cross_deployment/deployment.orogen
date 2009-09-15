@@ -20,7 +20,7 @@ end
 # Static deployment for testing. The Producer component will generate sequential
 # points, that are then written in a file by the Consumer component. After 10
 # points, the producer component aborts the execution using exit(0).
-static_deployment do
+deployment "cross_deployment" do
     producer = task("cross_producer::Producer").
         periodic(0.1).
         start

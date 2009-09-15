@@ -11,7 +11,7 @@ link_directories(${OrocosCORBA_LIBRARY_DIRS})
 
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 
-<% component.used_toolkits.each do |tk| %>
+<% deployer.used_toolkits.each do |tk| %>
 pkg_check_modules(<%= tk.name %>_TOOLKIT REQUIRED <%= tk.pkg_name %>)
 include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
 link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
@@ -36,7 +36,7 @@ target_link_libraries(<%= deployer.name %> <%= component.name %>-toolkit-${OROCO
 target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-corba-${OROCOS_TARGET})
 <% end %>
 <% end %>
-<% component.used_toolkits.each do |tk| %>
+<% deployer.used_toolkits.each do |tk| %>
 target_link_libraries(<%= deployer.name %> ${<%= tk.name %>_TOOLKIT_LIBRARIES})
 <% if deployer.corba_enabled? %>
 target_link_libraries(<%= deployer.name %> ${<%= tk.name %>_TRANSPORT_CORBA_LIBRARIES})

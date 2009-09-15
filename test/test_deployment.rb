@@ -71,28 +71,39 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         end
     end
 
-    def test_cross_dependencies(with_corba = false)
+    def test_cross_dependencies(with_corba = true)
         # Generate and build all the modules that are needed ...
-        build_test_component "modules/toolkit_opaque", with_corba
+        toolkit_opaque = build_test_component("modules/toolkit_opaque", with_corba)
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
         puts ENV['PKG_CONFIG_PATH'].inspect
 
-        build_test_component "modules/cross_producer", with_corba
+        cross_producer = build_test_component("modules/cross_producer", with_corba)
         install
         producer_pkgconfig = File.join(prefix_directory, "lib", "pkgconfig")
-        build_test_component "modules/cross_consumer", with_corba
+        cross_consumer = build_test_component("modules/cross_consumer", with_corba)
         install
 
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{producer_pkgconfig}:#{ENV['PKG_CONFIG_PATH']}"
-        build_test_component "modules/cross_deployment", with_corba, "bin/cross_deployment"
+
+        # Start by loading the component specfication and check some properties
+        # on it. Then, do the generation, build and test
+        cross_deployment = Component.load(File.join(TEST_DATA_DIR, "modules", "cross_deployment", "deployment.orogen"))
+
+        deployer = cross_deployment.deployers.find { true }
+        assert_equal(["opaque"], cross_deployment.used_toolkits.map(&:name))
+        assert_equal(["opaque"], deployer.used_toolkits.map(&:name))
+
+        cross_deployment = build_test_component("modules/cross_deployment", with_corba)
         install
 
         in_prefix do
+            system(File.join("bin", "cross_deployment"))
             assert_equal "[1 2] [3 4] [5 6] [7 8] [9 10] [11 12] [13 14] [15 16] [17 18] [19 20] ",
                 File.read('cross_dependencies.txt')
         end
     end
+    def test_cross_dependencies_without_corba; test_cross_dependencies(true) end
 end
 
 

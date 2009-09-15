@@ -304,21 +304,38 @@ module Orocos
             def xenomai?;   component.xenomai? end
 
             def initialize(component, name, &block)
-		@name		= name
-		@install	= true
+		@name		 = name
+		@install	 = true
                 @task_activities = Array.new
-                @component      = component
-                @file_reporters = Hash.new
-                @loggers	= Hash.new
-                @connections    = Array.new
-                @tcp_reporters  = Hash.new
-                @peers          = Set.new
+                @component       = component
+                @file_reporters  = Hash.new
+                @loggers	 = Hash.new
+                @connections     = Array.new
+                @tcp_reporters   = Hash.new
+                @peers           = Set.new
             end
 
             KNOWN_LOG_LEVELS = {
                 :info => 'Info',
                 :debug => 'Debug'
             }
+
+            # Returns the set of toolkits required by this particular
+            # deployment (i.e. the tasks that are deployed in it)
+            def used_toolkits
+                task_toolkits = task_activities.map do |deployed_task|
+                    deployed_task.context.used_toolkits.
+                        map(&:name)
+                end.flatten.to_set
+
+                task_toolkits.map do |used_name|
+                    this_tk = component.used_toolkits.find { |tk| tk.name == used_name }
+                    if !this_tk
+                        raise "Internal Error: imported toolkit is not present in this component's used_toolkits set"
+                    end
+                    this_tk
+                end
+            end
 
             # call-seq:
             #   loglevel level => self
