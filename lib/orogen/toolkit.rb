@@ -1138,10 +1138,10 @@ module Orocos
             # Returns the set of types that are specifically handled by this
             # toolkit
             def self_types
-                generated_types = []
+		generated_types = []
 		registry.each_type do |type|
                     next if component.imported_type?(type.name)
-		    if type < Typelib::CompoundType || type < Typelib::ContainerType
+		    if !type.inlines_code?
 			generated_types << type
 		    end
 		end
@@ -1191,14 +1191,7 @@ module Orocos
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
-
-		generated_types = []
-		registry.each_type do |type|
-                    next if component.imported_type?(type.name)
-		    if !type.inlines_code?
-			generated_types << type
-		    end
-		end
+                generated_types = self_types
 
                 opaque_types = opaques.map { |opdef| opdef.type }
                 opaque_intermediates = opaques.map do |opdef|
