@@ -12,7 +12,7 @@ task_context 'Consumer' do
     fd_driven
 end
 
-static_deployment do
+deployment "fd" do
     # There is no need to specify the activity. The FileDescriptorActivity
     # activity is defined as default for Consumer
     consumer = task('Consumer').

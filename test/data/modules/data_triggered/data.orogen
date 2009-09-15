@@ -23,7 +23,7 @@ task_context 'Producer' do
     output_port 'output2', 'int'
 end
 
-static_deployment do
+deployment "data" do
     consumer = task('Consumer').
         triggered.
         start
