@@ -1,0 +1,81 @@
+---
+title: Cross-project dependencies
+sort_info: 500
+--- name:content pipeline:tags,markdown,blocks
+
+Each oroGen project can be separated in three things:
+
+ * a _type plugin_ for RTT, that supports the project's defined types in the
+   RTT, providing marshalling/unmarshalling paths for XML and CORBA for
+   instance. In RTT terms, this is called the _toolkit_.
+ * a _task library_, which contains the code for all tasks contexts that the
+   project defines.
+ * one binary for each defined deployment.
+
+In its cross-project support, oroGen brings forward code reuse by allowing to
+transparently import and use _types_ and _task contexts_ defined by other
+projects.
+
+Under the hood: the use of pkg-config
+-------------------------------------
+All cross-project dependencies are managed in oroGen by using
+[pkg-config](http://pkg-config.freedesktop.org/wiki/). This means that oroGen
+will generate and install the pkg-config files necessary for it to work, namely
+one per generated component (toolkit, task library and each component), and
+install them.
+
+Nonetheless, it also means that these pkg-config files *must be available to
+pkg-config when you run orogen on a new project*.
+
+pkg-config searches for package definitions the standard locations:
+
+* /usr/local/lib/pkgconfig
+* /usr/lib/pkgconfig
+
+It also searches in the directories listed in the <tt>PKG_CONFIG_PATH</tt>
+environment variable. If you install your orogen projects in a non standard
+location, you must add this location to <tt>PKG_CONFIG_PATH</tt>. In a bash-like
+shell, this is done with:
+{coderay:: sh}
+export PKG_CONFIG_PATH=/my/installed/prefix/lib/pkgconfig:$PKG_CONFIG_PATH
+{coderay}
+
+Importing types
+---------------
+
+To import and define the types defined by another project, just add the
+following at toplevel:
+{coderay:: ruby}
+import_types_from "project_name"
+{coderay}
+
+This will import the types in the current project, allowing you to use them in
+following task context definitions.
+
+Importing task context definitions
+----------------------------------
+
+To import task contexts defined by another project, just add the following at
+toplevel:
+{coderay:: ruby}
+using_task_library "project_name"
+{coderay}
+
+Once it is done, you can use the imported task contexts in the local project to:
+
+* [subclass them](tasks/task_interface.html)
+* [use them in a deployment](deployment.html)
+
+Note that oroGen will load the project's toolkit, since this toolkit is required
+by the task library itself. You therefore don't need to load the project's
+toolkit manually.
+{.warning}
+
+Using external libraries which use pkg-config
+---------------------------------------------
+TBD
+
+Using external libraries which do not use pkg-config
+----------------------------------------------------
+TBD
+

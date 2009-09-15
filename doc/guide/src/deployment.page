@@ -122,8 +122,6 @@ initial_value = my_task.property.new
 my_task.property = initial_value
 {coderay}
 
-Second, you can 
-
 Logger integration
 ------------------
 
