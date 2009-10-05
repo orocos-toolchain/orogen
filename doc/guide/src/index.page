@@ -46,11 +46,11 @@ On the one side, the component's interface is split into three parts:
    through _methods_ and _commands_. The corresponding RTT classes are
    <tt>RTT::Method</tt> and <tt>RTT::Command</tt>.
 
-On the other side, Orocos components offers a state machine (see below). The
-component's functionality is split into C++ methods, each of them being called
-for one of the state machine transitions. By default, these methods will do
-nothing, but you will be able to reimplement them to hook the desired
-functionality in the your components.
+On the other side, Orocos components offers a state machine. The component's
+functionality is split into C++ methods, each of them being called for one of
+the state machine transitions. By default, these methods will do nothing, but
+you will be able to reimplement them to hook the desired functionality in your
+components.
 
 Deployment
 ----------

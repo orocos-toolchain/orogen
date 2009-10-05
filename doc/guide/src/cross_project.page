@@ -63,7 +63,7 @@ using_task_library "project_name"
 
 Once it is done, you can use the imported task contexts in the local project to:
 
-* [subclass them](tasks/task_interface.html)
+* [subclass them](task_interface.html)
 * [use them in a deployment](deployment.html)
 
 Note that oroGen will load the project's toolkit, since this toolkit is required

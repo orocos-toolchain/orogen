@@ -46,6 +46,24 @@ What is _completely forbidden are_:
 * the use of the 'class' keyword. Use 'struct', which in C++ is simply a class
   with a default visibility of public.
 
+Example: defining a Time class
+
+{coderay:: cpp}
+namespace base {
+  struct Time
+  {
+    uint64_t microseconds;
+#ifndef __orogen
+    static Time fromMilliseconds(uint64_t ms);
+    Time operator +(Time const& other);
+  };
+}
+{coderay}
+
+Note that, for now, all types that are defined in the orogen project must be
+defined inline: orogen does not support separating the implementation from the
+definition. Types that are defined in separate libraries are fine, though.
+
 Limitations due to the RTT itself
 ---------------------------------
 Unfortunately, oroGen has to cope with RTT limited support for basic types (int,
