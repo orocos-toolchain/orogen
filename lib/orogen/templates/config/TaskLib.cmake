@@ -27,6 +27,8 @@ include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>
 
 <% if component.toolkit %>
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
+list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
+    <%= component.name %>-toolkit-${OROCOS_TARGET})
 <% end %>
 <% related_toolkits = component.tasks.inject(Set.new) { |set, task| set | task.used_toolkits.map(&:name) }
 related_toolkits.each do |name| %>

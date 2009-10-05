@@ -17,8 +17,8 @@ include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
 link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
 <% if deployer.corba_enabled? %>
 pkg_check_modules(<%= tk.name %>_TRANSPORT_CORBA REQUIRED <%= tk.pkg_corba_name %>)
-include_directories(${<%= tk.name %>_TOOLKIT_INCLUDE_DIRS})
-link_directories(${<%= tk.name %>_TOOLKIT_LIBRARY_DIRS})
+include_directories(${<%= tk.name %>_TRANSPORT_CORBA_INCLUDE_DIRS})
+link_directories(${<%= tk.name %>_TRANSPORT_CORBA_LIBRARY_DIRS})
 <% end %>
 <% end %>
 <% component.used_task_libraries.each do |pkg| %>

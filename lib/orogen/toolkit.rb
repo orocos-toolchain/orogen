@@ -1000,9 +1000,9 @@ module Orocos
             def used_toolkits
                 result = Set.new
 
-		registry.each_type do |type|
+		registry.each_type(true) do |name, type|
                     component.used_toolkits.each do |tk|
-                        if tk.includes?(type)
+                        if tk.includes?(name)
                             result << tk
                             break
                         end
@@ -1013,7 +1013,19 @@ module Orocos
 
             # Returns the set of pkg-config packages this toolkit depends on
             def dependencies
-                component.used_libraries + used_toolkits.map(&:pkg)
+                result = [BuildDependency.new("TYPELIB", "typelib", false, true, true)]
+                component.used_libraries.each do |pkg|
+                    result << BuildDependency.new(pkg.name.upcase, pkg.name, false, true, true)
+                end
+                used_toolkits.each do |tk|
+                    result << BuildDependency.new(tk.name.upcase + "_TOOLKIT", tk.pkg_name, false, true, true)
+                end
+                if corba_enabled?
+                    used_toolkits.each do |tk|
+                        result << BuildDependency.new(tk.name.upcase + "_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
+                    end
+                end
+                result
             end
 
 	    def to_code(generated_types, registry)
@@ -1135,15 +1147,28 @@ module Orocos
 		end
 	    end
 
+            # Returns the set of type names defined in this toolkit. This is
+            # different from self_types, as it returns a set of type names (i.e.
+            # strings), and also because it includes the aliases defined by the
+            # toolkit.
+            def self_typenames
+		generated_types = []
+		registry.each_type(true) do |name, type|
+                    next if component.imported_type?(name)
+		    if !type.inlines_code?
+			generated_types << name
+		    end
+		end
+                generated_types
+            end
+
             # Returns the set of types that are specifically handled by this
             # toolkit
             def self_types
 		generated_types = []
 		registry.each_type do |type|
                     next if component.imported_type?(type.name)
-		    if !type.inlines_code?
-			generated_types << type
-		    end
+                    generated_types << type
 		end
                 generated_types
             end
@@ -1223,9 +1248,7 @@ module Orocos
 
                 # Save all the types that this specific toolkit handles
                 Generation.save_automatic "toolkit", "#{component.name}.typelist",
-                    generated_types.
-                        map { |type| type.name }.
-                        join("\n")
+                    self_typenames.join("\n")
 
                 # The first array is the set of types for which convertion
                 # functions are generated. The second is the set of types that

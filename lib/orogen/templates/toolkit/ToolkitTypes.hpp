@@ -19,8 +19,7 @@
 
 <% end %>
 
-<% generated_types.each do |type|
-    next if toolkit.m_type?(type) %>
+<% registered_types.each do |type| %>
 #ifdef ORO_EXECUTION_PORTS_HPP
     extern template class RTT::OutputPort< <%= type.cxx_name %> >;
     extern template class RTT::InputPort< <%= type.cxx_name %> >;

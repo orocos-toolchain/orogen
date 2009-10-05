@@ -329,3 +329,10 @@ std::string orogen_toolkits::<%= component.name %>ToolkitPlugin::getName()
 orogen_toolkits::<%= component.name %>ToolkitPlugin orogen_toolkits::<%= component.name %>Toolkit;
 ORO_TOOLKIT_PLUGIN(orogen_toolkits::<%= component.name %>Toolkit);
 
+// Finally, explicitely instanciate the main interface classes
+<% registered_types.each do |type| %>
+template class RTT::OutputPort< <%= type.cxx_name %> >;
+template class RTT::InputPort< <%= type.cxx_name %> >;
+template class RTT::Property< <%= type.cxx_name %> >;
+template class RTT::Attribute< <%= type.cxx_name %> >;
+<% end %>

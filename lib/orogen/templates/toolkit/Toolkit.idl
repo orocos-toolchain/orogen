@@ -1,1 +1,8 @@
-<%= minimal_registry.export 'idl', :namespace_suffix => 'Corba', :opaque_as_any => true %>
+<% toolkit.used_toolkits.each do |tk| %>
+#include <toolkit/<%= tk.name %>Toolkit.idl>
+<% end %>
+
+<%= minimal_registry.export 'idl',
+    :namespace_suffix => 'Corba',
+    :opaque_as_any => true,
+    :selected => toolkit.self_typenames %>

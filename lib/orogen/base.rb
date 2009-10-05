@@ -295,6 +295,37 @@ module Orocos
 	    FileUtils.rm_rf "build"
 	    FileUtils.rm_rf "templates"
 	end
+
+        BuildDependency = Struct.new :var_name, :pkg_name, :corba, :include, :link
+
+        def self.cmake_pkgconfig_require(depspec)
+            depspec.inject([]) do |result, s|
+                result << "pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
+                if s.include
+                    result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
+                end
+                if s.link
+                    result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
+                end
+                result
+            end.join("\n")
+        end
+        def self.cmake_pkgconfig_link(only_corba, target, depspec)
+            depspec.inject([]) do |result, s|
+                puts "#{only_corba} #{s.corba} #{target} #{s.link} #{s.var_name}"
+                if only_corba == s.corba && s.link
+                    result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
+                end
+                result
+            end.join("\n")
+        end
+
+        def self.cmake_pkgconfig_link_corba(target, depspec)
+            cmake_pkgconfig_link(true, target, depspec)
+        end
+        def self.cmake_pkgconfig_link_noncorba(target, depspec)
+            cmake_pkgconfig_link(false, target, depspec)
+        end
     end
 end
 
