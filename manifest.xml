@@ -2,7 +2,8 @@
     <depend package="orocos/rtt" />
     <depend package="orocos/ocl" />
     <rosdep name="hoe" />
-    <rosdep name="webgen" />
-    <rosdep name="coderay" />
+    <rosdep name="webgen" type="doc" />
+    <rosdep name="coderay" type="doc" />
+    <rosdep name="rdoc" type="doc" />
 </package>
 
