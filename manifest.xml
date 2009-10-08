@@ -1,0 +1,8 @@
+<package>
+    <depend package="orocos/rtt" />
+    <depend package="orocos/ocl" />
+    <rosdep name="hoe" />
+    <rosdep name="webgen" />
+    <rosdep name="coderay" />
+</package>
+
