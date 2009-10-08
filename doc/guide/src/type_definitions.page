@@ -79,4 +79,4 @@ import_types_from "b.h"
 The reverse order will not work.
 
 The issue of loading types from other oroGen project is handled [in
-here](cross_project.page)
+here](cross_project.html)
