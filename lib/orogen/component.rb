@@ -257,7 +257,11 @@ module Orocos
 		    return
 		end
 
-		pkg = Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+		pkg = begin
+                          Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+                      rescue Utilrb::PkgConfig::NotFound => e
+                          raise ConfigError, "no toolkit named '#{name}' is available"
+                      end
 		toolkit_registry = Typelib::Registry.import pkg.type_registry
                 toolkit_typelist = File.readlines(File.join(File.dirname(pkg.type_registry), "#{name}.typelist")).
                     map { |line| line.chomp }
@@ -446,6 +450,8 @@ module Orocos
             def using_library(name)
                 used_libraries << Utilrb::PkgConfig.new(name)
                 self
+            rescue Utilrb::PkgConfig::NotFound => e
+                raise ConfigError, "no library named '#{name}' is available", e.backtrace
             end
 
 	    # call-seq:
@@ -515,7 +521,11 @@ module Orocos
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
             def using_task_library(name)
-                pkg = Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                pkg = begin
+                          Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                      rescue Utilrb::PkgConfig::NotFound
+                          raise ConfigError, "no task library named '#{name}' is available"
+                      end
                 orogen = pkg.deffile
 
                 component = TaskLibrary.load(self, pkg, orogen)

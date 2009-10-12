@@ -53,7 +53,12 @@ if files.size != 1
     exit 1
 end
 
-filename  = files.first
-component = Orocos::Generation::Component.load(filename)
-component.generate
+begin
+    filename  = files.first
+    component = Orocos::Generation::Component.load(filename)
+    component.generate
+rescue Orocos::Generation::ConfigError => e
+    STDERR.puts "ERROR: #{e.message}"
+    exit 1
+end
 

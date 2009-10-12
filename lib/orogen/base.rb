@@ -71,6 +71,7 @@ end
 
 module Orocos
     module Generation
+        class ConfigError < Exception; end
 	AUTOMATIC_AREA_NAME = '.orogen'
 
 
