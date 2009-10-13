@@ -277,20 +277,31 @@ module Typelib
             element_type = registry.build(element_type)
 
             result << "#{indent}corba.length(value.size());\n"
-            allocate_index do |element_idx|
-                result << <<-EOT
-#{indent}size_t #{element_idx} = 0;
-#{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it, ++#{element_idx})
-#{indent}{
-                EOT
+            # Special case for array of bytes, we can do a simple memcpy
+            # (maybe extend that later)
+            if collection_name == "/std/vector" && 
+                element_type < NumericType &&
+                element_type.integer? &&
+                element_type.size == 1
+                STDERR.puts "optimizing with memcpy"
 
-                if element_type.inlines_code?
-                    result << "    #{indent}corba[#{element_idx}] = (*it);\n"
-                else
-                    result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
+                result << "#{indent}memcpy(&corba[0], &value[0], value.size());"
+            else
+                allocate_index do |element_idx|
+                    result << <<-EOT
+    #{indent}size_t #{element_idx} = 0;
+    #{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it, ++#{element_idx})
+    #{indent}{
+                    EOT
+
+                    if element_type.inlines_code?
+                        result << "    #{indent}corba[#{element_idx}] = (*it);\n"
+                    else
+                        result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
+                    end
+
+                    result << "#{indent}}\n";
                 end
-
-                result << "#{indent}}\n";
             end
 	    result
         end
