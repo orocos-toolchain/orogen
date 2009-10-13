@@ -728,6 +728,7 @@ module Orocos
 
 	    def find_type(type)
                 if type.respond_to?(:to_str)
+                    type = type.gsub('::', '/')
                     type = Typelib::Type.normalize_typename(type)
                     begin
                         registry.build(type)
