@@ -58,6 +58,7 @@ module Orocos
 	    def find_type(type)
 		if type
 		    if type.respond_to?(:to_str)
+                        type = type.gsub('::', '/')
                         type = Typelib::Type.normalize_typename(type)
 			registry.get(type)
 		    elsif type.kind_of?(Class) && type <= Typelib::Type
