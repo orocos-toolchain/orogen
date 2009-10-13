@@ -53,12 +53,45 @@ if files.size != 1
     exit 1
 end
 
+ConfigError = Orocos::Generation::ConfigError
 begin
     filename  = files.first
-    component = Orocos::Generation::Component.load(filename)
+    component = 
+        begin
+            Orocos::Generation::Component.load(filename)
+        rescue Exception => e
+            # Two options:
+            #  * the first line of the backtrace is the orogen file
+            #    => change it into a ConfigError. If, in addition, this is a
+            #       NoMethodError then change it into a statement error
+            #  * the second line of the backtrace is in the orogen file
+            #    => most likely a bad argument, transform it into a ConfigError
+            #       too
+            #  * all other cases are reported as internal errors
+            file_pattern = /#{Regexp.quote(File.basename(filename))}/
+            if e.backtrace.first =~ file_pattern
+                if e.kind_of?(NoMethodError) || e.kind_of?(NameError)
+                    e.message =~ /undefined (?:local variable or )?method `([^']+)'/
+                    method_name = $1
+                    raise ConfigError, "unknown statement '#{method_name}'", e.backtrace
+                else
+                    raise ConfigError, e.message, e.backtrace
+                end
+            elsif (e.backtrace[1] =~ file_pattern) || e.kind_of?(ArgumentError)
+                raise ConfigError, e.message, e.backtrace
+            end
+            raise
+        end
+
     component.generate
 rescue Orocos::Generation::ConfigError => e
-    STDERR.puts "ERROR: #{e.message}"
+    # Find the first stack frame on the orogen file
+    error_line = e.backtrace.find { |line| line =~ file_pattern }
+    STDERR.puts "#{error_line}: #{e.message}"
     exit 1
+rescue Exception => e
+    STDERR.puts "===== Internal error ======="
+    STDERR.puts "Please report the following error to the orogen developpers"
+    raise
 end
 

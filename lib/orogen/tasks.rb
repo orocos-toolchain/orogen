@@ -657,7 +657,13 @@ module Orocos
             # Additionally, this method makes sure that the corresponding type
             # is actually defined on the project's toolkit.
             def ro_ptr(name)
-                base_type = component.find_type(name)
+                base_type =
+                    begin
+                        component.find_type(name)
+                    rescue Typelib::NotFound
+                        raise ArgumentError, "type #{name} is not available"
+                    end
+
                 full_name = "/RTT/ReadOnlyPointer<#{base_type.name}>"
                 begin
                     component.find_type(full_name)
