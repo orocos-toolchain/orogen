@@ -374,9 +374,13 @@ module Typelib
 
     class EnumType
         def self.to_string(toolkit, result, indent)
+            seen_values = Set.new
             result << indent << "std::string enum_name;\n"
             result << indent << "switch(value) {\n"
-            keys.each do |name, _|
+            keys.each do |name, value|
+                next if seen_values.include?(value)
+                seen_values << value
+
                 result << "#{indent}    case #{namespace('::')}#{name}:\n"
                 result << "#{indent}      enum_name = \"#{name}\";\n"
                 result << "#{indent}      break;\n"
@@ -423,9 +427,13 @@ else
         end
 
 	def self.to_corba(toolkit, result, indent)
+            seen_values = Set.new
             namespace = self.namespace('::')
             result << indent << "switch(value) {\n"
-            keys.each do |name, _|
+            keys.each do |name, value|
+                next if seen_values.include?(value)
+                seen_values << value
+
                 result << indent << "  case #{namespace}#{name}:\n"
                 result << indent << "    corba = #{namespace}Corba::#{name};\n"
                 result << indent << "    break;\n"
@@ -433,9 +441,13 @@ else
             result << indent << "}\n"
 	end
 	def self.from_corba(toolkit, result, indent)
+            seen_values = Set.new
             namespace = self.namespace('::')
             result << indent << "switch(corba) {\n"
-            keys.each do |name, _|
+            keys.each do |name, value|
+                next if seen_values.include?(value)
+                seen_values << value
+
                 result << indent << "  case #{namespace}Corba::#{name}:\n"
                 result << indent << "    value = #{namespace}#{name};\n"
                 result << indent << "    break;\n"
