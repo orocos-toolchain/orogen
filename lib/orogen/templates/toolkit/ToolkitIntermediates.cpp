@@ -1,4 +1,5 @@
 #include <<%= component.name %>ToolkitIntermediates.hpp>
+#include <memory>
 
 <%
 # Generate first the automatic convertion functions
