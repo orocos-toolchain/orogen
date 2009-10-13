@@ -108,7 +108,6 @@ bool orogen_toolkits::<%= type.method_name %>CorbaMarshaller::updateBlob(const v
         if (!(*any >>= corba))
             return false;
         bool ret = fromCORBA(ad->set(), *corba);
-        delete corba;
         return ret;
         <% end %>
     }
