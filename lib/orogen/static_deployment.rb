@@ -399,7 +399,11 @@ module Orocos
 
 		main = Generation.render_template 'main.cpp', binding
 		Generation.save_automatic "main-#{name}.cpp", main
-                pkg  = Generation.render_template 'deployment.pc', binding
+                pkg = if install?
+                          Generation.render_template 'deployment.pc', binding
+                      else
+                          Generation.render_template 'local_deployment.pc', binding
+                      end
                 Generation.save_automatic "#{name}.pc.in", pkg
                 cmake = Generation.render_template 'config/Deployment.cmake', binding
                 Generation.save_automatic "config/#{name}Deployment.cmake", cmake

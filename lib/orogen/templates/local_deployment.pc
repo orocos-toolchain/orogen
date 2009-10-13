@@ -1,9 +1,7 @@
-prefix=@CMAKE_INSTALL_PREFIX@
+prefix=@PROJECT_BINARY_DIR@
 exec_prefix=${prefix}
-libdir=${prefix}/lib/orocos
-includedir=${prefix}/include/orocos
-binfile=${prefix}/bin/<%= deployer.name %>
-deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
+binfile=${prefix}/<%= deployer.name %>
+deffile=@PROJECT_SOURCE_DIR@/<%= File.basename(component.deffile) %>
 toolkits=<%= component.used_toolkits.map { |tk| tk.name }.join(" ") %> <%= component.name if component.toolkit %>
 
 Name: <%= deployer.name %>
