@@ -386,7 +386,7 @@ module Orocos
                     raise "no such task context: #{context}"
                 end
 
-                name ||= task_context.name.gsub /::/, '_'
+                name ||= "#{self.name}_#{task_context.name.split(/::/)[1]}"
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
