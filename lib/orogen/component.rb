@@ -536,6 +536,8 @@ module Orocos
 
 	    # DEPRECATED. Use #deployment instead
             def static_deployment(&block)
+                STDERR.puts "WARN: static_deployment is deprecated, use #deployment(name) instead"
+                STDERR.puts "WARN: static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
 		deployment = deployment("test_#{name}", &block)
 		deployment.do_not_install
 		deployment
