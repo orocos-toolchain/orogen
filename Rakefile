@@ -44,8 +44,10 @@ if do_doc
     task 'doc' => 'doc:all'
     task 'clobber_docs' => 'doc:clobber'
     task 'redocs' do
-        Rake::Task['doc:clobber'].invoke
-        Rake::Task['doc'].invoke
+        Rake::Task['clobber_docs'].invoke
+        if !system('rake', 'doc:all')
+            raise "failed to regenerate documentation"
+        end
     end
 
     namespace 'doc' do
