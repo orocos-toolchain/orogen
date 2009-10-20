@@ -69,6 +69,11 @@ module Orocos
 		end
 	    end
 
+            # Simply ignore type export directives
+            def export_types(*args); self end
+            def type_export_policy(*args); self end
+
+
             # True if this task library defines a toolkit
             attr_predicate :has_toolkit?, true
 
