@@ -183,11 +183,23 @@ module Typelib
 		    "CORBA::Boolean"
                 elsif size == 1
                     "CORBA::Octet"
-		else
-		    "boost::#{'u' if unsigned?}int#{size * 8}_t"
+                elsif size == 2
+                    "CORBA::#{'U' if unsigned?}Short"
+                elsif size == 4
+                    "CORBA::#{'U' if unsigned?}Long"
+                elsif size == 8
+                    "CORBA::#{'U' if unsigned?}LongLong"
+                else
+                    raise "unexpected integer size #{size}"
 		end
 	    else
-		basename
+                if size == 4
+                    "CORBA::Float"
+                elsif size == 8
+                    "CORBA::Double"
+                else
+                    raise "unexpected floating-point size #{size}"
+                end
 	    end
         end
 
