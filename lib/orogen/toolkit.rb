@@ -737,6 +737,55 @@ module Orocos
                 end
             end
 
+            # The three possible type export policies. See #type_export_policy
+            # and #export_types
+            TYPE_EXPORT_POLICIES = [:all, :used, :selected]
+
+            ##
+            # :method: type_export_policy
+            #
+            # call-seq:
+            #   type_export_policy new_policy => new_policy
+            #   type_export_policy => current_policy
+            #
+            # EXPERIMENTAL
+            #
+            # Change or read the current type export policy. This policy drives
+            # what types orogen will import in the RTT type system.
+            #
+            # If the :all policy is used (the default), then all types that have
+            # been imported through header files will be included. This can
+            # generate a lot of code, and therefore produce high compilation
+            # times and big toolkit libraries.
+            #
+            # If the :used policy is used, then will only be exported the types
+            # that are actually used in a task context of the toolkit's project.
+            # This is most of the time a good idea.
+            #
+            # If the :selected policy is used, then only types that have been
+            # explicitely selected with #export_types will be included.
+            dsl_attribute :type_export_policy do |new_policy|
+                new_policy = new_policy.to_sym
+                if !TYPE_EXPORT_POLICIES.include?(new_policy)
+                    raise ArgumentError, "invalid type export policy #{new_policy.inspect}, allowed are: :#{TYPE_EXPORT_POLICIES.join(", :")}"
+                end
+                new_policy
+            end
+
+            # Select a set of types to be exported through the RTT type system,
+            # instead of exporting everything. This is meant to reduce the
+            # toolkit's code size and compilation times tremendously.
+            #
+            # EXPERIMENTAL
+            #
+            # See also #type_export_policy
+            def export_types(*selection)
+                type_export_policy :selected
+                @selected_types.concat(selection.map { |name| find_type(name) })
+            end
+
+            attr_reader :selected_types
+
 	    attr_reader :registry
             attr_reader :preloaded_registry
             attr_reader :opaques
@@ -796,6 +845,9 @@ module Orocos
 		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
+
+                type_export_policy :all
+                @selected_types = Array.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
@@ -1291,13 +1343,30 @@ module Orocos
                 # are actually registered into the RTT type system
                 #
                 # The two arrays are sorted so that we don't have to recompile
-                # unncessary (the original sets are hashes, and therefore don't
+                # unnecessarily (the original sets are hashes, and therefore don't
                 # have a stable order).
                 converted_types = generated_types.
                     find_all { |type| !type.opaque? && !toolkit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
 
-                registered_types = generated_types.
+                registered_types = if type_export_policy == :all
+                                       generated_types.dup
+                                   elsif type_export_policy == :used
+                                       used_types = component.self_tasks.map(&:used_types).
+                                           map(&:to_value_set).
+                                           inject(&:|).
+                                           map do |t|
+                                               begin registry.get(t.name)
+                                               rescue Typelib::NotFound
+                                               end
+                                           end.compact
+
+                                       (used_types.to_value_set & generated_types.to_value_set)
+                                   elsif type_export_policy == :selected
+                                       selected_types.dup
+                                   end
+
+                registered_types = registered_types.
                     find_all { |type| !toolkit.m_type?(type) && !(type <= Typelib::ArrayType) }.
                     sort_by { |type| type.name }.uniq
 

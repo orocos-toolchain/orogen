@@ -483,6 +483,31 @@ module Orocos
 		end
 	    end
 
+            # Sets or reads the toolkit's type export policy.
+            #
+            # EXPERIMENTAL
+            #
+            # See Toolkit#type_export_policy
+            def type_export_policy(*args)
+                if !toolkit(false)
+                    raise ConfigError, "using type_export_policy here makes no sense since no new types are defined in this project"
+                end
+                toolkit(false).type_export_policy(*args)
+            end
+
+            # Explicitely selects types that should be added to the RTT type
+            # system.
+            #
+            # EXPERIMENTAL
+            #
+            # See Toolkit#export_types
+            def export_types(*args)
+                if !toolkit(false)
+                    raise ConfigError, "using export_types here makes no sense since no new types are defined in this project"
+                end
+                toolkit(false).export_types(*args)
+            end
+
             # Creates a new task context class of this name. The generated
             # class is defined in the component's namespace. Therefore
             #
