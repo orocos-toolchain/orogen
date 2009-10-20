@@ -5,6 +5,7 @@
 // toolkits *and* it is a standard header. Ideally, we would actually check if
 // some of the types need std::vector.
 #include <vector>
+#include <boost/cstdint.hpp>
 
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
