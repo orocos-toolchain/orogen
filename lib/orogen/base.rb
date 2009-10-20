@@ -284,7 +284,6 @@ module Orocos
 			FileUtils.rm_f relative.to_s
 		    end
 		end
-		puts
 	    end
 	    
 	    # Call #clean afterwards, since #clean removes the templates/ directory
@@ -313,7 +312,6 @@ module Orocos
         end
         def self.cmake_pkgconfig_link(only_corba, target, depspec)
             depspec.inject([]) do |result, s|
-                puts "#{only_corba} #{s.corba} #{target} #{s.link} #{s.var_name}"
                 if only_corba == s.corba && s.link
                     result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
                 end
