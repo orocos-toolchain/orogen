@@ -153,7 +153,12 @@ install(TARGETS test RUNTIME DESTINATION bin)
         component = build_test_component('modules/toolkit_dependencies', with_corba)
 
         deps = component.toolkit.dependencies
-        assert_equal ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux"], deps.to_a.map(&:name).sort
+        expected = ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux", "typelib"]
+        if with_corba
+            expected << "tkdeps_parent-transport-corba-gnulinux"
+        end
+
+        assert_equal expected.to_set, deps.to_a.map(&:pkg_name).to_set
     end
     def test_dependencies_without_corba
         test_dependencies(false)
