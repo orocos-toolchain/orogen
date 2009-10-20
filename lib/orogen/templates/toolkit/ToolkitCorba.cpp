@@ -1,3 +1,10 @@
+// First load all RTT interfaces so that we get all "extern template"
+// declarations in the ToolkitImpl files
+#include <rtt/Ports.hpp>
+#include <rtt/Attribute.hpp>
+#include <rtt/Properties.hpp>
+#include <rtt/DataSource.hpp>
+
 #include "toolkit/<%= component.name %>ToolkitC.h"
 #include "<%= component.name %>ToolkitCorba.hpp"
 #include "<%= component.name %>ToolkitCorbaImpl.hpp"

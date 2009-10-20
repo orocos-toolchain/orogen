@@ -20,6 +20,20 @@
 <% end %>
 
 <% registered_types.each do |type| %>
+#ifdef CORELIB_DATASOURCE_HPP
+    extern template class RTT::DataSource< <%= type.cxx_name %> >;
+    extern template class RTT::ValueDataSource< <%= type.cxx_name %> >;
+    extern template class RTT::ConstantDataSource< <%= type.cxx_name %> >;
+    extern template class RTT::AssignableDataSource< <%= type.cxx_name %> >;
+    extern template class RTT::ReferenceDataSource< <%= type.cxx_name %> >;
+    extern template class RTT::detail::DataSourceAdaptor< <%= type.cxx_name %> const, <%= type.cxx_name %> >;
+    extern template class RTT::detail::DataSourceAdaptor< <%= type.cxx_name %> const &, <%= type.cxx_name %> >;
+    extern template class RTT::detail::DataSourceAdaptor< <%= type.cxx_name %>&, <%= type.cxx_name %> >;
+#endif
+#ifdef ORO_EXECUTION_PORTS_HPP
+    extern template class RTT::OutputPort< <%= type.cxx_name %> >;
+    extern template class RTT::InputPort< <%= type.cxx_name %> >;
+#endif
 #ifdef ORO_EXECUTION_PORTS_HPP
     extern template class RTT::OutputPort< <%= type.cxx_name %> >;
     extern template class RTT::InputPort< <%= type.cxx_name %> >;
