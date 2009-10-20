@@ -10,6 +10,7 @@
         Sylvain Joyeux/sylvain.joyeux@m4x.org
     </copyright>
     <license>GPL v2 or later</license>
+    <url>http://doudou.github.com/orogen</url>
 
     <depend package="orocos/rtt" />
     <depend package="orocos/ocl" />
