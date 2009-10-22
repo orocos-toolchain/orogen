@@ -722,6 +722,8 @@ module Orocos
 		check_uniqueness(:ports, name)
                 @ports << OutputPort.new(self, name, type)
                 @ports.last
+            rescue Typelib::NotFound
+                raise ConfigError, "type #{type} is not declared"
 	    end
 
 	    # call-seq:
@@ -735,6 +737,8 @@ module Orocos
 		check_uniqueness(:ports, name)
                 @ports << InputPort.new(self, name, type)
                 @ports.last
+            rescue Typelib::NotFound
+                raise ConfigError, "type #{type} is not declared"
             end
 
             # call-seq:
