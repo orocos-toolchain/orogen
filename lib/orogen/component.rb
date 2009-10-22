@@ -136,7 +136,7 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        component = TaskLibrary.load(self, nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        component = TaskLibrary.load(nil, File.expand_path(orogen, File.dirname(__FILE__)))
                         @@standard_tasks.concat component.tasks
                     end
                 end
@@ -257,17 +257,9 @@ module Orocos
 		    return
 		end
 
-		pkg = begin
-                          Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
-                      rescue Utilrb::PkgConfig::NotFound => e
-                          raise ConfigError, "no toolkit named '#{name}' is available"
-                      end
-		toolkit_registry = Typelib::Registry.import pkg.type_registry
-                toolkit_typelist = File.readlines(File.join(File.dirname(pkg.type_registry), "#{name}.typelist")).
-                    map { |line| line.chomp }
-
-                registry.merge(toolkit_registry)
-		used_toolkits << ImportedToolkit.new(name, pkg, toolkit_registry, toolkit_typelist)
+                toolkit = Orocos::Generation.import_toolkit(name)
+		used_toolkits << toolkit
+                registry.merge(toolkit.registry)
 	    end
 
             # A Typelib::Registry object defining all the types that are defined
@@ -547,16 +539,18 @@ module Orocos
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
             def using_task_library(name)
-                pkg = begin
-                          Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
-                      rescue Utilrb::PkgConfig::NotFound
-                          raise ConfigError, "no task library named '#{name}' is available"
-                      end
-                orogen = pkg.deffile
+		if used_task_libraries.any? { |lib| lib.name == name }
+		    return
+		end
 
-                component = TaskLibrary.load(self, pkg, orogen)
+                component = Orocos::Generation.load_task_library(name)
                 tasks.concat component.tasks
                 used_task_libraries << component
+
+                # Now import the toolkits the component also imports
+                component.used_toolkits.each do |tk|
+                    using_toolkit tk.name
+                end
             end
 
 	    # DEPRECATED. Use #deployment instead

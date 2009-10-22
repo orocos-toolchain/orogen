@@ -1,5 +1,35 @@
 module Orocos
     module Generation
+        @loaded_toolkits = Hash.new
+        class << self
+            # The set of toolkits already loaded so far, as a hash from the
+            # toolkit name to the ImportedToolkit object
+            attr_reader :loaded_toolkits
+        end
+
+        # Returns the ImportedToolkit object that is representing an installed
+        # toolkit.
+        def self.import_toolkit(name)
+            name = name.to_s
+            if tk = loaded_toolkits[name]
+                return tk
+            end
+
+            pkg = begin
+                      Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+                  rescue Utilrb::PkgConfig::NotFound => e
+                      raise ConfigError, "no toolkit named '#{name}' is available"
+                  end
+
+            toolkit_registry = Typelib::Registry.import pkg.type_registry
+            toolkit_typelist = File.readlines(File.join(File.dirname(pkg.type_registry), "#{name}.typelist")).
+                map { |line| line.chomp }
+
+            toolkit = ImportedToolkit.new(name, pkg, toolkit_registry, toolkit_typelist)
+            loaded_toolkits[name] = toolkit
+            toolkit
+        end
+
         # Instances of this class represent a toolkit that has been imported
         # using Component#using_toolkit.
         class ImportedToolkit
@@ -25,6 +55,31 @@ module Orocos
             end
         end
 
+        @loaded_task_libraries = Hash.new
+        class << self
+            # The set of task libraries already loaded so far, as a hash from
+            # the toolkit name to the ImportedToolkit object
+            attr_reader :loaded_task_libraries
+        end
+
+        # Returns the TaskLibrary object that is representing an installed task
+        # library.
+        def self.load_task_library(name)
+            if lib = loaded_task_libraries[name]
+                return lib
+            end
+
+            pkg = begin
+                      Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                  rescue Utilrb::PkgConfig::NotFound
+                      raise ConfigError, "no task library named '#{name}' is available"
+                  end
+
+            orogen = pkg.deffile
+            loaded_task_libraries[name] = 
+                TaskLibrary.load(pkg, orogen)
+        end
+
         # Instances of this class represent a task library loaded in a
         # component, i.e.  a set of TaskContext defined externally and imported
         # using #using_task_library.
@@ -32,20 +87,17 @@ module Orocos
         # For the task contexts imported this way,
         # TaskContext#external_definition?  returns true.
         class TaskLibrary < Component
-            # The component in which the library has been imported, or nil if
-            # there is none
-            attr_reader :base_component
             # The pkg-config file defining this task library
             attr_reader :pkg
 
             # Import in the +base+ component the task library whose orogen
             # specification is included in +file+
-            def self.load(base, pkg, file)
-                new(base, pkg).load(file)
+            def self.load(pkg, file)
+                new(pkg).load(file)
             end
 
-            def initialize(component, pkg)
-                @base_component, @pkg = component, pkg
+            def initialize(pkg)
+                @pkg = pkg
                 super()
             end
 
@@ -73,14 +125,8 @@ module Orocos
             def export_types(*args); self end
             def type_export_policy(*args); self end
 
-
             # True if this task library defines a toolkit
             attr_predicate :has_toolkit?, true
-
-            def using_toolkit(name)
-                super
-                base_component.using_toolkit name if base_component
-            end
 
             def import_types_from(name, *args)
                 if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
