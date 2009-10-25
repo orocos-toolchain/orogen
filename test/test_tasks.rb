@@ -283,8 +283,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	component.name 'test'
 
 	task = component.task_context "task"
-        task.dynamic_input_port /r$/, "/int"
-        task.dynamic_output_port /w$/, "/double"
+        task.dynamic_input_port(/r$/, "/int")
+        task.dynamic_output_port(/w$/, "/double")
 
         assert task.dynamic_input_port?("hgkur", "/int")
         assert !task.dynamic_input_port?("hgkur", "/double")

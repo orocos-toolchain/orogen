@@ -64,7 +64,13 @@ class TC_GenerationBase < Test::Unit::TestCase
     end
 
     def test_dsl_attribute
-	cl = Class.new
+	cl = Class.new do
+            def initialize
+                @no_filter = nil
+                @filter_integer = nil
+                @filter_string  = nil
+            end
+        end
 
 	cl.dsl_attribute :no_filter
 	obj = cl.new
