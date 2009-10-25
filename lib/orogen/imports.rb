@@ -75,9 +75,8 @@ module Orocos
                       raise ConfigError, "no task library named '#{name}' is available"
                   end
 
-            orogen = pkg.deffile
             loaded_task_libraries[name] = 
-                TaskLibrary.load(pkg, orogen)
+                TaskLibrary.load(pkg, pkg.deffile)
         end
 
         # Instances of this class represent a task library loaded in a
