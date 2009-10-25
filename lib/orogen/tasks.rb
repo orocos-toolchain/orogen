@@ -520,6 +520,9 @@ module Orocos
                 @dynamic_ports = Array.new
                 @event_ports = Array.new
                 @initial_state = 'Stopped'
+
+                @fixed_initial_state = false
+                @needs_configuration = false
 	    end
 
 	    def pretty_print(pp)

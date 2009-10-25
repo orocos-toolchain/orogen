@@ -313,6 +313,9 @@ module Orocos
                 @connections     = Array.new
                 @tcp_reporters   = Hash.new
                 @peers           = Set.new
+                @corba_enabled   = nil
+                @browse          = nil
+                @loglevel        = nil
             end
 
             KNOWN_LOG_LEVELS = {

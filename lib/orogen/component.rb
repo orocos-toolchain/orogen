@@ -6,11 +6,13 @@ module Orocos
         def self.corba_enabled?; @corba end
         def self.enable_corba;   @corba = true end
         def self.disable_corba;  @corba = false end
+        @corba = nil
 
         def self.orocos_target=(target)
             @orocos_target = target.to_s
         end
 
+        @orocos_target = nil
         def self.orocos_target
             user_target = ENV['OROCOS_TARGET']
             if @orocos_target
@@ -148,11 +150,13 @@ module Orocos
 		@tasks = Component.standard_tasks.dup
 		@registry = Typelib::Registry.new
 
+                @name    = nil
 		@corba   = nil
 		@version = "0.0"
 		@used_toolkits  = []
                 @used_libraries = []
                 @used_task_libraries = []
+                @toolkit = nil
 
                 @deployers = []
 

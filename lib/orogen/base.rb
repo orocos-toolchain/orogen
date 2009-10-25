@@ -108,7 +108,7 @@ module Orocos
 	end
 
         def self.filter_backtrace(loaded_file, full = true)
-            loaded_file = loaded_file.gsub /^#{Regexp.quote(Dir.pwd)}\//, ''
+            loaded_file = loaded_file.gsub(/^#{Regexp.quote(Dir.pwd)}\//, '')
             caller_string = caller(1)[0].split(':')
             eval_file = caller_string[0]
             eval_line = Integer(caller_string[1])
