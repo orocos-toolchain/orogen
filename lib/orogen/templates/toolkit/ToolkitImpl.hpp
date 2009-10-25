@@ -15,6 +15,12 @@ namespace orogen_toolkits {
     bool toStream(std::string const& basename, <%= type.arg_type %> value, std::ostream&);
     bool fromStream(std::string const& basename, <%= type.ref_type %> value, std::istream&);
     <% end %>
+    <% array_types.each do |type| %>
+    bool toPropertyBag(std::string const& basename, <%= type.arg_type %> value, int length, RTT::PropertyBag& target_bag);
+    bool fromPropertyBag(std::string const& basename, <%= type.ref_type %> value, int length, RTT::PropertyBag const& target_bag);
+    bool toStream(std::string const& basename, <%= type.arg_type %> value, int length, std::ostream&);
+    bool fromStream(std::string const& basename, <%= type.ref_type %> value, int length, std::istream&);
+    <% end %>
 }
 
 #endif

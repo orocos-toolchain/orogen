@@ -47,6 +47,14 @@ module Orocos
             def pkg_corba_name
                 Utilrb::PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
             end
+            def has_array_of?(type)
+                typename = if type.respond_to?(:name) then type.name
+                           else type.to_str
+                           end
+
+                typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
+            end
+
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
                            else type.to_str

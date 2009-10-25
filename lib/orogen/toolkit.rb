@@ -240,6 +240,8 @@ module Typelib
 
                 if element_type.inlines_code?
                     element_type.inline_toPropertyBag(toolkit, result, "(*it)", idx_expr, indent + "    ")
+                elsif element_type < ArrayType
+                    result << indent << "if (!toPropertyBag(#{idx_expr}, *it, #{element_type.length}, target_bag)) return false;\n";
                 else
                     result << indent << "if (!toPropertyBag(#{idx_expr}, *it, target_bag)) return false;\n";
                 end
@@ -308,6 +310,8 @@ module Typelib
 
                     if element_type.inlines_code?
                         result << "    #{indent}corba[#{element_idx}] = (*it);\n"
+                    elsif element_type < ArrayType
+                        result << indent << "    toCORBA(corba[#{element_idx}], *it, #{element_type.length});\n";
                     else
                         result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
                     end
@@ -335,6 +339,8 @@ module Typelib
 
                 if element_type.inlines_code?
                     result << "#{indent}    value[#{element_idx}] = corba[#{element_idx}];\n"
+                elsif element_type < ArrayType
+                    result << "#{indent}    fromCORBA(value[#{element_idx}], #{element_type.length}, corba[#{element_idx}]);\n";
                 else
                     result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
                 end
@@ -362,6 +368,8 @@ module Typelib
 
                 if element_type.inlines_code?
                     result << "#{indent}    io << *it;\n"
+                elsif element_type < ArrayType
+                    result << "#{indent}    toStream(\"\", *it, #{element_size.length}, io);\n"
                 else
                     result << "#{indent}    toStream(\"\", *it, io);\n"
                 end
@@ -386,6 +394,8 @@ module Typelib
                  result << "#{indent}{\n"
                  if element_type.inlines_code?
                      element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                 elsif element_type < ArrayType
+                     result << "#{indent}    fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag);\n";
                  else
                      result << "#{indent}    fromPropertyBag(#{idx_expr}, value[#{i}], bag);\n";
                  end
@@ -486,6 +496,8 @@ else
             each_field do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_toPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
+                elsif field_type < ArrayType
+                    result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, target_bag)) return false;\n";
                 else
                     result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, target_bag)) return false;\n";
                 end
@@ -497,10 +509,21 @@ else
             each_field do |field_name, field_type|
                 if yield(field_name, field_type)
                     result << "#{indent}#{dest}.#{field_name} = #{src}.#{field_name};\n"
-                elsif error_handling
-                    result << "#{indent}if (!#{method}(#{dest}.#{field_name}, #{src}.#{field_name})) return false;\n";
                 else
-                    result << "#{indent}#{method}(#{dest}.#{field_name}, #{src}.#{field_name});\n"
+                    s_src  = "#{src}.#{field_name}"
+                    s_dest = "#{dest}.#{field_name}"
+                    if field_type < ArrayType
+                        s_array = if src == "value" then s_src
+                                  else s_dest
+                                  end
+                        s_array << ", #{field_type.length}"
+                    end
+
+                    if error_handling
+                        result << "#{indent}if (!#{method}(#{s_dest}, #{s_src})) return false;\n";
+                    else
+                        result << "#{indent}#{method}(#{s_dest}, #{s_src});\n"
+                    end
                 end
             end
 	    result
@@ -531,6 +554,8 @@ else
             each_field do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_fromPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
+                elsif field_type < ArrayType
+                    result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, bag)) return false;\n";
                 else
                     result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, bag)) return false;\n";
                 end
@@ -551,6 +576,8 @@ else
                 result << "#{indent}  io << basename << \".#{field_name} = \";\n";
                 if field_type.inlines_code?
                     result << "#{indent}  io << value.#{field_name};\n"
+                elsif field_type < ArrayType
+                    result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, io);\n"
                 else
                     result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, io);\n"
                 end
@@ -573,18 +600,20 @@ else
             allocate_index do |i|
                 idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
                 result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < #{length}; ++#{i})
+#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
                 EOT
 
                 if element_type.inlines_code?
                     element_type.inline_toPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                elsif element_type < ArrayType
+                    result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, target_bag)) return false;\n";
                 else
                     result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], target_bag)) return false;\n";
                 end
 
                 result << "#{indent}}\n";
-                result << "#{indent}target_bag.add( new Property<int>(basename + \".size\", \"\", #{length}) );\n"
+                result << "#{indent}target_bag.add( new Property<int>(basename + \".size\", \"\", length) );\n"
             end
 	    result
 	end
@@ -594,14 +623,23 @@ else
 
             allocate_index do |i|
                 result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < #{length}; ++#{i})
+#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
                 EOT
 
                 if yield(element_type)
                     result << "#{indent}    #{dest}[#{i}] = #{src}[#{i}];\n"
                 else
-                    result << "#{indent}    if (!#{method}(#{dest}[#{i}], #{src}[#{i}])) return false;\n";
+                    s_src  = "#{src}[#{i}]"
+                    s_dest = "#{dest}[#{i}]"
+                    if element_type < ArrayType
+                        s_array = if src == "value" then s_src
+                                  else s_dest
+                                  end
+                        s_array << ", #{element_type.length}"
+                    end
+
+                    result << "#{indent}    if (!#{method}(#{s_dest}, #{s_src})) return false;\n";
                 end
 
                 result << "#{indent}}\n";
@@ -637,7 +675,7 @@ else
             allocate_index do |i|
                 result << <<-EOT
 #{indent}bool first_field = true;
-#{indent}for(size_t #{i} = 0; #{i} < #{length}; ++#{i})
+#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
 #{indent}    if (!first_field)
 #{indent}         io << ", ";
@@ -646,6 +684,8 @@ else
 
                 if element_type.inlines_code?
                     result << "#{indent}    io << value[#{i}];\n"
+                elsif element_type < ArrayType
+                    result << "#{indent}    toStream(\"\", value[#{i}], #{element_type.length}, io);\n"
                 else
                     result << "#{indent}    toStream(\"\", value[#{i}], io);\n"
                 end
@@ -659,10 +699,12 @@ else
 
             allocate_index do |i|
                 idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
-                result << "#{indent}for (size_t #{i} = 0; #{i} < #{length}; ++#{i})\n"
+                result << "#{indent}for (size_t #{i} = 0; #{i} < length; ++#{i})\n"
                 result << "#{indent}{\n"
                 if element_type.inlines_code?
                     element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                elsif element_type < ArrayType
+                    result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag)) return false;\n";
                 else
                     result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], bag)) return false;\n";
                 end
@@ -1348,6 +1390,20 @@ module Orocos
                 converted_types = generated_types.
                     find_all { |type| !type.opaque? && !toolkit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
+
+                # We need a special case for arrays. The issue is the following:
+                # for arrays, the convertion functions take pointers as input.
+                # So we generate only one convertion function for all arrays of
+                # the same type, regardless of the size.
+                converted_types, array_types = converted_types.
+                    partition { |type| !(type < Typelib::ArrayType) }
+
+                array_types = array_types.
+                    delete_if do |type|
+                        component.used_toolkits.any? { |tk| tk.has_array_of?(type.deference) }
+                    end.
+                    inject(Hash.new) { |h, type| h[type.deference.name] = type; h }.
+                    values
 
                 registered_types = if type_export_policy == :all
                                        generated_types.dup

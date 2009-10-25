@@ -46,6 +46,12 @@ namespace Test {
 #endif
     };
 
+    struct TestArrayOfDifferentSizes
+    {
+        int a[10];
+        int b[20];
+    };
+
     struct Test64BitHandling
     {
         BaseTypes base;

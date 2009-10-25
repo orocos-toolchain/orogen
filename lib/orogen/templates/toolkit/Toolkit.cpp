@@ -67,6 +67,47 @@ bool orogen_toolkits::fromStream(std::string const& basename, <%= type.ref_type 
 }
 <% end %>
 
+<% array_types.each do |type| %>
+bool orogen_toolkits::toPropertyBag(std::string const& basename, <%= type.arg_type %> value, int length, RTT::PropertyBag& target_bag)
+{
+<% if type.contains_int64? %>
+    RTT::log(RTT::Error) << "<%= type.cxx_name %> contains 64 bit integers and therefore cannot be marshalled as XML" << RTT::endlog();
+    return false;
+<% else %>
+<%= result = ""
+        type.to_property_bag(toolkit, result, " " * 4) 
+        result
+        %> 
+    return true;
+<% end %>
+}
+
+bool orogen_toolkits::fromPropertyBag(std::string const& basename, <%= type.ref_type %> value, int length, RTT::PropertyBag const& bag)
+{
+<% if type.contains_int64? %>
+    RTT::log(RTT::Error) << "<%= type.cxx_name %> contains 64 bit integers and therefore cannot be marshalled as XML" << RTT::endlog();
+    return false;
+<% else %>
+<%= result = ""
+        type.from_property_bag(toolkit, result, " " * 4) 
+        result
+        %> 
+    return true;
+<% end %>
+}
+bool orogen_toolkits::toStream(std::string const& basename, <%= type.arg_type %> value, int length, std::ostream& io)
+{
+<%= result = ""
+        type.to_stream(toolkit, result, " " * 4)
+        result %>
+    return true;
+}
+bool orogen_toolkits::fromStream(std::string const& basename, <%= type.ref_type %> value, int length, std::istream& io)
+{
+    return false;
+}
+<% end %>
+
 <% opaques.each do |opdef|
     type = opdef.type
     intermediate_type = component.find_type(opdef.intermediate)

@@ -36,6 +36,24 @@ bool orogen_toolkits::fromCORBA( <%= type.ref_type %> value, <%= type.corba_arg_
     return true;
 }
 <% end %>
+<% array_types.each do |type| %>
+bool orogen_toolkits::toCORBA( <%= type.corba_ref_type %> corba, <%= type.arg_type %> value, int length )
+{
+<%= result = ""
+	type.to_corba(toolkit, result, " " * 4)
+	result 
+	%>
+    return true;
+}
+bool orogen_toolkits::fromCORBA( <%= type.ref_type %> value, int length, <%= type.corba_arg_type %> corba )
+{
+<%= result = ""
+	type.from_corba(toolkit, result, " " * 4)
+	result 
+	%>
+    return true;
+}
+<% end %>
 
 <% opaques.each do |opdef|
     type = opdef.type

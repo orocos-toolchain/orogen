@@ -9,13 +9,17 @@ namespace orogen_toolkits {
     bool toCORBA( <%= type.corba_ref_type %> corba, <%= type.arg_type %> value );
     bool fromCORBA( <%= type.ref_type %> value, <%= type.corba_arg_type %> corba );
     <% end %>
-<% opaques.each do |opdef|
-    type = opdef.type
-    intermediate_type = component.find_type(opdef.intermediate)
-    %>
+    <% array_types.each do |type| %>
+    bool toCORBA( <%= type.corba_ref_type %> corba, <%= type.arg_type %> value, int length );
+    bool fromCORBA( <%= type.ref_type %> value, int length, <%= type.corba_arg_type %> corba );
+    <% end %>
+    <% opaques.each do |opdef|
+        type = opdef.type
+        intermediate_type = component.find_type(opdef.intermediate)
+        %>
     bool toCORBA( <%= intermediate_type.corba_ref_type %> corba, <%= type.arg_type %> value );
     bool fromCORBA( <%= type.ref_type %> value, <%= intermediate_type.corba_arg_type %> corba );
-<% end %>
+    <% end %>
 }
 
 #endif
