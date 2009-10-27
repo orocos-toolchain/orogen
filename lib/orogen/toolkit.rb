@@ -1440,7 +1440,7 @@ module Orocos
 
                 # Generate the state enumeration types for each of the task
                 # contexts, and load it
-                if component.tasks.any?(&:extended_state_support?)
+                if component.self_tasks.any?(&:extended_state_support?)
                     state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
                     Generation.save_automatic "tasks", "#{component.name}TaskStates.hpp", state_types
                     load File.join(AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp")
