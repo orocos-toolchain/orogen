@@ -1,5 +1,14 @@
 name "RTT"
 
-task_context "TaskContext"
+task_context "TaskContext" do
+    rtt_states = ['INIT', 'PRE_OPERATIONAL', 'FATAL_ERROR', 'STOPPED',
+        'ACTIVE', 'RUNNING', 'RUNTIME_WARNING', 'RUNTIME_ERROR'].
+        map { |v| [v, :toplevel] }
+
+    # Define the standard RTT states, but hack to *not* enable the extended
+    # state support
+    instance_variable_set :@states, rtt_states
+end
+
 task_context "DataDrivenTask"
 
