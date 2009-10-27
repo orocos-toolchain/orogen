@@ -717,12 +717,14 @@ module Orocos
                 state_name.upcase
             end
 
+            ##
             # :method: each_runtime_state
             #
             # Enumerates all the runtime states
             #
             # See also #each_error_state and #each_state
 
+            ##
             # :method: each_error_state
             #
             # Enumerates all error states defined for this task context
