@@ -1438,6 +1438,15 @@ module Orocos
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
+                # Generate the state enumeration types for each of the task
+                # contexts, and load it
+                if component.tasks.any?(&:extended_state_support?)
+                    state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
+                    Generation.save_automatic "tasks", "#{component.name}TaskStates.hpp", state_types
+                    load File.join(AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp")
+                end
+
+
                 if corba_enabled?
                     corba_hpp = Generation.render_template "toolkit/ToolkitCorba.hpp", binding
                     Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba_hpp)

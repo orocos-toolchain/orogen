@@ -57,5 +57,76 @@ using namespace <%= component.name %>;
 	kind = callable.class.name.gsub(/^.*::/, '')
     %>
     <%= kind.downcase %>s()->add<%= kind %>( &_<%= callable.name %>, "<%= callable.doc %>"<%= argument_setup %>);<% end %>
+
+    <% if task.extended_state_support? %>
+    _state.keepLastWrittenValue(true);
+    <% end %>
 }
+
+<% if task.extended_state_support? %>
+void <%= task.basename %>Base::state(<%= task.state_type_name %> state)
+{
+    _state.write(state);
+}
+void <%= task.basename %>Base::error(<%= task.state_type_name %> state)
+{
+    _state.write(state);
+    TaskContext::error();
+}
+void <%= task.basename %>Base::fatal(<%= task.state_type_name %> state)
+{
+    _state.write(state);
+    TaskContext::fatal();
+}
+<%= task.state_type_name %> <%= task.basename %>Base::state() const
+{
+    return static_cast<<%= task.state_type_name %>>(_state.getLastWrittenValue());
+}
+<% end %>
+
+<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+struct StateExporter
+{
+    RTT::TaskContext const& task;
+    RTT::OutputPort<int>&   port;
+
+    StateExporter(RTT::TaskContext const& task, RTT::OutputPort<int>& port)
+        : task(task), port(port) {}
+    ~StateExporter()
+    {
+        port.write(task.getTaskState());
+    }
+};
+
+bool <%= task.basename %>Base::configure()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::configure();
+}
+bool <%= task.basename %>Base::activate()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::activate();
+}
+bool <%= task.basename %>Base::start()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::start();
+}
+bool <%= task.basename %>Base::stop()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::stop();
+}
+bool <%= task.basename %>Base::cleanup()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::cleanup();
+}
+bool <%= task.basename %>Base::resetError()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::resetError();
+}
+<% end %>
 
