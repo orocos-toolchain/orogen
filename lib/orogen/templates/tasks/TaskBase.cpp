@@ -64,16 +64,16 @@ using namespace <%= component.name %>;
 }
 
 <% if task.extended_state_support? %>
-void <%= task.basename %>Base::state(<%= task.state_type_name %> state)
+void <%= task.basename %>Base::state(States state)
 {
     _state.write(state);
 }
-void <%= task.basename %>Base::error(<%= task.state_type_name %> state)
+void <%= task.basename %>Base::error(States state)
 {
     _state.write(state);
     TaskContext::error();
 }
-void <%= task.basename %>Base::fatal(<%= task.state_type_name %> state)
+void <%= task.basename %>Base::fatal(States state)
 {
     _state.write(state);
     TaskContext::fatal();

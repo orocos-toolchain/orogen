@@ -50,6 +50,16 @@ namespace <%= component.name %> {
     <% end %>
 
     public:
+        <% if extended_state_support? %>
+        enum States
+        {
+            <% states = task.each_state.to_a
+               states.each_with_index do |(state_name, state_type), i| %>
+                <%= task.state_local_value_name(state_name, state_type) %> = <%= task.state_global_value_name(state_name, state_type) %><%= ',' if i != states.size - 1 %>
+            <% end %>
+        };
+        <% end %>
+        
 	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
 
         <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
@@ -64,9 +74,9 @@ namespace <%= component.name %> {
         <% end %>
 
         <% if task.extended_state_support? %>
-        void state(<%= task.state_type_name %> state);
-        void error(<%= task.state_type_name %> state);
-        void fatal(<%= task.state_type_name %> state);
+        void state(States state);
+        void error(States state);
+        void fatal(States state);
         <%= task.state_type_name %> state() const;
         <% end %>
     };

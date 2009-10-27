@@ -705,9 +705,16 @@ module Orocos
                 "#{basename}_STATES"
             end
 
-            # Returns the C++ value name for the given state
-            def state_value_name(state_name, state_type) # :nodoc:
+            # Returns the C++ value name for the given state when defined
+            # globally
+            def state_global_value_name(state_name, state_type) # :nodoc:
                 "#{basename}_#{state_name.upcase}"
+            end
+
+            # Returns the C++ value name for the given state when defined in the
+            # associated class scope.
+            def state_local_value_name(state_name, state_type) # :nodoc:
+                state_name.upcase
             end
 
             # :method: each_runtime_state

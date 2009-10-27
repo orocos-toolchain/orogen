@@ -11,7 +11,7 @@ namespace <%= component.name %>
     {
         <% states = task.each_state.to_a
            states.each_with_index do |(state_name, state_type), i| %>
-            <%= task.state_value_name(state_name, state_type) %><%= ',' if i != states.size - 1 %>
+            <%= task.state_global_value_name(state_name, state_type) %><%= ',' if i != states.size - 1 %>
         <% end %>
     };
     <% end %>
