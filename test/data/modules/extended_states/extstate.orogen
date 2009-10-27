@@ -1,0 +1,16 @@
+name 'extstate'
+
+task_context "Parent" do
+    runtime_states "STATE1"
+    error_states   "STATE2"
+end
+    
+task_context "Child" do
+    subclasses "Parent"
+
+    runtime_states "STATE1"
+    error_states   "STATE2"
+    runtime_states "STATE0"
+    error_states   "STATE3"
+end
+

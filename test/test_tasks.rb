@@ -331,13 +331,19 @@ class TC_GenerationTasks < Test::Unit::TestCase
         component = Component.new
         component.name "test"
 
+
         parent = component.task_context "Parent"
         parent.runtime_states "STATE1"
         parent.error_states "STATE2"
+        parent_states = parent.each_state.to_a
+        rtt = parent.superclass
+        rtt_states = rtt.each_state.to_a
+        assert_equal (rtt_states + [["STATE1", :runtime], ["STATE2", :error]]), parent_states
 
         child  = component.task_context "Child"
         child.subclasses parent
-        assert_equal [['STATE1', :runtime], ['STATE2', :error]], child.each_state.to_a
+        child_states = child.each_state.to_a
+        assert_equal parent_states, child_states
 
         assert_raises(ArgumentError) { child.error_states("STATE1") }
         child.runtime_states("STATE1")
@@ -345,8 +351,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { child.runtime_states("STATE2") }
     end
 
-    def test_state_type_definitions
-        component = build_test_component('modules/extended_states', false)
+    def test_state_type_definitions(with_corba = true)
+        component = build_test_component('modules/extended_states', with_corba)
         install
 
         parent = component.find_task_context "Parent"
@@ -359,6 +365,9 @@ class TC_GenerationTasks < Test::Unit::TestCase
         child_values  = child_states.keys
         assert_equal parent_values['Parent_STATE1'], child_values['Child_STATE1']
         assert_equal parent_values['Parent_STATE2'], child_values['Child_STATE2']
+    end
+    def test_state_type_definitions_without_corba
+        test_state_type_definitions(false)
     end
 end
 
