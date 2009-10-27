@@ -8,6 +8,12 @@
 <% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
+
+<% if task.extended_state_support? %>
+#include <<%= component.name %>/<%= component.name %>TaskStates.hpp>
+<% end %>
+
+
 <% task.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
 <% end %>

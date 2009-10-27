@@ -1444,6 +1444,9 @@ module Orocos
                     state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
                     Generation.save_automatic "tasks", "#{component.name}TaskStates.hpp", state_types
                     load File.join(AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp")
+
+                    FileUtils.ln_sf File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp"),
+                        File.join(fake_install_dir, "#{component.name}TaskStates.hpp")
                 end
 
 
