@@ -60,6 +60,7 @@ using namespace <%= component.name %>;
 
     <% if task.extended_state_support? %>
     _state.keepLastWrittenValue(true);
+    _state.write(getTaskState());
     <% end %>
 }
 
