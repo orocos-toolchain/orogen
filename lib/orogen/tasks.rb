@@ -669,7 +669,7 @@ module Orocos
                 state_kind(name) || (superclass.state?(name.to_s) if superclass)
             end
 
-            STATE_TYPES = [ :toplevel, :runtime, :error ]
+            STATE_TYPES = [ :toplevel, :runtime, :error, :fatal ]
 
             # Internal method for state definition
             def define_state(name, type) # :nodoc:
@@ -722,14 +722,21 @@ module Orocos
             #
             # Enumerates all the runtime states
             #
-            # See also #each_error_state and #each_state
+            # See also #each_error_state, #each_fatal_state and #each_state
 
             ##
             # :method: each_error_state
             #
             # Enumerates all error states defined for this task context
             #
-            # See also #each_runtime_state and #each_state
+            # See also #each_runtime_state, #each_fatal_state, and #each_state
+
+            ##
+            # :method: each_fatal_state
+            #
+            # Enumerates all error states defined for this task context
+            #
+            # See also #each_runtime_state, #each_error_state and #each_state
 
             STATE_TYPES.each do |type|
                 class_eval <<-EOD
@@ -782,7 +789,7 @@ module Orocos
                 end
             end
 
-            # Declares a certain number of error states
+            # Declares a certain number of runtime error states
             #
             # This method will do nothing if it defines a state that is already
             # defined by one of the superclasses.
@@ -791,6 +798,18 @@ module Orocos
             def error_states(*state_names)
                 state_names.each do |name|
                     define_state(name, :error)
+                end
+            end
+
+            # Declares a certain number of fatal error states
+            #
+            # This method will do nothing if it defines a state that is already
+            # defined by one of the superclasses.
+            #
+            # See #runtime_states, #error_states, #each_state, #each_error_state
+            def fatal_states(*state_names)
+                state_names.each do |name|
+                    define_state(name, :fatal)
                 end
             end
 
