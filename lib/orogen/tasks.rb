@@ -755,9 +755,16 @@ module Orocos
                 end
             end
 
+            # call-seq:
+            #   states => set of states
+            #
             # Declares a toplevel state. It should be used only to declare RTT's
             # TaskContext states.
             def states(*state_names) # :nodoc:
+                if state_names.empty?
+                    return @states
+                end
+
                 state_names.each do |name|
                     define_state(name, :toplevel)
                 end
