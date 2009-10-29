@@ -113,6 +113,16 @@ bool <%= task.basename %>Base::start()
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::start();
 }
+void <%= task.basename %>Base::recovered()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::recovered();
+}
+void <%= task.basename %>Base::warning()
+{
+    StateExporter exporter(*this, _state);
+    return <%= superclass.name %>::warning();
+}
 bool <%= task.basename %>Base::stop()
 {
     StateExporter exporter(*this, _state);

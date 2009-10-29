@@ -74,6 +74,8 @@ namespace <%= component.name %> {
         bool configure();
         bool activate();
         bool start();
+        void warning();
+        void recovered();
         bool stop();
         bool cleanup();
         bool resetError();
