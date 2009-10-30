@@ -1,4 +1,4 @@
-#include "tasks/<%= task.basename %>.hpp"
+#include "tasks/<%= task.basename %>Base.hpp"
 
 using namespace <%= component.name %>;
 
