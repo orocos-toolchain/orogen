@@ -47,6 +47,8 @@ namespace <%= component.name %> {
 	virtual <%= meth.signature.gsub('(', " #{meth.method_name}(") %> = 0;
     <% end %>
 
+	RTT::Method< std::string() > _getModelName;
+
 	<% unless task.self_commands.empty? %>/** Commands */<% end %>
     <% task.new_commands.each do |cmd| %>
 	RTT::Command< bool<%= cmd.work_signature(false) %> > _<%= cmd.name %>;
@@ -79,6 +81,8 @@ namespace <%= component.name %> {
         bool cleanup();
         bool resetError();
         <% end %>
+
+        virtual std::string getModelName() const;
 
         <% if task.extended_state_support? %>
         void state(States state);

@@ -33,6 +33,10 @@ using namespace <%= component.name %>;
     //   templates/tasks/<%= task.basename %>.hpp and
     //   templates/tasks/<%= task.basename %>.cpp
     , _<%= cmd.name %>("<%= cmd.name %>", &<%= task.name %>Base::<%= cmd.work_method_name %>, &<%= task.name %>Base::<%= cmd.completion_method_name %>, this)<% end %>
+
+    <% if task.superclass.name == "RTT::TaskContext" %>
+    , _getModelName("getModelName", &<%= task.name %>Base::getModelName, this)
+    <% end %>
 {
     <% task.self_properties.each do |prop|
         if prop.default_value %>
@@ -50,11 +54,17 @@ using namespace <%= component.name %>;
 	kind = callable.class.name.gsub(/^.*::/, '')
     %>
     <%= kind.downcase %>s()->add<%= kind %>( &_<%= callable.name %>, "<%= callable.doc %>"<%= argument_setup %>);<% end %>
+    methods()->addMethod( &_getModelName, "getModelName()");
 
     <% if task.extended_state_support? %>
     _state.keepLastWrittenValue(true);
     _state.write(getTaskState());
     <% end %>
+}
+
+std::string <%= task.basename %>Base::getModelName() const
+{
+    return "<%= task.name %>";
 }
 
 <% if task.extended_state_support? %>

@@ -8,6 +8,12 @@ task_context "TaskContext" do
     # Define the standard RTT states, but hack to *not* enable the extended
     # state support
     instance_variable_set :@states, rtt_states
+
+    # CHEAT !!!!
+    # We declare it here so that all orogen-generated components have it in
+    # their interface, but we actually add the Method object ourselves
+    method("getModelName").
+        returns("/std/string")
 end
 
 task_context "DataDrivenTask"
