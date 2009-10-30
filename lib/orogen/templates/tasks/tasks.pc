@@ -3,6 +3,7 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
 includedir=${prefix}/include/orocos
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
+task_models=<%= component.self_tasks.map(&:name).join(",") %>
 
 Name: <%= component.name %>Tasks
 Version: <%= component.version %>
