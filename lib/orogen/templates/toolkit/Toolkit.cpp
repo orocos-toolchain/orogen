@@ -28,7 +28,7 @@ using RTT::Property;
 
 // Sanity check on Typelib handling: check that typelib's computed sizes match
 // the actual type sizes
-<% toolkit.self_types.each do |type| %>
+<% toolkit.self_types.find_all { |t| !t.contains_opaques? }.each do |type| %>
 BOOST_STATIC_ASSERT(sizeof(<%= type.cxx_name %>) == <%= type.size %>);
 <% end %>
 
