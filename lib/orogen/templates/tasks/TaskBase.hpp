@@ -31,10 +31,6 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
-    <% unless task.self_methods.empty? && task.self_commands.empty? %>
-	<%= task.basename %>& _self;
-    <% end %>
-
 	<% unless task.self_properties.empty? %>/** Properties */<% end %>
     <% task.self_properties.each do |prop| %>
 	RTT::Property< <%= prop.type.cxx_name %> > _<%= prop.name %>;
@@ -46,13 +42,16 @@ namespace <%= component.name %> {
     <% end %>
 
 	<% unless task.self_methods.empty? %>/** Methods */<% end %>
-    <% task.self_methods.each do |meth| %>
+    <% task.new_methods.each do |meth| %>
 	RTT::Method< <%= meth.signature(false) %> > _<%= meth.name %>;
+	virtual <%= meth.signature.gsub('(', " #{meth.method_name}(") %> = 0;
     <% end %>
 
 	<% unless task.self_commands.empty? %>/** Commands */<% end %>
-    <% task.self_commands.each do |cmd| %>
+    <% task.new_commands.each do |cmd| %>
 	RTT::Command< bool<%= cmd.work_signature(false) %> > _<%= cmd.name %>;
+	virtual bool <%= cmd.work_method_name %><%= cmd.work_signature %> = 0;
+	virtual bool <%= cmd.completion_method_name %><%= cmd.completion_signature %> = 0;
     <% end %>
 
     public:

@@ -625,9 +625,28 @@ module Orocos
 		@properties.last
 	    end
 
-	    # The set of methods for this task.
+	    # The set of methods defined on this task
 	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
-            def self_methods; @methods end
+            # Methods that are added by this task context (i.e. methods that are
+            # defined there but are not present in the superclass)
+            def new_methods
+                super_names = superclass.all_methods.map(&:name).to_set
+                @methods.find_all do |t|
+                    !super_names.include?(t)
+                end
+            end
+            # Methods that are overloaded by this task context (i.e. methods
+            # that are defined there and are also present in the superclass)
+            def overloaded_methods
+                super_names = superclass.all_methods.map(&:name).to_set
+                @methods.find_all do |t|
+                    super_names.include?(t)
+                end
+            end
+
+            def self_methods
+                @methods
+            end
 
             # Asks orogen to implement the extended state support interface in
             # the Base class. This adds:
@@ -869,14 +888,27 @@ module Orocos
 	    # In Orocos, a method is a synchronous method call to a task context:
 	    # the caller will block until the method's procedure is called
 	    def method(name)
-		check_uniqueness :methods, name
 		@methods << Method.new(self, name)
 		@methods.last
 	    end
 
 	    # The set of commands for this task.
 	    def all_commands; @commands + (superclass ? superclass.all_commands : []) end
-            def self_commands; @commands end
+            def new_commands
+                super_names = superclass.all_commands.map(&:name).to_set
+                @commands.find_all do |t|
+                    !super_names.include?(t)
+                end
+            end
+            def overloaded_commands
+                super_names = superclass.all_commands.map(&:name).to_set
+                @commands.find_all do |t|
+                    !super_names.include?(t)
+                end
+            end
+            def self_commands
+                @commands
+            end
 
             # Create a new command with the given name. Use the returned
             # Command object to configure the method further. In Orocos, a
@@ -891,7 +923,6 @@ module Orocos
             # will generate an attribute <tt>_my_command</tt> of type
             # RTT::Command. The 
 	    def command(name)
-		check_uniqueness :commands, name
 		@commands << Command.new(self, name)
 		@commands.last
 	    end
