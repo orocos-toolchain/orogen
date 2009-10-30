@@ -29,9 +29,9 @@ module Typelib
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
-                "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
+                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
             else
-                "#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
+                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
             end
         end
 

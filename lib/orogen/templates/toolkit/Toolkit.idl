@@ -3,6 +3,7 @@
 <% end %>
 
 <%= minimal_registry.export 'idl',
+	:namespace_prefix => 'orogen',
     :namespace_suffix => 'Corba',
     :opaque_as_any => true,
     :selected => toolkit.self_typenames %>
