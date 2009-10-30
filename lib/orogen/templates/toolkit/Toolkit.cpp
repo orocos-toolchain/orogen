@@ -26,6 +26,12 @@ using RTT::DataSourceBase;
 
 using RTT::Property;
 
+// Sanity check on Typelib handling: check that typelib's computed sizes match
+// the actual type sizes
+<% toolkit.self_types.each do |type| %>
+BOOST_STATIC_ASSERT(sizeof(<%= type.cxx_name %>) == <%= type.size %>);
+<% end %>
+
 <% converted_types.each do |type| %>
 bool orogen_toolkits::toPropertyBag(std::string const& basename, <%= type.arg_type %> value, RTT::PropertyBag& target_bag)
 {
