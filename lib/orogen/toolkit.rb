@@ -297,7 +297,6 @@ module Typelib
                 element_type < NumericType &&
                 element_type.integer? &&
                 element_type.size == 1
-                STDERR.puts "optimizing with memcpy"
 
                 result << "#{indent}memcpy(&corba[0], &value[0], value.size());"
             else
