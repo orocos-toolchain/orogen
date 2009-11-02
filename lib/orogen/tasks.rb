@@ -508,7 +508,9 @@ module Orocos
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
 	    def initialize(component, name)
-		if name !~ /^(\w+::)?\w+$/
+                if name == component.name
+                    raise ArgumentError, "tasks and projects must not have the same name"
+                elsif name !~ /^(\w+::)?\w+$/
 		    raise ArgumentError, "invalid task name #{name}"
 		end
 
