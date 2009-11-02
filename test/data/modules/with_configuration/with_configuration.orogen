@@ -13,7 +13,7 @@ task_context "Configurable" do
     needs_configuration
 end
 
-static_deployment do
+deployment "test_with_configuration" do
     t = task('Configurable').
         periodic(0.1).
         start

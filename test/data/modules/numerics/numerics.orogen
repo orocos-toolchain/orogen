@@ -19,7 +19,7 @@ task_context "Test" do
         argument("e", "/numerics/Bla")
 end
 
-static_deployment do
+deployment "test_numerics" do
     test = task("Test").
         periodic(1).
         start

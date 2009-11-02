@@ -11,7 +11,7 @@ name "simple"
 task_context "SimpleTask" do
 end
 
-static_deployment do
+deployment "test_simple" do
     simple_task = task('SimpleTask').
         periodic(0.1).
         start

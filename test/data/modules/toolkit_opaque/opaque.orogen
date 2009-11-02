@@ -33,6 +33,6 @@ toolkit do
 end
 
 # Generate an empty deployment for testing
-static_deployment do
+deployment "test_opaque" do
 end
 
