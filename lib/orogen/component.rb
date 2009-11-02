@@ -321,6 +321,9 @@ module Orocos
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
+                if name.downcase != name
+                    raise ConfigError, "oroGen component names must be in lowercase"
+                end
                 unless deffile
                     raise ArgumentError, "there is no orogen file for this component, cannot generate"
                 end

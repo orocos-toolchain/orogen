@@ -86,6 +86,16 @@ class TC_GenerationComponent < Test::Unit::TestCase
         t = c.registry.get "/std/vector</double>"
         assert c.imported_type?(t)
     end
+
+    def test_project_names_is_lowercase
+        c = Component.new
+        in_prefix do
+            c.name "Test"
+            assert_raises(ConfigError) { c.generate }
+            c.name "test"
+            assert_nothing_raised(ConfigError) { c.generate }
+        end
+    end
 end
 
 
