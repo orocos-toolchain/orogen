@@ -54,7 +54,9 @@ using namespace <%= component.name %>;
 	kind = callable.class.name.gsub(/^.*::/, '')
     %>
     <%= kind.downcase %>s()->add<%= kind %>( &_<%= callable.name %>, "<%= callable.doc %>"<%= argument_setup %>);<% end %>
+    <% if task.superclass.name == "RTT::TaskContext" %>
     methods()->addMethod( &_getModelName, "getModelName()");
+    <% end %>
 
     <% if task.extended_state_support? %>
     _state.keepLastWrittenValue(true);

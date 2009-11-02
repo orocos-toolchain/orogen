@@ -4,8 +4,8 @@
 #include <string>
 #include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
-<% unless task.self_methods.empty? %>#include <rtt/Method.hpp><% end %>
-<% unless task.self_commands.empty? %>#include <rtt/Command.hpp><% end %>
+<% if !task.new_methods.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Method.hpp><% end %>
+<% unless task.new_commands.empty? %>#include <rtt/Command.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
 
 
@@ -47,7 +47,9 @@ namespace <%= component.name %> {
 	virtual <%= meth.signature.gsub('(', " #{meth.method_name}(") %> = 0;
     <% end %>
 
+    <% if task.superclass.name == "RTT::TaskContext" %>
 	RTT::Method< std::string() > _getModelName;
+    <% end %>
 
 	<% unless task.self_commands.empty? %>/** Commands */<% end %>
     <% task.new_commands.each do |cmd| %>
