@@ -40,7 +40,7 @@ module Orocos
 
 	    def setup
                 @subdir = Array.new
-                @old_pkg_config = ENV['PKG_CONFIG_PATH'].dup
+                @old_pkg_config = ENV['PKG_CONFIG_PATH'].dup if ENV['PKG_CONFIG_PATH']
 		super if defined? super
 	    end
 
