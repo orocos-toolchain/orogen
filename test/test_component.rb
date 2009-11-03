@@ -89,11 +89,10 @@ class TC_GenerationComponent < Test::Unit::TestCase
 
     def test_project_names_is_lowercase
         c = Component.new
-        in_prefix do
+        create_wc "lowercase_assertion"
+        in_wc do
             c.name "Test"
             assert_raises(ConfigError) { c.generate }
-            c.name "test"
-            assert_nothing_raised(ConfigError) { c.generate }
         end
     end
 end
