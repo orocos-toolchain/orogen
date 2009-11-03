@@ -20,7 +20,7 @@ bool Consumer::startHook() {
 
 void Consumer::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 {
-    if (find(updated_ports.begin(), updated_ports.end(), &_input) != updated_ports.end())
+    if (isPortUpdated(_input))
     {
         double value;
         while (_input.read(value))
