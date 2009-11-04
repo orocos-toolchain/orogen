@@ -43,7 +43,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	component = Component.new
         component.name "name"
 	component.task_context("task_name")
-	assert_raises(ArgumentError) { component.task_context(name) }
+	assert_raises(ArgumentError) { component.task_context("task_name") }
     end
 
     def test_property
