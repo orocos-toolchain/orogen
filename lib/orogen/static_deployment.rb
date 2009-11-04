@@ -367,29 +367,18 @@ module Orocos
 
             # call-seq:
             #   task name, task_context => task_deployment
-            #   task task_context => task_deployment
             #
             # Deploys a new task using the given task context type, and returns
             # the corresponding TaskDeployment object. This instance can be used
             # to configure the task further (for instance specifying the
             # activity). See TaskDeployment documentation for available options.
             #
-            # If only +task_context+ is given, the name of the task will be
-            # derived from it
-            def task(name, context = nil)
-                if context
-                    name    = name.to_s
-                    context = context.to_s
-                else
-                    context = name.to_s
-                    name = nil
+            # +name+ is used in the task browser, and will be the global task's
+            # name on the CORBA name server.
+            def task(name, klass)
+                unless task_context = component.find_task_context(klass)
+                    raise "no such task context: #{klass}"
                 end
-                
-                unless task_context = component.find_task_context(context)
-                    raise "no such task context: #{context}"
-                end
-
-                name ||= "#{self.name}_#{task_context.name.split(/::/)[1]}"
 
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment

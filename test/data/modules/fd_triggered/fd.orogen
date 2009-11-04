@@ -15,7 +15,7 @@ end
 deployment "fd" do
     # There is no need to specify the activity. The FileDescriptorActivity
     # activity is defined as default for Consumer
-    consumer = task('Consumer').
+    consumer = task("consumer", 'Consumer').
         start
 
     browse consumer

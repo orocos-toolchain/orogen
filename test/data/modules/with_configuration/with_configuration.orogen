@@ -14,7 +14,7 @@ task_context "Configurable" do
 end
 
 deployment "test_with_configuration" do
-    t = task('Configurable').
+    t = task("test", 'Configurable').
         periodic(0.1).
         start
 end

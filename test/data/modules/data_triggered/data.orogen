@@ -24,10 +24,10 @@ task_context 'Producer' do
 end
 
 deployment "data" do
-    consumer = task('Consumer').
+    consumer = task("consumer", 'Consumer').
         triggered.
         start
-    producer = task('Producer').
+    producer = task("producer", 'Producer').
         periodic(0.1).
         start
 

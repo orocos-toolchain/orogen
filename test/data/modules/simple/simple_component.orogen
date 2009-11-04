@@ -12,7 +12,7 @@ task_context "SimpleTask" do
 end
 
 deployment "test_simple" do
-    simple_task = task('SimpleTask').
+    simple_task = task("simple", 'SimpleTask').
         periodic(0.1).
         start
 end

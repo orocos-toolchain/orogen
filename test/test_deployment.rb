@@ -10,11 +10,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 	component.name 'test'
 
 	context    = component.task_context "task"
-        deployment = component.static_deployment
-        task       = deployment.task "task"
-
-        assert_equal "test_task", task.name
-
+        deployment = component.deployment "test"
         task       = deployment.task "my_name", "task"
         assert_equal "my_name", task.name
     end

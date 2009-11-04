@@ -20,7 +20,7 @@ task_context "Test" do
 end
 
 deployment "test_numerics" do
-    test = task("Test").
+    test = task("test", "Test").
         periodic(1).
         start
 end
