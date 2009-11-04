@@ -467,7 +467,7 @@ else
                 seen_values << value
 
                 result << indent << "  case #{namespace}#{name}:\n"
-                result << indent << "    corba = #{namespace}Corba::#{name};\n"
+                result << indent << "    corba = orogen#{namespace}Corba::#{name};\n"
                 result << indent << "    break;\n"
             end
             result << indent << "}\n"
@@ -480,7 +480,7 @@ else
                 next if seen_values.include?(value)
                 seen_values << value
 
-                result << indent << "  case #{namespace}Corba::#{name}:\n"
+                result << indent << "  case orogen#{namespace}Corba::#{name}:\n"
                 result << indent << "    value = #{namespace}#{name};\n"
                 result << indent << "    break;\n"
             end
