@@ -1,6 +1,8 @@
 name "RTT"
 
 task_context "TaskContext" do
+    abstract
+
     rtt_states = ['INIT', 'PRE_OPERATIONAL', 'FATAL_ERROR', 'STOPPED',
         'ACTIVE', 'RUNNING', 'RUNTIME_WARNING', 'RUNTIME_ERROR'].
         map { |v| [v, :toplevel] }

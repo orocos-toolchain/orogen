@@ -406,6 +406,13 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
+            # Call to declare that this task model is not meant to run in
+            # practice
+            def abstract; @abstract = true; end
+            # True if this task model is only meant to declare an interface, and
+            # should not be deployed
+            def abstract?; @abstract end
+
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
             # TaskContext instance. In both cases, it must be defined in the
