@@ -1130,10 +1130,19 @@ module Orocos
                 result = Set.new
 
 		registry.each_type(true) do |name, type|
-                    component.used_toolkits.each do |tk|
-                        if tk.includes?(name)
-                            result << tk
-                            break
+                    if type < Typelib::ArrayType
+                        component.used_toolkits.each do |tk|
+                            if tk.has_array_of?(type.deference)
+                                result << tk
+                                break
+                            end
+                        end
+                    else
+                        component.used_toolkits.each do |tk|
+                            if tk.includes?(name)
+                                result << tk
+                                break
+                            end
                         end
                     end
 		end
