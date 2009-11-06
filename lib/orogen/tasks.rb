@@ -976,7 +976,7 @@ module Orocos
             # block is given, returns the corresponding enumerator object.
             def each_output_port(&block)
                 if block_given?
-                    ports.each do |p|
+                    @ports.each do |p|
                         yield(p) if p.kind_of?(OutputPort)
                     end
                     if superclass
@@ -1038,9 +1038,9 @@ module Orocos
 
             # Enumerates the input ports available on this task context. If no
             # block is given, returns the corresponding enumerator object.
-            def each_input_port
+            def each_input_port(&block)
                 if block_given?
-                    ports.each do |p|
+                    @ports.each do |p|
                         yield(p) if p.kind_of?(InputPort)
                     end
                     if superclass
