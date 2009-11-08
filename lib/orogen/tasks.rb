@@ -65,6 +65,8 @@ module Orocos
 	    attr_reader :name
 	    # The port type
 	    attr_reader :type
+            # The port type name
+            def type_name; type.name end
 
             def used_types; [type] end
 
