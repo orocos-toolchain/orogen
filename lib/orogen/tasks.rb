@@ -1024,16 +1024,28 @@ module Orocos
                 dynamic_ports.last
             end
 
+            def dynamic_port?(name, type)
+                dynamic_input_port?(name, type) || dynamic_output_port?(name, type)
+            end
+
+            def find_dynamic_input_ports(name, type)
+                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && p.type == component.find_type(type) && p.name === name }
+            end
+
             # Returns true if an input port of the given name and type could be
             # created at runtime.
             def dynamic_input_port?(name, type)
-                dynamic_ports.any? { |p| p.kind_of?(InputPort) && p.type == component.find_type(type) && p.name === name }
+                !find_dynamic_input_ports(name, type).empty?
+            end
+
+            def find_dynamic_output_ports(name, type)
+                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && p.type == component.find_type(type) && p.name === name }
             end
 
             # Returns true if an output port of the given name and type could be
             # created at runtime.
             def dynamic_output_port?(name, type)
-                dynamic_ports.any? { |p| p.kind_of?(OutputPort) && p.type == component.find_type(type) && p.name === name }
+                !find_dynamic_output_ports(name, type).empty?
             end
 
             # Enumerates the input ports available on this task context. If no
