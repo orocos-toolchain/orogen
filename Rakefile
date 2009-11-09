@@ -18,12 +18,19 @@ begin
             extra_dev_deps <<
                 ['webgen', '>= 0.5.9']
         end
+
+        Rake.clear_tasks(/dist:publish_docs/)
+        Rake.clear_tasks(/dist:(re|clobber_|)docs/)
+        task 'publish_docs' => 'redocs' do
+            if !system('doc/misc/update_github')
+                raise "cannot update the gh-pages branch for GitHub"
+            end
+            if !system('git', 'push', 'github', 'gh-pages')
+                raise "cannot push the documentation"
+            end
+        end
     end
 
-    # This sucks, I know, but Hoe's handling of documentation is not
-    # enough for me
-    tasks = Rake.application.instance_variable_get :@tasks
-    tasks.delete_if { |n, _| n =~ /dist:(re|clobber_|)docs/ }
 rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
 rescue Exception => e
