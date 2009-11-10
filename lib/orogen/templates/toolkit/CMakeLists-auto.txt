@@ -31,6 +31,7 @@ add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', toolkit_deps) %>
+target_link_libraries(${libname} ${OrocosRTT_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-toolkit-${OROCOS_TARGET}.pc)
