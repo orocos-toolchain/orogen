@@ -7,43 +7,18 @@
 # #disable_corba
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR}/<%= Orocos::Generation::AUTOMATIC_AREA_NAME %>)
+
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
+link_directories(${OrocosRTT_LIBRARY_DIRS})
 
 <% if toolkit.has_opaques_with_templates? %>
 include_directories(${CMAKE_SOURCE_DIR}/toolkit)
 <% end %>
 
-<% if toolkit.corba_enabled? %>
-# Set up generation of IDL files for CORBA support
-IF (NOT OrocosCORBA_Toolkit_FOUND)
-    MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
-ENDIF(NOT OrocosCORBA_Toolkit_FOUND)
-
-set(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitC.cpp)
-if(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-    list(APPEND CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitDynSK.cpp)
-endif(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-
-add_custom_command(OUTPUT ${CORBA_FILES}
-    COMMAND ${OrocosCORBA_IDL} -Wbkeep_inc_path
-        <%= toolkit.used_toolkits.map { |tk| "-I" + File.join(tk.pkg.prefix, "include", "orocos") }.join(" ") %>
-        ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl)
-
-add_definitions(${OrocosCORBA_Toolkit_DEFINES})
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${OrocosCORBA_Toolkit_INCLUDE_DIRS})
-<% end %>
-
 # Now set up the dependencies
 <%= toolkit_deps = toolkit.dependencies
     Generation.cmake_pkgconfig_require(toolkit_deps) %>
-
-link_directories(${OrocosRTT_LIBRARY_DIRS})
-<% if toolkit.corba_enabled? %>
-link_directories(${OrocosCORBA_LIBRARY_DIRS})
-<% end %>
 
 # Generate the base toolkit shared library
 set(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
@@ -82,8 +57,32 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb
 
 
 <% if toolkit.corba_enabled? %>
+include_directories(${OrocosCORBA_INCLUDE_DIRS})
+add_definitions(${OrocosCORBA_CFLAGS_OTHER})
+link_directories(${OrocosCORBA_LIBRARY_DIRS})
+
+# Set up generation of IDL files for CORBA support
+IF (NOT OrocosCORBA_Toolkit_FOUND)
+    MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
+ENDIF(NOT OrocosCORBA_Toolkit_FOUND)
+
+set(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitC.cpp)
+if(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+    list(APPEND CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>ToolkitDynSK.cpp)
+endif(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+
+add_custom_command(OUTPUT ${CORBA_FILES}
+    COMMAND ${OrocosCORBA_IDL} -Wbkeep_inc_path
+        <%= toolkit.used_toolkits.map { |tk| "-I" + File.join(tk.pkg.prefix, "include", "orocos") }.join(" ") %>
+        ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Toolkit.idl)
+
+add_definitions(${OrocosCORBA_Toolkit_DEFINES})
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${OrocosCORBA_Toolkit_INCLUDE_DIRS})
+
 # Generate the CORBA transport
-SET(libname_corba <%= component.name %>-transport-corba-${OROCOS_TARGET})
+set(libname_corba <%= component.name %>-transport-corba-${OROCOS_TARGET})
 add_library(${libname_corba} SHARED <%= component.name %>ToolkitCorba.cpp ${CORBA_FILES})
 target_link_libraries(${libname_corba} ${libname} ${OrocosCORBA_LIBRARIES})
 <%= Generation.cmake_pkgconfig_link_corba('${libname_corba}', toolkit_deps) %>
