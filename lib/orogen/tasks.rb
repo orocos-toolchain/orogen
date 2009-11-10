@@ -39,7 +39,7 @@ module Orocos
 	    def initialize(task, name, type, default_value)
                 name = name.to_s
 		if name !~ /^\w+$/
-		    raise ArgumentError, "invalid property name #{name}"
+                    raise ArgumentError, "property names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
 		end
 
                 type = task.component.find_type(type)
@@ -74,7 +74,7 @@ module Orocos
                 if !name.kind_of?(Regexp)
                     name = name.to_s
                     if name !~ /^\w+$/
-                        raise ArgumentError, "invalid port name #{name}"
+                        raise ArgumentError, "port names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                     end
                 end
 
@@ -115,7 +115,7 @@ module Orocos
 	    def initialize(task, name)
                 name = name.to_s
 		if name !~ /^\w+$/
-		    raise ArgumentError, "invalid task name #{name}"
+                    raise ArgumentError, "#{self.class.name.downcase} names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
 		end
 
 		@task = task
@@ -519,8 +519,8 @@ module Orocos
 	    def initialize(component, name)
                 if name == component.name
                     raise ArgumentError, "tasks and projects must not have the same name"
-                elsif name !~ /^(\w+::)?\w+$/
-		    raise ArgumentError, "invalid task name #{name}"
+                elsif name !~ /^(\w+::)*\w+$/
+		    raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
 		end
 
 		@component  = component

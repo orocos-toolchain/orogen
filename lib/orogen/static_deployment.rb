@@ -380,6 +380,10 @@ module Orocos
                     raise "no such task context: #{klass}"
                 end
 
+                if name !~ /^[a-zA-Z_]+$/
+                    raise ArgumentError, "task names can only contain alphanumeric characters and '_'"
+                end
+
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment
