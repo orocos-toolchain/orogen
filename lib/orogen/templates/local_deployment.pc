@@ -1,6 +1,8 @@
 prefix=@PROJECT_BINARY_DIR@
 exec_prefix=${prefix}
 binfile=${prefix}/<%= deployer.name %>
+
+project_name=<%= component.name %>
 deffile=@PROJECT_SOURCE_DIR@/<%= File.basename(component.deffile) %>
 toolkits=<%= component.used_toolkits.map { |tk| tk.name }.join(" ") %> <%= component.name if component.toolkit %>
 
