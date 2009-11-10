@@ -56,7 +56,7 @@ add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', toolkit_deps) %>
-target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES orocos-rtt-${OROCOS_TARGET})
+target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-toolkit-${OROCOS_TARGET}.pc)
 configure_file(<%= component.name %>-toolkit.pc.in ${PKG_CONFIG_FILE} @ONLY)
@@ -85,9 +85,9 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb
 # Generate the CORBA transport
 SET(libname_corba <%= component.name %>-transport-corba-${OROCOS_TARGET})
 add_library(${libname_corba} SHARED <%= component.name %>ToolkitCorba.cpp ${CORBA_FILES})
-target_link_libraries(${libname_corba} ${libname} orocos-rtt-corba-${OROCOS_TARGET})
+target_link_libraries(${libname_corba} ${libname} ${OrocosCORBA_LIBRARIES})
 <%= Generation.cmake_pkgconfig_link_corba('${libname_corba}', toolkit_deps) %>
-target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES orocos-rtt-corba-${OROCOS_TARGET})
+target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
 
 SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-transport-corba-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= component.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
