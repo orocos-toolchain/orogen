@@ -303,6 +303,7 @@ module Orocos
                 result << "pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
                 if s.include
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
+                    result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
                 end
                 if s.link
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
