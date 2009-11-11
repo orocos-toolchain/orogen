@@ -11,5 +11,5 @@ Requires: <%= toolkit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.
 <% end %>
 Description: <%= component.name %> types support for the Orocos type system
 Libs: -L${libdir} -l@libname@
-Cflags: -I${includedir} <%= toolkit.loaded_files_dirs.map { |s| "-I#{s}" }.join(" ") %>
+Cflags: -I${includedir} <%= toolkit.loaded_files_dirs.map { |s| "-I#{s}" }.join(" ") %> @PKG_CFLAGS@
 

@@ -30,29 +30,15 @@ include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
     <%= component.name %>-toolkit-${OROCOS_TARGET})
 <% end %>
-<% related_toolkits = component.tasks.inject(Set.new) { |set, task| set | task.used_toolkits.map(&:name) }
-related_toolkits.each do |name| %>
-pkg_check_modules(<%= name %>_TOOLKIT REQUIRED <%= name %>-toolkit-${OROCOS_TARGET})
-include_directories(${<%= name %>_TOOLKIT_INCLUDE_DIRS})
-link_directories(${<%= name %>_TOOLKIT_LIBRARY_DIRS})
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_TOOLKIT_LIBRARIES})
-<% end %>
 
-<% component.used_libraries.each do |pkg|
-name = pkg.name %>
-pkg_check_modules(<%= name %> REQUIRED <%= name %>)
-INCLUDE_DIRECTORIES(${<%= name %>_INCLUDE_DIRS})
-LINK_DIRECTORIES(${<%= name %>_LIBRARY_DIRS})
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_LIBRARIES})
+<%= dependencies = component.tasklib_dependencies
+    Generation.cmake_pkgconfig_require(dependencies) %>
+<% dependencies.each do |dep_def|
+   next if !dep_def.link %>
+list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
+<% if dep_def.var_name =~ /TASKLIB/ %>
+list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_TASKLIB_LIBRARIES})
 <% end %>
-
-<% related_libraries = component.tasks.inject(Set.new) { |set, task| set | task.used_task_libraries.map(&:name) }
-related_libraries.each do |name| %>
-pkg_check_modules(<%= name %>_TASKLIB REQUIRED <%= name %>-tasks-${OROCOS_TARGET})
-INCLUDE_DIRECTORIES(${<%= name %>_TASKLIB_INCLUDE_DIRS})
-LINK_DIRECTORIES(${<%= name %>_TASKLIB_LIBRARY_DIRS})
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= name %>_TASKLIB_LIBRARIES})
-list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= name %>_TASKLIB_LIBRARIES})
 <% end %>
 
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= component.name %>-tasks.pc.in

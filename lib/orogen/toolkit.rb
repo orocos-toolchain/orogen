@@ -1125,10 +1125,29 @@ module Orocos
             def enable_corba;  @corba_enabled = true end
 	    def disable_corba; @corba_enabled = false end
 
+            def normalize_registry
+		minimal_registry = self.registry.
+		    minimal(preloaded_registry).
+		    minimal(component.rtt_registry)
+		minimal_registry = component.used_toolkits.
+		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
+
+                @registry = minimal_registry
+            end
+
             # List of toolkits that this toolkit depends on
             def used_toolkits
+                normalize_registry
                 result = Set.new
 
+                # We depend on the toolkits that define types that are used in
+                # our types (ouch), as they define the convertion functions that
+                # our toolkit will use.
+                #
+                # We therefore must not use self_types there but really
+                # registry.each_type. Note that the registry is minimal, i.e.
+                # contains only our own types plus the types that are needed to
+                # define them, and this is therefore not a problem.
 		registry.each_type(true) do |name, type|
                     if type < Typelib::ArrayType
                         component.used_toolkits.each do |tk|
@@ -1151,13 +1170,25 @@ module Orocos
 
             # Returns the set of pkg-config packages this toolkit depends on
             def dependencies
-                result = [BuildDependency.new("TYPELIB", "typelib", false, true, true)]
+                result = []
+
+                # We must link to libraries in case the types we are getting
+                # from them has constructors/destructors that the library
+                # provides.
                 component.used_libraries.each do |pkg|
-                    result << BuildDependency.new(pkg.name.upcase, pkg.name, false, true, true)
+                    needs_link = component.toolkit_libraries.include?(pkg)
+                    result << BuildDependency.new(pkg.name.upcase, pkg.name, false, true, needs_link)
                 end
+
+                # We must link to toolkits that define our types, as we are
+                # going to reuse the convertion functions that they define
                 used_toolkits.each do |tk|
                     result << BuildDependency.new(tk.name.upcase + "_TOOLKIT", tk.pkg_name, false, true, true)
                 end
+
+                # We must include the toolkits that define types that are used
+                # in the other toolkits types
+
                 if corba_enabled?
                     used_toolkits.each do |tk|
                         result << BuildDependency.new(tk.name.upcase + "_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
@@ -1416,7 +1447,7 @@ module Orocos
                 registered_types = if type_export_policy == :all
                                        generated_types.dup
                                    elsif type_export_policy == :used
-                                       used_types = component.self_tasks.map(&:used_types).
+                                       used_types = component.self_tasks.map(&:interface_types).
                                            map(&:to_value_set).
                                            inject(&:|).
                                            map do |t|

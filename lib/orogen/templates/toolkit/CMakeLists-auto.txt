@@ -16,9 +16,19 @@ link_directories(${OrocosRTT_LIBRARY_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/toolkit)
 <% end %>
 
+<% typelib_dep = [BuildDependency.new("TYPELIB", "typelib", false, true,
+true)]
+   Generation.cmake_pkgconfig_require(typelib_dep) %>
+
 # Now set up the dependencies
 <%= toolkit_deps = toolkit.dependencies
     Generation.cmake_pkgconfig_require(toolkit_deps) %>
+<%  toolkit_deps.each do |dep_def|
+        if dep_def.include && !dep_def.corba %>
+set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
+        <% end %>
+    <% end %>
+string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 
 # Generate the base toolkit shared library
 set(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
@@ -30,6 +40,7 @@ add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
     <%= component.name %>ToolkitIntermediates.cpp
     <% end %>)
 
+<%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typelib_dep) %>
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', toolkit_deps) %>
 target_link_libraries(${libname} ${OrocosRTT_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})

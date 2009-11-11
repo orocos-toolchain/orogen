@@ -1120,20 +1120,19 @@ module Orocos
 
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
-            def used_types
+            def interface_types
                 (all_properties + all_methods + all_commands + all_ports).
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
             end
 
 
-            # Returns the set of imported toolkits that are needed to run this
-            # task properly.
+            # Returns the set of toolkits that define the types used in this
+            # task's interface. They are required at compile and link time
+            # because of the explicit instanciation of interface templates
+            # (ports, ...)
             def used_toolkits
-                types = (all_properties + all_methods + all_commands + all_ports).
-                    map { |obj| obj.used_types }.
-                    flatten.to_value_set.to_a
-
+                types = interface_types
                 component.used_toolkits.find_all do |tk|
                     types.any? do |type|
                         tk.includes?(type.name)

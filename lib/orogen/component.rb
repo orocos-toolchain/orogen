@@ -50,9 +50,7 @@ module Orocos
             #
             # See #tasks for the set of all task definitions available in the
             # project.
-            def self_tasks
-                tasks.find_all { |t| !t.external_definition? }
-            end
+            attr_reader :self_tasks
 
             # The Typelib::Registry object holding all known types defined in
             # this project
@@ -99,6 +97,12 @@ module Orocos
 
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
+
+            # The subset of +used_libraries+ that should be linked to the
+            # toolkit library.
+            #
+            # See the discussion in the documentation of #using_library
+            attr_reader :toolkit_libraries
 
             # A set of TaskLibrary objects describing libraries which define
             # tasks. They have to provide a .orogen file which lists the tasks
@@ -148,6 +152,7 @@ module Orocos
 
 	    def initialize
 		@tasks = Component.standard_tasks.dup
+                @self_tasks = []
 		@registry = Typelib::Registry.new
 
                 @name    = nil
@@ -155,6 +160,7 @@ module Orocos
 		@version = "0.0"
 		@used_toolkits  = []
                 @used_libraries = []
+                @toolkit_libraries = []
                 @used_task_libraries = []
                 @toolkit = nil
 
@@ -427,6 +433,48 @@ module Orocos
 		end
 	    end
 
+            # Returns a list of BuildDependency object that represent the
+            # dependencies for the task library
+            def tasklib_dependencies
+                # Get the set of toolkits that we directly depend on, because
+                # some of our task classes use their types in their interface.
+                used_toolkits = self_tasks.inject(Set.new) do |set, task|
+                    set | task.used_toolkits.map(&:name)
+                end
+
+                used_libraries = self.used_libraries.map(&:name)
+                used_tasklibs = self_tasks.inject(Set.new) do |set, task|
+                    set | task.used_task_libraries.map(&:name)
+                end
+
+                # Cover the package names into BuildDependency objects,
+                # first for the direct dependencies. Then, we look into the
+                # indirect dependencies in type_includes, remove duplicates
+                # and finish
+                used_toolkits.map! do |name|
+                    BuildDependency.new "#{name}_TOOLKIT", "#{name}-toolkit-#{orocos_target}", false, true, true
+                end
+                used_libraries.map! do |name|
+                    BuildDependency.new name, name, false, true, true
+                end
+                used_tasklibs.map! do |name|
+                    BuildDependency.new "#{name}_TASKLIB", "#{name}-tasks-#{orocos_target}", false, true, true
+                end
+                result = (used_toolkits + used_libraries + used_tasklibs)
+
+                var_names = result.map(&:var_name).to_set
+                if toolkit
+                    toolkit.dependencies.each do |dep|
+                        next if dep.corba || var_names.include?(dep.var_name)
+                        dep = dep.dup
+                        dep.link = false
+                        result << dep
+                    end
+                end
+
+                result
+            end
+
 	    # call-seq:
 	    #   name(new_name) => self
             #   name => current_name
@@ -447,8 +495,21 @@ module Orocos
             # the external dependencies of your component to provide the
             # necessary files (and those files to be in a directory listed in
             # the +PKG_CONFIG_PATH+ environment variable).
-            def using_library(name)
-                used_libraries << Utilrb::PkgConfig.new(name)
+            #
+            # This library will be linked to both the project's toolkit (if any)
+            # and its task library. This is so because the library may contain
+            # the implementation part of types that are exported by the toolkit.
+            #
+            # To reduce the link interface, you may use the :toolkit option to
+            # avoid linking the library to the toolkit:
+            #
+            #   using_library 'name', :toolkit => false
+            #
+            def using_library(name, options = Hash.new)
+                options = Kernel.validate_options options, :toolkit => true
+                pkg = Utilrb::PkgConfig.new(name)
+                used_libraries << pkg
+                toolkit_libraries << pkg if options[:toolkit]
                 self
             rescue Utilrb::PkgConfig::NotFound => e
                 raise ConfigError, "no library named '#{name}' is available", e.backtrace
@@ -530,6 +591,7 @@ module Orocos
 		new_task = TaskContext.new(self, "#{self.name}::#{name}")
 		new_task.instance_eval(&block) if block_given?
 		tasks << new_task
+                self_tasks << new_task
 		tasks.last
 	    end
 

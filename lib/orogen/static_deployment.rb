@@ -518,6 +518,52 @@ module Orocos
                 end
                 @browse = task
             end
+
+            def used_task_libraries
+                task_models = task_activities.map { |task| task.context }
+                component.used_task_libraries.find_all do |tasklib|
+                    puts tasklib.name
+                    puts tasklib.self_tasks.map(&:name)
+                    result = task_models.any? do |task|
+                        tasklib.self_tasks.include?(task)
+                    end
+                    puts result
+                    result
+                end
+            end
+
+            def dependencies
+                result = []
+                result << BuildDependency.new("OrocosRTT", "orocos-rtt-#{Generation.orocos_target}", false, true, true)
+                if browse
+                    result << BuildDependency.new("OrocosOCL", "orocos-ocl-#{Generation.orocos_target}", false, true, true)
+                end
+                if corba_enabled?
+                    result << BuildDependency.new("OrocosCORBA", "orocos-transport-corba-#{Generation.orocos_target}", true, true, true)
+                end
+
+                used_toolkits.each do |tk|
+                    result << BuildDependency.new("#{tk.name}_TOOLKIT", tk.pkg_name, false, true, true)
+                    if corba_enabled?
+                        result << BuildDependency.new("#{tk.name}_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
+                    end
+                end
+
+                used_task_libraries.each do |pkg|
+                    result << BuildDependency.new("#{pkg.name}_TASKLIB", "#{pkg.name}-tasks-#{Generation.orocos_target}", false, true, true)
+                end
+
+                # Task files could be using headers from external libraries, so add the relevant
+                # directory in our include path
+                component.tasklib_dependencies.
+                    find_all { |builddep| !builddep.corba && builddep.include }.
+                    each do |builddep|
+                        builddep.link = false
+                        result << builddep
+                    end
+
+                result
+            end
         end
     end
 end
