@@ -6,7 +6,7 @@ binfile=${prefix}/bin/<%= deployer.name %>
 
 project_name=<%= component.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
-toolkits=<%= deployer.used_toolkits.map { |tk| tk.name }.join(" ") %>
+toolkits=<%= component.name if component.toolkit %> <%= deployer.used_toolkits.map { |tk| tk.name }.join(" ") %>
 
 Name: <%= deployer.name %>
 Version: <%= component.version %>
