@@ -23,6 +23,9 @@
 #include <typelib/pluginmanager.hh>
 #include <utilmm/configfile/pkgconfig.hh>
 using RTT::DataSourceBase;
+#include "TypelibMarshaller.hpp"
+
+using namespace RTT;
 
 using RTT::Property;
 
@@ -198,49 +201,28 @@ bool orogen_toolkits::<%= type.method_name(true) %>TypeInfo::composeTypeImpl(con
 <% end %>
 
 template<typename T>
-struct BufferGetter : public RTT::detail::TypeTransporter
+struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
 {
     Typelib::MemoryLayout layout;
-    BufferGetter(std::string const& name, Typelib::Registry const& registry)
+    TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
     {
         layout = Typelib::layout_of(*registry.get(name), false, false);
     }
 
-    void* createBlob(RTT::DataSourceBase::shared_ptr data) const
-    {
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
-        return reuseBlob(buffer, data);
-    }
-
-    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {
         typename RTT::DataSource<T>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<T> >(data);
         T sample = obj->get();
 
-        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
-        buffer->clear();
-        Typelib::dump(reinterpret_cast<uint8_t*>(&sample), *buffer, layout);
-        return buffer;
+        buffer.clear();
+        Typelib::dump(reinterpret_cast<uint8_t*>(&sample), buffer, layout);
     }
-
-    bool updateBlob(const void* blob, DataSourceBase::shared_ptr target) const { return false; }
-    DataSourceBase* proxy(void* data ) const { return 0; }
-    void* server(DataSourceBase::shared_ptr source, bool assignable, void* arg) const { return 0; }
-    void* method(DataSourceBase::shared_ptr source, RTT::MethodC* orig, void* arg) const { return 0; }
-    DataSourceBase* dataProxy( RTT::PortInterface* data ) const { return 0; }
-    DataSourceBase* dataProxy( void* data ) const { return 0; }
-    void* dataServer( DataSourceBase::shared_ptr source, void* arg) const { return 0; }
-    RTT::BufferBase* bufferProxy( RTT::PortInterface* data ) const { return 0; }
-    RTT::BufferBase* bufferProxy( void* data ) const { return 0; }
-    void* bufferServer( RTT::BufferBase::shared_ptr source, void* arg) const { return 0; }
-    DataSourceBase* narrowDataSource(DataSourceBase* dsb) { return 0; }
-    DataSourceBase* narrowAssignableDataSource(DataSourceBase* dsb) { return 0; }
 };
 
+// Now handle opaque types
 <% registered_types.find_all { |t| t.contains_opaques? }.each do |type| %>
-
 template<>
-struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporter
+struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::TypelibMarshallerBase
 {
 
 <% if type.opaque?
@@ -248,51 +230,36 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
     intermediate = component.find_type(spec.intermediate) %>
 
     Typelib::MemoryLayout layout_<%= intermediate.method_name %>;
-    BufferGetter(std::string const& name, Typelib::Registry const& registry)
+    TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
     {
         layout_<%= intermediate.method_name %> = Typelib::layout_of(*registry.get("<%= intermediate.name %>"), false, false);
     }
 
-    void* createBlob(RTT::DataSourceBase::shared_ptr data) const
-    {
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
-        return reuseBlob(buffer, data);
-    }
-
-    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {
         RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
 
-        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
-        buffer->clear();
+        buffer.clear();
         <% if opaque_specification(type).needs_copy? %>
         <%= intermediate.cxx_name %> temp;
         <%= component.name %>::to_intermediate(temp, sample);
         <% else %>
         <%= intermediate.cxx_name %> const& temp = <%= component.name %>::to_intermediate(sample);
         <% end %>
-        Typelib::dump(reinterpret_cast<uint8_t const*>(&temp), *buffer, layout_<%= intermediate.method_name %>);
-
-        return buffer;
+        Typelib::dump(reinterpret_cast<uint8_t const*>(&temp), buffer, layout_<%= intermediate.method_name %>);
     }
 
 <% else %>
 
     Typelib::MemoryLayout layout;
 
-    BufferGetter(std::string const& name, Typelib::Registry const& registry)
+    TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
     {
         layout = Typelib::layout_of(*registry.get("<%= type.name %>_m"), false, true);
     }
 
-    void* createBlob(RTT::DataSourceBase::shared_ptr data) const
-    {
-        std::vector<uint8_t>* buffer = new std::vector<uint8_t>;
-        return reuseBlob(buffer, data);
-    }
-
-    void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr data) const
+    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {
         RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
         <%= type.cxx_name %> sample = obj->get();
@@ -310,32 +277,14 @@ struct BufferGetter< <%= type.cxx_name %> > : public RTT::detail::TypeTransporte
             <% end %>
         <% end %>
 
-        std::vector<uint8_t>* buffer = reinterpret_cast< std::vector<uint8_t> *>(blob);
-        buffer->clear();
-        Typelib::dump(reinterpret_cast<uint8_t*>(&temp), *buffer, layout);
-
-        return buffer;
+        buffer.clear();
+        Typelib::dump(reinterpret_cast<uint8_t*>(&temp), buffer, layout);
     }
 
 <% end %>
-
-    bool updateBlob(const void* blob, DataSourceBase::shared_ptr target) const { return false; }
-    DataSourceBase* proxy(void* data ) const { return 0; }
-    void* server(DataSourceBase::shared_ptr source, bool assignable, void* arg) const { return 0; }
-    void* method(DataSourceBase::shared_ptr source, RTT::MethodC* orig, void* arg) const { return 0; }
-    DataSourceBase* dataProxy( RTT::PortInterface* data ) const { return 0; }
-    DataSourceBase* dataProxy( void* data ) const { return 0; }
-    void* dataServer( DataSourceBase::shared_ptr source, void* arg) const { return 0; }
-    RTT::BufferBase* bufferProxy( RTT::PortInterface* data ) const { return 0; }
-    RTT::BufferBase* bufferProxy( void* data ) const { return 0; }
-    void* bufferServer( RTT::BufferBase::shared_ptr source, void* arg) const { return 0; }
-    DataSourceBase* narrowDataSource(DataSourceBase* dsb) { return 0; }
-    DataSourceBase* narrowAssignableDataSource(DataSourceBase* dsb) { return 0; }
 };
 
 <% end %>
-
-static const int ORO_TYPELIB_MARSHALLER_ID = 42;
 
 orogen_toolkits::<%= component.name %>ToolkitPlugin::<%= component.name %>ToolkitPlugin()
     : m_registry() {}
@@ -364,7 +313,7 @@ bool orogen_toolkits::<%= component.name %>ToolkitPlugin::loadTypes()
     <% registered_types.each do |type| %>
     ti = new <%= type.method_name(true) %>TypeInfo();
     try
-    { ti->addProtocol(ORO_TYPELIB_MARSHALLER_ID, new BufferGetter< <%= type.cxx_name %> >("<%= type.name %>", *m_registry)); }
+    { ti->addProtocol(orogen_transports::TYPELIB_MARSHALLER_ID, new TypelibMarshaller< <%= type.cxx_name %> >("<%= type.name %>", *m_registry)); }
     catch(Typelib::NoLayout)
     { std::cerr << "could not register a typelib marshaller for <%= type.name %>" << std::endl; }
     ti_repository->addType( ti );

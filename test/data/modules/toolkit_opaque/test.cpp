@@ -10,6 +10,8 @@
 #include "build/.orogen/toolkit/opaqueToolkitC.h"
 #endif
 
+#include ".orogen/toolkit/TypelibMarshaller.hpp"
+
 #include <rtt/os/main.h>
 #include <rtt/Types.hpp>
 #include <rtt/PropertyBag.hpp>
@@ -24,7 +26,6 @@ using namespace RTT;
 using std::cerr;
 using std::endl;
 
-static const int TYPELIB_MARSHALLER_ID = 42;
 namespace NotOrogenCompatible {
     extern std::ostream& operator << (std::ostream& io, Point2D const& data);
 }
@@ -39,6 +40,22 @@ namespace std {
 }
 template<typename T>
 T identity(T const& value) { return value; }
+
+template<typename T>
+std::vector<uint8_t> typelib_marshalling(T const& testValue)
+{
+    ConstantDataSource<T>* source
+        = new ConstantDataSource<T>(testValue);
+    source->ref();
+
+    TypeInfo const* type = source->getTypeInfo();
+    orogen_transports::TypelibMarshallerBase* transport =
+        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(type->getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
+
+    std::vector<uint8_t> buffer;
+    transport->marshal(buffer, source);
+    return buffer;
+}
 
 /* This is a generic test of type handling.
  * - it marshals the type into a XML file. This file can then be compared
@@ -126,25 +143,21 @@ bool test_plain_opaque()
     generic_type_handling_test("opaque", testValue, *type, &identity<NotOrogenCompatible::Point2D> );
 
     // Now, try the marshalling thing
-    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
-        ConstantDataSource<NotOrogenCompatible::Point2D>* source =
-            new ConstantDataSource<NotOrogenCompatible::Point2D>(testValue);
-        source->ref();
-        std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
+        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
 
-        if (sizeof(TestOpaque::Point2D) != result->size())
+        if (sizeof(TestOpaque::Point2D) != buffer.size())
         {
-            cerr << "error in Pocosim marshalling" << endl;
-            cerr << "resulting buffer is of size " << result->size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
+            cerr << "error in Typelib marshalling" << endl;
+            cerr << "resulting buffer is of size " << buffer.size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
             return false;
         }
 
-        TestOpaque::Point2D p = *reinterpret_cast<TestOpaque::Point2D*>(&(*result)[0]);
+        TestOpaque::Point2D p = *reinterpret_cast<TestOpaque::Point2D*>(&(buffer)[0]);
         if (p.padding != 100 || p.x != testValue.x() || p.y != testValue.y())
         {
-            cerr << "error in Pocosim marshalling" << endl;
+            cerr << "error in Typelib marshalling" << endl;
             cerr << "expected\n\n" << testValue <<
                 "\n\ngot\n\n" << p << endl;
             return false;
@@ -173,27 +186,23 @@ bool test_composed_opaque()
 
     generic_type_handling_test("composed_opaque", testValue, *type, &identity<TestOpaque::Position> );
 
-    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
-        ConstantDataSource<TestOpaque::Position>* source
-            = new ConstantDataSource<TestOpaque::Position>(testValue);
-        source->ref();
-        std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
-
-        if (sizeof(TestOpaque::Position_m) != result->size())
+        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
+        
+        if (sizeof(TestOpaque::Position_m) != buffer.size())
         {
-            cerr << "error in Pocosim marshalling" << endl;
-            cerr << "resulting buffer is of size " << result->size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
+            cerr << "error in Typelib marshalling" << endl;
+            cerr << "resulting buffer is of size " << buffer.size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
             return false;
         }
 
-        TestOpaque::Position_m p = *reinterpret_cast<TestOpaque::Position_m*>(&(*result)[0]);
+        TestOpaque::Position_m p = *reinterpret_cast<TestOpaque::Position_m*>(&(buffer)[0]);
         if (p.timestamp != testValue.timestamp ||
                 p.p.x != testValue.p.x() ||
                 p.p.y != testValue.p.y())
         {
-            cerr << "error in pocosim marshalling for TestOpaque::Position_m" << endl;
+            cerr << "error in Typelib marshalling for TestOpaque::Position_m" << endl;
             return false;
         }
     }
@@ -230,26 +239,22 @@ bool test_shared_pointer()
 
     generic_type_handling_test("shared_ptr__opaque_type", testValue, *type, &get_ptr_content< std::vector<float> >);
 
-    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
-        ConstantDataSource<boost::shared_ptr< std::vector<float> > >* source
-            = new ConstantDataSource<boost::shared_ptr< std::vector<float> > >(testValue);
-        source->ref();
-        std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
+        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
 
-        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
         if (size != (*testValue).size())
         {
-            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<float> >" << endl;
+            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<float> >" << endl;
             return false;
         }
 
-        float* data = reinterpret_cast<float*>(&(*result)[sizeof(size)]);
+        float* data = reinterpret_cast<float*>(&buffer[sizeof(size)]);
         for (int i = 0; i < size; ++i)
             if (data[i] != (*testValue)[i])
             {
-            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<float> >" << endl;
+            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<float> >" << endl;
             return false;
             }
     }
@@ -278,26 +283,22 @@ bool test_shared_ptr_shortcut()
 
     generic_type_handling_test("shared_ptr__shared_ptr", testValue, *type, &get_ptr_content< std::vector<int> >);
 
-    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
-        ConstantDataSource<boost::shared_ptr< std::vector<int> > >* source
-            = new ConstantDataSource<boost::shared_ptr< std::vector<int> > >(testValue);
-        source->ref();
-        std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
+        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
 
-        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
         if (size != (*testValue).size())
         {
-            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<int> >" << endl;
+            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<int> >" << endl;
             return false;
         }
 
-        int* data = reinterpret_cast<int*>(&(*result)[sizeof(size)]);
+        int* data = reinterpret_cast<int*>(&buffer[sizeof(size)]);
         for (int i = 0; i < size; ++i)
             if (data[i] != (*testValue)[i])
             {
-            cerr << "error in pocosim marshalling for boost::shared_ptr< std::vector<int> >" << endl;
+            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<int> >" << endl;
             return false;
             }
     }
@@ -326,26 +327,22 @@ bool test_ro_ptr()
 
     generic_type_handling_test("readonlypointer", testValue, *type, &get_ro_ptr_content< std::vector<int> >);
 
-    std::cerr << "Testing the Pocosim marshalling ..." << std::endl;
+    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
-        ConstantDataSource<RTT::ReadOnlyPointer< std::vector<int> > >* source
-            = new ConstantDataSource<RTT::ReadOnlyPointer< std::vector<int> > >(testValue);
-        source->ref();
-        std::vector<uint8_t>* result =
-            reinterpret_cast< std::vector<uint8_t>* >(source->createBlob(TYPELIB_MARSHALLER_ID));
+        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
 
-        uint64_t size = *reinterpret_cast<uint64_t*>(&(*result)[0]);
+        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
         if (size != (*testValue).size())
         {
-            cerr << "error in pocosim marshalling for RTT::ReadOnlyPointer< std::vector<int> >" << endl;
+            cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
             return false;
         }
 
-        int* data = reinterpret_cast<int*>(&(*result)[sizeof(size)]);
+        int* data = reinterpret_cast<int*>(&buffer[sizeof(size)]);
         for (int i = 0; i < size; ++i)
             if (data[i] != (*testValue)[i])
             {
-            cerr << "error in pocosim marshalling for RTT::ReadOnlyPointer< std::vector<int> >" << endl;
+            cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
             return false;
             }
     }
