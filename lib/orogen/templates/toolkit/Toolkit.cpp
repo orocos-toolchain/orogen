@@ -204,10 +204,16 @@ template<typename T>
 struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
 {
     Typelib::MemoryLayout layout;
+    std::string m_typename;
+
     TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
+        : m_typename(name)
     {
         layout = Typelib::layout_of(*registry.get(name), false, false);
     }
+
+    char const* getMarshallingType() const
+    { return m_typename.c_str(); }
 
     void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {
@@ -235,6 +241,9 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         layout_<%= intermediate.method_name %> = Typelib::layout_of(*registry.get("<%= intermediate.name %>"), false, false);
     }
 
+    char const* getMarshallingType() const
+    { return "<%= intermediate.name %>"; }
+
     void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {
         RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
@@ -258,6 +267,9 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
     {
         layout = Typelib::layout_of(*registry.get("<%= type.name %>_m"), false, true);
     }
+
+    char const* getMarshallingType() const
+    { return "<%= intermediate.name %>"; }
 
     void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {

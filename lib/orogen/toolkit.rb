@@ -1466,8 +1466,6 @@ module Orocos
                     sort_by { |type| type.name }.uniq
 
                 # Generate the C++ and IDL files
-                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshaller.hpp", binding
-		Generation.save_automatic("toolkit", "TypelibMarshaller.hpp", typelib_marshaller)
                 tk_hpp = Generation.render_template "toolkit/Toolkit.hpp", binding
 		Generation.save_automatic("toolkit", "#{component.name}Toolkit.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "toolkit/Toolkit.cpp", binding

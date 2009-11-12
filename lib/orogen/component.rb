@@ -351,6 +351,13 @@ module Orocos
                     end
                 end
 
+                # This piece of code is a header-only definition that is generic
+                # and should be usable in any orogen component
+                #
+                # (I know, this is ugly)
+                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshaller.hpp", binding
+		Generation.save_automatic("TypelibMarshaller.hpp", typelib_marshaller)
+
 		if toolkit
 		    toolkit.generate
 		end
