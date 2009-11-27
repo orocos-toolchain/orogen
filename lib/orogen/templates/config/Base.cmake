@@ -65,7 +65,6 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/
 
 # Take care of the task library
 <% if !component.self_tasks.empty? %>
-ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
 
