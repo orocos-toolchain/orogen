@@ -106,12 +106,19 @@ void* orogen_toolkits::<%= type.method_name %>CorbaMarshaller::createBlob( DataS
     DataSource<BaseType>* d = AdaptDataSource<BaseType>()( source );
     if ( d )
     {
+        <% if type.inlines_code? || type <= Typelib::EnumType %>
+        CorbaType corba;
+        if (!toCORBA(corba, d->value()))
+            return false;
+        CORBA::Any_ptr ret = new CORBA::Any();
+        *ret <<= corba;
+        <% else %>
         std::auto_ptr<CorbaType> corba( new CorbaType );
         if (!toCORBA(*corba, d->value()))
             return false;
-
         CORBA::Any_ptr ret = new CORBA::Any();
         *ret <<= corba.release();
+        <% end %>
         return ret;
     }
     return 0;
