@@ -106,6 +106,12 @@ module Orocos
             def initialize(pkg)
                 @pkg = pkg
                 super()
+
+		if pkg
+                    if Utilrb::PkgConfig.has_package?("#{pkg.project_name}-toolkit-#{orocos_target}")
+                        using_toolkit pkg.project_name
+		    end
+		end
             end
 
             def task_context(name, &block) # :nodoc:
