@@ -298,7 +298,7 @@ module Typelib
                 element_type.integer? &&
                 element_type.size == 1
 
-                result << "#{indent}memcpy(&corba[0], &value[0], value.size());"
+                result << "if (!value.empty()) #{indent}memcpy(&corba[0], &value[0], value.size());"
             else
                 allocate_index do |element_idx|
                     result << <<-EOT
