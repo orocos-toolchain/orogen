@@ -12,6 +12,12 @@ task_context "ClassName" do
 end
 {coderay}
 
+The only constraint is that the task name *must* be different from the project
+name. This is because, on the generated C++ code, the project name is mapped
+into a namespace and the task name as a class name. Having a class and a
+namespace have the same name is generates quite a bit of ambiguity on the C++
+side, so it is forbidden.
+
 The task interface is the focus of that page. Other issues, as using different
 triggering modes and subclassing between task contexts is covered later.
 
