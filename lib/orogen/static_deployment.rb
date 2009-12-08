@@ -112,6 +112,7 @@ module Orocos
                 @max_overruns = 5
                 if context.default_activity
                     send(*context.default_activity)
+                    @explicit_activity = context.required_activity?
                 end
 
                 { :properties  => PropertyDeployment,
@@ -147,9 +148,14 @@ module Orocos
 
             # The subclass of ActivityInterface which should be used to run this task
             dsl_attribute :activity_type do |type|
-                if context.required_activity? && activity_type
-                    raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity, you cannot change it"
+                if @explicit_activity
+                    if context.required_activity?
+                        raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity, you cannot change it"
+                    else
+                        raise ArgumentError, "you already explicitely set the activity of #{name}"
+                    end
                 end
+                @explicit_activity = true
                 type.to_s
             end
 

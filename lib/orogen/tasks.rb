@@ -442,6 +442,10 @@ module Orocos
                     @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
+            # True if the current value of default_activity is actually
+            # required by the task context implementation
+            attr_predicate :required_activity?, true
+
             # The kind of activity that must be used for this task context. This
             # is the name of the corresponding method on the deployment objects.
             # See ACTIVITY_TYPES for the list of known activity types.
@@ -477,10 +481,6 @@ module Orocos
                 end
                 [type, *args]
             end
-
-            # True if the current value of default_activity is actually
-            # required by the task context implementation
-            attr_predicate :required_activity?, true
             
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true

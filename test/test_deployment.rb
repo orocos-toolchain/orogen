@@ -36,6 +36,49 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :buffer, :size => 0 }
     end
 
+    def create_simple_deployment
+        return component, deployment, task
+    end
+    def test_activity_uses_default
+	component = Component.new 
+	component.name 'test'
+	context    = component.task_context "task"
+        context.default_activity :periodic, 0.1
+        deployment = component.deployment "test"
+        task       = deployment.task "my_name", "task"
+        assert_equal("PeriodicActivity", task.activity_type)
+        assert_equal(0.1, task.period)
+    end
+    def test_can_change_default_activity
+	component = Component.new 
+	component.name 'test'
+	context    = component.task_context "task"
+        context.default_activity :periodic, 0.1
+        deployment = component.deployment "test"
+        task       = deployment.task "my_name", "task"
+        task.triggered
+        assert_equal("NonPeriodicActivity", task.activity_type)
+    end
+    def test_cannot_change_required_activity
+	component = Component.new 
+	component.name 'test'
+	context    = component.task_context "task"
+        context.required_activity :periodic, 0.1
+        deployment = component.deployment "test"
+        task       = deployment.task "my_name", "task"
+        assert_raises(ArgumentError) { task.triggered }
+    end
+    def test_cannot_modify_explicitely_set_activity
+	component = Component.new 
+	component.name 'test'
+	context    = component.task_context "task"
+        deployment = component.deployment "test"
+        task       = deployment.task "my_name", "task"
+        task.triggered
+        
+        assert_raises(ArgumentError) { task.periodic(0.1) }
+    end
+
     def test_data_driven_deployment(with_corba = false)
         build_test_component "modules/data_triggered", with_corba, "bin/data"
 
