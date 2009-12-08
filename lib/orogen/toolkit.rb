@@ -1378,9 +1378,7 @@ module Orocos
 
                 self.local_headers.each do |path|
                     dest_path = File.join(fake_install_dir, File.basename(path))
-                    if !File.exists?(dest_path)
-                        FileUtils.ln_sf path, dest_path
-                    end
+                    FileUtils.ln_sf path, dest_path
                 end
 
                 # Generate opaque-related stuff first, so that we see them in
