@@ -562,7 +562,7 @@ module Orocos
                         result << builddep
                     end
 
-                result
+                result.to_a.sort_by { |dep| dep.var_name }
             end
         end
     end

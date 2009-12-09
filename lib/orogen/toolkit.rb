@@ -1194,7 +1194,8 @@ module Orocos
                         result << BuildDependency.new(tk.name.upcase + "_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
                     end
                 end
-                result
+
+                result.to_a.sort_by { |dep| dep.var_name }
             end
 
 	    def to_code(generated_types, registry)

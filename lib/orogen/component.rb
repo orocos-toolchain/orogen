@@ -479,7 +479,7 @@ module Orocos
                     end
                 end
 
-                result
+                result.to_a.sort_by { |dep| dep.var_name }
             end
 
 	    # call-seq:
