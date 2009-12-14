@@ -1032,22 +1032,22 @@ module Orocos
             end
 
             def find_dynamic_input_ports(name, type)
-                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && p.type == component.find_type(type) && p.name === name }
+                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || p.type == component.find_type(type)) && p.name === name }
             end
 
             # Returns true if an input port of the given name and type could be
             # created at runtime.
-            def dynamic_input_port?(name, type)
+            def dynamic_input_port?(name, type = nil)
                 !find_dynamic_input_ports(name, type).empty?
             end
 
             def find_dynamic_output_ports(name, type)
-                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && p.type == component.find_type(type) && p.name === name }
+                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || p.type == component.find_type(type)) && p.name === name }
             end
 
             # Returns true if an output port of the given name and type could be
             # created at runtime.
-            def dynamic_output_port?(name, type)
+            def dynamic_output_port?(name, type = nil)
                 !find_dynamic_output_ports(name, type).empty?
             end
 
