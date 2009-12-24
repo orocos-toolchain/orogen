@@ -78,7 +78,12 @@ module Orocos
             end
 
             pkg = begin
-                      Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                      begin
+                          Utilrb::PkgConfig.new "orogen-project-#{name}"
+                      rescue Utilrb::PkgConfig::NotFound
+                          Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                      end
+
                   rescue Utilrb::PkgConfig::NotFound
                       raise ConfigError, "no task library named '#{name}' is available"
                   end

@@ -362,6 +362,9 @@ module Orocos
 		    toolkit.generate
 		end
 
+                pc = Generation.render_template "project.pc", binding
+                Generation.save_automatic "orogen-project-#{name}.pc.in", pc
+
 		if !self_tasks.empty?
 		    self_tasks.each { |t| t.generate }
 

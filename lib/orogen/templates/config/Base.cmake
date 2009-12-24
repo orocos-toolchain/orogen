@@ -68,6 +68,11 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
 
+configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= component.name %>.pc.in
+    orogen-project-<%= component.name %>.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= component.name %>.pc
+    DESTINATION lib/pkgconfig)
+
 INSTALL(FILES <%= component.deffile %>
     DESTINATION share/orogen)
 
