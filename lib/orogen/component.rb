@@ -618,8 +618,8 @@ module Orocos
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
             def using_task_library(name)
-		if used_task_libraries.any? { |lib| lib.name == name }
-		    return
+		if tasklib = used_task_libraries.find { |lib| lib.name == name }
+		    return tasklib
 		end
 
                 component = Orocos::Generation.load_task_library(name)
@@ -630,6 +630,7 @@ module Orocos
                 component.used_toolkits.each do |tk|
                     using_toolkit tk.name
                 end
+                component
             end
 
 	    # DEPRECATED. Use #deployment instead
