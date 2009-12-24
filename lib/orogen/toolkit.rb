@@ -1027,6 +1027,8 @@ module Orocos
                 orogen_def = OpaqueDefinition.new(opaque_type,
                                                  intermediate_type, options, convert_code_generator) 
                 @opaques << orogen_def
+                @opaques = opaques.
+                    sort_by { |orogen_def| orogen_def.type.name }
             end
 
             # True if some opaques require to generate templates
@@ -1181,7 +1183,8 @@ module Orocos
                         end
                     end
 		end
-                result
+
+                result.to_a.sort { |tk| tk.name }
             end
 
             # Returns the set of pkg-config packages this toolkit depends on
@@ -1461,7 +1464,8 @@ module Orocos
                         component.used_toolkits.any? { |tk| tk.has_array_of?(type.deference) }
                     end.
                     inject(Hash.new) { |h, type| h[type.deference.name] = type; h }.
-                    values
+                    values.
+                    sort_by { |type| type.name }
 
                 registered_types = if type_export_policy == :all
                                        generated_types.dup
