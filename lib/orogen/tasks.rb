@@ -438,7 +438,7 @@ module Orocos
             # +name+. +name+ can either be a string or a regular expression.
             def implements?(name)
                 class_name == name ||
-                    (superclass && superclass.name == name) ||
+                    (superclass && superclass.implements?(name)) ||
                     @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
