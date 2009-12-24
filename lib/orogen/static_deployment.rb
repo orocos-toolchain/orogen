@@ -528,12 +528,9 @@ module Orocos
             def used_task_libraries
                 task_models = task_activities.map { |task| task.context }
                 component.used_task_libraries.find_all do |tasklib|
-                    puts tasklib.name
-                    puts tasklib.self_tasks.map(&:name)
                     result = task_models.any? do |task|
                         tasklib.self_tasks.include?(task)
                     end
-                    puts result
                     result
                 end
             end
