@@ -99,9 +99,13 @@ module Orocos
             # The TaskContext used to define this task
             attr_reader :context
 
+            # The deployed properties, as PropertyDeployment instances
             attr_reader :properties
+            # The deployed ports, as PortDeployment instances
             attr_reader :ports
+            # The deployed methods, as MethodDeployment instances
             attr_reader :methods
+            # The deployed commands, as CommandDeployment instances
             attr_reader :commands
 
             def initialize(name, context)
