@@ -108,6 +108,28 @@ module Orocos
             # The deployed commands, as CommandDeployment instances
             attr_reader :commands
 
+            # Returns the expected minimal jitter between two expected calls to
+            # updateHook(), based on its scheduler and priority. All tasks will
+            # return a value (even non-periodic ones).
+            def minimal_update_jitter
+                if @realtime
+                    0.001
+                else
+                    0.005
+                end
+            end
+
+            # Returns the expected jitter between two expected calls to
+            # updateHook(), based on its scheduler and priority. All tasks will
+            # return a value (even non-periodic ones).
+            def expected_update_jitter
+                if @realtime
+                    0.005
+                else
+                    0.020
+                end
+            end
+
             def initialize(name, context)
                 @name     = name
                 @context  = context
