@@ -95,15 +95,71 @@ module Orocos
 	end
 
         class OutputPort < Port
+            def initialize(*args)
+                super
+                @burst  = 1
+                @period = 1
+            end
+
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::OutputPort" end
+
+	    # call-seq:
+	    #	burst count => self
+            #	burst => burst_count
+	    #
+            # Set or get the maximal amount of data samples that can be pushed
+            # in one execution cycle (one call to updateHook).
+            #
+            # The default is one.
+            dsl_attribute(:burst) { |value| Integer(value) }
+
+	    # call-seq:
+	    #	period new_period => self
+            #	doc =>  current_period
+	    #
+            # Sets the period for this output port, in cycles. The port period
+            # should be the minimal amount of execution cycles (calls to
+            # updateHook) between two updates of this port.
+            #
+            # The default is one.
+            dsl_attribute(:period) { |value| Integer(value) }
         end
 
         class InputPort < Port
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::InputPort" end
+
+            # True if connections to this port must use a buffered.
+            # In general, it means that the task's code check the return value
+            # of read(), as in
+            #
+            #   if (_input.read(value))
+            #   {
+            #       // data is available, do something
+            #   }
+            def requires_buffered_connection; @required_connection_type = :buffer end
+
+            # True if connections to this port must use a data policy.
+            # 
+            # This should not be useful in general
+            def requires_data_connection; @required_connection_type = :data end
+
+            # Returns true if the component requires connections to this port to
+            # be reliable (i.e. non-lossy).
+            #
+            # See #needs_reliable_policy for more information
+            def needs_reliable_policy?; @needs_reliable_policy end
+
+            # Declares that the components requires a non-lossy policy
+            #
+            # This is different from #requires_buffered_connection as a data
+            # policy could be used if the period of the connection's source is
+            # much longer than the period of the connection's end (for
+            # instance).
+            def needs_reliable_policy; @needs_reliable_policy = true end
         end
 
 	class Callable
