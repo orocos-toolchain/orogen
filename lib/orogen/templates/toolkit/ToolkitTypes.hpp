@@ -9,15 +9,12 @@
 
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
-<%
-    local_headers = toolkit.local_headers
-    for file in loads %>
-<% if local_headers.include?(file) %>
-#include "<%= component.name %>/<%= File.basename(file) %>"
-<% else %>
+<% toolkit.external_loads.each do |file| %>
 #include <<%= file %>>
 <% end %>
-
+<% toolkit.local_headers(false).each do |file|
+    file = file.gsub(/^#{component.name}\//, '') %>
+#include "<%= component.name %>/<%= file %>"
 <% end %>
 
 <% registered_types.each do |type| %>

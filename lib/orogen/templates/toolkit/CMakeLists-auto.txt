@@ -59,8 +59,12 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit/<%= component.name %>ToolkitIntermediates.hpp
     <% end %>
     DESTINATION include/orocos/toolkit)
-install(FILES <%= toolkit.local_headers.join(" ") %>
-    DESTINATION include/orocos/<%= component.name %>)
+
+<% toolkit.local_headers(false).each do |path|
+    dest_path = path.gsub(/^#{component.name}\//, '') %>
+install(FILES ${PROJECT_SOURCE_DIR}/<%= path %>
+    DESTINATION include/orocos/<%= component.name %>/<%= File.dirname(dest_path) %>)
+<% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb

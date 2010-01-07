@@ -1091,8 +1091,13 @@ module Orocos
 	    end
 
             # Returns the set of headers that have been loaded locally
-            def local_headers
-                loads.find_all { |path| path =~ /^#{Regexp.quote(component.base_dir)}/ }
+            def local_headers(absolute = true)
+                list = loads.find_all { |path| path =~ /^#{Regexp.quote(component.base_dir)}\// }
+                if absolute
+                    list
+                else
+                    list.map { |p| p.gsub(/^#{Regexp.quote(component.base_dir)}\//, '') }
+                end
             end
 
             # Packages defined in this component on which the toolkit should
@@ -1376,9 +1381,13 @@ module Orocos
                 fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
                 FileUtils.mkdir_p fake_install_dir
 
-                self.local_headers.each do |path|
-                    dest_path = File.join(fake_install_dir, File.basename(path))
-                    FileUtils.ln_sf path, dest_path
+                self.local_headers(false).each do |relative_path|
+                    file_dir = File.dirname(relative_path).
+                        gsub /^#{component.name}\//, ''
+
+                    dest_dir = File.join(fake_install_dir, file_dir)
+                    FileUtils.mkdir_p dest_dir
+                    FileUtils.ln_sf File.join(component.base_dir, relative_path), File.join(dest_dir, File.basename(relative_path))
                 end
 
                 # Generate opaque-related stuff first, so that we see them in
