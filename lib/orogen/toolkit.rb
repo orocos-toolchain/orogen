@@ -1167,7 +1167,7 @@ module Orocos
                     loop do
                         component.used_toolkits.each do |tk|
                             if type < Typelib::ArrayType 
-                                if tk.has_array_of?(type)
+                                if tk.has_array_of?(type.deference)
                                     result << tk
                                 end
                             elsif tk.includes?(type.name)
