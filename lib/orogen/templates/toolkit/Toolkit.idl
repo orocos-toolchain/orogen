@@ -1,3 +1,6 @@
+#ifndef __OROGEN_TOOLKIT_<%= component.name.upcase %>_IDL__
+#define __OROGEN_TOOLKIT_<%= component.name.upcase %>_IDL__
+
 <% toolkit.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>Toolkit.idl>
 <% end %>
@@ -7,3 +10,6 @@
     :namespace_suffix => 'Corba',
     :opaque_as_any => true,
     :selected => toolkit.self_typenames %>
+
+#endif
+
