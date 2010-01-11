@@ -841,21 +841,31 @@ module Orocos
 
 	    def find_type(type)
                 if type.respond_to?(:to_str)
-                    type = type.gsub('::', '/')
-                    type = Typelib::Type.normalize_typename(type)
+                    type_name = type.gsub('::', '/')
+                    type_name = Typelib::Type.normalize_typename(type_name)
                     begin
-                        registry.build(type)
+                        registry.build(type_name)
                     rescue Typelib::NotFound
-                        if type =~ /^([^<]+)<(.*)>$/
+                        if type_name =~ /^([^<]+)<(.*)>$/
                             container_name = $1
                             element_name   = $2
                             element_type   = find_type(element_name)
-                            if element_type.contains_opaques?
+                            if !element_type
+                                raise ArgumentError, "the type #{element_name.inspect} is not defined"
+                            elsif element_type.contains_opaques?
                                 raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
                             end
                             component.registry.define_container(container_name,
                                             component.registry.build(element_name))
                             registry.define_container(container_name, element_type)
+                        elsif type = component.registry.build(type_name)
+                            while type.respond_to?(:deference)
+                                type = type.deference
+                            end
+
+                            type_def = component.registry.minimal(type.name)
+                            registry.merge(type_def)
+                            registry.build(type_name)
                         end
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
@@ -1154,19 +1164,20 @@ module Orocos
                 # contains only our own types plus the types that are needed to
                 # define them, and this is therefore not a problem.
 		registry.each_type(true) do |name, type|
-                    if type < Typelib::ArrayType
+                    loop do
                         component.used_toolkits.each do |tk|
-                            if tk.has_array_of?(type.deference)
+                            if type < Typelib::ArrayType 
+                                if tk.has_array_of?(type)
+                                    result << tk
+                                end
+                            elsif tk.includes?(type.name)
                                 result << tk
-                                break
                             end
                         end
-                    else
-                        component.used_toolkits.each do |tk|
-                            if tk.includes?(name)
-                                result << tk
-                                break
-                            end
+
+                        if type.respond_to?(:deference)
+                            type = type.deference
+                        else break
                         end
                     end
 		end

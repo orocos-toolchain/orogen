@@ -16,6 +16,9 @@
     file = file.gsub(/^#{component.name}\//, '') %>
 #include "<%= component.name %>/<%= file %>"
 <% end %>
+<% toolkit.used_toolkits.each do |tk| %>
+#include <orocos/toolkit/<%= tk.name %>ToolkitTypes.hpp>
+<% end %>
 
 <% registered_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP
