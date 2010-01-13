@@ -108,11 +108,16 @@ module Orocos
             # The deployed commands, as CommandDeployment instances
             attr_reader :commands
 
+            attr_accessor :minimal_trigger_latency
+            attr_accessor :expected_trigger_latency
+
             # Returns the expected minimal jitter between two expected calls to
             # updateHook(), based on its scheduler and priority. All tasks will
             # return a value (even non-periodic ones).
-            def minimal_update_jitter
-                if @realtime
+            def minimal_trigger_latency
+                if @minimal_trigger_latency
+                    @minimal_trigger_latency
+                elsif @realtime
                     0.001
                 else
                     0.005
@@ -122,8 +127,10 @@ module Orocos
             # Returns the expected jitter between two expected calls to
             # updateHook(), based on its scheduler and priority. All tasks will
             # return a value (even non-periodic ones).
-            def expected_update_jitter
-                if @realtime
+            def expected_trigger_latency
+                if @expected_trigger_latency
+                    @expected_trigger_latency
+                elsif @realtime
                     0.005
                 else
                     0.020
