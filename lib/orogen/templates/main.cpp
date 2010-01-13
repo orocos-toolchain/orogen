@@ -164,7 +164,6 @@ int ORO_main(int argc, char* argv[])
 
 <% if deployer.corba_enabled? %>
     ControlTaskServer::RunOrb();
-    ControlTaskServer::DestroyOrb();
 <% elsif deployer.browse %>
     OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
     browser.loop();
