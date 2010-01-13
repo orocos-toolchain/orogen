@@ -18,11 +18,11 @@ namespace <%= component.name %> {
 	friend class <%= task.basename %>Base;
     protected:
     <% task.self_methods.each do |meth| %>
-	<%= meth.signature.gsub('(', " #{meth.method_name}(") %>;
+	<%= meth.signature %>;
     <% end %>
     <% task.self_commands.each do |cmd| %>
-	bool <%= cmd.work_method_name %><%= cmd.work_signature %>;
-	bool <%= cmd.completion_method_name %><%= cmd.completion_signature %>;
+	<%= cmd.work_signature %>;
+	<%= cmd.completion_signature %>;
     <% end %>
 
     public:

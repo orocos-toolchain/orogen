@@ -20,18 +20,18 @@ RTT::<%= activity_type %>* <%= task.basename %>::get<%= activity_type %>()
 }
 
 <% task.self_methods.each do |meth| %>
-<%= meth.signature.gsub('(', " #{task.basename}::#{meth.method_name}(") %>
+<%= meth.signature { "#{task.basename}::#{meth.method_name}" } %>
 {
 }
 <% end %>
 
 <% task.self_commands.each do |cmd| %>
-bool <%= task.basename %>::<%= cmd.work_method_name %><%= cmd.work_signature %>
+<%= cmd.work_signature { "#{task.basename}::#{cmd.work_method_name}" } %>
 {
     return true;
 }
 
-bool <%= task.basename %>::<%= cmd.completion_method_name %><%= cmd.completion_signature %>
+<%= cmd.completion_signature { "#{task.basename}::#{cmd.completion_method_name}" } %>
 {
     return true;
 }

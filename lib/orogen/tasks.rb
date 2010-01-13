@@ -305,6 +305,12 @@ module Orocos
 		else
 		    result << "void"
 		end
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else result << method_name
+                        end
+                end
 		result << argument_signature(with_names)
 	    end
 
@@ -405,7 +411,14 @@ module Orocos
 	    # +with_names+ is true, the name of the method and the names of the
 	    # arguments are included in the string.
 	    def work_signature(with_names = true)
-		argument_signature(with_names)
+                result = "bool"
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else work_method_name
+                        end
+                end
+		result << argument_signature(with_names)
 	    end
 	    
 	    # A string representing the signature for the C++ completion
@@ -416,13 +429,29 @@ module Orocos
 	    # which can be changed by the completion_no_arguments,
 	    # completion_first_argument and completion_all_arguments methods.
 	    def completion_signature(with_names = true)
-		case completion_signature_type
+                result = "bool"
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else completion_method_name
+                        end
+                end
+
+		result << case completion_signature_type
 		when :no_arguments then "()"
 		when :first_argument
 		    argument_signature(with_names).gsub(/,.*\)$/, ")")
 		when :all_arguments; argument_signature(with_names)
 		end
+
+                result
 	    end
+
+            def pretty_print(pp)
+                pp.text work_signature(true)
+                pp.breakable
+                pp.text completion_signature(true)
+            end
 	end
 
         # Representation of TaskContext classes. This is usually created using

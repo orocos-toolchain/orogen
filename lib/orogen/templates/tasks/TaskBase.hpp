@@ -44,7 +44,7 @@ namespace <%= component.name %> {
 	<% unless task.self_methods.empty? %>/** Methods */<% end %>
     <% task.new_methods.each do |meth| %>
 	RTT::Method< <%= meth.signature(false) %> > _<%= meth.name %>;
-	virtual <%= meth.signature.gsub('(', " #{meth.method_name}(") %> = 0;
+	virtual <%= meth.signature(true) %> = 0;
     <% end %>
 
     <% if task.superclass.name == "RTT::TaskContext" %>
@@ -53,9 +53,9 @@ namespace <%= component.name %> {
 
 	<% unless task.self_commands.empty? %>/** Commands */<% end %>
     <% task.new_commands.each do |cmd| %>
-	RTT::Command< bool<%= cmd.work_signature(false) %> > _<%= cmd.name %>;
-	virtual bool <%= cmd.work_method_name %><%= cmd.work_signature %> = 0;
-	virtual bool <%= cmd.completion_method_name %><%= cmd.completion_signature %> = 0;
+	RTT::Command< <%= cmd.work_signature(false) %> > _<%= cmd.name %>;
+	virtual <%= cmd.work_signature %> = 0;
+	virtual <%= cmd.completion_signature %> = 0;
     <% end %>
 
     public:
