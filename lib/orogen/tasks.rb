@@ -1158,6 +1158,15 @@ module Orocos
                 end
             end
 
+            # Returns the port named +name+ or raises ArgumentError if no such
+            # port exists
+            def port(name)
+                if p = each_port.find { |p| p.name == name }
+                    p
+                else raise ArgumentError, "#{self} has no port named '#{name}'"
+                end
+            end
+
 	    # call-seq:
 	    #	input_port 'name', '/type'
 	    #
