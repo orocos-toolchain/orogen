@@ -228,6 +228,21 @@ module Orocos
             # instance).
             def needs_reliable_connection; @needs_reliable_connection = true; self end
         end
+        
+        module DynamicPort
+            def instanciate(name)
+                m = dup
+                m.instance_variable_set :@name, name
+                m
+            end
+        end
+
+        class DynamicOutputPort < OutputPort
+            include DynamicPort
+        end
+        
+        class DynamicInputPort < InputPort
+            include DynamicPort
         end
 
 	class Callable
@@ -1165,7 +1180,7 @@ module Orocos
             # at runtime, with the type. This is not used by orogen himself, but
             # can be used by potential users of the orogen specification.
             def dynamic_input_port(name, type)
-                dynamic_ports << InputPort.new(self, name, type)
+                dynamic_ports << DynamicInputPort.new(self, name, type)
                 dynamic_ports.last
             end
 
@@ -1176,7 +1191,7 @@ module Orocos
             # at runtime, with the type. This is not used by orogen himself, but
             # can be used by potential users of the orogen specification.
             def dynamic_output_port(name, type)
-                dynamic_ports << OutputPort.new(self, name, type)
+                dynamic_ports << DynamicOutputPort.new(self, name, type)
                 dynamic_ports.last
             end
 
