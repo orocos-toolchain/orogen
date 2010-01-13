@@ -576,6 +576,23 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
+            def self.enumerate_inherited_set(each_name, attribute_name = each_name)
+                class_eval <<-EOD
+                def all_#{attribute_name}; each_#{each_name}.to_a end
+                def self_#{attribute_name}; @#{attribute_name} end
+                def each_#{each_name}(only_self = false, &block)
+                    if block_given?
+                        if !only_self && superclass
+                            superclass.each_#{each_name}(false, &block)
+                        end
+                        @#{attribute_name}.each(&block)
+                    else
+                        enum_for(:each_#{each_name}, only_self)
+                    end
+                end
+                EOD
+            end
+
             def to_s; "#<#<Orocos::Generation::TaskContext>: #{name}>" end
             # Call to declare that this task model is not meant to run in
             # practice
@@ -780,9 +797,6 @@ module Orocos
                 @needs_configuration = true
             end
 
-	    # The set of properties for this task
-	    def all_properties; @properties + (superclass ? superclass.all_properties : []) end
-            def self_properties; @properties end
 
             # Create a new property with the given name, type and default value
             # for this task. This returns the Property instance representing
@@ -810,8 +824,6 @@ module Orocos
 		@properties.last
 	    end
 
-	    # The set of methods defined on this task
-	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
             # Methods that are added by this task context (i.e. methods that are
             # defined there but are not present in the superclass)
             def new_methods
@@ -1078,7 +1090,6 @@ module Orocos
 	    end
 
 	    # The set of commands for this task.
-	    def all_commands; @commands + (superclass ? superclass.all_commands : []) end
             def new_commands
                 super_names = superclass.all_commands.map(&:name).to_set
                 @commands.find_all do |t|
@@ -1090,9 +1101,6 @@ module Orocos
                 @commands.find_all do |t|
                     !super_names.include?(t)
                 end
-            end
-            def self_commands
-                @commands
             end
 
             # Create a new command with the given name. Use the returned
@@ -1112,21 +1120,11 @@ module Orocos
 		@commands.last
 	    end
 
-	    # The set of IO ports for this task context. These are either
-	    # OutputPort and InputPort objects
-            def all_ports; @ports + (superclass ? superclass.all_ports : []) end
-            def self_ports; @ports end
-
-            def each_port(only_self = false, &block)
-                if block_given?
-                    if !only_self && superclass
-                        superclass.each_port(false, &block)
-                    end
-                    @ports.each(&block)
-                else
-                    enum_for(:each_port, only_self)
-                end
-            end
+            enumerate_inherited_set("dynamic_port", "dynamic_ports")
+            enumerate_inherited_set("port", "ports")
+            enumerate_inherited_set("property", "properties")
+            enumerate_inherited_set("command", "commands")
+            enumerate_inherited_set("method", "methods")
 
 	    # call-seq:
 	    #	output_port 'name', '/type'
