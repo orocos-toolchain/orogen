@@ -48,6 +48,13 @@ module Orocos
 		@name, @type, @default_value = name, type, default_value
 	    end
 
+            def pretty_print(pp)
+                pp.text "#{name}:#{type.name}"
+                if doc
+                    pp.text ": #{doc}"
+                end
+            end
+
 	    # call-seq:
 	    #	doc new_doc => self
             #	doc =>  current_doc
@@ -69,6 +76,10 @@ module Orocos
             def type_name; type.name end
 
             def used_types; [type] end
+
+            def pretty_print(pp)
+                pp.text "[#{self.kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
+            end
 
 	    def initialize(task, name, type)
                 if !name.kind_of?(Regexp)
@@ -235,6 +246,9 @@ module Orocos
                 m.instance_variable_set :@name, name
                 m
             end
+            def pretty_print(pp)
+                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{type_name}"
+            end
         end
 
         class DynamicOutputPort < OutputPort
@@ -396,6 +410,10 @@ module Orocos
                 end
 		result << argument_signature(with_names)
 	    end
+
+            def pretty_print(pp)
+                pp.text signature(true)
+            end
 
 	    # call-seq:
 	    #	method_name new_name => self
@@ -730,8 +748,30 @@ module Orocos
                 @needs_configuration = false
 	    end
 
+            def pretty_print_interface(pp, name, set)
+                if set.empty?
+                    pp.text "No #{name.downcase}"
+                else
+                    pp.text name
+                    pp.nest(2) do
+                        set.each do |element|
+                            pp.breakable
+                            element.pretty_print(pp)
+                        end
+                    end
+                end
+                pp.breakable
+            end
+
 	    def pretty_print(pp)
-		pp.text to_s
+		pp.text "------- #{name} ------"
+                pp.breakable
+
+                ports = each_port.to_a + each_dynamic_port.to_a
+                pretty_print_interface(pp, "Ports", ports)
+                pretty_print_interface(pp, "Properties", each_property.to_a)
+                pretty_print_interface(pp, "Methods", each_method.to_a)
+                pretty_print_interface(pp, "Commands", each_command.to_a)
 	    end
 
             # Returns the object in +set_name+ for which #name returns +name+,
