@@ -405,7 +405,7 @@ module Orocos
                 if with_names
                     result << " " <<
                         if block_given? then yield
-                        else result << method_name
+                        else method_name
                         end
                 end
 		result << argument_signature(with_names)
