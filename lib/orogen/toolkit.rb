@@ -1184,7 +1184,7 @@ module Orocos
                     end
 		end
 
-                result.to_a.sort { |tk| tk.name }
+                result.to_a.sort_by { |tk| tk.name }
             end
 
             # Returns the set of pkg-config packages this toolkit depends on
