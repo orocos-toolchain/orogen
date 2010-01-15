@@ -797,6 +797,23 @@ module Orocos
 	    end
 	    private :check_uniqueness
 
+            # Add in +self+ the ports of +other_model+ that don't exist.
+            #
+            # Raises ArgumentError if +other_model+ has ports whose name is used
+            # in +self+, but for which the definition is different.
+            def merge_ports_from(other_model)
+                other_model.each_port do |p|
+                    self_port = other_model.port(p.name)
+                    if self_port
+                        if (self_port.class != p.class || self_port.type != p.type)
+                            raise ArgumentError, "cannot merge as the output port #{self_port.name} have different meanings"
+                        end
+                    else
+                        @ports << p
+                    end
+                end
+            end
+
             # If true, then the initial state of this class cannot be specified.
             # For orogen-declared tasks, it is the same as
             # #needs_configuration?. This mechanism is here for classes that
