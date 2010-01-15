@@ -370,7 +370,7 @@ module Orocos
                         map(&:name)
                 end.flatten.to_set
 
-                task_toolkits.map do |used_name|
+                task_toolkits.sort.map do |used_name|
                     this_tk = component.used_toolkits.find { |tk| tk.name == used_name }
                     if !this_tk
                         raise "Internal Error: imported toolkit is not present in this component's used_toolkits set"

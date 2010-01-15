@@ -12,7 +12,11 @@
 #include <toolkit/<%= tk.name %>ToolkitCorba.hpp>
     <% end %>
 <% end %>
-<% deployer.task_activities.each do |task| %>
+
+<% task_activities = deployer.task_activities.
+        sort_by(&:name) %>
+
+<% task_activities.each do |task| %>
 #include <<%= task.context.header_file %>>
 <% end %>
 <% if deployer.corba_enabled? %>
@@ -21,11 +25,11 @@ using RTT::Corba::ControlTaskServer;
 <% end %>
 
 <% require 'set'
-    activity_types = deployer.task_activities.
+    activity_types = task_activities.
     map { |t| t.activity_type }.
     compact.
     to_set %>
-<% activity_types.each do |activity_klassname| %>
+<% activity_types.to_a.sort.each do |activity_klassname| %>
 #include <rtt/<%= activity_klassname%>.hpp>
 <% end %>
 
@@ -84,7 +88,7 @@ int ORO_main(int argc, char* argv[])
     ControlTaskServer::InitOrb(argc, argv);
 <% end %>
 
-<% deployer.task_activities.each do |task| %>
+<% task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
     <% if task.activity_type %>
     RTT::<%= task.activity_type %>* activity_<%= task.name%> = new RTT::<%= task.activity_type %>(
@@ -101,7 +105,7 @@ int ORO_main(int argc, char* argv[])
     <% else %>
     RTT::ActivityInterface* activity_<%= task.name %> = task_<%= task.name %>.getActivity().get();
     <% end # activity_type %>
-    <% task.properties.each do |prop|
+    <% task.properties.sort_by { |prop| prop.name }.each do |prop|
         if prop.value %>
     task_<%= task.name %>.properties()->getProperty<<%= prop.interface_object.type.full_name('::', true) %>>("<%= prop.name %>")->set(<%= prop.value.inspect %>);
         <% end %>
@@ -113,7 +117,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% if !deployer.loggers.empty?
-        deployer.loggers.each do |filename, logger|
+        deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
             logger.config.each do |type, reported_activity, args| %>
                 task_<%= logger.task.name %>.connectPeers(&task_<%= reported_activity.name %>);
                 task_<%= logger.task.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>);
@@ -124,7 +128,7 @@ int ORO_main(int argc, char* argv[])
    Deinitializer deinit;
 
     // Start some activities
-<% deployer.task_activities.each do |task| %>
+<% task_activities.each do |task| %>
     deinit << *activity_<%= task.name%>;
 
     <% if task.start?
@@ -143,24 +147,26 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
-<% deployer.peers.each do |a, b| %>
+<% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
     task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
 <% end %>
 
-<% deployer.connections.each do |src, dst, policy|
-    if src.kind_of?(TaskDeployment) %>
-        task_<%= a.activity.name %>.connectPorts(&task_<%= a.activity.name %>);
-    <% else %>
-    {
-        <%= policy.to_code("policy") %>
-        OutputPortInterface* src = dynamic_cast<OutputPortInterface*>(
-                task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
-        InputPortInterface* dst = dynamic_cast<InputPortInterface*>(
-                task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
-        src->createConnection(*dst, policy);
-    }
+<% deployer.connections.
+    sort_by { |src, dst, policy| [src.name, dst.name] }.
+    each do |src, dst, policy|
+        if src.kind_of?(TaskDeployment) %>
+            task_<%= src.activity.name %>.connectPorts(&task_<%= dst.activity.name %>);
+        <% else %>
+        {
+            <%= policy.to_code("policy") %>
+            OutputPortInterface* src = dynamic_cast<OutputPortInterface*>(
+                    task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
+            InputPortInterface* dst = dynamic_cast<InputPortInterface*>(
+                    task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
+            src->createConnection(*dst, policy);
+        }
+        <% end %>
     <% end %>
-<% end %>
 
 <% if deployer.corba_enabled? %>
     ControlTaskServer::RunOrb();
