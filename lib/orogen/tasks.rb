@@ -1201,16 +1201,9 @@ module Orocos
             # Enumerates the output ports available on this task context. If no
             # block is given, returns the corresponding enumerator object.
             def each_output_port(&block)
-                if block_given?
-                    @ports.each do |p|
-                        yield(p) if p.kind_of?(OutputPort)
-                    end
-                    if superclass
-                        superclass.each_output_port(&block) if superclass
-                    end
-                else
-                    enum_for(:each_output_port)
-                end
+                each_port.
+                    find_all { |p| p.kind_of?(OutputPort) }.
+                    each(&block)
             end
 
             # Returns the port named +name+ or raises ArgumentError if no such
@@ -1286,16 +1279,9 @@ module Orocos
             # Enumerates the input ports available on this task context. If no
             # block is given, returns the corresponding enumerator object.
             def each_input_port(&block)
-                if block_given?
-                    @ports.each do |p|
-                        yield(p) if p.kind_of?(InputPort)
-                    end
-                    if superclass
-                        superclass.each_input_port(&block) if superclass
-                    end
-                else
-                    enum_for(:each_input_port)
-                end
+                each_port.
+                    find_all { |p| p.kind_of?(InputPort) }.
+                    each(&block)
             end
 
             # A set of ports that will trigger this task when they get updated.
