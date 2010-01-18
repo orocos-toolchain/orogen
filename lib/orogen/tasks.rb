@@ -228,7 +228,6 @@ module Orocos
             # instance).
             def needs_reliable_connection; @needs_reliable_connection = true; self end
         end
-        end
 
 	class Callable
 	    # The TaskContext instance this method is part of
