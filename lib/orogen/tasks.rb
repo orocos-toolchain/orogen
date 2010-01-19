@@ -207,7 +207,7 @@ module Orocos
             #   {
             #       // data is available, do something
             #   }
-            def needs_buffered_connection; @required_connection_type = :buffer end
+            def needs_buffered_connection; @required_connection_type = :buffer; self end
 
             # True if connections to this port must use a data policy.
             # 
