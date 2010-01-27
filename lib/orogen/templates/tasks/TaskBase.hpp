@@ -71,12 +71,13 @@ namespace <%= component.name %> {
         
 	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
 
+        bool start();
+
         <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
         // Reimplement TaskCore base methods to export the states to the outside
         // world
         bool configure();
         bool activate();
-        bool start();
         void warning();
         void recovered();
         bool stop();

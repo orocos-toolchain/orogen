@@ -90,6 +90,21 @@ void <%= task.basename %>Base::fatal(States state)
 }
 <% end %>
 
+bool <%= task.basename %>Base::start()
+{
+<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+    StateExporter exporter(*this, _state);
+<% end %>
+    bool started = <%= superclass.name %>::start();
+    if (!started)
+        return false;
+
+    <% task.self_ports.find_all { |p| p.kind_of?(InputPort) }.each do |port| %>
+    _<%= port.name %>.clear();
+    <% end %>
+    return true;
+}
+
 <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
 struct StateExporter
 {
@@ -113,11 +128,6 @@ bool <%= task.basename %>Base::activate()
 {
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::activate();
-}
-bool <%= task.basename %>Base::start()
-{
-    StateExporter exporter(*this, _state);
-    return <%= superclass.name %>::start();
 }
 void <%= task.basename %>Base::recovered()
 {
