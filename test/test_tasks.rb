@@ -309,7 +309,16 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_equal ["STATE1", "STATE3"], task.each_runtime_state.to_a
         assert_equal ["STATE2", "STATE4"], task.each_error_state.to_a
 
-        assert_equal [['STATE1', :runtime], ['STATE2', :error], ['STATE3', :runtime], ['STATE4', :error]], task.each_state.to_a
+        assert_equal [
+            ["INIT", :toplevel],                                                                                            
+            ["PRE_OPERATIONAL", :toplevel],                                                                                  
+            ["FATAL_ERROR", :toplevel],                                                                                      
+            ["STOPPED", :toplevel],                                                                                          
+            ["ACTIVE", :toplevel],                                                                                           
+            ["RUNNING", :toplevel],                                                                                          
+            ["RUNTIME_WARNING", :toplevel],                                                                                  
+            ["RUNTIME_ERROR", :toplevel],
+            ['STATE1', :runtime], ['STATE2', :error], ['STATE3', :runtime], ['STATE4', :error]], task.each_state.to_a
     end
 
     def test_state_avoid_duplicates
