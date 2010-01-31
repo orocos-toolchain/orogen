@@ -111,31 +111,33 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal(nil,  meth.return_type)
 	assert_equal("the method to test",  meth.doc)
 	assert(meth.arguments.empty?)
-	assert_equal("void()", meth.signature)
+	assert_equal("void methodName()", meth.signature)
+	assert_equal("void()", meth.signature(false))
+	assert_equal("void foobar()", meth.signature { "foobar" })
 
 	meth.method_name "another_method_name"
 	assert_equal("MethodName", meth.name)
 	assert_equal("another_method_name", meth.method_name)
 
 	assert_same(meth, meth.returns("/int"))
-	assert_equal("int()", meth.signature)
+	assert_equal("int another_method_name()", meth.signature)
 	assert(meth.arguments.empty?)
 
 	assert_same(meth, meth.argument("arg1", "/std/string", "first argument"))
-	assert_equal("int(std::string arg1)", meth.signature(true))
-	assert_equal("int(std::string)", meth.signature(false))
+	assert_equal("int another_method_name(std::string const & arg1)", meth.signature(true))
+	assert_equal("int(std::string const &)", meth.signature(false))
 	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
 	assert_equal(expected_arguments, meth.arguments)
 
 	meth.argument "arg2", "double", "second argument"
-	assert_equal("int(std::string arg1, double arg2)", meth.signature(true))
-	assert_equal("int(std::string, double)", meth.signature(false))
+	assert_equal("int another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
+	assert_equal("int(std::string const &, double)", meth.signature(false))
 	expected_arguments << ["arg2", component.registry.get('double'), "second argument"]
 	assert_equal(expected_arguments, meth.arguments)
 
 	meth.returns nil
-	assert_equal("void(std::string arg1, double arg2)", meth.signature(true))
-	assert_equal("void(std::string, double)", meth.signature(false))
+	assert_equal("void another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
+	assert_equal("void(std::string const &, double)", meth.signature(false))
 	assert_equal(expected_arguments, meth.arguments)
 
         meth.argument "arg3", "double", "third argument"
@@ -166,8 +168,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("isCmdCompleted", cmd.completion_method_name)
 	assert_equal("the command to test",  cmd.doc)
 	assert(cmd.arguments.empty?)
-	assert_equal("()", cmd.work_signature)
-	assert_equal("()", cmd.completion_signature)
+	assert_equal("bool cmd()", cmd.work_signature)
+	assert_equal("bool isCmdCompleted()", cmd.completion_signature)
 
 	assert_same cmd, cmd.work_method_name("another_method_name")
 	assert_equal("Cmd", cmd.name)
@@ -180,27 +182,27 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("another_completion_name", cmd.completion_method_name)
 
 	assert_same cmd, cmd.argument("arg1", "/std/string", "first argument")
-	assert_equal("(std::string arg1)", cmd.work_signature)
-	assert_equal("(std::string arg1)", cmd.completion_signature)
-	assert_equal("(std::string)", cmd.work_signature(false))
-	assert_equal("(std::string)", cmd.completion_signature(false))
+	assert_equal("bool another_method_name(std::string const & arg1)", cmd.work_signature)
+	assert_equal("bool another_completion_name(std::string const & arg1)", cmd.completion_signature)
+	assert_equal("bool(std::string const &)", cmd.work_signature(false))
+	assert_equal("bool(std::string const &)", cmd.completion_signature(false))
 	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
 	assert_equal(expected_arguments, cmd.arguments)
 
 	cmd.argument "arg2", "double", "second argument"
-	assert_equal("(std::string arg1, double arg2)", cmd.work_signature)
-	assert_equal("(std::string arg1, double arg2)", cmd.completion_signature)
-	assert_equal("(std::string, double)", cmd.work_signature(false))
-	assert_equal("(std::string, double)", cmd.completion_signature(false))
+	assert_equal("bool another_method_name(std::string const & arg1, double arg2)", cmd.work_signature)
+	assert_equal("bool another_completion_name(std::string const & arg1, double arg2)", cmd.completion_signature)
+	assert_equal("bool(std::string const &, double)", cmd.work_signature(false))
+	assert_equal("bool(std::string const &, double)", cmd.completion_signature(false))
 	expected_arguments << ["arg2", component.registry.get('double'), "second argument"]
 	assert_equal(expected_arguments, cmd.arguments)
 
 	cmd.completion_first_argument
-	assert_equal("(std::string arg1)", cmd.completion_signature)
-	assert_equal("(std::string)", cmd.completion_signature(false))
+	assert_equal("bool another_completion_name(std::string const & arg1)", cmd.completion_signature)
+	assert_equal("bool(std::string const &)", cmd.completion_signature(false))
 	cmd.completion_no_arguments
-	assert_equal("()", cmd.completion_signature)
-	assert_equal("()", cmd.completion_signature(false))
+	assert_equal("bool another_completion_name()", cmd.completion_signature)
+	assert_equal("bool()", cmd.completion_signature(false))
 
         cmd.argument "arg3", "double", "third argument"
         cmd.argument "arg4", "double", "fourth argument"
