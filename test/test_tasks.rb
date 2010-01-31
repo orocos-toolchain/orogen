@@ -3,15 +3,12 @@ require 'orogen/test'
 
 class TC_GenerationTasks < Test::Unit::TestCase
     include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
     # Orogen should refuse to create a task context which has the same name than
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name
         component = Component.new
-        component.toolkit do
-            load File.join(TEST_DATA_DIR, 'modules', 'toolkit_simple', 'simple.h')
-        end
+        component.toolkit(true).load File.join(TEST_DATA_DIR, 'modules', 'toolkit_simple', 'simple.h')
 
         assert_raises(ArgumentError) { component.task_context("Test") {} }
     end

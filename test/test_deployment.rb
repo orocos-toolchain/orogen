@@ -102,9 +102,9 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 
             reader.close
             sleep 0.5
-            writer.write([?A, ?B].pack("cc"))
+            writer.write("AB")
             sleep 0.5
-            writer.write([?C, ?D, ?E].pack("ccc"))
+            writer.write("CDE")
             Process.waitpid(child_pid)
             assert_equal(0, $?.exitstatus)
         end
