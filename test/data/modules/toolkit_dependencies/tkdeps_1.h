@@ -2,7 +2,7 @@
 #define TKDEPS_1_H
 
 #include <tkdeps_lib.h>
-#include <tkdeps_parent/tkdeps_parent.h>
+#include <tkdeps_parent/subdir/tkdeps_parent.h>
 
 namespace tkdeps {
     struct Combined {
