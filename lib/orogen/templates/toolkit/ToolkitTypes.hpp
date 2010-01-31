@@ -17,7 +17,7 @@
 #include "<%= component.name %>/<%= file %>"
 <% end %>
 <% toolkit.used_toolkits.each do |tk| %>
-#include <orocos/toolkit/<%= tk.name %>ToolkitTypes.hpp>
+#include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
 <% end %>
 
 <% registered_types.each do |type| %>
