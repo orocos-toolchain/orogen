@@ -13,7 +13,7 @@ namespace numerics {
     
 	void m3(double d);
     
-	void m4(numerics::Bla e);
+	void m4(numerics::Bla const& e);
     
     
 

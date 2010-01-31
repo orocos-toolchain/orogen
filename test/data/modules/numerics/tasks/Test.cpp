@@ -16,7 +16,7 @@ void Test::m3(double d)
 {
 }
 
-void Test::m4(numerics::Bla e)
+void Test::m4(numerics::Bla const& e)
 {
 }
 
