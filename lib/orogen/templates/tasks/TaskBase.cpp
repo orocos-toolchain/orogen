@@ -90,6 +90,21 @@ void <%= task.basename %>Base::fatal(States state)
 }
 <% end %>
 
+<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+struct StateExporter
+{
+    RTT::TaskContext const& task;
+    RTT::OutputPort<int>&   port;
+
+    StateExporter(RTT::TaskContext const& task, RTT::OutputPort<int>& port)
+        : task(task), port(port) {}
+    ~StateExporter()
+    {
+        port.write(task.getTaskState());
+    }
+};
+<% end %>
+
 bool <%= task.basename %>Base::start()
 {
 <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
@@ -106,19 +121,6 @@ bool <%= task.basename %>Base::start()
 }
 
 <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
-struct StateExporter
-{
-    RTT::TaskContext const& task;
-    RTT::OutputPort<int>&   port;
-
-    StateExporter(RTT::TaskContext const& task, RTT::OutputPort<int>& port)
-        : task(task), port(port) {}
-    ~StateExporter()
-    {
-        port.write(task.getTaskState());
-    }
-};
-
 bool <%= task.basename %>Base::configure()
 {
     StateExporter exporter(*this, _state);
