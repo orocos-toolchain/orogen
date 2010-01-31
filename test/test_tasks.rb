@@ -264,7 +264,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_equal([:periodic, 10], task.default_activity)
 
         deployment = component.static_deployment
-        activity = deployment.task "task"
+        activity = deployment.task "task", "task"
         assert_equal("PeriodicActivity", activity.activity_type)
         assert_equal(10, activity.period)
 
