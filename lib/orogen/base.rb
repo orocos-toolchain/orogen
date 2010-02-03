@@ -107,36 +107,6 @@ module Orocos
 	    File.expand_path(reldir, File.dirname(__FILE__))
 	end
 
-        def self.filter_backtrace(loaded_file, full = true)
-            loaded_file = loaded_file.gsub(/^#{Regexp.quote(Dir.pwd)}\//, '')
-            caller_string = caller(1)[0].split(':')
-            eval_file = caller_string[0]
-            eval_line = Integer(caller_string[1])
-            yield
-
-        rescue Exception => e
-            new_backtrace = e.backtrace.map do |line|
-                if line =~ /^(#{Regexp.quote(eval_file)}:)(\d+)(.*)$/
-                    before, line_number, rest = $1, Integer($2), $3
-                    if line_number > eval_line
-                        if rest =~ /:in `[^']+'/
-                            rest = $'
-                        end
-                        newline = "#{loaded_file}:#{line_number - eval_line}#{$'}"
-
-                        if !full
-                            raise e, e.message, [newline]
-                        else newline
-                        end
-                    else line
-                    end
-                else
-                    line
-                end
-            end
-            raise e, e.message, new_backtrace
-        end
-
 	# call-seq:
 	#   load_template path1, path2, ..., file_name => erb object
 	#

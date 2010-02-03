@@ -1,5 +1,6 @@
 require 'pathname'
 require 'utilrb/pkgconfig'
+require 'utilrb/kernel/load_dsl_file'
 
 module Orocos
     module Generation
@@ -662,6 +663,9 @@ module Orocos
                 deployer
 	    end
 
+            # This is for the sake of DSL handling
+            def component; self end
+
             # Apply the project description included in +file+ to +self+
             #
             # NOTE: this method MUST be the last method of the file. This is
@@ -670,10 +674,7 @@ module Orocos
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
 
-                component = self
-                Orocos::Generation.filter_backtrace(deffile) do
-                    Kernel.eval(File.read(deffile), binding)
-                end
+                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
                 self
             end
 	end
