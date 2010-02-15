@@ -1087,7 +1087,7 @@ module Orocos
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :define => '__orogen', :opaques_ignore => true }
+                options = { :define => '__orogen', :opaques_ignore => true, :merge => false }
                 options[:include] = include_dirs.dup
 
                 begin
@@ -1310,7 +1310,7 @@ module Orocos
                         io << marshalling_code
                         io.flush
 
-                        registry.import(io.path, 'c')
+                        registry.import(io.path, 'c', :merge => false)
                     end
                 end
             end
