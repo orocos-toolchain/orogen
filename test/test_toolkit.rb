@@ -22,9 +22,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
 
         # Load a file with errors
         assert_raises(ArgumentError) do
-            component.toolkit do
-                load File.join(TEST_DATA_DIR, 'exists')
-            end
+            component.toolkit(true).load File.join(TEST_DATA_DIR, 'exists')
         end
 
         # Load a file that does not exist
@@ -91,7 +89,7 @@ class TC_GenerationToolkit < Test::Unit::TestCase
         component = Component.new
         in_wc do
             component.load 'opaque.orogen'
-            component.toolkit.load File.join(TEST_DATA_DIR, 'opaque_invalid.h')
+            component.toolkit(true).load File.join(TEST_DATA_DIR, 'opaque_invalid.h')
             assert_raises(NotImplementedError) { component.generate }
         end
     end
@@ -153,7 +151,7 @@ install(TARGETS test RUNTIME DESTINATION bin)
         component = build_test_component('modules/toolkit_dependencies', with_corba)
 
         deps = component.toolkit.dependencies
-        expected = ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux", "typelib"]
+        expected = ["tkdeps_lib", "tkdeps_parent-toolkit-gnulinux"]
         if with_corba
             expected << "tkdeps_parent-transport-corba-gnulinux"
         end

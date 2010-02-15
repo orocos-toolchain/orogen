@@ -102,9 +102,9 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 
             reader.close
             sleep 0.5
-            writer.write([?A, ?B].pack("cc"))
+            writer.write("AB")
             sleep 0.5
-            writer.write([?C, ?D, ?E].pack("ccc"))
+            writer.write("CDE")
             Process.waitpid(child_pid)
             assert_equal(0, $?.exitstatus)
         end
@@ -137,7 +137,10 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         install
 
         in_prefix do
-            system(File.join("bin", "cross_deployment"))
+            if !system(File.join("bin", "cross_deployment"))
+                raise "deployer did not finish correctly"
+            end
+
             assert_equal "[1 2] [3 4] [5 6] [7 8] [9 10] [11 12] [13 14] [15 16] [17 18] [19 20] ",
                 File.read('cross_dependencies.txt')
         end

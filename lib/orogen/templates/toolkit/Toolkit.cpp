@@ -269,7 +269,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
     }
 
     char const* getMarshallingType() const
-    { return "<%= intermediate.name %>"; }
+    { return "<%= type.name %>"; }
 
     void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
     {

@@ -56,6 +56,7 @@ namespace base {
 #ifndef __orogen
     static Time fromMilliseconds(uint64_t ms);
     Time operator +(Time const& other);
+#endif
   };
 }
 {coderay}

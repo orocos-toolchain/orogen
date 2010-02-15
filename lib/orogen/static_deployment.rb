@@ -99,10 +99,43 @@ module Orocos
             # The TaskContext used to define this task
             attr_reader :context
 
+            # The deployed properties, as PropertyDeployment instances
             attr_reader :properties
+            # The deployed ports, as PortDeployment instances
             attr_reader :ports
+            # The deployed methods, as MethodDeployment instances
             attr_reader :methods
+            # The deployed commands, as CommandDeployment instances
             attr_reader :commands
+
+            attr_accessor :minimal_trigger_latency
+            attr_accessor :expected_trigger_latency
+
+            # Returns the expected minimal jitter between two expected calls to
+            # updateHook(), based on its scheduler and priority. All tasks will
+            # return a value (even non-periodic ones).
+            def minimal_trigger_latency
+                if @minimal_trigger_latency
+                    @minimal_trigger_latency
+                elsif @realtime
+                    0.001
+                else
+                    0.005
+                end
+            end
+
+            # Returns the expected jitter between two expected calls to
+            # updateHook(), based on its scheduler and priority. All tasks will
+            # return a value (even non-periodic ones).
+            def expected_trigger_latency
+                if @expected_trigger_latency
+                    @expected_trigger_latency
+                elsif @realtime
+                    0.005
+                else
+                    0.020
+                end
+            end
 
             def initialize(name, context)
                 @name     = name
@@ -337,7 +370,7 @@ module Orocos
                         map(&:name)
                 end.flatten.to_set
 
-                task_toolkits.map do |used_name|
+                task_toolkits.sort.map do |used_name|
                     this_tk = component.used_toolkits.find { |tk| tk.name == used_name }
                     if !this_tk
                         raise "Internal Error: imported toolkit is not present in this component's used_toolkits set"
@@ -528,12 +561,9 @@ module Orocos
             def used_task_libraries
                 task_models = task_activities.map { |task| task.context }
                 component.used_task_libraries.find_all do |tasklib|
-                    puts tasklib.name
-                    puts tasklib.self_tasks.map(&:name)
                     result = task_models.any? do |task|
                         tasklib.self_tasks.include?(task)
                     end
-                    puts result
                     result
                 end
             end

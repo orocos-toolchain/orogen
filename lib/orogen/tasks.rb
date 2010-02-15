@@ -48,6 +48,13 @@ module Orocos
 		@name, @type, @default_value = name, type, default_value
 	    end
 
+            def pretty_print(pp)
+                pp.text "#{name}:#{type.name}"
+                if doc
+                    pp.text ": #{doc}"
+                end
+            end
+
 	    # call-seq:
 	    #	doc new_doc => self
             #	doc =>  current_doc
@@ -69,6 +76,10 @@ module Orocos
             def type_name; type.name end
 
             def used_types; [type] end
+
+            def pretty_print(pp)
+                pp.text "[#{self.kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
+            end
 
 	    def initialize(task, name, type)
                 if !name.kind_of?(Regexp)
@@ -228,6 +239,25 @@ module Orocos
             # instance).
             def needs_reliable_connection; @needs_reliable_connection = true; self end
         end
+        
+        module DynamicPort
+            def instanciate(name)
+                m = dup
+                m.instance_variable_set :@name, name
+                m
+            end
+            def pretty_print(pp)
+                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{type_name}"
+            end
+        end
+
+        class DynamicOutputPort < OutputPort
+            include DynamicPort
+        end
+        
+        class DynamicInputPort < InputPort
+            include DynamicPort
+        end
 
 	class Callable
 	    # The TaskContext instance this method is part of
@@ -372,8 +402,18 @@ module Orocos
 		else
 		    result << "void"
 		end
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else method_name
+                        end
+                end
 		result << argument_signature(with_names)
 	    end
+
+            def pretty_print(pp)
+                pp.text signature(true)
+            end
 
 	    # call-seq:
 	    #	method_name new_name => self
@@ -472,7 +512,14 @@ module Orocos
 	    # +with_names+ is true, the name of the method and the names of the
 	    # arguments are included in the string.
 	    def work_signature(with_names = true)
-		argument_signature(with_names)
+                result = "bool"
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else work_method_name
+                        end
+                end
+		result << argument_signature(with_names)
 	    end
 	    
 	    # A string representing the signature for the C++ completion
@@ -483,13 +530,29 @@ module Orocos
 	    # which can be changed by the completion_no_arguments,
 	    # completion_first_argument and completion_all_arguments methods.
 	    def completion_signature(with_names = true)
-		case completion_signature_type
+                result = "bool"
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else completion_method_name
+                        end
+                end
+
+		result << case completion_signature_type
 		when :no_arguments then "()"
 		when :first_argument
 		    argument_signature(with_names).gsub(/,.*\)$/, ")")
 		when :all_arguments; argument_signature(with_names)
 		end
+
+                result
 	    end
+
+            def pretty_print(pp)
+                pp.text work_signature(true)
+                pp.breakable
+                pp.text completion_signature(true)
+            end
 	end
 
         # Representation of TaskContext classes. This is usually created using
@@ -531,6 +594,23 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
+            def self.enumerate_inherited_set(each_name, attribute_name = each_name)
+                class_eval <<-EOD
+                def all_#{attribute_name}; each_#{each_name}.to_a end
+                def self_#{attribute_name}; @#{attribute_name} end
+                def each_#{each_name}(only_self = false, &block)
+                    if block_given?
+                        if !only_self && superclass
+                            superclass.each_#{each_name}(false, &block)
+                        end
+                        @#{attribute_name}.each(&block)
+                    else
+                        enum_for(:each_#{each_name}, only_self)
+                    end
+                end
+                EOD
+            end
+
             def to_s; "#<#<Orocos::Generation::TaskContext>: #{name}>" end
             # Call to declare that this task model is not meant to run in
             # practice
@@ -561,7 +641,7 @@ module Orocos
             # +name+. +name+ can either be a string or a regular expression.
             def implements?(name)
                 class_name == name ||
-                    (superclass && superclass.name == name) ||
+                    (superclass && superclass.implements?(name)) ||
                     @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
@@ -668,8 +748,30 @@ module Orocos
                 @needs_configuration = false
 	    end
 
+            def pretty_print_interface(pp, name, set)
+                if set.empty?
+                    pp.text "No #{name.downcase}"
+                else
+                    pp.text name
+                    pp.nest(2) do
+                        set.each do |element|
+                            pp.breakable
+                            element.pretty_print(pp)
+                        end
+                    end
+                end
+                pp.breakable
+            end
+
 	    def pretty_print(pp)
-		pp.text to_s
+		pp.text "------- #{name} ------"
+                pp.breakable
+
+                ports = each_port.to_a + each_dynamic_port.to_a
+                pretty_print_interface(pp, "Ports", ports)
+                pretty_print_interface(pp, "Properties", each_property.to_a)
+                pretty_print_interface(pp, "Methods", each_method.to_a)
+                pretty_print_interface(pp, "Commands", each_command.to_a)
 	    end
 
             # Returns the object in +set_name+ for which #name returns +name+,
@@ -694,6 +796,23 @@ module Orocos
 		end
 	    end
 	    private :check_uniqueness
+
+            # Add in +self+ the ports of +other_model+ that don't exist.
+            #
+            # Raises ArgumentError if +other_model+ has ports whose name is used
+            # in +self+, but for which the definition is different.
+            def merge_ports_from(other_model)
+                other_model.each_port do |p|
+                    self_port = other_model.port(p.name)
+                    if self_port
+                        if (self_port.class != p.class || self_port.type != p.type)
+                            raise ArgumentError, "cannot merge as the output port #{self_port.name} have different meanings"
+                        end
+                    else
+                        @ports << p
+                    end
+                end
+            end
 
             # If true, then the initial state of this class cannot be specified.
             # For orogen-declared tasks, it is the same as
@@ -735,9 +854,6 @@ module Orocos
                 @needs_configuration = true
             end
 
-	    # The set of properties for this task
-	    def all_properties; @properties + (superclass ? superclass.all_properties : []) end
-            def self_properties; @properties end
 
             # Create a new property with the given name, type and default value
             # for this task. This returns the Property instance representing
@@ -765,8 +881,6 @@ module Orocos
 		@properties.last
 	    end
 
-	    # The set of methods defined on this task
-	    def all_methods; @methods + (superclass ? superclass.all_methods : []) end
             # Methods that are added by this task context (i.e. methods that are
             # defined there but are not present in the superclass)
             def new_methods
@@ -1033,7 +1147,6 @@ module Orocos
 	    end
 
 	    # The set of commands for this task.
-	    def all_commands; @commands + (superclass ? superclass.all_commands : []) end
             def new_commands
                 super_names = superclass.all_commands.map(&:name).to_set
                 @commands.find_all do |t|
@@ -1045,9 +1158,6 @@ module Orocos
                 @commands.find_all do |t|
                     !super_names.include?(t)
                 end
-            end
-            def self_commands
-                @commands
             end
 
             # Create a new command with the given name. Use the returned
@@ -1067,21 +1177,11 @@ module Orocos
 		@commands.last
 	    end
 
-	    # The set of IO ports for this task context. These are either
-	    # OutputPort and InputPort objects
-            def all_ports; @ports + (superclass ? superclass.all_ports : []) end
-            def self_ports; @ports end
-
-            def each_port(only_self = false, &block)
-                if block_given?
-                    if !only_self && superclass
-                        superclass.each_port(false, &block)
-                    end
-                    @ports.each(&block)
-                else
-                    enum_for(:each_port, only_self)
-                end
-            end
+            enumerate_inherited_set("dynamic_port", "dynamic_ports")
+            enumerate_inherited_set("port", "ports")
+            enumerate_inherited_set("property", "properties")
+            enumerate_inherited_set("command", "commands")
+            enumerate_inherited_set("method", "methods")
 
 	    # call-seq:
 	    #	output_port 'name', '/type'
@@ -1101,15 +1201,17 @@ module Orocos
             # Enumerates the output ports available on this task context. If no
             # block is given, returns the corresponding enumerator object.
             def each_output_port(&block)
-                if block_given?
-                    @ports.each do |p|
-                        yield(p) if p.kind_of?(OutputPort)
-                    end
-                    if superclass
-                        superclass.each_output_port(&block) if superclass
-                    end
-                else
-                    enum_for(:each_output_port)
+                each_port.
+                    find_all { |p| p.kind_of?(OutputPort) }.
+                    each(&block)
+            end
+
+            # Returns the port named +name+ or raises ArgumentError if no such
+            # port exists
+            def port(name)
+                if p = each_port.find { |p| p.name == name }
+                    p
+                else raise ArgumentError, "#{self} has no port named '#{name}'"
                 end
             end
 
@@ -1135,7 +1237,7 @@ module Orocos
             # at runtime, with the type. This is not used by orogen himself, but
             # can be used by potential users of the orogen specification.
             def dynamic_input_port(name, type)
-                dynamic_ports << InputPort.new(self, name, type)
+                dynamic_ports << DynamicInputPort.new(self, name, type)
                 dynamic_ports.last
             end
 
@@ -1146,7 +1248,7 @@ module Orocos
             # at runtime, with the type. This is not used by orogen himself, but
             # can be used by potential users of the orogen specification.
             def dynamic_output_port(name, type)
-                dynamic_ports << OutputPort.new(self, name, type)
+                dynamic_ports << DynamicOutputPort.new(self, name, type)
                 dynamic_ports.last
             end
 
@@ -1177,16 +1279,9 @@ module Orocos
             # Enumerates the input ports available on this task context. If no
             # block is given, returns the corresponding enumerator object.
             def each_input_port(&block)
-                if block_given?
-                    @ports.each do |p|
-                        yield(p) if p.kind_of?(InputPort)
-                    end
-                    if superclass
-                        superclass.each_input_port(&block) if superclass
-                    end
-                else
-                    enum_for(:each_input_port)
-                end
+                each_port.
+                    find_all { |p| p.kind_of?(InputPort) }.
+                    each(&block)
             end
 
             # A set of ports that will trigger this task when they get updated.

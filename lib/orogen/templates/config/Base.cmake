@@ -1,5 +1,7 @@
 ADD_CUSTOM_TARGET(regen
-    orogen <%= "--corba" if component.corba_enabled? %> <%= component.deffile %>
+    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
+       orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
+    <%= ruby_bin %> <%= orogen_bin %> <%= "--corba" if component.corba_enabled? %> <%= component.deffile %>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # In Orogen components, the build target is specified at generation time
@@ -67,6 +69,11 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/
 <% if !component.self_tasks.empty? %>
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
 <% end %>
+
+configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= component.name %>.pc.in
+    orogen-project-<%= component.name %>.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= component.name %>.pc
+    DESTINATION lib/pkgconfig)
 
 INSTALL(FILES <%= component.deffile %>
     DESTINATION share/orogen)
