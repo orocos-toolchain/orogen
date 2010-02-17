@@ -77,6 +77,27 @@ module Orocos
 
             def used_types; [type] end
 
+            # True if the component supports only static connections on this
+            # port, and false otherwise
+            #
+            # See #static for more details.
+            def static?; !!@static end
+
+            # Declares that this port can be connected/disconnected only when
+            # the component is in a non-running state.
+            #
+            # The default is that the port is dynamic, i.e. can be
+            # connected/disconnected regardless of the component's state.
+            #
+            # See also #dynamic
+            def static; @static = true end
+
+            # Declares that this port can be connected/disconnected while the
+            # component is running. It is the opposite of #static.
+            #
+            # This is the default
+            def dynamic; @static = false end
+
             def pretty_print(pp)
                 pp.text "[#{self.kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
             end

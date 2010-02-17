@@ -237,6 +237,23 @@ class TC_GenerationTasks < Test::Unit::TestCase
         create_wc("tasks/ports")
 	compile_wc(component)
     end
+    def test_task_port_static
+	component = Component.new 
+	component.name 'test'
+
+	task = component.task_context "task"
+
+	read = task.input_port 'r', 'int'
+	write = task.output_port 'w', 'int'
+        [read, write].each do |p|
+            assert(!p.static?)
+            p.static
+            assert(p.static?)
+            p.dynamic
+            assert(!p.static?)
+        end
+    end
+
     def test_task_ports_driven
 	component = Component.new 
 	component.name 'test'
