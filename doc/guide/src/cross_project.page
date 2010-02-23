@@ -69,7 +69,7 @@ Once it is done, you can use the imported task contexts in the local project to:
 Note that oroGen will load the project's toolkit, since this toolkit is required
 by the task library itself. You therefore don't need to load the project's
 toolkit manually.
-{.warning}
+{: .warning}
 
 Using external libraries which use pkg-config
 ---------------------------------------------

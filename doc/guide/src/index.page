@@ -113,12 +113,12 @@ version '0.1'
 The project is then generated with
   
 orogen example.orogen
-{.commandline}
+{: .commandline}
 
 or, if corba support is required
   
 orogen --corba example.orogen
-{.commandline}
+{: .commandline}
 
 The generated code is a CMake package. In it, files are sorted into three places:
 
@@ -140,12 +140,12 @@ Once the project is generated, you can compile it as any CMake-based package.
 mkdir build<br />
 cmake -DCMAKE_INSTALL_PREFIX=/installation/directory ..<br />
 make
-{.commandline}
+{: .commandline}
 
 and the regeneration can be triggered with
 
 make regen
-{.commandline}
+{: .commandline}
 
 Defining types
 --------------

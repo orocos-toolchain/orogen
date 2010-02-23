@@ -86,7 +86,7 @@ statements:
 
 Note the dot at the end of the first two lines. It is important and not adding
 it would lead to a NoMethodError error during generation.
-{.warning}
+{: .warning}
 
 The priority value being a number between 1 (lowest) and 99 (highest).
 Moreover, note that the periodic and IO triggering mechanisms _require_ the task
@@ -151,7 +151,7 @@ task contexts through a command line. It is part of the Orocos Component Library
 beforehand.
 
 This feature is only available for non-CORBA deployments
-{.warning}
+{: .warning}
 
 To initialize a TaskBrowser on a particular task, you will have to do two
 things:
