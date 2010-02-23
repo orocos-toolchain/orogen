@@ -21,6 +21,26 @@ side, so it is forbidden.
 The task interface is the focus of that page. Other issues, as using different
 triggering modes and subclassing between task contexts is covered later.
 
+
+Unfortunately, oroGen has to cope with RTT limited support for basic types (int,
+long, ...), and therefore the following limitations apply:
+
+{::options:: parse_block_html="true"}
+<div class="warning">
+**Some limitations on types used in the task interface**
+
+ * char, short, 64 bit integers and float are forbidden as argument types for a
+   method/command and as properties. Use int instead of char or short, and
+   double instead of float. Unfortunately there is no equivalent for 64 bit
+   integers.
+ * they can always be used as elements in a struct, though
+ * structs that contain 64 bit integers won't be marshallable as XML.
+ * there is no typelib marshalling - and hence no logging - for
+   <tt>vector&lt;double&gt;</tt> used "as-is". <tt>vector&lt;double&gt;</tt> in
+   a struct is fine though.
+</div>
+{::options:: parse_block_html="false"}
+
 Ports
 -----
 Ports are defined with
