@@ -593,6 +593,11 @@ module Orocos
             # the documentation of that class for more details.
             #
 	    def task_context(name, &block)
+                task = external_task_context(name, &block)
+                task
+	    end
+
+            def external_task_context(name, &block)
 		if find_task_context(name)
 		    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
@@ -604,7 +609,7 @@ module Orocos
 		tasks << new_task
                 self_tasks << new_task
 		tasks.last
-	    end
+            end
 
             # Declares that this component depends on task contexts defined by
             # the given orogen-generated component. After this call, the

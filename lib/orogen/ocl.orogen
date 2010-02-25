@@ -1,15 +1,15 @@
 name "OCL"
 
-context = task_context "ReportingComponent" do
+context = external_task_context "ReportingComponent" do
     fixed_initial_state
 end
 
-task_context 'TCPReporting' do
+external_task_context 'TCPReporting' do
     subclasses "ReportingComponent"
     property 'port', 'int', 3142
 end
 
-task_context 'FileReporting' do
+external_task_context 'FileReporting' do
     subclasses "ReportingComponent"
     property 'ReportFile', 'std/string'
 end

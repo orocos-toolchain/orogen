@@ -1,6 +1,6 @@
 name "RTT"
 
-task_context "TaskContext" do
+external_task_context "TaskContext" do
     abstract
 
     rtt_states = ['INIT', 'PRE_OPERATIONAL', 'FATAL_ERROR', 'STOPPED',
@@ -17,6 +17,4 @@ task_context "TaskContext" do
     method("getModelName").
         returns("/std/string")
 end
-
-task_context "DataDrivenTask"
 
