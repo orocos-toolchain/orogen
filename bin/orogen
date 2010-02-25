@@ -49,7 +49,7 @@ parser = OptionParser.new do |opt|
 
     opt.on("-V", "--version", "displays the current orogen version") do
         puts "orogen v#{Orocos::Generation::VERSION}"
-        puts "Copyright 2008 DFKI"
+        puts "Copyright 2008-2010 DFKI"
         STDOUT.flush
     end
 end
