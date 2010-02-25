@@ -4,6 +4,7 @@ require 'orogen'
 require 'optparse'
 
 verbosity = 0
+extended_states = false
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
@@ -12,6 +13,10 @@ parser = OptionParser.new do |opt|
         else Orocos::Generation.disable_corba
         end
     end
+    opt.on("--extended-states", "enable extended states for all tasks defined in this project") do |flag|
+        extended_states = true
+    end
+
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
         target = target.to_s
         if target !~ /^(gnulinux|xenomai)$/
@@ -59,7 +64,10 @@ begin
     filename  = files.first
     component = 
         begin
-            Orocos::Generation::Component.load(filename)
+            component = Orocos::Generation::Component.new
+            component.extended_states = extended_states
+            component.load(filename)
+
         rescue Exception => e
             # Two options:
             #  * the first line of the backtrace is the orogen file

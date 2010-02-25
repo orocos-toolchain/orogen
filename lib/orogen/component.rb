@@ -579,6 +579,8 @@ module Orocos
                 toolkit(false).export_types(*args)
             end
 
+            attr_predicate :extended_states?, true
+
             # Creates a new task context class of this name. The generated
             # class is defined in the component's namespace. Therefore
             #
@@ -594,6 +596,9 @@ module Orocos
             #
 	    def task_context(name, &block)
                 task = external_task_context(name, &block)
+                if extended_states?
+                    task.extended_state_support
+                end
                 task
 	    end
 
