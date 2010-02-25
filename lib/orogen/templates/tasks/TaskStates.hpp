@@ -3,7 +3,7 @@
 
 namespace <%= component.name %>
 {
-    <% component.tasks.
+    <% component.self_tasks.
         find_all(&:extended_state_support?).
 
         each do |task| %>

@@ -12,9 +12,8 @@
 <% toolkit.external_loads.each do |file| %>
 #include <<%= file %>>
 <% end %>
-<% toolkit.local_headers(false).each do |file|
-    file = file.gsub(/^#{component.name}\//, '') %>
-#include "<%= component.name %>/<%= file %>"
+<% toolkit.local_headers(false).each do |path, dest_path| %>
+#include "<%= File.join(component.name, dest_path) %>"
 <% end %>
 <% toolkit.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>ToolkitTypes.hpp>

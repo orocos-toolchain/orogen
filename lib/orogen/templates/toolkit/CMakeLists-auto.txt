@@ -7,6 +7,7 @@
 # #disable_corba
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR}/<%= Orocos::Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(${CMAKE_SOURCE_DIR}/<%= Orocos::Generation::AUTOMATIC_AREA_NAME %>)
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
@@ -60,8 +61,7 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>ToolkitTypes.hpp
     <% end %>
     DESTINATION include/orocos/toolkit)
 
-<% toolkit.local_headers(false).each do |path|
-    dest_path = path.gsub(/^#{component.name}\//, '') %>
+<% toolkit.local_headers(false).each do |path, dest_path| %>
 install(FILES ${PROJECT_SOURCE_DIR}/<%= path %>
     DESTINATION include/orocos/<%= component.name %>/<%= File.dirname(dest_path) %>)
 <% end %>

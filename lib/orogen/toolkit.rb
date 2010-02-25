@@ -1110,7 +1110,14 @@ module Orocos
                 if absolute
                     list
                 else
-                    list.map { |p| p.gsub(/^#{Regexp.quote(component.base_dir)}\//, '') }
+                    list.map do |p|
+                        relative = p.gsub(/^#{Regexp.quote(component.base_dir)}\//, '')
+                        dest = relative.
+                            gsub(/^#{Regexp.quote(Generation::AUTOMATIC_AREA_NAME)}\//, '').
+                            gsub(/^#{component.name}\//, '')
+
+                        [relative, dest]
+                    end
                 end
             end
 
@@ -1397,13 +1404,18 @@ module Orocos
                 fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
                 FileUtils.mkdir_p fake_install_dir
 
-                self.local_headers(false).each do |relative_path|
-                    file_dir = File.dirname(relative_path).
-                        gsub /^#{component.name}\//, ''
+                # Generate the state enumeration types for each of the task
+                # contexts, and load it
+                if component.self_tasks.any?(&:extended_state_support?)
+                    state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
+                    Generation.save_automatic "#{component.name}TaskStates.hpp", state_types
+                    load File.join(AUTOMATIC_AREA_NAME, "#{component.name}TaskStates.hpp"), false
+                end
 
-                    dest_dir = File.join(fake_install_dir, file_dir)
-                    FileUtils.mkdir_p dest_dir
-                    FileUtils.ln_sf File.join(component.base_dir, relative_path), File.join(dest_dir, File.basename(relative_path))
+                self.local_headers(false).each do |path, dest_path|
+                    dest_path = File.join(fake_install_dir, dest_path)
+                    FileUtils.mkdir_p File.dirname(dest_path)
+                    FileUtils.ln_sf File.join(component.base_dir, path), dest_path
                 end
 
                 # Generate opaque-related stuff first, so that we see them in
@@ -1501,17 +1513,6 @@ module Orocos
 		Generation.save_automatic("toolkit", "#{component.name}ToolkitTypes.hpp", type_header)
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
-
-                # Generate the state enumeration types for each of the task
-                # contexts, and load it
-                if component.self_tasks.any?(&:extended_state_support?)
-                    state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
-                    Generation.save_automatic "tasks", "#{component.name}TaskStates.hpp", state_types
-                    load File.join(AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp")
-
-                    FileUtils.ln_sf File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "#{component.name}TaskStates.hpp"),
-                        File.join(fake_install_dir, "#{component.name}TaskStates.hpp")
-                end
 
 
                 if corba_enabled?
