@@ -1065,7 +1065,7 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
-	    def load(file, preload = false)
+	    def load(file, preload = false, add = true)
                 # Find where +file+ is
                 include_dirs = []
                 include_dirs << component.base_dir if component.base_dir
@@ -1099,7 +1099,9 @@ module Orocos
                     raise ArgumentError, "cannot load #{file}: #{e.message}", e.backtrace
                 end
 
-		loads << file
+                if add
+                    loads << file
+                end
 	    end
 
             # Returns the set of headers that have been loaded locally
