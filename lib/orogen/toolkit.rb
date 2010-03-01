@@ -25,7 +25,7 @@ module Typelib
             namespace('::')
         end
 
-        def self.corba_name
+        def self.corba_name(plain_name = false)
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
@@ -177,7 +177,7 @@ module Typelib
 		basename
 	    end
 	end
-        def self.corba_name
+        def self.corba_name(plain_name = false)
 	    if integer?
 		if name == "/bool"
 		    "CORBA::Boolean"
@@ -216,15 +216,19 @@ module Typelib
                 gsub(/^::/, '')
             normalize_cxxname(kind + "< " + deference.cxx_name + " >")
         end
-        def self.corba_generic_name
+        def self.corba_name(plain_name = false)
+            if plain_name
+                return super
+            end
+
             if deference.corba_name == "CORBA::Octet"
                 "_CORBA_Unbounded_Sequence_Octet"
             else
                 "_CORBA_Unbounded_Sequence< #{deference.corba_name} >"
             end
         end
-        def self.corba_arg_type; "#{corba_generic_name} const&" end
-        def self.corba_ref_type; "#{corba_generic_name}&" end
+        def self.corba_arg_type; "#{corba_name} const&" end
+        def self.corba_ref_type; "#{corba_name}&" end
 
 	def self.to_property_bag(toolkit, result, indent)
             collection_name, element_type = container_kind, deference.name

@@ -90,9 +90,9 @@ namespace orogen_toolkits {
              opdef = toolkit.opaque_specification(type)
              intermediate_type = toolkit.find_type(opdef.intermediate)
         %>
-        typedef <%= intermediate_type.corba_name %> CorbaType;
+        typedef <%= intermediate_type.corba_name(true) %> CorbaType;
         <% else %>
-        typedef <%= type.corba_name %> CorbaType;
+        typedef <%= type.corba_name(true) %> CorbaType;
         <% end %>
         typedef <%= type.cxx_name %>   BaseType;
 
