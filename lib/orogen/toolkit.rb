@@ -5,6 +5,10 @@ require 'orogen/base'
 require 'utilrb/kernel/options'
 require 'nokogiri'
 
+require 'orogen/marshallers/corba'
+require 'orogen/marshallers/iostream'
+require 'orogen/marshallers/property_bag'
+
 module Typelib
     class Type
         def self.normalize_typename(name)
@@ -25,20 +29,8 @@ module Typelib
             namespace('::')
         end
 
-        def self.corba_name(plain_name = false)
-            if inlines_code?
-                normalize_cxxname(basename)
-            elsif contains_opaques?
-                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
-            else
-                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
-            end
-        end
-
         def self.arg_type; "#{cxx_name} const&" end
         def self.ref_type; "#{cxx_name}&" end
-        def self.corba_arg_type; "#{corba_name} const&" end
-        def self.corba_ref_type; "#{corba_name}&" end
 
         def self.method_name(fullname = true)
             base = if fullname then full_name('_', true)
@@ -59,106 +51,7 @@ module Typelib
             index_var_stack.pop
         end
 
-        def self.inlines_code?
-            superclass.eql?(NumericType) || (opaque? && (name == "/std/string" || name == "string"))
-        end
-
-	def self.to_property_bag(toolkit, result, indent = "    ")
-            STDERR.puts "to_property_bag not implemented for #{name}"
-            result
-        end
-        def self.to_corba(toolkit, result, *args)
-            STDERR.puts "to_corba not implemented for #{name}"
-            result
-        end
-        def self.from_corba(toolkit, result, *args)
-            STDERR.puts "from_corba not implemented for #{name}"
-            result
-        end
-        def self.to_stream(toolkit, result, indent)
-            STDERR.puts "to_ostream not implemented for #{name}"
-            result
-        end
-
-	def self.from_property_bag(toolkit, result, indent = "    ")
-            STDERR.puts "from_property_bag not implemeted for #{name}"
-            result
-	end
-
-        def self.inline_fromPropertyBag(toolkit, result, varname, property_name, indent)
-            orocos_type = registry.base_rtt_type_for(self).cxx_name
-            result << indent << "#{varname} = bag.getProperty<#{orocos_type}>(#{property_name})->get();\n"
-        end
-        def self.inline_toPropertyBag(toolkit, result, varname, property_name, indent)
-            orocos_type = registry.base_rtt_type_for(self).cxx_name
-            result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", #{varname}) );\n"
-        end
-
-        # Generate the code needed to initialize a C++ variable from an Orocos
-        # PropertyBag.
-        #
-        # +toolkit+ is the toolkit on which we act. +result+ is the generated
-        # code as a string. +var+ is the name of the variable that holds the
-        # value which should be decomposed. +property_name+ is the name the
-        # property should have in the property bag and finally +indent+ is the
-        # indentation of the code (needed to have a readable code in the end).
-	# def self.from_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
-        #     property_name ||= "\"#{path[1..-1]}\""
-        #     if opaque?
-        #         result << indent << "{ PropertyBag const& inner_bag = bag.getProperty<PropertyBag>(#{property_name})->value();\n"
-        #         result << indent << "   #{cxx_name}TypeInfo::doCompose(inner_bag, out#{path});\n"
-        #         result << indent << "}"
-        #     else
-        #         orocos_type = registry.base_rtt_type_for(self).cxx_name
-        #         result << indent << "out#{path} = bag.getProperty<#{orocos_type}>(#{property_name})->get();"
-        #     end
-	# end
-
-        # Generate the code needed to decompose a give C++ type into a
-        # propertybag (for further marshalling by Orocos).
-        #
-        # +toolkit+ is the toolkit on which we act. +result+ is the generated
-        # code as a string. +var+ is the name of the variable that holds the
-        # value which should be decomposed. +property_name+ is the name the
-        # property should have in the property bag and finally +indent+ is the
-        # indentation of the code (needed to have a readable code in the end).
-	# def self.to_orocos_decomposition(toolkit, result, path, indent = "    ", property_name = nil)
-        #     property_name ||= "\"#{path[1..-1]}\""
-        #     if opaque?
-        #         result << indent << "{ PropertyBag inner_bag(\"#{full_name}\");\n"
-        #         result << indent << "   #{cxx_namespace}#{method_name(false)}TypeInfo::doDecompose(value#{path}, inner_bag);\n"
-        #         result << indent << "   Property<PropertyBag>* temp_property = new Property<PropertyBag>(#{property_name}, \"\", inner_bag);\n"
-        #         result << indent << "   target_bag.add(temp_property);\n"
-        #         result << indent << "}"
-        #     else
-        #         orocos_type = registry.base_rtt_type_for(self).cxx_name
-        #         result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", value#{path}) );"
-        #     end
-	# end
-
-	# def self.code_to_corba(toolkit, result, path = "", indent = "    ")
-        #     if opaque?
-        #         result << indent << "result#{path} = *AnyConversion< #{cxx_name} >::createAny(value#{path});"
-        #     else
-        #         result << indent << "result#{path} = value#{path};"
-        #     end
-	# end
-	# def self.code_from_corba(toolkit, result, path = "", indent = "    ")
-        #     if opaque?
-        #         result << indent << "AnyConversion< #{cxx_name} >::updateFromAny(value#{path}, result#{path});"
-        #     else
-        #         result << indent << "result#{path} = value#{path};"
-        #     end
-	# end
-        # def self.to_ostream(toolkit, result, path, indent)
-        #     if opaque?
-        #         result << indent << "io << data#{path};"
-        #     else
-        #         orocos_type = registry.base_rtt_type_for(self).cxx_name
-        #         property_name = path[1..-1]
-        #         result << indent << "io << static_cast<#{orocos_type}>(data#{path});"
-        #     end
-        # end
+        def self.inlines_code?; false end
     end
 
     class NumericType
@@ -177,33 +70,10 @@ module Typelib
 		basename
 	    end
 	end
-        def self.corba_name(plain_name = false)
-	    if integer?
-		if name == "/bool"
-		    "CORBA::Boolean"
-                elsif size == 1
-                    "CORBA::Octet"
-                elsif size == 2
-                    "CORBA::#{'U' if unsigned?}Short"
-                elsif size == 4
-                    "CORBA::#{'U' if unsigned?}Long"
-                elsif size == 8
-                    "CORBA::#{'U' if unsigned?}LongLong"
-                else
-                    raise "unexpected integer size #{size}"
-		end
-	    else
-                if size == 4
-                    "CORBA::Float"
-                elsif size == 8
-                    "CORBA::Double"
-                else
-                    raise "unexpected floating-point size #{size}"
-                end
-	    end
-        end
 
 	def self.contains_int64?; size == 8 && integer?  end
+
+        def self.inlines_code?; superclass.eql?(NumericType) end
     end
 
     class ContainerType
@@ -214,47 +84,12 @@ module Typelib
             kind = container_kind.
                 gsub('/', '::').
                 gsub(/^::/, '')
-            normalize_cxxname(kind + "< " + deference.cxx_name + " >")
-        end
-        def self.corba_name(plain_name = false)
-            if plain_name
-                return super
-            end
-
-            if deference.corba_name == "CORBA::Octet"
-                "_CORBA_Unbounded_Sequence_Octet"
+            if name =~ /</
+                normalize_cxxname(kind + "< " + deference.cxx_name + " >")
             else
-                "_CORBA_Unbounded_Sequence< #{deference.corba_name} >"
+                normalize_cxxname(kind)
             end
         end
-        def self.corba_arg_type; "#{corba_name} const&" end
-        def self.corba_ref_type; "#{corba_name}&" end
-
-	def self.to_property_bag(toolkit, result, indent)
-            collection_name, element_type = container_kind, deference.name
-            element_type = registry.build(element_type)
-
-            allocate_index do |element_idx|
-                idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{element_idx}) + \"]\""
-                result << <<-EOT
-#{indent}size_t #{element_idx} = 0;
-#{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it, ++#{element_idx})
-#{indent}{
-                EOT
-
-                if element_type.inlines_code?
-                    element_type.inline_toPropertyBag(toolkit, result, "(*it)", idx_expr, indent + "    ")
-                elsif element_type < ArrayType
-                    result << indent << "if (!toPropertyBag(#{idx_expr}, *it, #{element_type.length}, target_bag)) return false;\n";
-                else
-                    result << indent << "if (!toPropertyBag(#{idx_expr}, *it, target_bag)) return false;\n";
-                end
-
-                result << "#{indent}}\n";
-                result << "#{indent}target_bag.add( new Property<int>(basename + \".size\", \"\", #{element_idx}) );\n"
-            end
-	    result
-	end
 
         def self.code_copy(toolkit, result, indent, dest, src, method)
             collection_name, element_type = container_kind, deference.name
@@ -289,123 +124,6 @@ module Typelib
                 !type.contains_opaques?
             end
         end
-
-        def self.to_corba(toolkit, result, indent)
-            collection_name, element_type = container_kind, deference.name
-            element_type = registry.build(element_type)
-
-            result << "#{indent}corba.length(value.size());\n"
-            # Special case for array of bytes, we can do a simple memcpy
-            # (maybe extend that later)
-            if collection_name == "/std/vector" && 
-                element_type < NumericType &&
-                element_type.integer? &&
-                element_type.size == 1
-
-                result << "if (!value.empty()) #{indent}memcpy(&corba[0], &value[0], value.size());"
-            else
-                allocate_index do |element_idx|
-                    result << <<-EOT
-    #{indent}size_t #{element_idx} = 0;
-    #{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it, ++#{element_idx})
-    #{indent}{
-                    EOT
-
-                    if element_type.inlines_code?
-                        result << "    #{indent}corba[#{element_idx}] = (*it);\n"
-                    elsif element_type < ArrayType
-                        result << indent << "    toCORBA(corba[#{element_idx}], *it, #{element_type.length});\n";
-                    else
-                        result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
-                    end
-
-                    result << "#{indent}}\n";
-                end
-            end
-	    result
-        end
-        def self.from_corba(toolkit, result, indent)
-            collection_name, element_type = container_kind, deference.name
-            element_type = registry.build(element_type)
-
-            if container_kind != "/std/vector"
-                raise NotImplementedError, "from_corba is not implemented for other containers than std::vector, got #{container_kind}"
-            end
-
-            allocate_index do |element_idx|
-                result << "#{indent}size_t const size_#{element_idx} = corba.length();\n"
-                result << "#{indent}value.resize(size_#{element_idx});\n"
-                result << <<-EOT
-#{indent}for(size_t #{element_idx} = 0; #{element_idx} < size_#{element_idx}; ++#{element_idx})
-#{indent}{
-                EOT
-
-                if element_type.inlines_code?
-                    result << "#{indent}    value[#{element_idx}] = corba[#{element_idx}];\n"
-                elsif element_type < ArrayType
-                    result << "#{indent}    fromCORBA(value[#{element_idx}], #{element_type.length}, corba[#{element_idx}]);\n";
-                else
-                    result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
-                end
-
-                result << "#{indent}}\n";
-            end
-	    result
-        end
-        def self.to_stream(toolkit, result, indent)
-            collection_name, element_type = container_kind, deference.name
-            element_type = registry.build(element_type)
-
-            result << indent << "io << \"[ \";\n"
-
-            first_field = true
-            allocate_index do |element_idx|
-                result << <<-EOT
-#{indent}bool first_field = true;
-#{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it)
-#{indent}{
-#{indent}    if (!first_field)
-#{indent}         io << ", ";
-#{indent}    first_field = false;
-                EOT
-
-                if element_type.inlines_code?
-                    result << "#{indent}    io << *it;\n"
-                elsif element_type < ArrayType
-                    result << "#{indent}    toStream(\"\", *it, #{element_size.length}, io);\n"
-                else
-                    result << "#{indent}    toStream(\"\", *it, io);\n"
-                end
-                result << "#{indent}}\n"
-	    end
-            result << indent << "io << \" ]\";\n"
-        end
-
-	def self.from_property_bag(toolkit, result, indent = "    ")
-             collection_name, element_type = container_kind, deference.name
-             element_type = registry.build(element_type)
-
-             if container_kind != "/std/vector"
-                 raise NotImplementedError, "from_property_bag is not implemented for other containers than std::vector, got #{container_kind}"
-             end
-
-             allocate_index do |i|
-                 idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
-                 result << "#{indent}size_t size_#{i} = bag.getProperty<int>(basename + \".size\")->get();\n"
-                 result << "#{indent}value.resize(size_#{i});\n"
-                 result << "#{indent}for (size_t #{i} = 0; #{i} < size_#{i}; ++#{i})\n"
-                 result << "#{indent}{\n"
-                 if element_type.inlines_code?
-                     element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
-                 elsif element_type < ArrayType
-                     result << "#{indent}    fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag);\n";
-                 else
-                     result << "#{indent}    fromPropertyBag(#{idx_expr}, value[#{i}], bag);\n";
-                 end
-                 result << "#{indent}}\n"
-             end
-	     result
-	end
     end
 
     class EnumType
@@ -431,87 +149,20 @@ module Typelib
             result
         end
 
-        def self.to_property_bag(toolkit, result, indent)
-            to_string(toolkit, result, indent)
-            result << "#{indent}target_bag.add( new Property<std::string>(basename, \"\", enum_name) );\n"
-            result
-        end
-
-        def self.from_property_bag(toolkit, result, indent)
-            result << indent << "std::string enum_name;\n"
-            result << indent << "enum_name = bag.getProperty<std::string>(basename)->get();\n"
-            first_key = true
-            keys.each do |name, _|
-                result << indent << "#{'else ' if !first_key}if(enum_name == \"#{name}\")\n"
-                result << indent << "   value = #{namespace('::')}#{name};\n"
-                first_key = false
-            end
-            result << <<-EOT
-else
-{
-    RTT::log(RTT::Error) << "invalid value " << enum_name << " for enum #{cxx_name}" << RTT::endlog();
-    return false;
-}
-            EOT
-            result
-        end
-
-        def self.to_stream(toolkit, result, indent)
-            to_string(toolkit, result, indent)
-            result << "#{indent}io << enum_name;\n";
-            result
-        end
-
-	def self.to_corba(toolkit, result, indent)
-            seen_values = Set.new
-            namespace = self.namespace('::')
-            result << indent << "switch(value) {\n"
-            keys.each do |name, value|
-                next if seen_values.include?(value)
-                seen_values << value
-
-                result << indent << "  case #{namespace}#{name}:\n"
-                result << indent << "    corba = orogen#{namespace}Corba::#{name};\n"
-                result << indent << "    break;\n"
-            end
-            result << indent << "}\n"
-	end
-	def self.from_corba(toolkit, result, indent)
-            seen_values = Set.new
-            namespace = self.namespace('::')
-            result << indent << "switch(corba) {\n"
-            keys.each do |name, value|
-                next if seen_values.include?(value)
-                seen_values << value
-
-                result << indent << "  case orogen#{namespace}Corba::#{name}:\n"
-                result << indent << "    value = #{namespace}#{name};\n"
-                result << indent << "    break;\n"
-            end
-            result << indent << "}\n"
-	end
     end
 
     class CompoundType
 	def self.contains_int64?; enum_for(:each_field).any? { |_, type| type.contains_int64? } end
 	def self.contains_opaques?; enum_for(:each_field).any? { |_, type| type.contains_opaques? } end
-	def self.to_property_bag(toolkit, result, indent)
-            each_field do |field_name, field_type|
-                if field_type.inlines_code?
-                    field_type.inline_toPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
-                elsif field_type < ArrayType
-                    result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, target_bag)) return false;\n";
-                else
-                    result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, target_bag)) return false;\n";
-                end
-            end
-	    result
-	end
 
         def self.code_copy(toolkit, result, indent, dest, src, method, error_handling)
             each_field do |field_name, field_type|
-                if yield(field_name, field_type)
-                    result << "#{indent}#{dest}.#{field_name} = #{src}.#{field_name};\n"
+                if string = yield(field_name, field_type)
+                    if !string.respond_to?(:to_str)
+                        result << "#{indent}#{result}.#{field_name} = #{dest}.#{field_name};\n"
+                    else
+                        result << string
+                    end
                 else
                     s_src  = "#{src}.#{field_name}"
                     s_dest = "#{dest}.#{field_name}"
@@ -532,16 +183,6 @@ else
 	    result
         end
 
-        def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA", true) do |field_name, field_type|
-                field_type.inlines_code?
-            end
-        end
-        def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA", true) do |field_name, field_type|
-                field_type.inlines_code?
-            end
-        end
         def self.to_intermediate(toolkit, result, indent)
             code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate", false) do |field_name, field_type|
                 !field_type.contains_opaques?
@@ -552,74 +193,14 @@ else
                 !field_type.contains_opaques?
             end
         end
-
-	def self.from_property_bag(toolkit, result, indent)
-            each_field do |field_name, field_type|
-                if field_type.inlines_code?
-                    field_type.inline_fromPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
-                elsif field_type < ArrayType
-                    result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, bag)) return false;\n";
-                else
-                    result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, bag)) return false;\n";
-                end
-            end
-	    result
-	end
-
-        def self.to_stream(toolkit, result, indent)
-            result << indent << "io << \"{ \";\n"
-
-            first_field = true
-	    each_field do |field_name, field_type|
-                unless first_field
-                    result << "#{indent}  io << \", \";\n";
-                end
-
-                first_field = false
-                result << "#{indent}  io << basename << \".#{field_name} = \";\n";
-                if field_type.inlines_code?
-                    result << "#{indent}  io << value.#{field_name};\n"
-                elsif field_type < ArrayType
-                    result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, io);\n"
-                else
-                    result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, io);\n"
-                end
-	    end
-            result << indent << "io << \" }\";\n"
-        end
     end
+
     class ArrayType
 	def self.contains_int64?; deference.contains_int64?  end
         def self.contains_opaques?; deference.contains_opaques? end
 
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
-        def self.corba_arg_type; "#{deference.corba_name} const*" end
-        def self.corba_ref_type; "#{deference.corba_name}*" end
-
-	def self.to_property_bag(toolkit, result, indent)
-            element_type = registry.build(deference.name)
-
-            allocate_index do |i|
-                idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
-                result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
-#{indent}{
-                EOT
-
-                if element_type.inlines_code?
-                    element_type.inline_toPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
-                elsif element_type < ArrayType
-                    result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, target_bag)) return false;\n";
-                else
-                    result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], target_bag)) return false;\n";
-                end
-
-                result << "#{indent}}\n";
-                result << "#{indent}target_bag.add( new Property<int>(basename + \".size\", \"\", length) );\n"
-            end
-	    result
-	end
 
         def self.code_copy(toolkit, result, indent, dest, src, method)
             element_type = registry.build(deference.name)
@@ -630,8 +211,12 @@ else
 #{indent}{
                 EOT
 
-                if yield(element_type)
-                    result << "#{indent}    #{dest}[#{i}] = #{src}[#{i}];\n"
+                if string = yield(element_type)
+                    if !string.respond_to?(:to_str)
+                        result << "#{indent}#{result} = #{dest};\n"
+                    else
+                        result << string
+                    end
                 else
                     s_src  = "#{src}[#{i}]"
                     s_dest = "#{dest}[#{i}]"
@@ -649,71 +234,17 @@ else
             end
 	    result
         end
-        def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type|
-                type.inlines_code?
-            end
-        end
-        def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type|
-                type.inlines_code?
-            end
-        end
+
         def self.to_intermediate(toolkit, result, indent)
             code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate") do |type|
                 !type.contains_opaques?
             end
         end
+
         def self.from_intermediate(toolkit, result, indent)
             code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate") do |type|
                 !type.contains_opaques?
             end
-        end
-        def self.to_stream(toolkit, result, indent)
-            element_type = registry.build(deference.name)
-
-            result << indent << "io << \"[ \";\n"
-
-            first_field = true
-            allocate_index do |i|
-                result << <<-EOT
-#{indent}bool first_field = true;
-#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
-#{indent}{
-#{indent}    if (!first_field)
-#{indent}         io << ", ";
-#{indent}    first_field = false;
-                EOT
-
-                if element_type.inlines_code?
-                    result << "#{indent}    io << value[#{i}];\n"
-                elsif element_type < ArrayType
-                    result << "#{indent}    toStream(\"\", value[#{i}], #{element_type.length}, io);\n"
-                else
-                    result << "#{indent}    toStream(\"\", value[#{i}], io);\n"
-                end
-                result << "#{indent}}\n"
-	    end
-            result << indent << "io << \" ]\";\n"
-        end
-
-	def self.from_property_bag(toolkit, result, indent = "    ")
-            element_type = registry.build(deference.name)
-
-            allocate_index do |i|
-                idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
-                result << "#{indent}for (size_t #{i} = 0; #{i} < length; ++#{i})\n"
-                result << "#{indent}{\n"
-                if element_type.inlines_code?
-                    element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
-                elsif element_type < ArrayType
-                    result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag)) return false;\n";
-                else
-                    result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], bag)) return false;\n";
-                end
-                result << "#{indent}}\n"
-            end
-            result
         end
     end
 

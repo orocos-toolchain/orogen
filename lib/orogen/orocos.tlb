@@ -3,7 +3,6 @@
 <!-- define here some placeholders for types that are already implemented in
      the Orocos::RTT toolkit -->
 
-    <opaque name="/std/string" size="0"/>
     <alias name="/string" source="/std/string"/>
     <alias name="/uint" source="/uint32_t"/>
     <alias name="/int64" source="/int64_t"/>
