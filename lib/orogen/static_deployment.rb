@@ -416,7 +416,7 @@ module Orocos
             # name on the CORBA name server.
             def task(name, klass)
                 unless task_context = component.find_task_context(klass)
-                    raise "no such task context: #{klass}"
+                    raise ConfigError, "no such task context: #{klass}"
                 end
 
                 if name !~ /^[a-zA-Z_]+$/
