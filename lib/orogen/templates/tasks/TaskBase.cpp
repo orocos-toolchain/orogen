@@ -84,9 +84,9 @@ void <%= task.basename %>Base::fatal(States state)
     _state.write(state);
     TaskContext::fatal();
 }
-<%= task.state_type_name %> <%= task.basename %>Base::state() const
+<%= task.basename %>Base::States <%= task.basename %>Base::state() const
 {
-    return static_cast<<%= task.state_type_name %>>(_state.getLastWrittenValue());
+    return static_cast<<%= task.basename %>Base::States>(_state.getLastWrittenValue());
 }
 <% end %>
 

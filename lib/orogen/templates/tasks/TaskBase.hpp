@@ -91,7 +91,7 @@ namespace <%= component.name %> {
         void state(States state);
         void error(States state = RUNTIME_ERROR);
         void fatal(States state = FATAL_ERROR);
-        <%= task.state_type_name %> state() const;
+        States state() const;
         <% end %>
     };
 }
