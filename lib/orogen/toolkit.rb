@@ -775,7 +775,6 @@ module Orocos
 
 	class Toolkit
 	    attr_reader :component
-	    attr_reader :imports, :loads
             def external_loads
                 loads.find_all do |name|
                     name !~ /#{Regexp.quote(component.base_dir)}/
