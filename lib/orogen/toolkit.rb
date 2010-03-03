@@ -718,6 +718,12 @@ else
     end
 
     class Registry
+        # Returns true if +type+ is handled by the toolkit that is included in
+        # the RTT itself, and false otherwise.
+        #
+        # This is used in property bags and in the interface definition, as --
+        # among the simple types -- only these can be used directly in
+        # interfaces.
         def self.base_rtt_type?(type)
             if type.name == "/std/string"
                 return true
@@ -731,11 +737,15 @@ else
                 type.name == "/double"
             end
         end
+
+        # Returns the RTT type that we should use to handle +type+.
+        #
+        # This is used in property bag marshalling/demarshalling to convert to
+        # the corresponding property type.
         def base_rtt_type_for(type)
 	    if Registry.base_rtt_type?(type)
 		type
             elsif type < Typelib::NumericType
-                # 64 bit types are directly defined in RTT
                 if type.integer?
                     if type.size == 8
                         raise NotImplementedError, "there is no RTT type for 64bit integers, sorry"
@@ -754,10 +764,20 @@ end
 
 module Orocos
     module Generation
+        # Data structure that represents the definition for an opaque type
+        #
+        # See Toolkit#opaque_type
         class OpaqueDefinition
+            # The Typelib::Type subclass that represents this opaque
             attr_reader :type
+            # The Typelib::Type subclass that represents the intermediate type
+            # used to marshal this opaque
             attr_reader :intermediate
+            # Option hash
             attr_reader :options
+            # If non-nil, this is a block which, when called, will return the
+            # C++ code needed to convert +type+ into +intermediate+. If nil, it
+            # is assumed that the user will provide that code.
             attr_reader :code_generator
 
             def initialize(type, intermediate, options, code_generator)
@@ -768,13 +788,26 @@ module Orocos
                 @type, @intermediate, @options, @code_generator =
                     type, intermediate, options, code_generator
             end
+            # The set of paths that should be added to -I to the generated
+            # +type+ to +intermediate+ convertion.
             def includes; options[:includes] end
+            # If true, the opaque needs to be copied into the intermediate. If
+            # false, the convertion does not require a copy.
             def needs_copy?; !!options[:needs_copy] end
+            # If true, the convertion function is provided by the user, and
+            # orogen should therefore generate the corresponding templates.
             def generate_templates?; !code_generator end
         end
 
 	class Toolkit
+            # The component this toolkit is part of
 	    attr_reader :component
+            # The set of headers loaded by #load, as an array of absolute paths
+            attr_reader :loads
+
+            # The set of external headers that have been imported in this
+            # toolkit. I.e. it contains the headers that are loaded from a
+            # depended-upon library for instance.
             def external_loads
                 loads.find_all do |name|
                     name !~ /#{Regexp.quote(component.base_dir)}/
@@ -842,6 +875,9 @@ module Orocos
 		end
 	    end
 
+            # Returns the Typelib::Type subclass that represents the type whose
+            # name is given. If the type is a derived type (pointer, array or
+            # container), then it will be built on the fly.
 	    def find_type(type)
                 if type.respond_to?(:to_str)
                     type_name = type.gsub('::', '/')
@@ -962,7 +998,6 @@ module Orocos
                 smart_ptr("/boost/shared_ptr", find_type(name), options)
             end
 
-
             # Declare that the user will provide a method which converts
             # +base_type+ into the given intermediate type. Orogen will then use
             # that intermediate representation to marshal the data.
@@ -1034,7 +1069,7 @@ module Orocos
                     sort_by { |orogen_def| orogen_def.type.name }
             end
 
-            # True if some opaques require to generate templates
+            # True if there are some opaques in this toolkit
             def has_opaques?
                 !opaques.empty?
             end
