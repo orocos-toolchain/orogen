@@ -23,10 +23,10 @@ module Typelib
         end
 
         def self.inline_fromCorba(result, value, indent)
-            "#{indent}#{result} = #{value};\;"
+            "#{indent}#{result} = #{value};\n"
         end
         def self.inline_toCorba(result, value, indent)
-            "#{indent}#{result} = #{value};\;"
+            "#{indent}#{result} = #{value};\n"
         end
     end
 
@@ -200,12 +200,12 @@ module Typelib
         def self.corba_ref_type; "#{deference.corba_name}*" end
 
         def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type|
+            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type, _|
                 type.inlines_code?
             end
         end
         def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type|
+            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type, _|
                 type.inlines_code?
             end
         end

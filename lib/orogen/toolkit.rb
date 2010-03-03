@@ -211,9 +211,9 @@ module Typelib
 #{indent}{
                 EOT
 
-                if string = yield(element_type)
+                if string = yield(element_type, "#{dest}[#{i}]", "#{src}[#{i}")
                     if !string.respond_to?(:to_str)
-                        result << "#{indent}#{result} = #{dest};\n"
+                        result << "#{indent}  #{dest}[#{i}] = #{src}[#{i}];\n"
                     else
                         result << string
                     end
