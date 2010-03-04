@@ -156,5 +156,9 @@ bool <%= task.basename %>Base::resetError()
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::resetError();
 }
+void <%= task.basename %>Base::fatal()
+{ return fatal(FATAL_ERROR); }
+void <%= task.basename %>Base::error()
+{ return error(RUNTIME_ERROR); }
 <% end %>
 

@@ -80,6 +80,8 @@ namespace <%= component.name %> {
         bool activate();
         void warning();
         void recovered();
+        void error();
+        void fatal();
         bool stop();
         bool cleanup();
         bool resetError();
@@ -89,8 +91,8 @@ namespace <%= component.name %> {
 
         <% if task.extended_state_support? %>
         void state(States state);
-        void error(States state = RUNTIME_ERROR);
-        void fatal(States state = FATAL_ERROR);
+        void error(States state);
+        void fatal(States state);
         States state() const;
         <% end %>
     };
