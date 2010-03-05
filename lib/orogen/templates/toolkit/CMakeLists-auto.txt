@@ -34,6 +34,7 @@ string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 # Generate the base toolkit shared library
 set(libname <%= component.name %>-toolkit-${OROCOS_TARGET})
 add_library(${libname} SHARED <%= component.name %>Toolkit.cpp
+    ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !toolkit.opaques.empty? %>
     <% if toolkit.has_opaques_with_templates? %>
     ${PROJECT_SOURCE_DIR}/toolkit/<%= component.name %>ToolkitUser.cpp
