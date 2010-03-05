@@ -207,7 +207,7 @@ module Typelib
 
             allocate_index do |i|
                 result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
+#{indent}for(int #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
                 EOT
 
