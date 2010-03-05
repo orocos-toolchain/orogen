@@ -81,7 +81,7 @@ else
             allocate_index do |i|
                 idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
                 result << <<-EOT
-#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
+#{indent}for(int #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
                 EOT
 
@@ -104,7 +104,7 @@ else
 
             allocate_index do |i|
                 idx_expr = "basename + \"[\" + boost::lexical_cast<std::string>(#{i}) + \"]\""
-                result << "#{indent}for (size_t #{i} = 0; #{i} < length; ++#{i})\n"
+                result << "#{indent}for (int #{i} = 0; #{i} < length; ++#{i})\n"
                 result << "#{indent}{\n"
                 if element_type.inlines_code?
                     element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")

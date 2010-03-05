@@ -79,7 +79,7 @@ module Typelib
             allocate_index do |i|
                 result << <<-EOT
 #{indent}bool first_field = true;
-#{indent}for(size_t #{i} = 0; #{i} < length; ++#{i})
+#{indent}for(int #{i} = 0; #{i} < length; ++#{i})
 #{indent}{
 #{indent}    if (!first_field)
 #{indent}         io << ", ";
