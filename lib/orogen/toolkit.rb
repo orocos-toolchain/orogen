@@ -963,6 +963,8 @@ module Orocos
                 end
             end
 
+            attr_reader :template_instanciation_files
+
 	    def generate
 		toolkit = self
 
@@ -1083,6 +1085,15 @@ module Orocos
 		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
 		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
 
+                # Generate the explicit instanciation files. We split them on a
+                # by-type basis, as it allows to use parallel build *and* avoid
+                # memory explosion by GCC
+                @template_instanciation_files = registered_types.each_with_index.map do |type, i|
+                    instanciation = Generation.render_template 'toolkit/TemplateInstanciation.cpp', binding
+                    out_name =  "#{component.name}TemplateInstanciation#{i}.cpp"
+                    Generation.save_automatic("toolkit", out_name, instanciation)
+                    out_name
+                end
 
                 if corba_enabled?
                     corba_hpp = Generation.render_template "toolkit/ToolkitCorba.hpp", binding
