@@ -231,6 +231,11 @@ module Orocos
 
             attr_reader :required_connection_type
 
+            def initialize(*args)
+                super
+                @required_connection_type = :data
+            end
+
             # True if connections to this port must use a buffered.
             # In general, it means that the task's code check the return value
             # of read(), as in
