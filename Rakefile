@@ -1,5 +1,16 @@
 require './lib/orogen/version'
 
+task :setup do
+    begin
+        require 'typelib'
+        require 'orogen'
+        STDERR.puts "oroGen is ready to use"
+    rescue LoadError
+        STDERR.puts "some dependencies are missing. Did you install Typelib's Ruby bindings ?"
+    end
+end
+task :default => :setup
+
 begin
     require 'hoe'
     namespace 'dist' do
