@@ -200,6 +200,30 @@ bool orogen_toolkits::<%= type.method_name(true) %>TypeInfo::composeTypeImpl(con
 
 <% end %>
 
+struct orogen_transports::TypelibMarshallerBase::Handle
+{
+    /** Type-pruned pointer of the sample that is going to be marshalled, i.e.
+     * the one that TYpelib can handle
+     */
+    uint8_t* main_sample;
+    /** Type-pruned pointer of an opaque sample. Non-NULL only for types that
+     * are opaques, i.e. need to be converted into a type Typelib can handle
+     */
+    uint8_t* opaque_sample;
+
+    template<typename Main>
+    Handle(Main* main)
+        : main_sample(reinterpret_cast<uint8_t*>(main))
+        , opaque_sample(0) {}
+
+    template<typename Main, typename Opaque>
+    Handle(Main* main, Opaque* opaque)
+        : main_sample(reinterpret_cast<uint8_t*>(main))
+        , opaque_sample(reinterpret_cast<uint8_t*>(opaque)) {}
+};
+
+typedef orogen_transports::TypelibMarshallerBase::Handle MarshallingHandle;
+
 template<typename T>
 struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
 {
@@ -209,93 +233,109 @@ struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
     TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
         : m_typename(name)
     {
-        layout = Typelib::layout_of(*registry.get(name), false, false);
+        Typelib::Type const& type_def = *registry.get(name);
+        layout    = Typelib::layout_of(type_def, false, false);
+    }
+
+    MarshallingHandle* createSample()
+    {
+        return new MarshallingHandle(new T);
+    }
+
+    void destroySample(MarshallingHandle* data)
+    {
+        delete reinterpret_cast<T*>(data->main_sample);
+        delete data;
     }
 
     char const* getMarshallingType() const
     { return m_typename.c_str(); }
+    size_t getMarshallingSize(MarshallingHandle const* sample) const
+    { return Typelib::getDumpSize(sample->main_sample, layout); }
+    void marshal(int fd, MarshallingHandle* sample) const
+    { Typelib::dump(sample->main_sample, fd, layout); }
+    void marshal(std::ostream& stream, MarshallingHandle* sample) const
+    { Typelib::dump(sample->main_sample, stream, layout); }
+    void marshal(std::vector<uint8_t>& buffer, MarshallingHandle* sample) const
+    { Typelib::dump(sample->main_sample, buffer, layout); }
 
-    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
+    bool readPort(InputPortInterface& port, MarshallingHandle* sample)
     {
-        typename RTT::DataSource<T>::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource<T> >(data);
-        T sample = obj->get();
-
-        buffer.clear();
-        Typelib::dump(reinterpret_cast<uint8_t*>(&sample), buffer, layout);
+        return dynamic_cast< InputPort<T>& >(port).read(*reinterpret_cast<T*>(sample->main_sample));
+    }
+    void writePort(OutputPortInterface& port, MarshallingHandle const* sample)
+    {
+        return dynamic_cast< InputPort<T>& >(port).write(*reinterpret_cast<T const*>(sample->main_sample));
     }
 };
 
 // Now handle opaque types
-<% registered_types.find_all { |t| t.contains_opaques? }.each do |type| %>
+<% registered_types.find_all { |t| t.contains_opaques? }.each do |type|
+    if type.opaque?
+        spec = toolkit.opaque_specification(type)
+        needs_copy = spec.needs_copy?
+        intermediate = component.find_type(spec.intermediate)
+    else
+        # This is not an opaque, but has fields that are opaque themselves
+        needs_copy = true
+        intermediate = component.find_type("#{type.name}_m")
+    end
+%>
+
 template<>
-struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::TypelibMarshallerBase
+struct TypelibMarshaller< <%= type.cxx_name %> > : public TypelibMarshaller< <%= intermediate.cxx_name %> >
 {
 
-<% if type.opaque?
-    spec = toolkit.opaque_specification(type)
-    intermediate = component.find_type(spec.intermediate) %>
+    typedef <%= type.cxx_name %> opaque_t;
+    typedef <%= intermediate.cxx_name %> intermediate_t;
+    typedef TypelibMarshaller<intermediate_t> super_t;
 
-    Typelib::MemoryLayout layout_<%= intermediate.method_name %>;
     TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
+        : super_t("<%= intermediate.cxx_name %>", registry) { }
+
+    MarshallingHandle* createSample()
     {
-        layout_<%= intermediate.method_name %> = Typelib::layout_of(*registry.get("<%= intermediate.name %>"), false, false);
-    }
-
-    char const* getMarshallingType() const
-    { return "<%= intermediate.name %>"; }
-
-    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
-    {
-        RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
-        <%= type.cxx_name %> sample = obj->get();
-
-        buffer.clear();
-        <% if opaque_specification(type).needs_copy? %>
-        <%= intermediate.cxx_name %> temp;
-        <%= component.name %>::to_intermediate(temp, sample);
+        <% if needs_copy %>
+        return new MarshallingHandle(new intermediate_t, new opaque_t);
         <% else %>
-        <%= intermediate.cxx_name %> const& temp = <%= component.name %>::to_intermediate(sample);
+        return new MarshallingHandle((intermediate_t*)0, new opaque_t);
         <% end %>
-        Typelib::dump(reinterpret_cast<uint8_t const*>(&temp), buffer, layout_<%= intermediate.method_name %>);
     }
 
-<% else %>
-
-    Typelib::MemoryLayout layout;
-
-    TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
+    void destroySample(MarshallingHandle* data)
     {
-        layout = Typelib::layout_of(*registry.get("<%= type.name %>_m"), false, true);
-    }
-
-    char const* getMarshallingType() const
-    { return "<%= type.name %>"; }
-
-    void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const
-    {
-        RTT::DataSource< <%= type.cxx_name %> >::shared_ptr obj = boost::dynamic_pointer_cast< RTT::DataSource< <%= type.cxx_name %> > >(data);
-        <%= type.cxx_name %> sample = obj->get();
-
-        <%= type.cxx_name %>_m temp;
-        <% type.each_field do |field_name, field_type| %>
-            <% if field_type.opaque? %>
-                <% if opaque_specification(field_type).needs_copy? %>
-                <%= component.name %>::to_intermediate(temp.<%= field_name %>, sample.<%= field_name %>);
-                <% else %>
-                temp.<%= field_name %> = <%= component.name %>::to_intermediate(sample.<%= field_name %>);
-                <% end %>
-            <% else %>
-                temp.<%= field_name %> = sample.<%= field_name %>;
-            <% end %>
+        delete reinterpret_cast<opaque_t*>(data->opaque_sample);
+        <% if needs_copy %>
+        delete reinterpret_cast<intermediate_t*>(data->main_sample);
         <% end %>
-
-        buffer.clear();
-        Typelib::dump(reinterpret_cast<uint8_t*>(&temp), buffer, layout);
     }
 
-<% end %>
+    void updateIntermediate(MarshallingHandle* sample)
+    {
+        opaque_t& opaque_sample = *reinterpret_cast<opaque_t*>(sample->opaque_sample);
+        <% if needs_copy %>
+        intermediate_t& intermediate_sample = *reinterpret_cast<intermediate_t*>(sample->main_sample);
+        <%= component.name %>::to_intermediate(opaque_sample, intermediate_sample);
+        <% else %>
+        sample->main_sample = const_cast<uint8_t*>(
+                reinterpret_cast<uint8_t const*>(
+                    &<%= component.name %>::to_intermediate(opaque_sample) ));
+        <% end %>
+    }
+
+    bool readPort(InputPortInterface& port, MarshallingHandle* sample)
+    {
+        InputPort<opaque_t>& typed_port = dynamic_cast< InputPort<opaque_t>& >(port);
+
+        opaque_t& opaque_sample = *reinterpret_cast<opaque_t*>(sample->opaque_sample);
+        bool did_read = typed_port.read(opaque_sample);
+        if (! did_read)
+            return NULL;
+
+        updateIntermediate(sample);
+        return true;
+    }
 };
-
 <% end %>
 
 orogen_toolkits::<%= component.name %>ToolkitPlugin::<%= component.name %>ToolkitPlugin()

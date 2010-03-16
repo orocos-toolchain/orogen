@@ -13,11 +13,11 @@ namespace <%= component.name %>
         from = opaque_def.type
         into = component.find_type(opaque_def.intermediate)
         if opaque_def.needs_copy? %>
-    void to_intermediate(<%= into.cxx_name %>& intermediate, <%= from.cxx_name %> const& real_type);
-    void from_intermediate(<%= from.cxx_name %>& real_type, <%= into.cxx_name %>& intermediate);
+    void to_intermediate(<%= into.ref_type %> intermediate, <%= from.arg_type %> real_type);
+    void from_intermediate(<%= from.ref_type %> real_type, <%= into.ref_type %> intermediate);
         <% else %>
-    <%= into.cxx_name %> const& to_intermediate(<%= from.cxx_name %> const& real_type);
-    bool from_intermediate(<%= from.cxx_name %>& real_type, <%= into.cxx_name %>* intermediate);
+    <%= into.arg_type %> to_intermediate(<%= from.arg_type %> real_type);
+    bool from_intermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate);
         <% end %>
     <% end %>
 

@@ -1,4 +1,4 @@
-<%= into.cxx_name %> const& <%= component.name %>::to_intermediate(<%= from.cxx_name %> const& real_type)
+<%= into.arg_type %> <%= component.name %>::to_intermediate(<%= from.arg_type %> real_type)
 {
     return *real_type;
 }
