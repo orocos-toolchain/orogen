@@ -505,7 +505,7 @@ module Orocos
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
             def smart_ptr(name, base_type, options = Hash.new)
                 opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
-                    code = Generation.render_template('toolkit/smart_ptr.cpp', binding)
+                    Generation.render_template('toolkit/smart_ptr.cpp', binding)
                 end
             end
 
