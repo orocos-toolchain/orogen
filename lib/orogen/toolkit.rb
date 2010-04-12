@@ -159,7 +159,7 @@ module Typelib
             each_field do |field_name, field_type|
                 if string = yield(field_name, field_type)
                     if !string.respond_to?(:to_str)
-                        result << "#{indent}#{result}.#{field_name} = #{dest}.#{field_name};\n"
+                        result << "#{indent}#{dest}.#{field_name} = #{src}.#{field_name};\n"
                     else
                         result << string
                     end
