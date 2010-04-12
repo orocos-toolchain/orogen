@@ -341,6 +341,10 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public TypelibMarshaller< <%=
 orogen_toolkits::<%= component.name %>ToolkitPlugin::<%= component.name %>ToolkitPlugin()
     : m_registry() {}
 
+orogen_toolkits::<%= component.name %>ToolkitPlugin::~<%= component.name %>ToolkitPlugin()
+{ delete m_registry; }
+
+
 #define TOOLKIT_PACKAGE_NAME_aux0(target) #target
 #define TOOLKIT_PACKAGE_NAME_aux(target) "<%= component.name %>-toolkit-" TOOLKIT_PACKAGE_NAME_aux0(target)
 #define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
