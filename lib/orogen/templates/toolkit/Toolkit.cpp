@@ -202,70 +202,145 @@ bool orogen_toolkits::<%= type.method_name(true) %>TypeInfo::composeTypeImpl(con
 
 struct orogen_transports::TypelibMarshallerBase::Handle
 {
-    /** Type-pruned pointer of the sample that is going to be marshalled, i.e.
-     * the one that TYpelib can handle
+    /** The TypelibMarshallerBase that created us
      */
-    uint8_t* main_sample;
-    /** Type-pruned pointer of an opaque sample. Non-NULL only for types that
-     * are opaques, i.e. need to be converted into a type Typelib can handle
+    TypelibMarshallerBase* marshaller;
+    /** Type-pruned pointer of the sample that Typelib can understand. It may be
+     * the same as orocos_sample
      */
-    uint8_t* opaque_sample;
+    uint8_t* typelib_sample;
+    /** If true, the handle owns the memory addressed by \c typelib_sample, and
+     * will therefore destroy it when it gets deleted.
+     */
+    bool owns_typelib;
+    /** Type-pruned pointer of the sample that Orocos can understand. It may be
+     * the same as typelib_sample
+     */
+    uint8_t* orocos_sample;
+    /** If true, the handle owns the memory addressed by \c orocos_sample, and
+     * will therefore destroy it when it gets deleted.
+     */
+    bool owns_orocos;
 
-    template<typename Main>
-    Handle(Main* main)
-        : main_sample(reinterpret_cast<uint8_t*>(main))
-        , opaque_sample(0) {}
+    void reset()
+    {
+        typelib_sample = 0;
+        orocos_sample  = 0;
+    }
 
-    template<typename Main, typename Opaque>
-    Handle(Main* main, Opaque* opaque)
-        : main_sample(reinterpret_cast<uint8_t*>(main))
-        , opaque_sample(reinterpret_cast<uint8_t*>(opaque)) {}
+    Handle(TypelibMarshallerBase* marshaller)
+        : marshaller(marshaller)
+        , typelib_sample(0), owns_typelib(true)
+        , orocos_sample(0), owns_orocos(true) {}
+
+    template<typename Type>
+    Handle(TypelibMarshallerBase* marshaller, Type* data)
+        : marshaller(marshaller)
+        , typelib_sample(reinterpret_cast<uint8_t*>(data))
+        , owns_typelib(true)
+        , orocos_sample(typelib_sample)
+        , owns_orocos(true) {}
+
+    template<typename TypelibType, typename OrocosType>
+    Handle(TypelibMarshallerBase* marshaller, TypelibType* typelib_data, OrocosType* orocos_data)
+        : marshaller(marshaller)
+        , typelib_sample(reinterpret_cast<uint8_t*>(typelib_data))
+        , owns_typelib(true)
+        , orocos_sample(reinterpret_cast<uint8_t*>(orocos_data))
+        , owns_orocos(true) {}
+
+    ~Handle()
+    {
+        if (owns_typelib && typelib_sample)
+            marshaller->deleteTypelibSample(this);
+        if (owns_orocos && orocos_sample)
+            marshaller->deleteOrocosSample(this);
+    }
 };
 
 typedef orogen_transports::TypelibMarshallerBase::Handle MarshallingHandle;
 
+namespace orogen_transports
+{
+    TypelibMarshallerBase::TypelibMarshallerBase(std::string const& typelib_typename,
+            std::string const& orocos_typename,
+            Typelib::Registry const& registry)
+        : m_typename_typelib(typelib_typename)
+        , m_typename_orocos(orocos_typename)
+    {
+        Typelib::Type const* type_def = registry.get(typelib_typename);
+        if (!type_def)
+            throw std::runtime_error(typelib_typename + " is not present in the toolkit registry");
+
+        layout    = Typelib::layout_of(*type_def, false, false);
+    }
+
+    MarshallingHandle* TypelibMarshallerBase::createHandle() { return new MarshallingHandle(this); }
+    void TypelibMarshallerBase::deleteHandle(MarshallingHandle* handle) { delete handle; }
+    uint8_t* TypelibMarshallerBase::getTypelibSample(MarshallingHandle* handle)
+    {
+        return handle->typelib_sample;
+    }
+
+    char const* TypelibMarshallerBase::getMarshallingType() const
+    { return m_typename_typelib.c_str(); }
+    size_t TypelibMarshallerBase::getMarshallingSize(MarshallingHandle const* handle) const
+    { return Typelib::getDumpSize(handle->typelib_sample, layout); }
+    void TypelibMarshallerBase::marshal(int fd, MarshallingHandle* handle) const
+    { Typelib::dump(handle->typelib_sample, fd, layout); }
+    void TypelibMarshallerBase::marshal(std::ostream& stream, MarshallingHandle* handle) const
+    { Typelib::dump(handle->typelib_sample, stream, layout); }
+    void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, MarshallingHandle* handle) const
+    { Typelib::dump(handle->typelib_sample, buffer, layout); }
+}
+
 template<typename T>
 struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
 {
-    Typelib::MemoryLayout layout;
-    std::string m_typename;
+    TypelibMarshaller(std::string const& orocos_name, Typelib::Registry const& registry)
+        : orogen_transports::TypelibMarshallerBase(orocos_name, orocos_name, registry) { }
 
-    TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
-        : m_typename(name)
+    MarshallingHandle* createSample() { return new MarshallingHandle(this, new T); }
+    void deleteOrocosSample(MarshallingHandle* data)  { deleteSamples(data); }
+    void deleteTypelibSample(MarshallingHandle* data) { deleteSamples(data); }
+    void deleteSamples(MarshallingHandle* data)
     {
-        Typelib::Type const& type_def = *registry.get(name);
-        layout    = Typelib::layout_of(type_def, false, false);
+        delete reinterpret_cast<T*>(data->orocos_sample);
+        data->reset();
     }
 
-    MarshallingHandle* createSample()
+    void setTypelibSample(MarshallingHandle* handle, uint8_t* data)
     {
-        return new MarshallingHandle(new T);
+        handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
+        handle->owns_orocos = handle->owns_typelib = false;
     }
 
-    void destroySample(MarshallingHandle* data)
+    bool readDataSource(RTT::DataSourceBase& source_base, MarshallingHandle* handle)
     {
-        delete reinterpret_cast<T*>(data->main_sample);
-        delete data;
+        DataSource<T>& source = dynamic_cast<DataSource<T>&>(source_base);
+        if (source.evaluate())
+        {
+            T& data = *reinterpret_cast<T*>(handle->orocos_sample);
+            data = dynamic_cast<DataSource<T>&>(source_base).get();
+            return true;
+        }
+        return false;
+    }
+    void writeDataSource(RTT::DataSourceBase& source, MarshallingHandle const* handle)
+    {
+        T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
+        dynamic_cast<AssignableDataSource<T>&>(source).set(data);
     }
 
-    char const* getMarshallingType() const
-    { return m_typename.c_str(); }
-    size_t getMarshallingSize(MarshallingHandle const* sample) const
-    { return Typelib::getDumpSize(sample->main_sample, layout); }
-    void marshal(int fd, MarshallingHandle* sample) const
-    { Typelib::dump(sample->main_sample, fd, layout); }
-    void marshal(std::ostream& stream, MarshallingHandle* sample) const
-    { Typelib::dump(sample->main_sample, stream, layout); }
-    void marshal(std::vector<uint8_t>& buffer, MarshallingHandle* sample) const
-    { Typelib::dump(sample->main_sample, buffer, layout); }
-
-    bool readPort(InputPortInterface& port, MarshallingHandle* sample)
+    bool readPort(InputPortInterface& port, MarshallingHandle* handle)
     {
-        return dynamic_cast< InputPort<T>& >(port).read(*reinterpret_cast<T*>(sample->main_sample));
+        T& data = *reinterpret_cast<T*>(handle->orocos_sample);
+        return dynamic_cast< InputPort<T>& >(port).read(data);
     }
-    void writePort(OutputPortInterface& port, MarshallingHandle const* sample)
+    void writePort(OutputPortInterface& port, MarshallingHandle const* handle)
     {
-        return dynamic_cast< InputPort<T>& >(port).write(*reinterpret_cast<T const*>(sample->main_sample));
+        T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
+        return dynamic_cast< OutputPort<T>& >(port).write(data);
     }
 };
 
@@ -278,62 +353,115 @@ struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
     else
         # This is not an opaque, but has fields that are opaque themselves
         needs_copy = true
-        intermediate = component.find_type("#{type.name}_m")
+        intermediate = toolkit.find_type("#{type.name}_m")
     end
 %>
 
 template<>
-struct TypelibMarshaller< <%= type.cxx_name %> > : public TypelibMarshaller< <%= intermediate.cxx_name %> >
+struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::TypelibMarshallerBase
 {
 
     typedef <%= type.cxx_name %> opaque_t;
     typedef <%= intermediate.cxx_name %> intermediate_t;
-    typedef TypelibMarshaller<intermediate_t> super_t;
 
     TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
-        : super_t("<%= intermediate.cxx_name %>", registry) { }
+        : orogen_transports::TypelibMarshallerBase("<%= intermediate.name %>", name, registry) { }
 
     MarshallingHandle* createSample()
     {
         <% if needs_copy %>
-        return new MarshallingHandle(new intermediate_t, new opaque_t);
+        return new MarshallingHandle(this, new intermediate_t, new opaque_t);
         <% else %>
-        return new MarshallingHandle((intermediate_t*)0, new opaque_t);
+        return new MarshallingHandle(this, (intermediate_t*)0, new opaque_t);
         <% end %>
     }
 
-    void destroySample(MarshallingHandle* data)
+    void deleteOrocosSample(MarshallingHandle* data)
+    { delete reinterpret_cast<opaque_t*>(data->orocos_sample); }
+    void deleteTypelibSample(MarshallingHandle* data)
+    { delete reinterpret_cast<intermediate_t*>(data->typelib_sample); }
+
+    void setTypelibSample(MarshallingHandle* handle, uint8_t* typelib_data)
     {
-        delete reinterpret_cast<opaque_t*>(data->opaque_sample);
+        opaque_t& opaque_sample =
+            *reinterpret_cast<opaque_t*>(handle->orocos_sample);
+        intermediate_t const& new_value =
+            *reinterpret_cast<intermediate_t const*>(typelib_data);
+
         <% if needs_copy %>
-        delete reinterpret_cast<intermediate_t*>(data->main_sample);
+        <%= component.name %>::from_intermediate(opaque_sample, new_value);
+        <% else %>
+        if (!handle->typelib_sample)
+        {
+            handle->typelib_sample = reinterpret_cast<uint8_t*>(new intermediate_t);
+            handle->owns_typelib = true;
+        }
+        intermediate_t& intermediate_sample =
+            *reinterpret_cast<intermediate_t*>(handle->typelib_sample);
+        intermediate_sample = new_value;
+        handle->owns_typelib =
+            !<%= component.name %>::from_intermediate(opaque_sample, &intermediate_sample);
         <% end %>
     }
 
-    void updateIntermediate(MarshallingHandle* sample)
+    void updateIntermediate(MarshallingHandle* handle)
     {
-        opaque_t& opaque_sample = *reinterpret_cast<opaque_t*>(sample->opaque_sample);
+        opaque_t& opaque_sample =
+            *reinterpret_cast<opaque_t*>(handle->orocos_sample);
+
         <% if needs_copy %>
-        intermediate_t& intermediate_sample = *reinterpret_cast<intermediate_t*>(sample->main_sample);
-        <%= component.name %>::to_intermediate(opaque_sample, intermediate_sample);
+        intermediate_t& intermediate_sample =
+            *reinterpret_cast<intermediate_t*>(handle->typelib_sample);
+        <%= component.name %>::to_intermediate(intermediate_sample, opaque_sample);
         <% else %>
-        sample->main_sample = const_cast<uint8_t*>(
+        if (handle->typelib_sample && handle->owns_typelib)
+            deleteTypelibSample(handle);
+
+        handle->typelib_sample = const_cast<uint8_t*>(
                 reinterpret_cast<uint8_t const*>(
                     &<%= component.name %>::to_intermediate(opaque_sample) ));
+        handle->owns_typelib = false;
         <% end %>
     }
 
-    bool readPort(InputPortInterface& port, MarshallingHandle* sample)
+    bool readDataSource(RTT::DataSourceBase& source_base, MarshallingHandle* handle)
+    {
+        DataSource<opaque_t>& source = dynamic_cast<DataSource<opaque_t>&>(source_base);
+        if (source.evaluate())
+        {
+            opaque_t& opaque_sample =
+                *reinterpret_cast<opaque_t*>(handle->orocos_sample);
+            opaque_sample = source.value();
+            updateIntermediate(handle);
+            return true;
+        }
+        return false;
+    }
+    void writeDataSource(RTT::DataSourceBase& source, MarshallingHandle const* handle)
+    {
+        opaque_t const& data = *reinterpret_cast<opaque_t const*>(handle->orocos_sample);
+        dynamic_cast<AssignableDataSource<opaque_t>&>(source).set(data);
+    }
+
+    bool readPort(InputPortInterface& port, MarshallingHandle* handle)
     {
         InputPort<opaque_t>& typed_port = dynamic_cast< InputPort<opaque_t>& >(port);
 
-        opaque_t& opaque_sample = *reinterpret_cast<opaque_t*>(sample->opaque_sample);
+        opaque_t& opaque_sample =
+            *reinterpret_cast<opaque_t*>(handle->orocos_sample);
         bool did_read = typed_port.read(opaque_sample);
         if (! did_read)
             return NULL;
 
-        updateIntermediate(sample);
+        updateIntermediate(handle);
         return true;
+    }
+
+    void writePort(OutputPortInterface& port, MarshallingHandle const* handle)
+    {
+        opaque_t const& opaque_sample =
+            *reinterpret_cast<opaque_t const*>(handle->orocos_sample);
+        dynamic_cast< OutputPort<opaque_t>& >(port).write(opaque_sample);
     }
 };
 <% end %>

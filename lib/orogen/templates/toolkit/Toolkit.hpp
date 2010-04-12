@@ -15,6 +15,7 @@ namespace orogen_toolkits {
 
     public:
         <%= component.name %>ToolkitPlugin();
+        ~<%= component.name %>ToolkitPlugin();
         bool loadTypes();
         bool loadOperators();
         bool loadConstructors();
