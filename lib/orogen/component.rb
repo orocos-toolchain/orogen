@@ -188,6 +188,8 @@ module Orocos
             # defined in this component or in the task libraries loaded
             # by #using_task_library).
             #
+            # Returns nil if the task is not found.
+            #
             # If the task context is defined in this component, the leading
             # namespace can be omitted. For example, in a component defined by
             #

@@ -23,6 +23,24 @@ class TC_GenerationComponent < Test::Unit::TestCase
         end
     end
 
+    def test_find_task
+        component = Component.new
+        component.name "TestFindTask"
+        task = component.task_context "Task"
+
+        assert_equal(task, component.find_task_context("Task"))
+        assert_equal(task, component.find_task_context("TestFindTask::Task"))
+        assert_equal(nil, component.find_task_context("Bla"))
+
+        build_test_component("modules/simple", false)
+        install
+        ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
+        component.using_task_library "simple"
+        assert(!component.find_task_context("SimpleTask"))
+        assert(!component.find_task_context("TestFindTask::SimpleTask"))
+        assert(component.find_task_context("simple::SimpleTask"))
+    end
+
     def test_filter_backtrace
         Tempfile.open('test') do |io|
             io.puts "raise TypeError, \"custom exception\""
