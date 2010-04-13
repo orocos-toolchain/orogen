@@ -15,6 +15,16 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         assert_equal "my_name", task.name
     end
 
+    def test_task_fails_if_model_does_not_exist
+	component = Component.new 
+	component.name 'test'
+
+	context    = component.task_context "task"
+        deployment = component.deployment "test"
+
+        assert_raises(ConfigError) { deployment.task "name", "Bla" }
+    end
+
     def test_connpolicy
         policy = ConnPolicy.from_hash :type => :buffer, :lock_policy => :locked, :size => 10
         assert_equal(:buffer, policy.type)
