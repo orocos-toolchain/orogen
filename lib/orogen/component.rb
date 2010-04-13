@@ -359,7 +359,11 @@ module Orocos
                 #
                 # (I know, this is ugly)
                 typelib_marshaller = Generation.render_template "toolkit/TypelibMarshaller.hpp", binding
-		Generation.save_automatic("TypelibMarshaller.hpp", typelib_marshaller)
+		Generation.save_automatic("toolkit/TypelibMarshaller.hpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.hpp", binding
+		Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.cpp", binding
+		Generation.save_automatic("toolkit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
 		if toolkit
 		    toolkit.generate

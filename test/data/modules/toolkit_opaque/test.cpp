@@ -10,7 +10,7 @@
 #include "build/.orogen/toolkit/opaqueToolkitC.h"
 #endif
 
-#include ".orogen/TypelibMarshaller.hpp"
+#include ".orogen/TypelibMarshallerBase.hpp"
 
 #include <rtt/os/main.h>
 #include <rtt/Types.hpp>

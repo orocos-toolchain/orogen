@@ -200,150 +200,9 @@ bool orogen_toolkits::<%= type.method_name(true) %>TypeInfo::composeTypeImpl(con
 
 <% end %>
 
-struct orogen_transports::TypelibMarshallerBase::Handle
-{
-    /** The TypelibMarshallerBase that created us
-     */
-    TypelibMarshallerBase* marshaller;
-    /** Type-pruned pointer of the sample that Typelib can understand. It may be
-     * the same as orocos_sample
-     */
-    uint8_t* typelib_sample;
-    /** If true, the handle owns the memory addressed by \c typelib_sample, and
-     * will therefore destroy it when it gets deleted.
-     */
-    bool owns_typelib;
-    /** Type-pruned pointer of the sample that Orocos can understand. It may be
-     * the same as typelib_sample
-     */
-    uint8_t* orocos_sample;
-    /** If true, the handle owns the memory addressed by \c orocos_sample, and
-     * will therefore destroy it when it gets deleted.
-     */
-    bool owns_orocos;
-
-    void reset()
-    {
-        typelib_sample = 0;
-        orocos_sample  = 0;
-    }
-
-    Handle(TypelibMarshallerBase* marshaller)
-        : marshaller(marshaller)
-        , typelib_sample(0), owns_typelib(true)
-        , orocos_sample(0), owns_orocos(true) {}
-
-    template<typename Type>
-    Handle(TypelibMarshallerBase* marshaller, Type* data)
-        : marshaller(marshaller)
-        , typelib_sample(reinterpret_cast<uint8_t*>(data))
-        , owns_typelib(true)
-        , orocos_sample(typelib_sample)
-        , owns_orocos(true) {}
-
-    template<typename TypelibType, typename OrocosType>
-    Handle(TypelibMarshallerBase* marshaller, TypelibType* typelib_data, OrocosType* orocos_data)
-        : marshaller(marshaller)
-        , typelib_sample(reinterpret_cast<uint8_t*>(typelib_data))
-        , owns_typelib(true)
-        , orocos_sample(reinterpret_cast<uint8_t*>(orocos_data))
-        , owns_orocos(true) {}
-
-    ~Handle()
-    {
-        if (owns_typelib && typelib_sample)
-            marshaller->deleteTypelibSample(this);
-        if (owns_orocos && orocos_sample)
-            marshaller->deleteOrocosSample(this);
-    }
-};
-
 typedef orogen_transports::TypelibMarshallerBase::Handle MarshallingHandle;
 
-namespace orogen_transports
-{
-    TypelibMarshallerBase::TypelibMarshallerBase(std::string const& typelib_typename,
-            std::string const& orocos_typename,
-            Typelib::Registry const& registry)
-        : m_typename_typelib(typelib_typename)
-        , m_typename_orocos(orocos_typename)
-    {
-        Typelib::Type const* type_def = registry.get(typelib_typename);
-        if (!type_def)
-            throw std::runtime_error(typelib_typename + " is not present in the toolkit registry");
-
-        layout    = Typelib::layout_of(*type_def, false, false);
-    }
-
-    MarshallingHandle* TypelibMarshallerBase::createHandle() { return new MarshallingHandle(this); }
-    void TypelibMarshallerBase::deleteHandle(MarshallingHandle* handle) { delete handle; }
-    uint8_t* TypelibMarshallerBase::getTypelibSample(MarshallingHandle* handle)
-    {
-        return handle->typelib_sample;
-    }
-
-    char const* TypelibMarshallerBase::getMarshallingType() const
-    { return m_typename_typelib.c_str(); }
-    size_t TypelibMarshallerBase::getMarshallingSize(MarshallingHandle const* handle) const
-    { return Typelib::getDumpSize(handle->typelib_sample, layout); }
-    void TypelibMarshallerBase::marshal(int fd, MarshallingHandle* handle) const
-    { Typelib::dump(handle->typelib_sample, fd, layout); }
-    void TypelibMarshallerBase::marshal(std::ostream& stream, MarshallingHandle* handle) const
-    { Typelib::dump(handle->typelib_sample, stream, layout); }
-    void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, MarshallingHandle* handle) const
-    { Typelib::dump(handle->typelib_sample, buffer, layout); }
-}
-
-template<typename T>
-struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
-{
-    TypelibMarshaller(std::string const& orocos_name, Typelib::Registry const& registry)
-        : orogen_transports::TypelibMarshallerBase(orocos_name, orocos_name, registry) { }
-
-    MarshallingHandle* createSample() { return new MarshallingHandle(this, new T); }
-    void deleteOrocosSample(MarshallingHandle* data)  { deleteSamples(data); }
-    void deleteTypelibSample(MarshallingHandle* data) { deleteSamples(data); }
-    void deleteSamples(MarshallingHandle* data)
-    {
-        delete reinterpret_cast<T*>(data->orocos_sample);
-        data->reset();
-    }
-
-    void setTypelibSample(MarshallingHandle* handle, uint8_t* data)
-    {
-        handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
-        handle->owns_orocos = handle->owns_typelib = false;
-    }
-
-    bool readDataSource(RTT::DataSourceBase& source_base, MarshallingHandle* handle)
-    {
-        DataSource<T>& source = dynamic_cast<DataSource<T>&>(source_base);
-        if (source.evaluate())
-        {
-            T& data = *reinterpret_cast<T*>(handle->orocos_sample);
-            data = dynamic_cast<DataSource<T>&>(source_base).get();
-            return true;
-        }
-        return false;
-    }
-    void writeDataSource(RTT::DataSourceBase& source, MarshallingHandle const* handle)
-    {
-        T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
-        dynamic_cast<AssignableDataSource<T>&>(source).set(data);
-    }
-
-    bool readPort(InputPortInterface& port, MarshallingHandle* handle)
-    {
-        T& data = *reinterpret_cast<T*>(handle->orocos_sample);
-        return dynamic_cast< InputPort<T>& >(port).read(data);
-    }
-    void writePort(OutputPortInterface& port, MarshallingHandle const* handle)
-    {
-        T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
-        return dynamic_cast< OutputPort<T>& >(port).write(data);
-    }
-};
-
+namespace orogen_transports {
 // Now handle opaque types
 <% registered_types.find_all { |t| t.contains_opaques? }.each do |type|
     if type.opaque?
@@ -465,6 +324,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
     }
 };
 <% end %>
+}
 
 orogen_toolkits::<%= component.name %>ToolkitPlugin::<%= component.name %>ToolkitPlugin()
     : m_registry() {}
@@ -497,7 +357,7 @@ bool orogen_toolkits::<%= component.name %>ToolkitPlugin::loadTypes()
     <% registered_types.each do |type| %>
     ti = new <%= type.method_name(true) %>TypeInfo();
     try
-    { ti->addProtocol(orogen_transports::TYPELIB_MARSHALLER_ID, new TypelibMarshaller< <%= type.cxx_name %> >("<%= type.name %>", *m_registry)); }
+    { ti->addProtocol(orogen_transports::TYPELIB_MARSHALLER_ID, new orogen_transports::TypelibMarshaller< <%= type.cxx_name %> >("<%= type.name %>", *m_registry)); }
     catch(Typelib::NoLayout)
     { std::cerr << "could not register a typelib marshaller for <%= type.name %>" << std::endl; }
     ti_repository->addType( ti );
