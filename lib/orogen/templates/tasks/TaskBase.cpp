@@ -40,7 +40,7 @@ using namespace <%= component.name %>;
 {
     <% task.self_properties.each do |prop|
         if prop.default_value %>
-        _<%= prop.name %>.set(<%= prop.default_value.inspect %>);
+        _<%= prop.name %>.set(<%= prop.cxx_default_value %>);
         <% end %>
     properties()->addProperty( &_<%= prop.name %> );<% end %>
     <% (task.self_ports - task.event_ports).each do |port| %>
