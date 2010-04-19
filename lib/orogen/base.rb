@@ -3,6 +3,10 @@ require 'fileutils'
 require 'erb'
 require 'typelib'
 
+require 'fileutils'
+require 'set'
+require 'find'
+
 class Module
     # call-seq:
     #   dsl_attribute(name)
@@ -144,6 +148,12 @@ module Orocos
             raise e, "while rendering #{File.join(*args)}: #{e.message}", e.backtrace
 	end
 
+        class << self
+            # The set of files generated so far, as a set of absolute paths
+            attr_reader :generated_files
+        end
+        @generated_files = Set.new
+
 	def self.save_generated(overwrite, *args) # :nodoc:
 	    if args.size < 2
 		raise ArgumentError, "expected at least 2 arguments, got #{args.size}"
@@ -154,6 +164,7 @@ module Orocos
 	    dir_name  = File.dirname(file_path)
 	    FileUtils.mkdir_p(dir_name)
 
+            generated_files << file_path
 	    if File.exists?(file_path)
 		if File.read(file_path) != data
 		    if overwrite
@@ -174,6 +185,28 @@ module Orocos
 		io.write data
 	    end
 	end
+
+        # Removes from the given path all files that have not been generated
+        def self.cleanup_dir(*path)
+            dir_path = File.expand_path(File.join(*path))
+
+            Find.find(dir_path) do |file|
+                if File.file?(file) && !File.symlink?(file) && !generated_files.include?(file)
+                    STDERR.puts "removing #{file}"
+                    FileUtils.rm_f file
+                end
+            end
+        end
+
+        # call-seq:
+        #   touch path1, path2, ..., file_name
+        #
+        # Creates an empty file path1/path2/.../file_name
+        def self.touch(*args)
+            path = File.expand_path(File.join(*args))
+            FileUtils.touch path
+            generated_files << path
+        end
 
 	# call-seq:
 	#   save_automatic path1, path2, ..., file_name, data

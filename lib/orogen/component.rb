@@ -238,7 +238,6 @@ module Orocos
             # a set of ImportedToolkit instances.
 	    attr_reader :used_toolkits
 
-
             # Imports the types defined by the given argument
             #
             # +name+ can either be another orogen project or a header file. In
@@ -384,6 +383,7 @@ module Orocos
                 end
 
 		generate_build_system
+                Generation.cleanup_dir(Generation::AUTOMATIC_AREA_NAME)
 		self
 	    end
 
@@ -396,12 +396,9 @@ module Orocos
 		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
                 target_dir = Generation::AUTOMATIC_AREA_NAME
                 Dir.glob File.join(Generation.template_path('config'), '*') do |path|
-                    basename = File.basename(path)
-                    target_name = File.join(Generation::AUTOMATIC_AREA_NAME, 'config', basename)
-                    if !CMAKE_GENERATED_CONFIG.include?(basename) &&
-                        (!File.exists?(target_name) || File.read(target_name) != File.read(path))
-                        Generation.logger.info "copying #{path}"
-                        FileUtils.cp path, target_name
+                    basename    = File.basename(path)
+                    if !CMAKE_GENERATED_CONFIG.include?(basename)
+                        Generation.save_automatic 'config', basename, File.read(path)
                     end
                 end
 

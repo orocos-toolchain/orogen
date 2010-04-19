@@ -1123,7 +1123,7 @@ module Orocos
                 end
 
                 # Finished, create the timestamp file
-                FileUtils.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'stamp')
+                Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'stamp')
 	    end
 	end
     end
