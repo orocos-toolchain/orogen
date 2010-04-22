@@ -75,7 +75,7 @@ configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= compone
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= component.name %>.pc
     DESTINATION lib/pkgconfig)
 
-INSTALL(FILES <%= component.deffile %>
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>
     DESTINATION share/orogen)
 
 # Finally, add deployment code

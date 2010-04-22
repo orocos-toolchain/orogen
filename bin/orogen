@@ -14,7 +14,7 @@ parser = OptionParser.new do |opt|
         end
     end
     opt.on("--extended-states", "enable extended states for all tasks defined in this project") do |flag|
-        extended_states = true
+        Orocos::Generation.extended_states = flag
     end
 
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
@@ -65,7 +65,6 @@ begin
     component = 
         begin
             component = Orocos::Generation::Component.new
-            component.extended_states = extended_states
             component.load(filename)
 
         rescue Exception => e

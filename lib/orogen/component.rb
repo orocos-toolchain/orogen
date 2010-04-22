@@ -7,7 +7,11 @@ module Orocos
         def self.corba_enabled?; @corba end
         def self.enable_corba;   @corba = true end
         def self.disable_corba;  @corba = false end
-        @corba = nil
+        @corba = false
+
+        def self.extended_states=(value);  @extended_states = value end
+        def self.extended_states_enabled?; @extended_states end
+        @extended_states = false
 
         def self.orocos_target=(target)
             @orocos_target = target.to_s
@@ -340,6 +344,12 @@ module Orocos
 		# For consistency in templates
 		component = self
 
+                # First, generate a to-be-installed version of the orogen file.
+                # We do that to add command-line options like corba
+                # enable/disable and extended state support.
+                orogen_file = Generation.render_template "project.orogen", binding
+		Generation.save_automatic(File.basename(deffile), orogen_file)
+
 		# The toolkit and the task libraries populate a fake
 		# installation directory .orogen/<project_name> so that the
 		# includes can be referred to as <project_name>/taskNameBase.hpp.
@@ -585,7 +595,13 @@ module Orocos
                 toolkit(false).export_types(*args)
             end
 
-            attr_predicate :extended_states?, true
+            attr_writer :extended_states
+
+            def extended_states?
+                if @extended_states.nil? then Generation.extended_states_enabled?
+                else @extended_states
+                end
+            end
 
             # Creates a new task context class of this name. The generated
             # class is defined in the component's namespace. Therefore
