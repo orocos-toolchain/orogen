@@ -705,8 +705,13 @@ module Orocos
             # loaded file) to actually work
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
-
                 Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
+                self
+            end
+
+            def eval(name, file_contents)
+                @deffile = "#{name}.orogen"
+                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, false)
                 self
             end
 	end

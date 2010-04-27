@@ -72,24 +72,30 @@ module Orocos
 
         # Returns the TaskLibrary object that is representing an installed task
         # library.
-        def self.load_task_library(name)
+        def self.load_task_library(name, definition = nil)
             if lib = loaded_task_libraries[name]
                 return lib
             end
 
-            pkg = begin
-                      begin
-                          Utilrb::PkgConfig.new "orogen-project-#{name}"
+            if !definition
+                pkg = begin
+                          begin
+                              Utilrb::PkgConfig.new "orogen-project-#{name}"
+                          rescue Utilrb::PkgConfig::NotFound
+                              Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                          end
+
                       rescue Utilrb::PkgConfig::NotFound
-                          Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                          raise ConfigError, "no task library named '#{name}' is available"
                       end
 
-                  rescue Utilrb::PkgConfig::NotFound
-                      raise ConfigError, "no task library named '#{name}' is available"
-                  end
-
-            loaded_task_libraries[name] = 
-                TaskLibrary.load(pkg, pkg.deffile)
+                loaded_task_libraries[name] = 
+                    TaskLibrary.load(pkg, pkg.deffile)
+            else
+                lib = TaskLibrary.new(nil)
+                lib.eval(name, definition)
+                loaded_task_libraries[name] = lib
+            end
         end
 
         # Instances of this class represent a task library loaded in a
