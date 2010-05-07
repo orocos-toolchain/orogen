@@ -508,6 +508,10 @@ module Orocos
 	    #
 	    # Sets the component name for this generation
 	    dsl_attribute :name do |new|
+                if !new.respond_to?(:to_str)
+                    raise ArgumentError, 'name should be a string'
+                end
+
 		if toolkit && !toolkit.name
 		    toolkit.name new
 		end
