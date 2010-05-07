@@ -334,8 +334,8 @@ module Orocos
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
-                if name !~ /[a-z][a-z_0-9]+/
-                    raise ConfigError, "invalid name '#{new}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
+                if name !~ /[a-z][a-z0-9\_]+/
+                    raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
                 unless deffile
                     raise ArgumentError, "there is no orogen file for this component, cannot generate"
