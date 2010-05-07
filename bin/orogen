@@ -53,10 +53,35 @@ parser = OptionParser.new do |opt|
         STDOUT.flush
     end
 end
+
 files = parser.parse! ARGV
-if files.size != 1
-    puts parser
+if files.first == "create"
+    if files.size != 2
+        STDERR.puts "the 'create' command expects only the project name as argument"
+        exit(1)
+    end
+
+    name = files.last
+    if name !~ /[a-z][a-z_0-9]+/
+        STDERR.puts "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
+    end
+    FileUtils.mkdir_p name
+    Dir.glob(File.join(Orocos::Generation.base_dir, "..", "misc", "new_project", "*")) do |input_file|
+        output_file = File.basename(input_file.gsub('NAME', name))
+        output_file = File.join(name, output_file)
+        
+        content = File.read(input_file).gsub(/NAME/, name)
+        File.open(output_file, 'w') do |io|
+            io.write content
+        end
+    end
+    exit 0
+elsif files.size > 1
+    STDERR.puts "too many arguments on the command line"
     exit 1
+elsif files.empty?
+    STDERR.puts opt
+    exit 0
 end
 
 ConfigError = Orocos::Generation::ConfigError
