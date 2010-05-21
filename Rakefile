@@ -5,8 +5,11 @@ task :setup do
         require 'typelib'
         require 'orogen'
         STDERR.puts "oroGen is ready to use"
-    rescue LoadError
-        STDERR.puts "some dependencies are missing. Did you install Typelib's Ruby bindings ?"
+    rescue LoadError => e
+        STDERR.puts "cannot load oroGen: #{e.message}"
+        STDERR.puts "  did you install Typelib's Ruby bindings and update the RUBYLIB environment variable accordingly ?"
+        STDERR.puts "  did you add #{File.expand_path("lib", File.dirname(__FILE__))} to RUBYLIB ?"
+        exit(1)
     end
 end
 task :default => :setup
@@ -45,8 +48,10 @@ begin
 rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
 rescue Exception => e
-    STDERR.puts "cannot load the Hoe gem, or Hoe fails. Distribution is disabled"
-    STDERR.puts "error message is: #{e.message}"
+    if e.message !~ /\.rubyforge/
+        STDERR.puts "cannot load the Hoe gem, or Hoe fails. Distribution is disabled"
+        STDERR.puts "error message is: #{e.message}"
+    end
 end
 
 do_doc = begin
