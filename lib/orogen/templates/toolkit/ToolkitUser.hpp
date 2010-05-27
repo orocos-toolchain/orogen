@@ -9,11 +9,20 @@ namespace <%= component.name %>
         from = opaque_def.type
         into = component.find_type(opaque_def.intermediate)
         if opaque_def.needs_copy? %>
-    void to_intermediate(<%= into.cxx_name %>& intermediate, <%= from.cxx_name %> const& real_type);
-    void from_intermediate(<%= from.cxx_name %>& real_type, <%= into.cxx_name %>& intermediate);
+    /** Converts \c real_type into \c intermediate */
+    void to_intermediate(<%= into.ref_type %> intermediate, <%= from.arg_type %> real_type);
+    /** Converts \c intermediate into \c real_type */
+    void from_intermediate(<%= from.ref_type %> real_type, <%= into.arg_type %> intermediate);
         <% else %>
-    <%= into.cxx_name %> const& to_intermediate(<%= from.cxx_name %> const& real_type);
-    bool from_intermediate(<%= from.cxx_name %>& real_type, <%= into.cxx_name %>* intermediate);
+    /** Returns the intermediate value that is contained in \c real_type */
+    <%= into.arg_type %> to_intermediate(<%= from.arg_type %> real_type);
+    /** Stores \c intermediate into \c real_type. \c intermediate is owned by \c
+     * real_type afterwards. */
+    bool from_intermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate);
+    /** Release ownership of \c real_type on the corresponding intermediate
+     * pointer.
+     */
+    void release(<%= from.ref_type %> real_type);
         <% end %>
     <% end %>
 }

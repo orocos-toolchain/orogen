@@ -10,7 +10,7 @@
 #include "build/.orogen/toolkit/opaqueToolkitC.h"
 #endif
 
-#include ".orogen/TypelibMarshaller.hpp"
+#include ".orogen/TypelibMarshallerBase.hpp"
 
 #include <rtt/os/main.h>
 #include <rtt/Types.hpp>
@@ -32,7 +32,10 @@ namespace NotOrogenCompatible {
 namespace TestOpaque {
     extern std::ostream& operator << (std::ostream& io, Point2D const& data);
     extern std::ostream& operator << (std::ostream& io, Position const& data);
-    extern std::ostream& operator << (std::ostream& io, Position_m const& data);
+    inline std::ostream& operator << (std::ostream& io, Position_m const& data) {
+        io << "{ .timestamp = " << data.timestamp << ", .p.x" << data.p.x << ", .p.y" << data.p.y << "}";
+        return io;
+    }
 }
 namespace std {
     extern std::ostream& operator << (std::ostream& io, std::vector<float> const& data);
@@ -40,6 +43,27 @@ namespace std {
 }
 template<typename T>
 T identity(T const& value) { return value; }
+
+template<typename OrocosType, typename TypelibType>
+void from_intermediate(OrocosType& orocos_value, TypelibType& typelib_value)
+{
+    ValueDataSource<OrocosType>* data_source
+        = new ValueDataSource<OrocosType>();
+    data_source->ref();
+
+    TypeInfo const* type = data_source->getTypeInfo();
+    orogen_transports::TypelibMarshallerBase* transport =
+        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(type->getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
+
+    orogen_transports::TypelibMarshallerBase::Handle* handle =
+        transport->createSample();
+    transport->setTypelibSample(handle, reinterpret_cast<uint8_t*>(&typelib_value));
+    transport->writeDataSource(*data_source, handle);
+    orocos_value = data_source->get();
+
+    transport->deleteHandle(handle);
+    data_source->deref();
+}
 
 template<typename T>
 std::vector<uint8_t> typelib_marshalling(T const& testValue)
@@ -53,7 +77,12 @@ std::vector<uint8_t> typelib_marshalling(T const& testValue)
         dynamic_cast<orogen_transports::TypelibMarshallerBase*>(type->getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
 
     std::vector<uint8_t> buffer;
-    transport->marshal(buffer, source);
+    orogen_transports::TypelibMarshallerBase::Handle* handle =
+        transport->createSample();
+    transport->readDataSource(*source, handle);
+    transport->marshal(buffer, handle);
+    transport->deleteHandle(handle);
+    source->deref();
     return buffer;
 }
 
@@ -108,6 +137,7 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
             cerr << "error. Expected\n\n" << get_test_value(testValue) <<
                 "\n\nand got\n\n" << get_test_value(value) << endl;
         }
+        reader->deref();
     }
 
 #ifdef WITH_CORBA
@@ -122,14 +152,18 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
             cerr << "error. Expected\n\n" << get_test_value(testValue) <<
                 "\n\nand got\n\n" << get_test_value(value) << endl;
         }
+        delete result;
+        reader->deref();
     }
 #endif
+
+    source->deref();
     return true;
 }
 
 bool test_plain_opaque()
 {
-    cerr << "======== Testing plain opaque handling ========" << endl;
+    cerr << "\n======== Testing plain opaque handling ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/NotOrogenCompatible/Point2D");
@@ -142,7 +176,7 @@ bool test_plain_opaque()
     NotOrogenCompatible::Point2D testValue(10, 20);
     generic_type_handling_test("opaque", testValue, *type, &identity<NotOrogenCompatible::Point2D> );
 
-    // Now, try the marshalling thing
+    // Try marshalling
     std::cerr << "Testing the Typelib marshalling ..." << std::endl;
     {
         std::vector<uint8_t> buffer = typelib_marshalling(testValue);
@@ -164,12 +198,27 @@ bool test_plain_opaque()
         }
     }
 
+    std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
+    {
+        TestOpaque::Point2D testValue = { 100, 20, 30 };
+        NotOrogenCompatible::Point2D p(0, 0);
+        from_intermediate(p, testValue);
+
+        if (testValue.x != p.x() || testValue.y != p.y())
+        {
+            cerr << "error in Typelib marshalling" << endl;
+            cerr << "expected\n\n" << testValue <<
+                "\n\ngot\n\n" << p << endl;
+            return false;
+        }
+    }
+
     return true;
 }
 
 bool test_composed_opaque()
 {
-    cerr << "======== Testing opaque field in struct ========" << endl;
+    cerr << "\n======== Testing opaque field in struct ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/TestOpaque/Position");
@@ -207,6 +256,22 @@ bool test_composed_opaque()
         }
     }
 
+    std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
+    {
+        TestOpaque::Position_m testValue = { 100, 20, 30 };
+        TestOpaque::Position p;
+        memset(&p, 0, sizeof(p));
+        from_intermediate(p, testValue);
+
+        if (testValue.timestamp != p.timestamp || testValue.p.x != p.p.x() || testValue.p.y != p.p.y())
+        {
+            cerr << "error in Typelib marshalling" << endl;
+            cerr << "expected\n\n" << testValue <<
+                "\n\ngot\n\n" << p << endl;
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -220,7 +285,7 @@ T get_ro_ptr_content(RTT::ReadOnlyPointer<T> const& left)
 
 bool test_shared_pointer()
 {
-    cerr << "======== Testing shared pointer ========" << endl;
+    cerr << "\n======== Testing shared pointer ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</float>>");
@@ -259,12 +324,25 @@ bool test_shared_pointer()
             }
     }
 
+    std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
+    {
+        boost::shared_ptr< std::vector<float> > result;
+        from_intermediate(result, *testValue);
+
+        for (int i = 0; i < data.size(); ++i)
+            if ((*result)[i] != (*testValue)[i])
+            {
+                cerr << "error in type initialization from an intermediate" << endl;
+                return false;
+            }
+    }
+
     return true;
 }
 
 bool test_shared_ptr_shortcut()
 {
-    cerr << "======== Testing shared pointer (from #shared_ptr) ========" << endl;
+    cerr << "\n======== Testing shared pointer (from #shared_ptr) ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</int>>");
@@ -303,12 +381,25 @@ bool test_shared_ptr_shortcut()
             }
     }
 
+    std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
+    {
+        boost::shared_ptr< std::vector<int> > result;
+        from_intermediate(result, data);
+
+        for (int i = 0; i < data.size(); ++i)
+            if ((*result)[i] != (*testValue)[i])
+            {
+                cerr << "error in type initialization from an intermediate" << endl;
+                return false;
+            }
+    }
+
     return true;
 }
 
 bool test_ro_ptr()
 {
-    cerr << "======== Testing ReadOnlyPointer (from #ro_ptr) ========" << endl;
+    cerr << "\n======== Testing ReadOnlyPointer (from #ro_ptr) ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
     TypeInfo* type = ti->type("/RTT/ReadOnlyPointer</std/vector</int>>");
@@ -342,8 +433,21 @@ bool test_ro_ptr()
         for (int i = 0; i < size; ++i)
             if (data[i] != (*testValue)[i])
             {
-            cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
-            return false;
+                cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
+                return false;
+            }
+    }
+
+    std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
+    {
+        RTT::ReadOnlyPointer< std::vector<int> > result;
+        from_intermediate(result, *data);
+
+        for (int i = 0; i < data->size(); ++i)
+            if ((*result)[i] != (*testValue)[i])
+            {
+                cerr << "error in type initialization from an intermediate" << endl;
+                return false;
             }
     }
 

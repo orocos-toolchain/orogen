@@ -159,7 +159,7 @@ module Typelib
             each_field do |field_name, field_type|
                 if string = yield(field_name, field_type)
                     if !string.respond_to?(:to_str)
-                        result << "#{indent}#{result}.#{field_name} = #{dest}.#{field_name};\n"
+                        result << "#{indent}#{dest}.#{field_name} = #{src}.#{field_name};\n"
                     else
                         result << string
                     end
@@ -505,7 +505,7 @@ module Orocos
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
             def smart_ptr(name, base_type, options = Hash.new)
                 opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
-                    code = Generation.render_template('toolkit/smart_ptr.cpp', binding)
+                    Generation.render_template('toolkit/smart_ptr.cpp', binding)
                 end
             end
 

@@ -1,6 +1,8 @@
 module Orocos
     module Generation
-        VERSION = "0.8"
+        if !defined? Orocos::Generation::VERSION
+            VERSION = "0.8"
+        end
     end
 end
 

@@ -7,7 +7,11 @@ module Orocos
         def self.corba_enabled?; @corba end
         def self.enable_corba;   @corba = true end
         def self.disable_corba;  @corba = false end
-        @corba = nil
+        @corba = false
+
+        def self.extended_states=(value);  @extended_states = value end
+        def self.extended_states_enabled?; @extended_states end
+        @extended_states = false
 
         def self.orocos_target=(target)
             @orocos_target = target.to_s
@@ -188,6 +192,8 @@ module Orocos
             # defined in this component or in the task libraries loaded
             # by #using_task_library).
             #
+            # Returns nil if the task is not found.
+            #
             # If the task context is defined in this component, the leading
             # namespace can be omitted. For example, in a component defined by
             #
@@ -327,8 +333,8 @@ module Orocos
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
-                if name.downcase != name
-                    raise ConfigError, "oroGen component names must be in lowercase"
+                if name !~ /[a-z][a-z0-9\_]+/
+                    raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
                 unless deffile
                     raise ArgumentError, "there is no orogen file for this component, cannot generate"
@@ -336,6 +342,12 @@ module Orocos
 
 		# For consistency in templates
 		component = self
+
+                # First, generate a to-be-installed version of the orogen file.
+                # We do that to add command-line options like corba
+                # enable/disable and extended state support.
+                orogen_file = Generation.render_template "project.orogen", binding
+		Generation.save_automatic(File.basename(deffile), orogen_file)
 
 		# The toolkit and the task libraries populate a fake
 		# installation directory .orogen/<project_name> so that the
@@ -356,7 +368,11 @@ module Orocos
                 #
                 # (I know, this is ugly)
                 typelib_marshaller = Generation.render_template "toolkit/TypelibMarshaller.hpp", binding
-		Generation.save_automatic("TypelibMarshaller.hpp", typelib_marshaller)
+		Generation.save_automatic("toolkit/TypelibMarshaller.hpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.hpp", binding
+		Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.cpp", binding
+		Generation.save_automatic("toolkit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
 		if toolkit
 		    toolkit.generate
@@ -489,6 +505,10 @@ module Orocos
 	    #
 	    # Sets the component name for this generation
 	    dsl_attribute :name do |new|
+                if !new.respond_to?(:to_str)
+                    raise ArgumentError, 'name should be a string'
+                end
+
 		if toolkit && !toolkit.name
 		    toolkit.name new
 		end
@@ -576,7 +596,13 @@ module Orocos
                 toolkit(false).export_types(*args)
             end
 
-            attr_predicate :extended_states?, true
+            attr_writer :extended_states
+
+            def extended_states?
+                if @extended_states.nil? then Generation.extended_states_enabled?
+                else @extended_states
+                end
+            end
 
             # Creates a new task context class of this name. The generated
             # class is defined in the component's namespace. Therefore
@@ -680,8 +706,13 @@ module Orocos
             # loaded file) to actually work
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
-
                 Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
+                self
+            end
+
+            def eval(name, file_contents)
+                @deffile = "#{name}.orogen"
+                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, false)
                 self
             end
 	end

@@ -1,35 +1,120 @@
 #ifndef OROGEN_TYPELIB_MARSHALLER_HPP
 #define OROGEN_TYPELIB_MARSHALLER_HPP
 
-#include <rtt/TypeTransporter.hpp>
+#include "TypelibMarshallerBase.hpp"
+#include <rtt/Ports.hpp>
+
+struct orogen_transports::TypelibMarshallerBase::Handle
+{
+    /** The TypelibMarshallerBase that created us
+     */
+    TypelibMarshallerBase* marshaller;
+    /** Type-pruned pointer of the sample that Typelib can understand. It may be
+     * the same as orocos_sample
+     */
+    uint8_t* typelib_sample;
+    /** If true, the handle owns the memory addressed by \c typelib_sample, and
+     * will therefore destroy it when it gets deleted.
+     */
+    bool owns_typelib;
+    /** Type-pruned pointer of the sample that Orocos can understand. It may be
+     * the same as typelib_sample
+     */
+    uint8_t* orocos_sample;
+    /** If true, the handle owns the memory addressed by \c orocos_sample, and
+     * will therefore destroy it when it gets deleted.
+     */
+    bool owns_orocos;
+
+    void reset()
+    {
+        typelib_sample = 0;
+        orocos_sample  = 0;
+    }
+
+    Handle(TypelibMarshallerBase* marshaller)
+        : marshaller(marshaller)
+        , typelib_sample(0), owns_typelib(true)
+        , orocos_sample(0), owns_orocos(true) {}
+
+    template<typename Type>
+    Handle(TypelibMarshallerBase* marshaller, Type* data)
+        : marshaller(marshaller)
+        , typelib_sample(reinterpret_cast<uint8_t*>(data))
+        , owns_typelib(true)
+        , orocos_sample(typelib_sample)
+        , owns_orocos(true) {}
+
+    template<typename TypelibType, typename OrocosType>
+    Handle(TypelibMarshallerBase* marshaller, TypelibType* typelib_data, OrocosType* orocos_data)
+        : marshaller(marshaller)
+        , typelib_sample(reinterpret_cast<uint8_t*>(typelib_data))
+        , owns_typelib(true)
+        , orocos_sample(reinterpret_cast<uint8_t*>(orocos_data))
+        , owns_orocos(true) {}
+
+    ~Handle()
+    {
+        if (owns_typelib && typelib_sample)
+            marshaller->deleteTypelibSample(this);
+        if (owns_orocos && orocos_sample)
+            marshaller->deleteOrocosSample(this);
+    }
+};
+
 
 namespace orogen_transports
 {
-    static const int TYPELIB_MARSHALLER_ID = 42;
-    class TypelibMarshallerBase : public RTT::detail::TypeTransporter
+    template<typename T>
+    struct TypelibMarshaller : public orogen_transports::TypelibMarshallerBase
     {
-    public:
-        virtual char const* getMarshallingType() const = 0;
-        virtual void marshal(std::vector<uint8_t>& buffer, RTT::DataSourceBase::shared_ptr data) const = 0;
+        typedef TypelibMarshallerBase::Handle Handle;
 
-        virtual void* createBlob(RTT::DataSourceBase::shared_ptr source) const
-        { return NULL; }
-        virtual void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr source) const
-        { return NULL; }
-        virtual bool updateBlob(const void* blob, RTT::DataSourceBase::shared_ptr target) const
-        { return NULL; }
+        TypelibMarshaller(std::string const& orocos_name, Typelib::Registry const& registry)
+            : orogen_transports::TypelibMarshallerBase(orocos_name, orocos_name, registry) { }
 
-        RTT::DataSourceBase* proxy(void* data ) const { return 0; }
-        void* server(RTT::DataSourceBase::shared_ptr source, bool assignable, void* arg) const { return 0; }
-        void* method(RTT::DataSourceBase::shared_ptr source, RTT::MethodC* orig, void* arg) const { return 0; }
-        RTT::DataSourceBase* dataProxy( RTT::PortInterface* data ) const { return 0; }
-        RTT::DataSourceBase* dataProxy( void* data ) const { return 0; }
-        void* dataServer( RTT::DataSourceBase::shared_ptr source, void* arg) const { return 0; }
-        RTT::BufferBase* bufferProxy( RTT::PortInterface* data ) const { return 0; }
-        RTT::BufferBase* bufferProxy( void* data ) const { return 0; }
-        void* bufferServer( RTT::BufferBase::shared_ptr source, void* arg) const { return 0; }
-        RTT::DataSourceBase* narrowDataSource(RTT::DataSourceBase* dsb) { return 0; }
-        RTT::DataSourceBase* narrowAssignableDataSource(RTT::DataSourceBase* dsb) { return 0; }
+        TypelibMarshallerBase::Handle* createSample() { return new Handle(this, new T); }
+        void deleteOrocosSample(Handle* data)  { deleteSamples(data); }
+        void deleteTypelibSample(Handle* data) { deleteSamples(data); }
+        void deleteSamples(Handle* data)
+        {
+            delete reinterpret_cast<T*>(data->orocos_sample);
+            data->reset();
+        }
+
+        void setTypelibSample(Handle* handle, uint8_t* data)
+        {
+            handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
+            handle->owns_orocos = handle->owns_typelib = false;
+        }
+
+        bool readDataSource(RTT::DataSourceBase& source_base, Handle* handle)
+        {
+            RTT::DataSource<T>& source = dynamic_cast<RTT::DataSource<T>&>(source_base);
+            if (source.evaluate())
+            {
+                T& data = *reinterpret_cast<T*>(handle->orocos_sample);
+                data = dynamic_cast<RTT::DataSource<T>&>(source_base).get();
+                return true;
+            }
+            return false;
+        }
+        void writeDataSource(RTT::DataSourceBase& source, Handle const* handle)
+        {
+            T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
+            dynamic_cast<RTT::AssignableDataSource<T>&>(source).set(data);
+        }
+
+        bool readPort(RTT::InputPortInterface& port, Handle* handle)
+        {
+            T& data = *reinterpret_cast<T*>(handle->orocos_sample);
+            return dynamic_cast< RTT::InputPort<T>& >(port).read(data);
+        }
+        void writePort(RTT::OutputPortInterface& port, Handle const* handle)
+        {
+            T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
+            return dynamic_cast< RTT::OutputPort<T>& >(port).write(data);
+        }
     };
 }
 

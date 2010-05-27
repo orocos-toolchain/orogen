@@ -1,0 +1,8 @@
+<% if Orocos::Generation.corba_enabled? %>
+enable_corba
+<% else %>
+disable_corba
+<% end %>
+self.extended_states = <%= Orocos::Generation.extended_states_enabled? %>
+
+<%= File.read(component.deffile) %>

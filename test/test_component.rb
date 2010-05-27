@@ -23,6 +23,24 @@ class TC_GenerationComponent < Test::Unit::TestCase
         end
     end
 
+    def test_find_task
+        component = Component.new
+        component.name "TestFindTask"
+        task = component.task_context "Task"
+
+        assert_equal(task, component.find_task_context("Task"))
+        assert_equal(task, component.find_task_context("TestFindTask::Task"))
+        assert_equal(nil, component.find_task_context("Bla"))
+
+        build_test_component("modules/simple", false)
+        install
+        ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
+        component.using_task_library "simple"
+        assert(!component.find_task_context("SimpleTask"))
+        assert(!component.find_task_context("TestFindTask::SimpleTask"))
+        assert(component.find_task_context("simple::SimpleTask"))
+    end
+
     def test_filter_backtrace
         Tempfile.open('test') do |io|
             io.puts "raise TypeError, \"custom exception\""
@@ -59,7 +77,13 @@ class TC_GenerationComponent < Test::Unit::TestCase
     end
     def test_containers_of_opaques_is_forbidden
         c = Component.new
-        assert_raises(ArgumentError) { c.find_type "/std/vector</string>" }
+        Tempfile.open("opaque_def") do |io|
+            io.write "<typelib><opaque name=\"/opaque_type\" size=\"0\" /></typelib>"
+            io.flush
+
+            c.registry.import(io.path, "tlb")
+        end
+        assert_raises(ArgumentError) { c.find_type "/std/vector</opaque_type>" }
     end
 
     def test_imported_toolkits
@@ -83,7 +107,7 @@ class TC_GenerationComponent < Test::Unit::TestCase
 
     def test_imported_type_looks_at_rtt_registry
         c = Component.new
-        t = c.registry.get "/std/vector</double>"
+        t = c.registry.get "/uint64_t"
         assert c.imported_type?(t)
     end
 
@@ -96,5 +120,4 @@ class TC_GenerationComponent < Test::Unit::TestCase
         end
     end
 end
-
 
