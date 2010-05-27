@@ -1,5 +1,7 @@
 require './lib/orogen/version'
 
+task :default
+
 begin
     require 'hoe'
     namespace 'dist' do
@@ -75,4 +77,3 @@ if do_doc
         end
     end
 end
-task :default => :doc
