@@ -75,4 +75,4 @@ if do_doc
         end
     end
 end
-
+task :default => :doc
