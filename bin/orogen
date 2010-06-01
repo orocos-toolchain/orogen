@@ -80,7 +80,7 @@ elsif files.size > 1
     STDERR.puts "too many arguments on the command line"
     exit 1
 elsif files.empty?
-    STDERR.puts opt
+    STDERR.puts parser
     exit 0
 end
 
