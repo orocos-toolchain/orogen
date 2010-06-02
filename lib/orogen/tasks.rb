@@ -30,6 +30,10 @@ module Orocos
 	    # component's type registry
 	    attr_reader :type
 
+            # The name of the type this property is using, for consistency with
+            # the +type+ attribute
+            def type_name; type.name end
+
             def used_types; [type] end
 
 	    # The property's default value
@@ -1428,6 +1432,51 @@ module Orocos
 
 		self
 	    end
+
+            # Generate a graphviz fragment to represent this task
+            def to_dot
+                html_escape = lambda { |s| s.gsub(/</, "&lt;").gsub(/>/, "&gt;") }
+                html_table  = lambda do |title, lines|
+                    label  = "<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n"
+                    label << "  <TR><TD>#{title}</TD></TR>\n"
+                    label << "  <TR><TD>\n"
+                    label << lines.join("<BR/>\n")
+                    label << "  </TD></TR>\n"
+                    label << "</TABLE>"
+                end
+                    
+                result = ""
+                result << "  node [shape=none,margin=0,height=.1];"
+
+                label = ""
+                label << "<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\">\n"
+                label << "  <TR><TD>#{name}</TD></TR>"
+
+                properties = all_properties.
+                    map { |p| "#{p.name} [#{html_escape[p.type_name]}]" }
+                if !properties.empty?
+                    label << "  <TR><TD>#{html_table["Properties", properties]}</TD></TR>"
+                end
+
+
+                input_ports = all_ports.
+                    find_all { |p| p.kind_of?(InputPort) }.
+                    map { |p| "#{p.name} [#{html_escape[p.type_name]}]" }
+                if !input_ports.empty?
+                    label << "  <TR><TD>#{html_table["Input ports", input_ports]}</TD></TR>"
+                end
+
+                output_ports =all_ports.
+                    find_all { |p| p.kind_of?(OutputPort) }.
+                    map { |p| "#{p.name} [#{html_escape[p.type_name]}]" }
+                if !output_ports.empty?
+                    label << "  <TR><TD>#{html_table["Output ports", output_ports]}</TD></TR>"
+                end
+
+                label << "</TABLE>"
+                result << "  t#{object_id} [label=<#{label}>]"
+                result
+            end
 	end
     end
 end
