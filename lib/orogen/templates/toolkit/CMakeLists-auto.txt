@@ -129,7 +129,7 @@ add_custom_command(
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
-    COMMAND <%= ruby_bin %> <%= orogen_bin %> <%= "--corba" if toolkit.corba_enabled? %> <%= toolkit.component.deffile %>)
+    COMMAND <%= ruby_bin %> <%= orogen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>)
 add_custom_target(regen-toolkit DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} regen-toolkit)
 

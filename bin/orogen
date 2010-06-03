@@ -54,7 +54,11 @@ parser = OptionParser.new do |opt|
     end
 end
 
+original_options = ARGV.dup
 files = parser.parse! ARGV
+files.each { |path| original_options.delete(path) }
+Orocos::Generation.command_line_options = original_options
+
 if files.first == "create"
     if files.size != 2
         STDERR.puts "the 'create' command expects only the project name as argument"

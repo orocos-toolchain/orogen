@@ -13,6 +13,11 @@ module Orocos
         def self.extended_states_enabled?; @extended_states end
         @extended_states = false
 
+        # Saved set of command line options
+        class << self
+            attr_accessor :command_line_options
+        end
+
         def self.orocos_target=(target)
             @orocos_target = target.to_s
         end
