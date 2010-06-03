@@ -108,32 +108,69 @@ module Orocos
             # The deployed commands, as CommandDeployment instances
             attr_reader :commands
 
+            # Overrides the default minimal trigger latency for this particular
+            # task
+            #
+            # See minimal_trigger_latency
             attr_accessor :minimal_trigger_latency
+            # Overrides the default expected trigger latency for this particular
+            # task
+            #
+            # See expected_trigger_latency
             attr_accessor :expected_trigger_latency
 
-            # Returns the expected minimal jitter between two expected calls to
-            # updateHook(), based on its scheduler and priority. All tasks will
-            # return a value (even non-periodic ones).
+            # Default minimal latency value used for realtime scheduling
+            #
+            # See minimal_trigger_latency
+            DEFAULT_RT_MINIMAL_TRIGGER_LATENCY = 0.001
+            # Default expected latency value used for realtime scheduling
+            #
+            # See expected_trigger_latency
+            DEFAULT_RT_EXPECTED_TRIGGER_LATENCY = 0.005
+            # Default minimal latency value used for non-realtime scheduling
+            #
+            # See minimal_trigger_latency
+            DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY = 0.005
+            # Default expected latency value used for non-realtime scheduling
+            #
+            # See expected_trigger_latency
+            DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY = 0.020
+
+            # Returns the minimal latency between the time the task gets
+            # triggered (for instance because of data on an input event port),
+            # and the time updateHook() is actually called, based on its
+            # scheduler and priority. All tasks will return a value (even
+            # non-periodic ones).
+            #
+            # Default values are set in the DEFAULT_RT_MINIMAL_TRIGGER_LATENCY
+            # and DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY constants. They can be
+            # overriden by setting the minimal_trigger_latency property
             def minimal_trigger_latency
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    0.001
+                    DEFAULT_RT_MINIMAL_TRIGGER_LATENCY
                 else
-                    0.005
+                    DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY
                 end
             end
 
-            # Returns the expected jitter between two expected calls to
-            # updateHook(), based on its scheduler and priority. All tasks will
-            # return a value (even non-periodic ones).
+            # Returns the expected (average) latency between the time the task
+            # gets triggered (for instance because of data on an input event
+            # port), and the time updateHook() is actually called, based on its
+            # scheduler and priority. All tasks will return a value (even
+            # non-periodic ones).
+            #
+            # Default values are set in the DEFAULT_RT_EXPECTED_TRIGGER_LATENCY
+            # and DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY constants. They can be
+            # overriden by setting the expected_trigger_latency property
             def expected_trigger_latency
                 if @expected_trigger_latency
                     @expected_trigger_latency
                 elsif @realtime
-                    0.005
+                    DEFAULT_RT_EXPECTED_TRIGGER_LATENCY
                 else
-                    0.020
+                    DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY
                 end
             end
 
