@@ -40,7 +40,7 @@ module Orocos
 
             # Creates a new ConnPolicy object from a hash. For instance,
             #
-            #   ConnPolicy.to_hash :type => :data, :lock_policy => :lock_free
+            #   ConnPolicy.to_hash :type -> :data, :lock_policy -> :lock_free
             #
             # Would create a connection policy with the given type and lock
             # type, using default values for the rest. See attributes of
@@ -166,8 +166,8 @@ module Orocos
 	    # underlying OS
 	    def lowest_priority;  @priority = :lowest; self end
 	    # call-seq:
-	    #	priority prio => new_prio
-            #	priority => current_priority
+	    #	priority prio -> new_prio
+            #	priority -> current_priority
 	    #
 	    # Sets the task priority as an integer value. Allowed values are
 	    # OS-specific, and for now the allowed range is unfortunately not
@@ -217,7 +217,7 @@ module Orocos
             attr_reader :period
 
 	    # call-seq:
-	    #	periodic(period_in_seconds) => self
+	    #	periodic(period_in_seconds) -> self
             #
             # Sets this task as being periodic. Call #period to return the
             # current task's period (or nil if the task is not periodic), and
@@ -380,7 +380,7 @@ module Orocos
             end
 
             # call-seq:
-            #   loglevel level => self
+            #   loglevel level -> self
             #
             # Sets the default log level. The known log levels are listed in
             # KNOWN_LOG_LEVELS
@@ -405,7 +405,7 @@ module Orocos
             def disable_corba; @corba_enabled = false end
 
             # call-seq:
-            #   task name, task_context => task_deployment
+            #   task name, task_context -> task_deployment
             #
             # Deploys a new task using the given task context type, and returns
             # the corresponding TaskDeployment object. This instance can be used
@@ -543,8 +543,8 @@ module Orocos
             end
 
             # call-seq:
-            #   browse => currently_browsed_task
-            #   browse(task) => self
+            #   browse -> currently_browsed_task
+            #   browse(task) -> self
             #
             # Sets up a TaskBrowser component to browse the given task, which
             # is started when all tasks have been initialized. This is incompatible

@@ -69,8 +69,8 @@ module Orocos
             end
 
 	    # call-seq:
-	    #	doc new_doc => self
-            #	doc =>  current_doc
+	    #	doc new_doc -> self
+            #	doc ->  current_doc
 	    #
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
@@ -132,13 +132,14 @@ module Orocos
 	    end
 
 	    # call-seq:
-	    #	doc new_doc => self
-            #	doc =>  current_doc
+	    #	doc new_doc -> self
+            #	doc ->  current_doc
 	    #
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
 
+        # Specification for an output port
         class OutputPort < Port
             def initialize(*args)
                 super
@@ -157,16 +158,16 @@ module Orocos
             attr_reader :burst_period
 
             # call-seq:
-            #   sample_size new_size => self
-            #   sample_size => size
+            #   sample_size new_size -> self
+            #   sample_size -> size
             #
             # Sets and gets the sample size, i.e. how many data samples are
             # pushed at once to this port.
             dsl_attribute(:sample_size) { |value| Integer(value) }
 
 	    # call-seq:
-	    #	period new_period => self
-            #	period =>  current_period
+	    #	period new_period -> self
+            #	period ->  current_period
 	    #
             # Sets the period for this output port, in cycles. The port period
             # should be the minimal amount of execution cycles (calls to
@@ -179,7 +180,7 @@ module Orocos
             dsl_attribute(:period) { |value| Integer(value) }
 
 	    # call-seq:
-	    #	burst count, period => self
+	    #	burst count, period -> self
 	    #
             # Declares that a burst of data can occasionally be written to this
             # port. +count+ is the maximal number of samples that are pushed to
@@ -237,6 +238,7 @@ module Orocos
             end
         end
 
+        # Specification for an input port
         class InputPort < Port
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
@@ -290,14 +292,23 @@ module Orocos
             end
         end
 
+        # Specification for a dynamic output port.
+        #
+        # Dynamic ports are not statically present, but will be created at
+        # runtime. They are added by TaskContext#dynamic_output_port.
         class DynamicOutputPort < OutputPort
             include DynamicPort
         end
         
+        # Specification for a dynamic input port.
+        #
+        # Dynamic ports are not statically present, but will be created at
+        # runtime. They are added by TaskContext#dynamic_input_port.
         class DynamicInputPort < InputPort
             include DynamicPort
         end
 
+        # Base class for methods and commands
 	class Callable
 	    # The TaskContext instance this method is part of
 	    attr_reader :task
@@ -316,8 +327,8 @@ module Orocos
 	    end
 
 	    # call-seq:
-	    #	doc new_doc => self
-            #	doc =>  current_doc
+	    #	doc new_doc -> self
+            #	doc ->  current_doc
 	    #
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
@@ -349,7 +360,8 @@ module Orocos
 		self
 	    end
 
-
+            # Returns the set of types that this method/command uses, as a
+            # ValueSet of Typelib::Type classes.
             def used_types
                 arguments.map { |_, t, _| t }
             end
@@ -410,7 +422,7 @@ module Orocos
 		method_name[0, 1] = method_name[0, 1].downcase
 	    end
 
-            def used_types
+            def used_types # :nodoc:
                 [return_type].compact + super
             end
 
@@ -455,8 +467,8 @@ module Orocos
             end
 
 	    # call-seq:
-	    #	method_name new_name => self
-            #	method_name => current_name
+	    #	method_name new_name -> self
+            #	method_name -> current_name
 	    #
             # Gets or sets the name of the C++ method which is to be called to
             # serve this orocos method. It default to the method name with the
@@ -587,7 +599,7 @@ module Orocos
                 result
 	    end
 
-            def pretty_print(pp)
+            def pretty_print(pp) # :nodoc:
                 pp.text work_signature(true)
                 pp.breakable
                 pp.text completion_signature(true)
@@ -633,7 +645,7 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
-            def self.enumerate_inherited_set(each_name, attribute_name = each_name)
+            def self.enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
                 class_eval <<-EOD
                 def all_#{attribute_name}; each_#{each_name}.to_a end
                 def self_#{attribute_name}; @#{attribute_name} end
@@ -920,27 +932,6 @@ module Orocos
 		@properties.last
 	    end
 
-            # Methods that are added by this task context (i.e. methods that are
-            # defined there but are not present in the superclass)
-            def new_methods
-                super_names = superclass.all_methods.map(&:name).to_set
-                @methods.find_all do |t|
-                    !super_names.include?(t)
-                end
-            end
-            # Methods that are overloaded by this task context (i.e. methods
-            # that are defined there and are also present in the superclass)
-            def overloaded_methods
-                super_names = superclass.all_methods.map(&:name).to_set
-                @methods.find_all do |t|
-                    super_names.include?(t)
-                end
-            end
-
-            def self_methods
-                @methods
-            end
-
             # Asks orogen to implement the extended state support interface in
             # the Base class. This adds:
             #  * a 'state' output port in which the current task's state is written
@@ -1075,7 +1066,7 @@ module Orocos
             end
 
             # call-seq:
-            #   states => set of states
+            #   states -> set of states
             #
             # Declares a toplevel state. It should be used only to declare RTT's
             # TaskContext states.
@@ -1185,13 +1176,16 @@ module Orocos
 		@methods.last
 	    end
 
-	    # The set of commands for this task.
+	    # The set of commands that have been added at this level of the
+            # class hierarchy.
             def new_commands
                 super_names = superclass.all_commands.map(&:name).to_set
                 @commands.find_all do |t|
                     !super_names.include?(t)
                 end
             end
+
+            # The set of commands that are overloaded in this task class
             def overloaded_commands
                 super_names = superclass.all_commands.map(&:name).to_set
                 @commands.find_all do |t|
@@ -1216,11 +1210,145 @@ module Orocos
 		@commands.last
 	    end
 
+            ##
+            # :method: each_dynamic_port
+            # :call-seq:
+            #   each_dynamic_port(only_self = false) { |port| }
+            #
+            # Yields all dynamic ports that are defined on this task context.
+
+            ##
+            # :method: all_dynamic_ports
+            # :call-seq:
+            #   all_dynamic_ports -> set_of_ports
+            #
+            # Returns the set of all dynamic ports that are defined on this task
+            # context
+
+            ##
+            # :method: self_dynamic_ports
+            # :call-seq:
+            #   self_dynamic_ports -> set_of_ports
+            #
+            # Returns the set of dynamic ports that are added at this level of
+            # the model hierarchy. I.e. ports that are defined on this task
+            # context, but not on its parent models.
+
             enumerate_inherited_set("dynamic_port", "dynamic_ports")
+
+            ##
+            # :method: each_port
+            # :call-seq:
+            #   each_port(only_self = false) { |port| }
+            #
+            # Yields all static ports that are defined on this task context.
+
+            ##
+            # :method: all_ports
+            # :call-seq:
+            #   all_ports -> set_of_ports
+            #
+            # Returns the set of all static ports that are defined on this task
+            # context
+
+            ##
+            # :method: self_ports
+            # :call-seq:
+            #   self_ports -> set_of_ports
+            #
+            # Returns the set of static ports that are added at this level of
+            # the model hierarchy. I.e. ports that are defined on this task
+            # context, but not on its parent models.
+
             enumerate_inherited_set("port", "ports")
+
+            ##
+            # :method: each_property
+            # :call-seq:
+            #   each_property(only_self = false) { |property| }
+            #
+            # Yields all properties that are defined on this task context.
+
+            ##
+            # :method: all_properties
+            # :call-seq:
+            #   all_properties -> set_of_properties
+            #
+            # Returns the set of all properties that are defined on this task
+            # context
+
+            ##
+            # :method: self_properties
+            # :call-seq:
+            #   self_properties -> set_of_properties
+            #
+            # Returns the set of properties that are added at this level of the
+            # model hierarchy. I.e. properties that are defined on this task
+            # context, but not on its parent models.
+
             enumerate_inherited_set("property", "properties")
+
+            ##
+            # :method: each_command
+            # :call-seq:
+            #   each_command(only_self = false) { |command| }
+            #
+            # Yields all commands that are defined on this task context.
+
+            ##
+            # :method: all_commands
+            #
+            # :call-seq:
+            #   all_commands -> set_of_commands
+            #
+            # Returns the set of all commands that are defined on this task
+            # context
+
+            ##
+            # :method: self_commands
+            # :call-seq:
+            #   self_commands -> set_of_commands
+            #
+            # Returns the set of commands that are added at this level of the
+            # model hierarchy. I.e. commands that are either newly defined on
+            # this task context, or overload commands from the parent models.
+
             enumerate_inherited_set("command", "commands")
+
+            ##
+            # :method: each_method
+            # :call-seq:
+            #   each_method(only_self = false) { |method| ... }
+            #
+            # Yields all methods that are defined on this task context.
+
+            ##
+            # :method: all_methods
+            # :call-seq:
+            #   all_methods -> set_of_methods
+            #
+            # Returns the set of all methods that are defined on this task
+            # context
+
+            ##
+            # :method: self_methods
+            # :call-seq:
+            #   self_methods -> set_of_methods
+            #
+            # Returns the set of methods that are added at this level of the
+            # model hierarchy. I.e. methods that are either newly defined on
+            # this task context, or overload methods from the parent models.
+
             enumerate_inherited_set("method", "methods")
+
+            # Methods that are added by this task context (i.e. methods that are
+            # defined there but are not present in the superclass)
+            def new_methods
+                super_names = superclass.all_methods.map(&:name).to_set
+                @methods.find_all do |t|
+                    !super_names.include?(t)
+                end
+            end
 
 	    # call-seq:
 	    #	output_port 'name', '/type'
@@ -1291,20 +1419,31 @@ module Orocos
                 dynamic_ports.last
             end
 
+            # Returns true if there is a dynamic port definition that matches
+            # the given name and type pair.
+            #
+            # If +type+ is nil, the type is ignored in the matching.
             def dynamic_port?(name, type)
                 dynamic_input_port?(name, type) || dynamic_output_port?(name, type)
             end
 
+            # Returns the set of dynamic input port definitions that match the
+            # given name and type pair. If +type+ is nil, the type is ignored in
+            # the matching.
             def find_dynamic_input_ports(name, type)
                 dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || p.type == component.find_type(type)) && p.name === name }
             end
 
-            # Returns true if an input port of the given name and type could be
-            # created at runtime.
+            # Returns true if there is an input port definition that match the
+            # given name and type pair. If +type+ is nil, the type is ignored in
+            # the matching.
             def dynamic_input_port?(name, type = nil)
                 !find_dynamic_input_ports(name, type).empty?
             end
 
+            # Returns the set of dynamic output port definitions that match the
+            # given name and type pair. If +type+ is nil, the type is ignored in
+            # the matching.
             def find_dynamic_output_ports(name, type)
                 dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || p.type == component.find_type(type)) && p.name === name }
             end
