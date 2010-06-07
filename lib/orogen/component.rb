@@ -704,6 +704,30 @@ module Orocos
             # This is for the sake of DSL handling
             def component; self end
 
+            # Displays the content of this oroGen project in a nice form
+            def pretty_print(pp) # :nodoc:
+                if !self_tasks.empty?
+                    pp.text "  Task Contexts:"
+                    pp.nest(4) do
+                        pp.breakable
+                        pp.seplist(self_tasks) do |t|
+                            t.pretty_print(pp)
+                        end
+                    end
+                end
+
+                if !deployers.empty?
+                    pp.breakable if !self_tasks.empty?
+                    pp.text "  Deployers:"
+                    pp.nest(4) do
+                        pp.breakable
+                        pp.seplist(deployers) do |d|
+                            d.pretty_print(pp)
+                        end
+                    end
+                end
+            end
+
             # Apply the project description included in +file+ to +self+
             #
             # NOTE: this method MUST be the last method of the file. This is

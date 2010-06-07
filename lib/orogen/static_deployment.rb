@@ -326,6 +326,17 @@ module Orocos
 		end
 	    end
 
+            def pretty_print(pp) # :nodoc:
+                pp.text "#{name}[#{context.name}]"
+                pp.nest(2) do
+                    pp.breakable
+                    pp.text "activity: #{@activity_type || 'sequential'}, prio=#{@priority}"
+                    pp.breakable
+                    pp.text "scheduler: #{@realtime ? 'realtime' : 'non realtime'}"
+                end
+            end
+
+
             def method_missing(m, *args) # :nodoc:
                 name = m.to_s
                 if name =~ /=$/
@@ -637,8 +648,34 @@ module Orocos
 
                 result.to_a.sort_by { |dep| dep.var_name }
             end
+
+            # Displays this deployment's definition nicely
+            def pretty_print(pp) # :nodoc:
+                pp.text "------- #{name} ------"
+                pp.breakable
+                if !task_activities.empty?
+                    pp.text "Tasks"
+                    pp.nest(2) do
+                        pp.breakable
+                        pp.seplist(task_activities) do |act|
+                            act.pretty_print(pp)
+                        end
+                    end
+                end
+
+                if !connections.empty?
+                    pp.breakable if !task_activities.empty?
+                    pp.text "Connections"
+                    pp.nest(2) do
+                        pp.breakable
+                        pp.seplist(connections) do |conn|
+                            from, to, policy = *conn
+                            pp.text "#{from.activity.name} => #{to.activity.name} [#{policy.inspect}]"
+                        end
+                    end
+                end
+            end
         end
     end
 end
-
 
