@@ -729,10 +729,6 @@ module Orocos
             end
 
             # Apply the project description included in +file+ to +self+
-            #
-            # NOTE: this method MUST be the last method of the file. This is
-            # needed for filter_backtrace (which provides the errors in the
-            # loaded file) to actually work
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
                 Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
