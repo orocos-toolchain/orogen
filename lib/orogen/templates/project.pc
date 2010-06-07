@@ -5,6 +5,11 @@ includedir=${prefix}/include/orocos
 
 project_name=<%= component.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
+<%=
+if component.toolkit(false)
+    "type_registry=${prefix}/share/orogen/#{component.name}.tlb"
+end
+%>
 
 Name: <%= component.name %>
 Version: <%= component.version %>
