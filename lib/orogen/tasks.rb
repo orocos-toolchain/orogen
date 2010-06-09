@@ -696,10 +696,18 @@ module Orocos
                     @implemented_classes.any? { |class_name, _| name === class_name }
             end
 
+            ##
+            # :method: required_activity?
+            #
             # True if the current value of default_activity is actually
             # required by the task context implementation
             attr_predicate :required_activity?, true
 
+            ##
+            # :method: required_activity
+            # :call-seq:
+            #   required_activity 'activity_type', *args
+            #
             # The kind of activity that must be used for this task context. This
             # is the name of the corresponding method on the deployment objects.
             # See ACTIVITY_TYPES for the list of known activity types.
@@ -714,6 +722,11 @@ module Orocos
                 self.required_activity = true
             end
 
+            ##
+            # :method: default_activity
+            # :call-seq:
+            #   default_activity 'avtivity_type', *args
+            #
             # The kind of activity that should be used by default. This is the
             # name of the corresponding method on the deployment objects
             # (:periodic, :aperiodic, :slave, :irq_driven, :fd_driven)
