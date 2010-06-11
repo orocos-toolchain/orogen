@@ -117,7 +117,7 @@ orogen example.orogen
 
 or, if corba support is required
   
-orogen --corba example.orogen
+orogen \-\-corba example.orogen
 {: .commandline}
 
 The generated code is a CMake package. In it, files are sorted into three places:
