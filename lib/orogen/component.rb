@@ -701,6 +701,26 @@ module Orocos
                 deployer
 	    end
 
+            # call-seq:
+            #   simple_deployment(name, klass) => task_context
+            #
+            # Create a deployment called +name+ with one task of type +klass+
+            # also called +name+.
+            #
+            # The returned value allows to set up the task. For instance, to
+            # deploy a periodic task one would do
+            #
+            #   simple_deployment("task", "Task").
+            #       periodic(0.001)
+            def simple_deployment(name, klass)
+                result = nil
+                deployment name do
+                    result = task name, klass
+                    add_default_logger
+                end
+                result
+            end
+
             # This is for the sake of DSL handling
             def component; self end
 
