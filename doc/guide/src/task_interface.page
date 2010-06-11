@@ -108,8 +108,8 @@ Then; one can declare arguments with
 
 {coderay:: ruby}
 command('commandName').
-    arg('arg0', '/arg/type').
-    arg('arg1', '/example/other_arg')
+    argument('arg0', '/arg/type').
+    argument('arg1', '/example/other_arg')
 {coderay}
 Note the dot at the end of the first two lines. This dot is important and, if
 omitted, will lead to syntax errors.
@@ -143,16 +143,16 @@ Methods are defined in the same way than commands:
 
 {coderay:: ruby}
 method('commandName').
-    arg('arg0', '/arg/type').
-    arg('arg1', '/example/other_arg')
+    argument('arg0', '/arg/type').
+    argument('arg1', '/example/other_arg')
 {coderay}
 
 Additionally, a return type can be added with
 {coderay:: ruby}
 method('methodName').
     returns('int').
-    arg('arg0', '/arg/type').
-    arg('arg1', '/example/other_arg')
+    argument('arg0', '/arg/type').
+    argument('arg1', '/example/other_arg')
 {coderay}
 
 Note the dot at the end of all but the last line. This dot is important and,
