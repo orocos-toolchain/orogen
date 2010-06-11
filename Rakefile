@@ -39,7 +39,7 @@ begin
             if !system('doc/misc/update_github')
                 raise "cannot update the gh-pages branch for GitHub"
             end
-            if !system('git', 'push', 'github', 'gh-pages')
+            if !system('git', 'push', 'git@github.com:doudou/orogen.git', '+gh-pages')
                 raise "cannot push the documentation"
             end
         end
