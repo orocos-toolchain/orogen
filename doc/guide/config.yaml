@@ -16,7 +16,7 @@
 # command, for example: `webgen config sourcehandler` will list all options starting
 # with sourcehandler.
 default_processing_pipeline:
-    Page: tags,maruku,blocks
+    Page: tags,blocks
 
 default_meta_info:
     Webgen::SourceHandler::Page:
