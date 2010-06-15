@@ -854,6 +854,28 @@ module Orocos
 	    #
 	    # This is an internal helper method
 	    def check_uniqueness(set_name, name) # :nodoc:
+                # Check if that name is a method name in orocos.rb as well ...
+                # To warn about name clashes
+                if @orocos_rb.nil?
+                    begin
+                        require 'orocos'
+                        @orocos_rb = true
+                    rescue LoadError
+                        @orocos_rb = false
+                    end
+                end
+
+                if @orocos_rb && !component.kind_of?(TaskLibrary)
+                    if Orocos::TaskContext.instance_methods.find { |n| n.to_s == name.to_str }
+                        STDERR.puts "WARN: #{name} is a method name used in orocos.rb"
+                        STDERR.puts "WARN:   if you keep that name, you will not be able to use shortcut access in orocos.rb"
+                        STDERR.puts "WARN:   for instance, for a property, you will have to do"
+                        STDERR.puts "WARN:      my_task.property('#{name}').write(new_value)"
+                        STDERR.puts "WARN:   instead of the shorter and clearer"
+                        STDERR.puts "WARN:      my_task.#{name} = new_value"
+                    end
+                end
+
 		set = send("all_#{set_name}")
 		if set.find { |o| o.name == name }
 		    raise ArgumentError, "there is already a #{name} in #{set_name}"
