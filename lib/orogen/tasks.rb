@@ -865,7 +865,7 @@ module Orocos
                     end
                 end
 
-                if @orocos_rb && !component.kind_of?(TaskLibrary)
+                if name.to_str != 'state' && @orocos_rb && !component.kind_of?(TaskLibrary)
                     if Orocos::TaskContext.instance_methods.find { |n| n.to_s == name.to_str }
                         STDERR.puts "WARN: #{name} is a method name used in orocos.rb"
                         STDERR.puts "WARN:   if you keep that name, you will not be able to use shortcut access in orocos.rb"
