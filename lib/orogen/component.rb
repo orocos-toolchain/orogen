@@ -114,7 +114,7 @@ module Orocos
             # See the discussion in the documentation of #using_library
             attr_reader :toolkit_libraries
 
-            # A set of TaskLibrary objects describing libraries which define
+            # A set of ImportedProject objects describing libraries which define
             # tasks. They have to provide a .orogen file which lists the tasks
             # and their properties.
             attr_reader :used_task_libraries
@@ -152,7 +152,7 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        component = TaskLibrary.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        component = ImportedProject.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
                         @@standard_tasks.concat component.tasks
                     end
                 end
@@ -176,7 +176,7 @@ module Orocos
 
                 @deployers = []
 
-                @loaded_task_libraries = Hash.new
+                @loaded_orogen_projects = Hash.new
                 @loaded_toolkits = Hash.new
 
 		# Load orocos-specific types which cannot be used in the
@@ -198,7 +198,7 @@ module Orocos
 
             # The set of task libraries that are already loaded on this oroGen
             # project
-            attr_reader :loaded_task_libraries
+            attr_reader :loaded_orogen_projects
 
             # Returns the orogen description for the oroGen project +name+. The
             # returned value is [description, path], where +description+ is the
@@ -673,23 +673,36 @@ module Orocos
 		tasks.last
             end
 
-            # Loads the task library +name+
-            def load_task_library(name)
+            # Loads the oroGen project +name+
+            #
+            # The returned value is an instance of ImportedProject
+            def load_orogen_project(name)
                 name = name.to_str
-                if lib = loaded_task_libraries[name]
+                if lib = loaded_orogen_projects[name]
                     return lib
                 end
 
                 pkg, description = orogen_project_description(name)
 
                 if File.file?(description)
-                    lib = TaskLibrary.load(self, pkg, description)
+                    lib = ImportedProject.load(self, pkg, description)
                 else
-                    lib = TaskLibrary.new(self, pkg)
+                    lib = ImportedProject.new(self, pkg)
                     lib.eval(name, description)
                 end
 
-                loaded_task_libraries[name] = lib
+                loaded_orogen_projects[name] = lib
+            end
+
+            # Loads the task library +name+
+            #
+            # The returned value is an instance of ImportedProject
+            def load_task_library(name)
+                tasklib = load_orogen_project(name)
+                if tasklib.self_tasks.empty?
+                    raise ConfigError, "#{name} is an oroGen project, but it defines no task library"
+                end
+                tasklib
             end
             
             # Returns the description information for the given toolkit

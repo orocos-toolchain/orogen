@@ -43,7 +43,7 @@ module Orocos
         #
         # For the task contexts imported this way,
         # TaskContext#external_definition?  returns true.
-        class TaskLibrary < Component
+        class ImportedProject < Component
             # The main Component instance that groups all the imported task
             # libraries
             attr_reader :main_project
