@@ -638,9 +638,9 @@ module Orocos
                 # Find where +file+ is
                 include_dirs = []
                 include_dirs << component.base_dir if component.base_dir
-                include_dirs.concat(component.used_toolkits.map { |tk| tk.pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_libraries.map { |pkg| pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_task_libraries.map { |component| component.pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
+                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
 
                 if File.exists?(file) # Local file
                     file = File.expand_path(file)

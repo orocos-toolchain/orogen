@@ -608,12 +608,14 @@ module Orocos
 
             def used_task_libraries
                 task_models = task_activities.map { |task| task.context }
-                component.used_task_libraries.find_all do |tasklib|
-                    result = task_models.any? do |task|
+                dependencies = component.used_task_libraries.find_all do |tasklib|
+                    current_size = task_models.size
+                    task_models.delete_if do |task|
                         tasklib.self_tasks.include?(task)
                     end
-                    result
+                    current_size != task_models.size
                 end
+                dependencies
             end
 
             def dependencies

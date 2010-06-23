@@ -152,7 +152,7 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        component = TaskLibrary.load(nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        component = TaskLibrary.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
                         @@standard_tasks.concat component.tasks
                     end
                 end
@@ -176,6 +176,9 @@ module Orocos
 
                 @deployers = []
 
+                @loaded_task_libraries = Hash.new
+                @loaded_toolkits = Hash.new
+
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
@@ -188,6 +191,32 @@ module Orocos
             # superclass (i.e. RTT::TaskContext)
             def default_task_superclass
                 find_task_context "RTT::TaskContext"
+            end
+
+            # The set of toolkits that are already loaded on this oroGen project
+            attr_reader :loaded_toolkits
+
+            # The set of task libraries that are already loaded on this oroGen
+            # project
+            attr_reader :loaded_task_libraries
+
+            # Returns the orogen description for the oroGen project +name+. The
+            # returned value is [description, path], where +description+ is the
+            # description content and +path+ the path to the oroGen file. +path+
+            # might be nil if the component is on another machine.
+            def orogen_project_description(name)
+                pkg = begin
+                          begin
+                              Utilrb::PkgConfig.new "orogen-project-#{name}"
+                          rescue Utilrb::PkgConfig::NotFound
+                              Utilrb::PkgConfig.new "#{name}-tasks-#{orocos_target}"
+                          end
+
+                      rescue Utilrb::PkgConfig::NotFound
+                          raise ConfigError, "no task library named '#{name}' is available"
+                      end
+
+                return pkg, pkg.deffile
             end
 
             # Find the TaskContext object described by +obj+. +obj+ can either
@@ -278,7 +307,7 @@ module Orocos
 		    return
 		end
 
-                toolkit = Orocos::Generation.import_toolkit(name)
+                toolkit = load_toolkit(name)
 		used_toolkits << toolkit
                 registry.merge(toolkit.registry)
 	    end
@@ -644,6 +673,63 @@ module Orocos
 		tasks.last
             end
 
+            # Loads the task library +name+
+            def load_task_library(name)
+                name = name.to_str
+                if lib = loaded_task_libraries[name]
+                    return lib
+                end
+
+                pkg, description = orogen_project_description(name)
+
+                if File.file?(description)
+                    lib = TaskLibrary.load(self, pkg, description)
+                else
+                    lib = TaskLibrary.new(self, pkg)
+                    lib.eval(name, description)
+                end
+
+                loaded_task_libraries[name] = lib
+            end
+            
+            # Returns the description information for the given toolkit
+            def orogen_toolkit_description(name)
+                pkg = begin
+                          Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+                      rescue Utilrb::PkgConfig::NotFound => e
+                          raise ConfigError, "no toolkit named '#{name}' is available"
+                      end
+
+                registry = File.read(pkg.type_registry)
+                typelist = File.join(File.dirname(pkg.type_registry), "#{name}.typelist")
+                typelist = File.read(typelist)
+                return pkg, registry, typelist
+            end
+
+            # Returns true if +name+ has a toolkit available
+            def has_toolkit?(name)
+                Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
+            end
+
+            # Returns the ImportedToolkit object that is representing an installed
+            # toolkit.
+            def load_toolkit(name)
+                name = name.to_str
+                if tk = loaded_toolkits[name]
+                    return tk
+                end
+
+                pkg, registry_xml, typelist_txt = orogen_toolkit_description(name)
+
+                toolkit_registry = Typelib::Registry.from_xml(registry_xml)
+                toolkit_typelist = typelist_txt.split("\n").map(&:chomp)
+
+                toolkit = ImportedToolkit.new(self, name,
+                              pkg, toolkit_registry, toolkit_typelist)
+                loaded_toolkits[name] = toolkit
+                toolkit
+            end
+
             # Declares that this component depends on task contexts defined by
             # the given orogen-generated component. After this call, the
             # definitions of the tasks in the task library are available as
@@ -661,12 +747,16 @@ module Orocos
 		    return tasklib
 		end
 
-                component = Orocos::Generation.load_task_library(name)
-                tasks.concat component.tasks
-                used_task_libraries << component
+                tasklib = load_task_library(name)
+                tasks.concat tasklib.tasks
+                used_task_libraries << tasklib
 
-                # Now import the toolkits the component also imports
-                component.used_toolkits.each do |tk|
+                # Now import the toolkits the component also imports, and the
+                # tasklib's own toolkit if there is one
+                if tasklib.has_toolkit?
+                    using_toolkit tasklib.name
+                end
+                tasklib.used_toolkits.each do |tk|
                     using_toolkit tk.name
                 end
                 component
