@@ -780,7 +780,7 @@ module Orocos
                 tasklib.used_toolkits.each do |tk|
                     using_toolkit tk.name
                 end
-                component
+                tasklib
             end
 
 	    # DEPRECATED. Use #deployment instead
