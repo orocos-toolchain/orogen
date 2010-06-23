@@ -200,10 +200,14 @@ module Orocos
             # project
             attr_reader :loaded_orogen_projects
 
-            # Returns the orogen description for the oroGen project +name+. The
-            # returned value is [description, path], where +description+ is the
-            # description content and +path+ the path to the oroGen file. +path+
-            # might be nil if the component is on another machine.
+            # call-seq:
+            #   orogen_project_description(name) => pkg, description
+            #
+            # Returns the orogen description for the oroGen project +name+.
+            #
+            # In the return value, pkg is the PkgConfig object that describes
+            # the project, and can be nil. +description+ is either the path to
+            # the oroGen description file, or its content.
             def orogen_project_description(name)
                 pkg = begin
                           begin
@@ -681,7 +685,6 @@ module Orocos
                 if lib = loaded_orogen_projects[name]
                     return lib
                 end
-
                 pkg, description = orogen_project_description(name)
 
                 if File.file?(description)
@@ -691,7 +694,12 @@ module Orocos
                     lib.eval(name, description)
                 end
 
-                loaded_orogen_projects[name] = lib
+                register_loaded_project(name, lib)
+            end
+            
+            # Called to store a loaded project for reuse later
+            def register_loaded_project(name, obj)
+                loaded_orogen_projects[name] = obj
             end
 
             # Loads the task library +name+
