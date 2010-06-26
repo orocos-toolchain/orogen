@@ -872,6 +872,8 @@ module Orocos
                 self
             end
 	end
+
+	Project = Component
     end
 end
 
