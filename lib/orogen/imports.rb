@@ -61,10 +61,8 @@ module Orocos
                 @pkg = pkg
                 super()
 
-		if main_project && main_project.has_toolkit?(name)
-                    if Utilrb::PkgConfig.has_package?("#{pkg.project_name}-toolkit-#{orocos_target}")
-                        using_toolkit pkg.project_name
-		    end
+		if pkg && main_project && main_project.has_toolkit?(name)
+                    using_toolkit pkg.project_name
 		end
             end
 
