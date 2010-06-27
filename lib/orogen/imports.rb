@@ -88,7 +88,12 @@ module Orocos
 		    if type.respond_to?(:to_str)
                         type = type.gsub('::', '/')
                         type = Typelib::Type.normalize_typename(type)
-			registry.get(type)
+                        begin
+                            registry.get(type)
+                        rescue Typelib::NotFound
+                            toolkit(true)
+                            registry.get(type)
+                        end
 		    elsif type.kind_of?(Class) && type <= Typelib::Type
                         type
                     else
