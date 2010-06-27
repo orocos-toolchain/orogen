@@ -889,12 +889,12 @@ module Orocos
             # in +self+, but for which the definition is different.
             def merge_ports_from(other_model)
                 other_model.each_port do |p|
-                    self_port = other_model.port(p.name)
-                    if self_port
+                    begin
+                        self_port = port(p.name)
                         if (self_port.class != p.class || self_port.type != p.type)
                             raise ArgumentError, "cannot merge as the output port #{self_port.name} have different meanings"
                         end
-                    else
+                    rescue ArgumentError
                         @ports << p
                     end
                 end
