@@ -61,10 +61,8 @@ module Orocos
                 @pkg = pkg
                 super()
 
-		if main_project && main_project.has_toolkit?(name)
-                    if Utilrb::PkgConfig.has_package?("#{pkg.project_name}-toolkit-#{orocos_target}")
-                        using_toolkit pkg.project_name
-		    end
+		if pkg && main_project && main_project.has_toolkit?(name)
+                    using_toolkit pkg.project_name
 		end
             end
 
@@ -90,7 +88,12 @@ module Orocos
 		    if type.respond_to?(:to_str)
                         type = type.gsub('::', '/')
                         type = Typelib::Type.normalize_typename(type)
-			registry.get(type)
+                        begin
+                            registry.get(type)
+                        rescue Typelib::NotFound
+                            toolkit(true)
+                            registry.get(type)
+                        end
 		    elsif type.kind_of?(Class) && type <= Typelib::Type
                         type
                     else

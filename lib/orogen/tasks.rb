@@ -145,8 +145,8 @@ module Orocos
                 super
                 @sample_size  = 1
                 @period = 1
-                @burst_size   = nil
-                @burst_period = nil
+                @burst_size   = 0
+                @burst_period = 0
                 @port_triggers = Set.new
             end
 
@@ -198,7 +198,17 @@ module Orocos
             end
 
             # The set of input ports that will cause a write on this output
-            attr_reader :port_triggers
+            def port_triggers
+                if @port_triggers.empty?
+                    if !@triggered_on_update && (default = task.default_update_trigger)
+                        [default.name].to_set
+                    else
+                        @port_triggers
+                    end
+                else
+                    @port_triggers
+                end
+            end
 
             # call-seq:
             #   triggered_on input_port_name, input_port_name, ...
@@ -230,7 +240,7 @@ module Orocos
             #
             # See #triggered_on_update and #triggered_on
             def triggered_on_update?
-                if !@port_triggers.empty?
+                if !port_triggers.empty?
                     !!@triggered_on_update
                 else
                     true
@@ -889,12 +899,12 @@ module Orocos
             # in +self+, but for which the definition is different.
             def merge_ports_from(other_model)
                 other_model.each_port do |p|
-                    self_port = other_model.port(p.name)
-                    if self_port
+                    begin
+                        self_port = port(p.name)
                         if (self_port.class != p.class || self_port.type != p.type)
                             raise ArgumentError, "cannot merge as the output port #{self_port.name} have different meanings"
                         end
-                    else
+                    rescue ArgumentError
                         @ports << p
                     end
                 end
@@ -1495,6 +1505,19 @@ module Orocos
                 each_port.
                     find_all { |p| p.kind_of?(InputPort) }.
                     each(&block)
+            end
+
+            # Default input port that triggers writing on outputs.
+            #
+            # See #updates_on
+            attr_reader :default_update_trigger
+
+            # Declares that all input ports for which no triggering mechanism is
+            # specified, either by using #triggered_on or by explicitely calling
+            # #triggered_on_update are actually triggered by the given input
+            # port
+            def updates_on(name)
+                @default_update_trigger = port(name.to_str)
             end
 
             # A set of ports that will trigger this task when they get updated.

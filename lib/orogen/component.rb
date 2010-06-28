@@ -163,7 +163,6 @@ module Orocos
 	    def initialize
 		@tasks = Component.standard_tasks.dup
                 @self_tasks = []
-		@registry = Typelib::Registry.new
 
                 @name    = nil
 		@corba   = nil
@@ -182,10 +181,22 @@ module Orocos
 		# Load orocos-specific types which cannot be used in the
 		# component-defined toolkit but can be used literally in argument
 		# lists or property types
+                if !Component.rtt_registry
+                    Component.load_rtt_registry
+                end
+		@registry = Typelib::Registry.new
+		@registry.merge rtt_registry
+	    end
+
+            class << self
+                attr_reader :rtt_registry
+            end
+
+            def self.load_rtt_registry
                 rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
                 @rtt_registry = Typelib::Registry.import rtt_tlb
-		registry.import rtt_tlb
-	    end
+            end
+
 
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
@@ -318,7 +329,7 @@ module Orocos
 
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
-	    attr_reader :rtt_registry
+            def rtt_registry; Component.rtt_registry end
 
             # Returns true if +typename+ has been defined by a toolkit imported
             # by using_toolkit
@@ -327,7 +338,7 @@ module Orocos
 		    typename = typename.name
 		end
 
-                @rtt_registry.includes?(typename) ||
+                rtt_registry.includes?(typename) ||
                     used_toolkits.any? { |tk| tk.includes?(typename) }
             end
 	    
