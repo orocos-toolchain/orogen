@@ -1,12 +1,6 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 #define <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 
-// This is a hack. We include it unconditionally as it may be required by some
-// toolkits *and* it is a standard header. Ideally, we would actually check if
-// some of the types need std::vector.
-#include <vector>
-#include <boost/cstdint.hpp>
-
 <%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
 <% toolkit.external_loads.each do |file| %>
@@ -18,6 +12,12 @@
 <% toolkit.used_toolkits.each do |tk| %>
 #include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
 <% end %>
+
+// This is a hack. We include it unconditionally as it may be required by some
+// toolkits *and* it is a standard header. Ideally, we would actually check if
+// some of the types need std::vector.
+#include <vector>
+#include <boost/cstdint.hpp>
 
 <% registered_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP
