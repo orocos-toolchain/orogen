@@ -819,6 +819,19 @@ module Orocos
 	    def deployment(name, &block) # :yield:
                 deployer = StaticDeployment.new(self, name, &block)
                 deployer.instance_eval(&block) if block_given?
+
+                # If the deployer is meant to be installed, check that there is
+                # not alreay a deployment with that name
+                # if deployer.install?
+                #     begin
+                #         pkg = Utilrb::PkgConfig.new("orogen-#{name}")
+                #         if pkg.project_name != component.name
+                #             raise ArgumentError, "#{name} is a deployment already used in #{pkg.project_name}"
+                #         end
+                #     rescue Utilrb::PkgConfig::NotFound
+                #     end
+                # end
+
                 @deployers << deployer
                 deployer
 	    end
