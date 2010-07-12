@@ -83,3 +83,15 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= Fil
 include(<%= Generation::AUTOMATIC_AREA_NAME %>/config/<%= deployer.name %>Deployment.cmake)
 <% end %>
 
+# Install typelib and/or Roby plugins
+if (EXISTS ${PROJECT_SOURCE_DIR}/scripts/typelib.rb)
+    install(FILES ${PROJECT_SOURCE_DIR}/scripts/typelib.rb
+        DESTINATION share/typelib/ruby
+        RENAME <%= component.name %>.rb)
+endif()
+if (EXISTS ${PROJECT_SOURCE_DIR}/scripts/roby.rb)
+    install(FILES ${PROJECT_SOURCE_DIR}/scripts/roby.rb
+        DESTINATION share/orocos/roby
+        RENAME <%= component.name %>.rb)
+endif()
+
