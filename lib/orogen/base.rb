@@ -192,7 +192,7 @@ module Orocos
 
             Find.find(dir_path) do |file|
                 if File.file?(file) && !File.symlink?(file) && !generated_files.include?(file)
-                    STDERR.puts "removing #{file}"
+                    logger.info "   removing #{file}"
                     FileUtils.rm_f file
                 end
             end
