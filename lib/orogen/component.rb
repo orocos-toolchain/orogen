@@ -17,6 +17,7 @@ module Orocos
         class << self
             attr_accessor :command_line_options
         end
+        @command_line_options = Array.new
 
         def self.orocos_target=(target)
             @orocos_target = target.to_s
@@ -385,8 +386,11 @@ module Orocos
                 if name !~ /[a-z][a-z0-9\_]+/
                     raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
-                unless deffile
+                if !deffile
                     raise ArgumentError, "there is no orogen file for this component, cannot generate"
+                end
+                if !File.file?(deffile)
+                    Orocos::Generation.warn "#{deffile} does not exist, assuming that we are generating a stub component"
                 end
 
 		# For consistency in templates
@@ -395,8 +399,14 @@ module Orocos
                 # First, generate a to-be-installed version of the orogen file.
                 # We do that to add command-line options like corba
                 # enable/disable and extended state support.
-                orogen_file = Generation.render_template "project.orogen", binding
-		Generation.save_automatic(File.basename(deffile), orogen_file)
+                if File.file?(deffile)
+                    orogen_file = Generation.render_template "project.orogen", binding
+                    Generation.save_automatic(File.basename(deffile), orogen_file)
+                else
+                    dir = File.join(File.dirname(deffile), Orocos::Generation::AUTOMATIC_AREA_NAME)
+                    FileUtils.mkdir_p dir
+                    FileUtils.touch(File.join(dir, File.basename(deffile)))
+                end
 
 		# The toolkit and the task libraries populate a fake
 		# installation directory .orogen/<project_name> so that the
