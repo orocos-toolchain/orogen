@@ -1,8 +1,8 @@
 module Orocos
     module Generation
-        # Instances of this class represent a toolkit that has been imported
-        # using Component#using_toolkit.
-        class ImportedToolkit
+        # Instances of this class represent a typekit that has been imported
+        # using Component#using_typekit.
+        class ImportedTypekit
             attr_reader :main_project
             attr_reader :name
             attr_reader :pkg
@@ -16,7 +16,7 @@ module Orocos
                 pkg.name
             end
             def pkg_corba_name
-                Utilrb::PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
+                Utilrb::PkgConfig.new(pkg.name.gsub('typekit', 'transport-corba')).name
             end
             def include_dirs
                 pkg.include_dirs
@@ -61,8 +61,8 @@ module Orocos
                 @pkg = pkg
                 super()
 
-		if pkg && main_project && main_project.has_toolkit?(name)
-                    using_toolkit pkg.project_name
+		if pkg && main_project && main_project.has_typekit?(name)
+                    using_typekit pkg.project_name
 		end
             end
 
@@ -73,8 +73,8 @@ module Orocos
             def load_task_library(name)
                 main_project.load_task_library(name)
             end
-            def load_toolkit(name)
-                main_project.load_toolkit(name)
+            def load_typekit(name)
+                main_project.load_typekit(name)
             end
 
             def task_context(name, &block) # :nodoc:
@@ -91,7 +91,7 @@ module Orocos
                         begin
                             registry.get(type)
                         rescue Typelib::NotFound
-                            toolkit(true)
+                            typekit(true)
                             registry.get(type)
                         end
 		    elsif type.kind_of?(Class) && type <= Typelib::Type
@@ -106,25 +106,25 @@ module Orocos
             def export_types(*args); self end
             def type_export_policy(*args); self end
 
-            # True if this task library defines a toolkit
-            attr_predicate :has_toolkit?, true
+            # True if this task library defines a typekit
+            attr_predicate :has_typekit?, true
 
             def import_types_from(name, *args)
-                if main_project && main_project.has_toolkit?(name)
-                    using_toolkit name
+                if main_project && main_project.has_typekit?(name)
+                    using_typekit name
                 else
-                    using_toolkit self.name
+                    using_typekit self.name
                 end
                 import_types_from(*args) unless args.empty?
             end
 
-            def toolkit(create = nil, &block) # :nodoc:
+            def typekit(create = nil, &block) # :nodoc:
                 if !create && !block_given?
                     super
                 else
-                    @toolkit = using_toolkit(name)
-                    self.has_toolkit = true
-                    @toolkit
+                    @typekit = using_typekit(name)
+                    self.has_typekit = true
+                    @typekit
                 end
             end
 

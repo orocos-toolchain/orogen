@@ -216,37 +216,43 @@ module Orocos
             # The Component object this task is part of
             def component; context.component end
 
+            ActivityDefinition = Struct.new :name, :class_name, :header
+
             # The subclass of ActivityInterface which should be used to run this task
-            dsl_attribute :activity_type do |type|
+            dsl_attribute :activity_type do |*type|
                 if @explicit_activity
                     if context.required_activity?
-                        raise ArgumentError, "the #{context.name} task context requires #{activity_type} as an activity, you cannot change it"
+                        raise ArgumentError, "the #{context.name} task context requires #{@activity_type.name} as an activity, you cannot change it"
                     else
                         raise ArgumentError, "you already explicitely set the activity of #{name}"
                     end
                 end
                 @explicit_activity = true
-                type.to_s
+                
+                ActivityDefinition.new(type[0], type[1], type[2])
             end
 
             # Makes this task's activity driven by a file descriptor. The underlying
             # task context must be a subclass of FileDescriptorActivity::Provider
-            def fd_driven; activity_type 'FileDescriptorActivity'; self end
+            def fd_driven
+                activity_type 'FileDescriptorActivity', 'RTT::extras::FileDescriptorActivity', 'rtt/extras/FileDescriptorActivity.hpp'
+                self
+            end
 
             # Makes this task's activity driven by events on an IRQ line. The
             # underlying task context must be a subclass of
             # IRQActivity::Provider
-            def irq_driven; activity_type 'IRQActivity'; self end
+            def irq_driven
+                activity_type 'IRQActivity', 'RTT::extras::IRQActivity', 'rtt/extras/IRQActivity.hpp'
+                self
+            end
 
             # Make this task being driven "on demand", i.e. when the step()
             # method is explicitely called on it.
-            def slave; activity_type 'SlaveActivity'; self end
-
-            # Make this task being driven by a set of events. If the task is
-            # itself declared data driven (through the TaskContext#data_driven
-            # call), the task will be triggered by the data availability on its
-            # input ports.
-            def event_driven; activity_type 'EventDrivenActivity'; self end
+            def slave
+                activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                self
+            end
 
 	    # Returns the task period, or nil if the task is not periodic. Call
             # #periodic to define a periodic task and one of the other
@@ -262,13 +268,16 @@ module Orocos
             # activity type.
             def periodic(value)
                 @period = Float(value)
-                activity_type 'PeriodicActivity'
+                activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
                 self
             end
 
             # Marks this task as being explicitely triggered (the default). To
             # make it periodic, call #period with the required period
-	    def triggered; activity_type 'NonPeriodicActivity'; self end
+	    def triggered
+                activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                self
+            end
 
             # Marks this task as being "sequential". Sequential tasks are
             # thread-less, and are triggered by the component that is calling
@@ -318,9 +327,9 @@ module Orocos
 	    def rtt_priority
 		case @priority
 		when :highest
-		    'RTT::OS::HighestPriority'
+		    'RTT::os::HighestPriority'
 		when :lowest
-		    'RTT::OS::LowestPriority'
+		    'RTT::os::LowestPriority'
 		when Integer
 		    @priority
 		end
@@ -410,18 +419,18 @@ module Orocos
                 :debug => 'Debug'
             }
 
-            # Returns the set of toolkits required by this particular
+            # Returns the set of typekits required by this particular
             # deployment (i.e. the tasks that are deployed in it)
-            def used_toolkits
-                task_toolkits = task_activities.map do |deployed_task|
-                    deployed_task.context.used_toolkits.
+            def used_typekits
+                task_typekits = task_activities.map do |deployed_task|
+                    deployed_task.context.used_typekits.
                         map(&:name)
                 end.flatten.to_set
 
-                task_toolkits.sort.map do |used_name|
-                    this_tk = component.used_toolkits.find { |tk| tk.name == used_name }
+                task_typekits.sort.map do |used_name|
+                    this_tk = component.used_typekits.find { |tk| tk.name == used_name }
                     if !this_tk
-                        raise "Internal Error: imported toolkit is not present in this component's used_toolkits set"
+                        raise "Internal Error: imported typekit is not present in this component's used_typekits set"
                     end
                     this_tk
                 end
@@ -628,7 +637,7 @@ module Orocos
                     result << BuildDependency.new("OrocosCORBA", "orocos-transport-corba-#{Generation.orocos_target}", true, true, true)
                 end
 
-                used_toolkits.each do |tk|
+                used_typekits.each do |tk|
                     result << BuildDependency.new("#{tk.name}_TOOLKIT", tk.pkg_name, false, true, true)
                     if corba_enabled?
                         result << BuildDependency.new("#{tk.name}_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)

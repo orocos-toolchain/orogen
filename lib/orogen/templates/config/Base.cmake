@@ -43,12 +43,12 @@ ENDIF ( DOXYGEN_FOUND )
 
 # First, we need the Orocos::RTT, and optionally the CORBA part
 include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.6.99")
+pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
 <% if component.corba_enabled? %>
-    <% if !component.toolkit || !component.toolkit.corba_enabled? %>
+    <% if !component.typekit || !component.typekit.corba_enabled? %>
 find_package(OrocosCORBA REQUIRED)
     <% else %>
-find_package(OrocosCORBA REQUIRED COMPONENTS Toolkit)
+find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
     <% end %>
 INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
 ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
@@ -58,11 +58,11 @@ ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR})
 
-# Take care of the toolkit
-<% if component.toolkit %>
+# Take care of the typekit
+<% if component.typekit %>
 pkg_check_modules(TYPELIB REQUIRED "typelib>=1.1")
-ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit )
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit")
+ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
 <% end %>
 
 # Take care of the task library

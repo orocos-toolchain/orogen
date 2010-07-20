@@ -91,7 +91,7 @@ module Typelib
             end
         end
 
-        def self.code_copy(toolkit, result, indent, dest, src, method)
+        def self.code_copy(typekit, result, indent, dest, src, method)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -114,20 +114,20 @@ module Typelib
             result << "#{indent}}\n";
         end
 
-        def self.to_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+        def self.to_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate") do |type|
                 !type.contains_opaques?
             end
         end
-        def self.from_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+        def self.from_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate") do |type|
                 !type.contains_opaques?
             end
         end
     end
 
     class EnumType
-        def self.to_string(toolkit, result, indent)
+        def self.to_string(typekit, result, indent)
             seen_values = Set.new
             result << indent << "std::string enum_name;\n"
             result << indent << "switch(value) {\n"
@@ -155,7 +155,7 @@ module Typelib
 	def self.contains_int64?; enum_for(:each_field).any? { |_, type| type.contains_int64? } end
 	def self.contains_opaques?; enum_for(:each_field).any? { |_, type| type.contains_opaques? } end
 
-        def self.code_copy(toolkit, result, indent, dest, src, method, error_handling)
+        def self.code_copy(typekit, result, indent, dest, src, method, error_handling)
             each_field do |field_name, field_type|
                 if string = yield(field_name, field_type)
                     if !string.respond_to?(:to_str)
@@ -183,13 +183,13 @@ module Typelib
 	    result
         end
 
-        def self.to_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate", false) do |field_name, field_type|
+        def self.to_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate", false) do |field_name, field_type|
                 !field_type.contains_opaques?
             end
         end
-        def self.from_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate", false) do |field_name, field_type|
+        def self.from_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate", false) do |field_name, field_type|
                 !field_type.contains_opaques?
             end
         end
@@ -202,7 +202,7 @@ module Typelib
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
 
-        def self.code_copy(toolkit, result, indent, dest, src, method)
+        def self.code_copy(typekit, result, indent, dest, src, method)
             element_type = registry.build(deference.name)
 
             allocate_index do |i|
@@ -235,21 +235,21 @@ module Typelib
 	    result
         end
 
-        def self.to_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+        def self.to_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate") do |type|
                 !type.contains_opaques?
             end
         end
 
-        def self.from_intermediate(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+        def self.from_intermediate(typekit, result, indent)
+            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate") do |type|
                 !type.contains_opaques?
             end
         end
     end
 
     class Registry
-        # Returns true if +type+ is handled by the toolkit that is included in
+        # Returns true if +type+ is handled by the typekit that is included in
         # the RTT itself, and false otherwise.
         #
         # This is used in property bags and in the interface definition, as --
@@ -297,7 +297,7 @@ module Orocos
     module Generation
         # Data structure that represents the definition for an opaque type
         #
-        # See Toolkit#opaque_type
+        # See Typekit#opaque_type
         class OpaqueDefinition
             # The Typelib::Type subclass that represents this opaque
             attr_reader :type
@@ -330,14 +330,14 @@ module Orocos
             def generate_templates?; !code_generator end
         end
 
-	class Toolkit
-            # The component this toolkit is part of
+	class Typekit
+            # The component this typekit is part of
 	    attr_reader :component
             # The set of headers loaded by #load, as an array of absolute paths
             attr_reader :loads
 
             # The set of external headers that have been imported in this
-            # toolkit. I.e. it contains the headers that are loaded from a
+            # typekit. I.e. it contains the headers that are loaded from a
             # depended-upon library for instance.
             def external_loads
                 loads.find_all do |name|
@@ -364,10 +364,10 @@ module Orocos
             # If the :all policy is used (the default), then all types that have
             # been imported through header files will be included. This can
             # generate a lot of code, and therefore produce high compilation
-            # times and big toolkit libraries.
+            # times and big typekit libraries.
             #
             # If the :used policy is used, then will only be exported the types
-            # that are actually used in a task context of the toolkit's project.
+            # that are actually used in a task context of the typekit's project.
             # This is most of the time a good idea.
             #
             # If the :selected policy is used, then only types that have been
@@ -382,7 +382,7 @@ module Orocos
 
             # Select a set of types to be exported through the RTT type system,
             # instead of exporting everything. This is meant to reduce the
-            # toolkit's code size and compilation times tremendously.
+            # typekit's code size and compilation times tremendously.
             #
             # EXPERIMENTAL
             #
@@ -471,13 +471,13 @@ module Orocos
                 @selected_types = Array.new
 
 		# Load orocos-specific types which cannot be used in the
-		# component-defined toolkit but can be used literally in argument
+		# component-defined typekit but can be used literally in argument
 		# lists or property types
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 	    end
 
             # Loads the types defined in +file+, with the same constraints as
-            # for #load, but will not generate toolkit code for it. This is
+            # for #load, but will not generate typekit code for it. This is
             # needed to load system files for which there is a "natural"
             # support in Orocos.
             def preload(file)
@@ -501,15 +501,15 @@ module Orocos
             #  * the smart pointer must define a #reset method to set a new
             #    managed memory zone.
             #
-            # The Toolkit#ro_ptr and Toolkit#shared_ptr shortcuts are defined
+            # The Typekit#ro_ptr and Typekit#shared_ptr shortcuts are defined
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
             def smart_ptr(name, base_type, options = Hash.new)
                 opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
-                    Generation.render_template('toolkit/smart_ptr.cpp', binding)
+                    Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
             end
 
-            # Make the toolkit define the specialization of RTT::ReadOnlyPointer
+            # Make the typekit define the specialization of RTT::ReadOnlyPointer
             # for the given type.
             #
             # See #smart_ptr for more information.
@@ -519,7 +519,7 @@ module Orocos
                 smart_ptr("/RTT/ReadOnlyPointer", find_type(name), options)
             end
 
-            # Make the toolkit define the specialization of boost::shared_ptr
+            # Make the typekit define the specialization of boost::shared_ptr
             # for the given type.
             #
             # See #smart_ptr for more information.
@@ -600,7 +600,7 @@ module Orocos
                     sort_by { |orogen_def| orogen_def.type.name }
             end
 
-            # True if there are some opaques in this toolkit
+            # True if there are some opaques in this typekit
             def has_opaques?
                 !opaques.empty?
             end
@@ -638,7 +638,7 @@ module Orocos
                 # Find where +file+ is
                 include_dirs = []
                 include_dirs << component.base_dir if component.base_dir
-                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
+                include_dirs.concat(component.used_typekits.map   { |tk| tk.include_dirs }.flatten)
                 include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
                 include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
 
@@ -690,12 +690,12 @@ module Orocos
                 end
             end
 
-            # Packages defined in this component on which the toolkit should
+            # Packages defined in this component on which the typekit should
             # depend. See #internal_dependency.
             attr_reader :internal_dependencies
 
-            # The second one allows to specify a dependency of the toolkit on a
-            # library defined in the same CMake package. The toolkit's .pc file
+            # The second one allows to specify a dependency of the typekit on a
+            # library defined in the same CMake package. The typekit's .pc file
             # will therefore depend on the specified pkg-config package (among
             # other things). Do that when you define a library of types and
             # want people to be able to use it even though they don't have
@@ -703,18 +703,18 @@ module Orocos
             #
             # In other words, it allows to build packages were:
             #  * a normal C/C++ library is defined/built/install
-            #  * an orogen toolkit is defined, which wraps the types defined by this library
+            #  * an orogen typekit is defined, which wraps the types defined by this library
             def internal_dependency(name, version = nil)
                 @internal_dependencies << [name, version]
             end
 
-	    def import(other_toolkit)
+	    def import(other_typekit)
 		raise NotImplementedError
 	    end
 
-            # True if the CORBA-specific part of the toolkit should be enabled.
+            # True if the CORBA-specific part of the typekit should be enabled.
             # By default, it follows the setting in the component. You can a
-            # per-toolkit specific setting by using #enable_corba and
+            # per-typekit specific setting by using #enable_corba and
             # #disable_corba
 	    def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
             def enable_corba;  @corba_enabled = true end
@@ -724,20 +724,20 @@ module Orocos
 		minimal_registry = self.registry.
 		    minimal(preloaded_registry).
 		    minimal(component.rtt_registry)
-		minimal_registry = component.used_toolkits.
+		minimal_registry = component.used_typekits.
 		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
 
                 @registry = minimal_registry
             end
 
-            # List of toolkits that this toolkit depends on
-            def used_toolkits
+            # List of typekits that this typekit depends on
+            def used_typekits
                 normalize_registry
                 result = Set.new
 
-                # We depend on the toolkits that define types that are used in
+                # We depend on the typekits that define types that are used in
                 # our types (ouch), as they define the convertion functions that
-                # our toolkit will use.
+                # our typekit will use.
                 #
                 # We therefore must not use self_types there but really
                 # registry.each_type. Note that the registry is minimal, i.e.
@@ -745,7 +745,7 @@ module Orocos
                 # define them, and this is therefore not a problem.
 		registry.each_type(true) do |name, type|
                     loop do
-                        component.used_toolkits.each do |tk|
+                        component.used_typekits.each do |tk|
                             if type < Typelib::ArrayType 
                                 if tk.has_array_of?(type.deference)
                                     result << tk
@@ -765,7 +765,7 @@ module Orocos
                 result.to_a.sort_by { |tk| tk.name }
             end
 
-            # Returns the set of pkg-config packages this toolkit depends on
+            # Returns the set of pkg-config packages this typekit depends on
             def dependencies
                 result = []
 
@@ -773,21 +773,21 @@ module Orocos
                 # from them has constructors/destructors that the library
                 # provides.
                 component.used_libraries.each do |pkg|
-                    needs_link = component.toolkit_libraries.include?(pkg)
+                    needs_link = component.typekit_libraries.include?(pkg)
                     result << BuildDependency.new(pkg.name.upcase, pkg.name, false, true, needs_link)
                 end
 
-                # We must link to toolkits that define our types, as we are
+                # We must link to typekits that define our types, as we are
                 # going to reuse the convertion functions that they define
-                used_toolkits.each do |tk|
+                used_typekits.each do |tk|
                     result << BuildDependency.new(tk.name.upcase + "_TOOLKIT", tk.pkg_name, false, true, true)
                 end
 
-                # We must include the toolkits that define types that are used
-                # in the other toolkits types
+                # We must include the typekits that define types that are used
+                # in the other typekits types
 
                 if corba_enabled?
-                    used_toolkits.each do |tk|
+                    used_typekits.each do |tk|
                         result << BuildDependency.new(tk.name.upcase + "_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
                     end
                 end
@@ -796,24 +796,24 @@ module Orocos
             end
 
 	    def to_code(generated_types, registry)
-		toolkit = self
+		typekit = self
 
-                # Save all the types that this specific toolkit handles
-                Generation.save_automatic "toolkit", "#{component.name}.typelist",
+                # Save all the types that this specific typekit handles
+                Generation.save_automatic "typekit", "#{component.name}.typelist",
                     generated_types.
                         map { |type| type.name }.
                         join("\n")
 
                 generate_typedefs(generated_types, registry)
 
-		type_header = Generation.render_template('toolkit/types.hpp', binding)
+		type_header = Generation.render_template('typekit/types.hpp', binding)
 		if corba_enabled?
-		    corba  = Generation.render_template 'toolkit/corba.hpp', binding
-		    idl    = Orocos::Generation.render_template "toolkit/corba.idl", binding
+		    corba  = Generation.render_template 'typekit/corba.hpp', binding
+		    idl    = Orocos::Generation.render_template "typekit/corba.idl", binding
 		end
-		header = Orocos::Generation.render_template "toolkit/header.hpp", binding
+		header = Orocos::Generation.render_template "typekit/header.hpp", binding
 		namespace = '/'
-		source = Orocos::Generation.render_template "toolkit/toolkit.cpp", binding
+		source = Orocos::Generation.render_template "typekit/typekit.cpp", binding
 
 		return type_header, header, source, corba, idl
 	    end
@@ -881,10 +881,10 @@ module Orocos
                 generate_all_marshalling_types = false
                 generated_types = registry.enum_for(:each_type).
                     find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
-		toolkit = self
+		typekit = self
                 catch(:nothing_to_define) do
                     Tempfile.open('orogen') do |io|
-                        marshalling_code = Generation.render_template 'toolkit/marshalling_types.hpp', binding
+                        marshalling_code = Generation.render_template 'typekit/marshalling_types.hpp', binding
                         io << marshalling_code
                         io.flush
 
@@ -914,10 +914,10 @@ module Orocos
 		end
 	    end
 
-            # Returns the set of type names defined in this toolkit. This is
+            # Returns the set of type names defined in this typekit. This is
             # different from self_types, as it returns a set of type names (i.e.
             # strings), and also because it includes the aliases defined by the
-            # toolkit.
+            # typekit.
             def self_typenames
 		generated_types = []
 		registry.each_type(true) do |name, type|
@@ -930,7 +930,7 @@ module Orocos
             end
 
             # Returns the set of types that are specifically handled by this
-            # toolkit
+            # typekit
             def self_types
 		generated_types = []
 		registry.each_type do |type|
@@ -966,9 +966,9 @@ module Orocos
             attr_reader :template_instanciation_files
 
 	    def generate
-		toolkit = self
+		typekit = self
 
-                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'toolkit')
+                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'typekit')
 
                 # Populate a fake installation directory so that the include
                 # files can be referred to as <project_name>/header.h
@@ -1004,7 +1004,7 @@ module Orocos
 		minimal_registry = self.registry.
 		    minimal(preloaded_registry).
 		    minimal(component.rtt_registry)
-		minimal_registry = component.used_toolkits.
+		minimal_registry = component.used_typekits.
 		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
 
 		issue_warnings(generated_types, minimal_registry)
@@ -1020,10 +1020,10 @@ module Orocos
                     opaque_entry['marshal_as'] = spec.intermediate
                     opaque_entry['includes']   = spec.includes.join(':')
                 end
-                Generation.save_automatic "toolkit", "#{component.name}.tlb", doc.to_xml
+                Generation.save_automatic "typekit", "#{component.name}.tlb", doc.to_xml
 
-                # Save all the types that this specific toolkit handles
-                Generation.save_automatic "toolkit", "#{component.name}.typelist",
+                # Save all the types that this specific typekit handles
+                Generation.save_automatic "typekit", "#{component.name}.typelist",
                     self_typenames.join("\n")
 
                 # The first array is the set of types for which convertion
@@ -1034,7 +1034,7 @@ module Orocos
                 # unnecessarily (the original sets are hashes, and therefore don't
                 # have a stable order).
                 converted_types = generated_types.
-                    find_all { |type| !type.opaque? && !toolkit.m_type?(type) }.
+                    find_all { |type| !type.opaque? && !typekit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
 
                 # We need a special case for arrays. The issue is the following:
@@ -1046,7 +1046,7 @@ module Orocos
 
                 array_types = array_types.
                     delete_if do |type|
-                        component.used_toolkits.any? { |tk| tk.has_array_of?(type.deference) }
+                        component.used_typekits.any? { |tk| tk.has_array_of?(type.deference) }
                     end.
                     inject(Hash.new) { |h, type| h[type.deference.name] = type; h }.
                     values.
@@ -1070,60 +1070,60 @@ module Orocos
                                    end
 
                 registered_types = registered_types.
-                    find_all { |type| !toolkit.m_type?(type) && !(type <= Typelib::ArrayType) }.
+                    find_all { |type| !typekit.m_type?(type) && !(type <= Typelib::ArrayType) }.
                     sort_by { |type| type.name }.uniq
 
                 # Generate the C++ and IDL files
-                tk_hpp = Generation.render_template "toolkit/Toolkit.hpp", binding
-		Generation.save_automatic("toolkit", "#{component.name}Toolkit.hpp", tk_hpp)
-                tk_cpp = Generation.render_template "toolkit/Toolkit.cpp", binding
-		Generation.save_automatic("toolkit", "#{component.name}Toolkit.cpp", tk_cpp)
-                tk_impl_hpp = Generation.render_template "toolkit/ToolkitImpl.hpp", binding
-		Generation.save_automatic("toolkit", "#{component.name}ToolkitImpl.hpp", tk_impl_hpp)
-		type_header = Generation.render_template('toolkit/ToolkitTypes.hpp', binding)
-		Generation.save_automatic("toolkit", "#{component.name}ToolkitTypes.hpp", type_header)
-		pkg_config = Generation.render_template 'toolkit/toolkit.pc', binding
-		Generation.save_automatic("toolkit", "#{component.name}-toolkit.pc.in", pkg_config)
+                tk_hpp = Generation.render_template "typekit/Typekit.hpp", binding
+		Generation.save_automatic("typekit", "#{component.name}Typekit.hpp", tk_hpp)
+                tk_cpp = Generation.render_template "typekit/Typekit.cpp", binding
+		Generation.save_automatic("typekit", "#{component.name}Typekit.cpp", tk_cpp)
+                tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
+		Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
+		type_header = Generation.render_template('typekit/TypekitTypes.hpp', binding)
+		Generation.save_automatic("typekit", "#{component.name}TypekitTypes.hpp", type_header)
+		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
+		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
 
                 # Generate the explicit instanciation files. We split them on a
                 # by-type basis, as it allows to use parallel build *and* avoid
                 # memory explosion by GCC
                 @template_instanciation_files = registered_types.each_with_index.map do |type, i|
-                    instanciation = Generation.render_template 'toolkit/TemplateInstanciation.cpp', binding
+                    instanciation = Generation.render_template 'typekit/TemplateInstanciation.cpp', binding
                     out_name =  "#{component.name}TemplateInstanciation#{i}.cpp"
-                    Generation.save_automatic("toolkit", out_name, instanciation)
+                    Generation.save_automatic("typekit", out_name, instanciation)
                     out_name
                 end
 
                 if corba_enabled?
-                    corba_hpp = Generation.render_template "toolkit/ToolkitCorba.hpp", binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.hpp", corba_hpp)
-                    corba_impl_hpp = Generation.render_template "toolkit/ToolkitCorbaImpl.hpp", binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorbaImpl.hpp", corba_impl_hpp)
-                    corba_cpp = Generation.render_template "toolkit/ToolkitCorba.cpp", binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitCorba.cpp", corba_cpp)
-		    idl    = Orocos::Generation.render_template "toolkit/Toolkit.idl", binding
-                    Generation.save_automatic "toolkit", "#{component.name}Toolkit.idl", idl
-                    pkg_config = Generation.render_template 'toolkit/transport-corba.pc', binding
-                    Generation.save_automatic("toolkit", "#{component.name}-transport-corba.pc.in", pkg_config)
+                    corba_hpp = Generation.render_template "typekit/TypekitCorba.hpp", binding
+                    Generation.save_automatic("typekit", "#{component.name}TypekitCorba.hpp", corba_hpp)
+                    corba_impl_hpp = Generation.render_template "typekit/TypekitCorbaImpl.hpp", binding
+                    Generation.save_automatic("typekit", "#{component.name}TypekitCorbaImpl.hpp", corba_impl_hpp)
+                    corba_cpp = Generation.render_template "typekit/TypekitCorba.cpp", binding
+                    Generation.save_automatic("typekit", "#{component.name}TypekitCorba.cpp", corba_cpp)
+		    idl    = Orocos::Generation.render_template "typekit/Typekit.idl", binding
+                    Generation.save_automatic "typekit", "#{component.name}Typekit.idl", idl
+                    pkg_config = Generation.render_template 'typekit/transport-corba.pc', binding
+                    Generation.save_automatic("typekit", "#{component.name}-transport-corba.pc.in", pkg_config)
 		end
 
                 # Generate the opaque-related stuff
                 if !opaques.empty?
-                    intermediates_hpp = Generation.render_template 'toolkit/ToolkitIntermediates.hpp', binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.hpp", intermediates_hpp)
-                    intermediates_cpp = Generation.render_template 'toolkit/ToolkitIntermediates.cpp', binding
-                    Generation.save_automatic("toolkit", "#{component.name}ToolkitIntermediates.cpp", intermediates_cpp)
+                    intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
+                    Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
+                    intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
+                    Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
                     if has_opaques_with_templates?
-                        user_hh = Generation.render_template 'toolkit/ToolkitUser.hpp', binding
-                        user_cc = Generation.render_template 'toolkit/ToolkitUser.cpp', binding
-                        Generation.save_user 'toolkit', "#{component.name}ToolkitUser.hpp", user_hh
-                        Generation.save_user 'toolkit', "#{component.name}ToolkitUser.cpp", user_cc
+                        user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
+                        user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
+                        Generation.save_user 'typekit', "#{component.name}TypekitUser.hpp", user_hh
+                        Generation.save_user 'typekit', "#{component.name}TypekitUser.cpp", user_cc
                     end
                 end
 
                 # Finished, create the timestamp file
-                Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'toolkit', 'stamp')
+                Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'typekit', 'stamp')
 	    end
 	end
     end

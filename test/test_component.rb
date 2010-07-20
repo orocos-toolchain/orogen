@@ -66,14 +66,14 @@ class TC_GenerationComponent < Test::Unit::TestCase
         c = Component.new
         t = c.find_type "/int[12]"
         assert_same c.registry.get("/int[12]"), t
-        assert !c.toolkit
+        assert !c.typekit
     end
     def test_find_type_should_create_containers
         c = Component.new
         t = c.find_type "/std/vector</int>"
         assert_same c.registry.get("/std/vector</int>"), t
-        # The container should have been defined on the toolkit as well
-        assert_equal c.toolkit.registry.get("/std/vector</int>"), t
+        # The container should have been defined on the typekit as well
+        assert_equal c.typekit.registry.get("/std/vector</int>"), t
     end
     def test_containers_of_opaques_is_forbidden
         c = Component.new
@@ -86,20 +86,20 @@ class TC_GenerationComponent < Test::Unit::TestCase
         assert_raises(ArgumentError) { c.find_type "/std/vector</opaque_type>" }
     end
 
-    def test_imported_toolkits
-        # Build the simple toolkit first
-        build_test_component('modules/toolkit_simple', false)
+    def test_imported_typekits
+        # Build the simple typekit first
+        build_test_component('modules/typekit_simple', false)
 
         c = Component.new
         # Then try to load it
         in_prefix do
-            c.using_toolkit "simple"
-            assert_equal(1, c.used_toolkits.size)
-            tk = c.used_toolkits[0]
+            c.using_typekit "simple"
+            assert_equal(1, c.used_typekits.size)
+            tk = c.used_typekits[0]
             assert_equal("simple", tk.name)
-            assert_equal("simple-toolkit-#{Generation.orocos_target}", tk.pkg.name)
+            assert_equal("simple-typekit-#{Generation.orocos_target}", tk.pkg.name)
 
-            # Check that imported_type? takes the toolkit into account
+            # Check that imported_type? takes the typekit into account
             t = c.registry.get "/Test/BaseTypes"
             assert c.imported_type?(t)
         end

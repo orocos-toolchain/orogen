@@ -1,11 +1,11 @@
 #ifndef <%= component.name %>_USER_MARSHALLING_HH
 #define <%= component.name %>_USER_MARSHALLING_HH
 
-#include <<%= component.name %>ToolkitTypes.hpp>
+#include <<%= component.name %>TypekitTypes.hpp>
 
 namespace <%= component.name %>
 {
-    <% toolkit.opaques.find_all { |op| op.generate_templates? }.each do |opaque_def|
+    <% typekit.opaques.find_all { |op| op.generate_templates? }.each do |opaque_def|
         from = opaque_def.type
         into = component.find_type(opaque_def.intermediate)
         if opaque_def.needs_copy? %>

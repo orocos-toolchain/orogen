@@ -3,7 +3,7 @@
 
 #include <rtt/TransportPlugin.hpp>
 
-namespace orogen_toolkits {
+namespace orogen_typekits {
     class <%= component.name %>CorbaTransportPlugin
         : public RTT::TransportPlugin
     {

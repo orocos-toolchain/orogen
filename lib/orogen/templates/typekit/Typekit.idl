@@ -1,15 +1,15 @@
 #ifndef __OROGEN_TOOLKIT_<%= component.name.upcase %>_IDL__
 #define __OROGEN_TOOLKIT_<%= component.name.upcase %>_IDL__
 
-<% toolkit.used_toolkits.each do |tk| %>
-#include <toolkit/<%= tk.name %>Toolkit.idl>
+<% typekit.used_typekits.each do |tk| %>
+#include <typekit/<%= tk.name %>Typekit.idl>
 <% end %>
 
 <%= minimal_registry.export 'idl',
 	:namespace_prefix => 'orogen',
     :namespace_suffix => 'Corba',
     :opaque_as_any => true,
-    :selected => toolkit.self_typenames %>
+    :selected => typekit.self_typenames %>
 
 #endif
 

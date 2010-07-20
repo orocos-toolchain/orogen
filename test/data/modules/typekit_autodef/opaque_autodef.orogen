@@ -1,9 +1,9 @@
-# This module is used primarily in TC_GenerationToolkit#test_autogen in
-# test_toolkit.rb.
+# This module is used primarily in TC_GenerationTypekit#test_autogen in
+# test_typekit.rb.
 #
-# It tests the ability of orogen to auto-define some toolkit types when needed.
+# It tests the ability of orogen to auto-define some typekit types when needed.
 # Namely, it checks that, if used in a task context's definition, the following
-# types are automatically added to the project's toolkit:
+# types are automatically added to the project's typekit:
 #
 #   vector<type>
 #   shared_ptr(type)

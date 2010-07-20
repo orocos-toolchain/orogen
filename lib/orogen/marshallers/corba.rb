@@ -13,11 +13,11 @@ module Typelib
         def self.corba_arg_type; "#{corba_name} const&" end
         def self.corba_ref_type; "#{corba_name}&" end
 
-        def self.to_corba(toolkit, result, *args)
+        def self.to_corba(typekit, result, *args)
             STDERR.puts "to_corba not implemented for #{name}"
             result
         end
-        def self.from_corba(toolkit, result, *args)
+        def self.from_corba(typekit, result, *args)
             STDERR.puts "from_corba not implemented for #{name}"
             result
         end
@@ -84,7 +84,7 @@ module Typelib
         def self.corba_arg_type; "#{corba_name} const&" end
         def self.corba_ref_type; "#{corba_name}&" end
 
-        def self.to_corba(toolkit, result, indent)
+        def self.to_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -118,7 +118,7 @@ module Typelib
             end
 	    result
         end
-        def self.from_corba(toolkit, result, indent)
+        def self.from_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -149,7 +149,7 @@ module Typelib
     end
 
     class EnumType
-	def self.to_corba(toolkit, result, indent)
+	def self.to_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = self.namespace('::')
             result << indent << "switch(value) {\n"
@@ -163,7 +163,7 @@ module Typelib
             end
             result << indent << "}\n"
 	end
-	def self.from_corba(toolkit, result, indent)
+	def self.from_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = self.namespace('::')
             result << indent << "switch(corba) {\n"
@@ -180,15 +180,15 @@ module Typelib
     end
 
     class CompoundType
-        def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA", true) do |field_name, field_type|
+        def self.to_corba(typekit, result, indent)
+            code_copy(typekit, result, indent, "corba", "value", "toCORBA", true) do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_toCorba("corba.#{field_name}", "value.#{field_name}", indent)
                 end
             end
         end
-        def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA", true) do |field_name, field_type|
+        def self.from_corba(typekit, result, indent)
+            code_copy(typekit, result, indent, "value", "corba", "fromCORBA", true) do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_fromCorba("value.#{field_name}", "corba.#{field_name}", indent)
                 end
@@ -199,13 +199,13 @@ module Typelib
         def self.corba_arg_type; "#{deference.corba_name} const*" end
         def self.corba_ref_type; "#{deference.corba_name}*" end
 
-        def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type, _|
+        def self.to_corba(typekit, result, indent)
+            code_copy(typekit, result, indent, "corba", "value", "toCORBA") do |type, _|
                 type.inlines_code?
             end
         end
-        def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type, _|
+        def self.from_corba(typekit, result, indent)
+            code_copy(typekit, result, indent, "value", "corba", "fromCORBA") do |type, _|
                 type.inlines_code?
             end
         end

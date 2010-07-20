@@ -1,18 +1,6 @@
 #include "<%= task.basename %>.hpp"
-<% if task.default_activity
-      activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
-%>
-#include <rtt/<%= activity_type %>.hpp>
-<% end %>
 
 using namespace <%= task.component.name %>;
-
-<% if task.default_activity
-    activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
-%>
-RTT::<%= activity_type %>* <%= task.basename %>::get<%= activity_type %>()
-{ return dynamic_cast< RTT::<%= activity_type %>* >(getActivity().get()); }
-<% end %>
 
 <%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
     : <%= task.basename %>Base(name<%= ", initial_state" unless task.fixed_initial_state? %>)

@@ -1,15 +1,15 @@
 #include <rtt/os/main.h>
-<% if component.toolkit || !component.used_toolkits.empty? %>#include <rtt/Toolkit.hpp><% end %>
-<% if component.toolkit %>
-#include "toolkit/<%= component.name %>Toolkit.hpp"
+<% if component.typekit || !component.used_typekits.empty? %>#include <rtt/Typekit.hpp><% end %>
+<% if component.typekit %>
+#include "typekit/<%= component.name %>Typekit.hpp"
 <% if deployer.corba_enabled? %>
-#include "toolkit/<%= component.name %>ToolkitCorba.hpp"
+#include "typekit/<%= component.name %>TypekitCorba.hpp"
 <% end %>
 <% end %>
-<% deployer.used_toolkits.each do |tk| %>
-#include <toolkit/<%= tk.name %>Toolkit.hpp>
+<% deployer.used_typekits.each do |tk| %>
+#include <typekit/<%= tk.name %>Typekit.hpp>
     <% if deployer.corba_enabled? %>
-#include <toolkit/<%= tk.name %>ToolkitCorba.hpp>
+#include <typekit/<%= tk.name %>TypekitCorba.hpp>
     <% end %>
 <% end %>
 
@@ -20,17 +20,17 @@
 #include <<%= task.context.header_file %>>
 <% end %>
 <% if deployer.corba_enabled? %>
-#include <rtt/corba/ControlTaskServer.hpp>
-using RTT::Corba::ControlTaskServer;
+#include <rtt/transports/corba/ApplicationServer.hpp>
+#include <rtt/transports/corba/TaskContextServer.hpp>
 <% end %>
 
 <% require 'set'
-    activity_types = task_activities.
-    map { |t| t.activity_type }.
-    compact.
-    to_set %>
-<% activity_types.to_a.sort.each do |activity_klassname| %>
-#include <rtt/<%= activity_klassname%>.hpp>
+    activity_headers = task_activities.
+        map { |t| t.activity_type.header }.
+        compact.
+        to_set %>
+<% activity_headers.to_a.sort.each do |header| %>
+#include <<%= header %>>
 <% end %>
 
 <% if deployer.browse %>
@@ -38,17 +38,17 @@ using RTT::Corba::ControlTaskServer;
 <% end %>
 
 #include <rtt/Logger.hpp>
-#include <rtt/ActivityInterface.hpp>
+#include <rtt/base/ActivityInterface.hpp>
 class Deinitializer
 {
-    friend Deinitializer& operator << (Deinitializer&, RTT::ActivityInterface&);
+    friend Deinitializer& operator << (Deinitializer&, RTT::base::ActivityInterface&);
 
-    std::vector<RTT::ActivityInterface*> m_activities;
+    std::vector<RTT::base::ActivityInterface*> m_activities;
 
 public:
     ~Deinitializer()
     {
-        for (std::vector<RTT::ActivityInterface*>::const_iterator it = m_activities.begin();
+        for (std::vector<RTT::base::ActivityInterface*>::const_iterator it = m_activities.begin();
                 it != m_activities.end(); ++it)
         {
             (*it)->stop();
@@ -56,7 +56,7 @@ public:
     }
 };
 
-Deinitializer& operator << (Deinitializer& deinit, RTT::ActivityInterface& activity)
+Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface& activity)
 {
     deinit.m_activities.push_back(&activity);
     return deinit;
@@ -71,39 +71,39 @@ int ORO_main(int argc, char* argv[])
    }
    <% end %>
 
-   <% if component.toolkit %>
-   RTT::Toolkit::Import( orogen_toolkits::<%= component.name %>Toolkit );
+   <% if component.typekit %>
+   RTT::Typekit::Import( orogen_typekits::<%= component.name %>Typekit );
    <% if deployer.corba_enabled? %>
-   RTT::Toolkit::Import( orogen_toolkits::<%= component.name %>CorbaTransport );
+   RTT::Typekit::Import( orogen_typekits::<%= component.name %>CorbaTransport );
    <% end %>
    <% end %>
-   <% deployer.used_toolkits.each do |tk| %>
-   RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>Toolkit );
+   <% deployer.used_typekits.each do |tk| %>
+   RTT::Typekit::Import( orogen_typekits::<%= tk.name %>Typekit );
        <% if deployer.corba_enabled? %>
-   RTT::Toolkit::Import( orogen_toolkits::<%= tk.name %>CorbaTransport );
+   RTT::Typekit::Import( orogen_typekits::<%= tk.name %>CorbaTransport );
        <% end %>
    <% end %>
 
 <% if deployer.corba_enabled? %>
-    ControlTaskServer::InitOrb(argc, argv);
+    RTT::corba::ApplicationServer::InitOrb(argc, argv);
 <% end %>
 
 <% task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
     <% if task.activity_type %>
-    RTT::<%= task.activity_type %>* activity_<%= task.name%> = new RTT::<%= task.activity_type %>(
+    <%= task.activity_type.class_name %>* activity_<%= task.name%> = new <%= task.activity_type.class_name %>(
             <%= task.rtt_scheduler %>,
             <%= task.rtt_priority %>,
             <% if task.period %><%= task.period %>, <% end %>
             task_<%= task.name%>.engine());
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% if task.period %>
-    RTT::OS::PeriodicThread* thread_<%= task.name %> =
-        dynamic_cast<RTT::OS::PeriodicThread*>(activity_<%= task.name %>->thread());
+    RTT::os::Thread* thread_<%= task.name %> =
+        dynamic_cast<RTT::os::Thread*>(activity_<%= task.name %>->thread());
     thread_<%= task.name %>->setMaxOverrun(<%= task.max_overruns %>);
     <% end %>
     <% else %>
-    RTT::ActivityInterface* activity_<%= task.name %> = task_<%= task.name %>.getActivity().get();
+    RTT::base::ActivityInterface* activity_<%= task.name %> = task_<%= task.name %>.getActivity().get();
     <% end # activity_type %>
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
         if prop.value %>
@@ -112,7 +112,7 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 
     <% if deployer.corba_enabled? %>
-    ControlTaskServer::Create( &task_<%= task.name%> );
+    RTT::corba::TaskContextServer::Create( &task_<%= task.name%> );
     <% end %>
 <% end %>
 
@@ -169,7 +169,7 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 
 <% if deployer.corba_enabled? %>
-    ControlTaskServer::RunOrb();
+    RTT::corba::TaskContextServer::RunOrb();
 <% elsif deployer.browse %>
     OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
     browser.loop();

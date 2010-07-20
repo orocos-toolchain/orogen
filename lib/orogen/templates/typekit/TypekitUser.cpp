@@ -1,4 +1,4 @@
-#include "<%= component.name %>ToolkitUser.hpp"
+#include "<%= component.name %>TypekitUser.hpp"
 
     /** Returns the intermediate value that is contained in \c real_type */
     /** Stores \c intermediate into \c real_type. \c intermediate is owned by \c
@@ -7,7 +7,7 @@
      * pointer.
      */
 
-<% toolkit.opaques.find_all { |op| op.generate_templates? }.each do |opaque_def|
+<% typekit.opaques.find_all { |op| op.generate_templates? }.each do |opaque_def|
     from = opaque_def.type
     into = component.find_type(opaque_def.intermediate)
 if opaque_def.needs_copy? %>
@@ -24,7 +24,7 @@ void <%= component.name %>::from_intermediate(<%= from.ref_type %> real_type, <%
 }
 bool <%= component.name %>::from_intermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate)
 {
-    // Return false if the toolkit should delete +intermediate+ and true if this
+    // Return false if the typekit should delete +intermediate+ and true if this
     // function took ownership of it.
     return false;
 }

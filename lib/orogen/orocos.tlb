@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <typelib>
 <!-- define here some placeholders for types that are already implemented in
-     the Orocos::RTT toolkit -->
+     the Orocos::RTT typekit -->
 
     <alias name="/string" source="/std/string"/>
     <alias name="/uint" source="/uint32_t"/>

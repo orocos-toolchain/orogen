@@ -4,9 +4,9 @@
 # See cross_deployment
 name 'cross_consumer'
 
-# This toolkit defines NotOrogenCompatible::Point2D. See toolkit_opaque for a
+# This typekit defines NotOrogenCompatible::Point2D. See typekit_opaque for a
 # more in-depth description
-using_toolkit "opaque"
+using_typekit "opaque"
 
 # The actual task component
 task_context "Consumer" do

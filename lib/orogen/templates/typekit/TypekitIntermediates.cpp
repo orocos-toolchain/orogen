@@ -1,10 +1,10 @@
-#include <<%= component.name %>ToolkitIntermediates.hpp>
+#include <<%= component.name %>TypekitIntermediates.hpp>
 #include <memory>
 
 <%
 # We first handle the definitions that declare convertions functions
 # (i.e. the ones for which we don't need to generate anything)
-toolkit.opaques.
+typekit.opaques.
     find_all(&:code_generator).
     each do |opdef|
         type = opdef.type
@@ -17,8 +17,8 @@ toolkit.opaques.
 <%
 # Generate the body of the const-function for from_intermediate,
 # if the type does not need a copy.
-# See the ToolkitIntermediates.hpp template for more information
-toolkit.opaques.
+# See the TypekitIntermediates.hpp template for more information
+typekit.opaques.
     find_all { |opdef| !opdef.needs_copy? }.
     each do |opdef|
         type = opdef.type
@@ -27,7 +27,7 @@ toolkit.opaques.
 void <%= component.name %>::from_intermediate(<%= type.ref_type %> value, <%= intermediate_type.arg_type %> _intermediate)
 {
     std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>);
-<%= toolkit.code_fromIntermediate(intermediate_type, false, "    ") %>
+<%= typekit.code_fromIntermediate(intermediate_type, false, "    ") %>
 }
 <%
     end
@@ -39,19 +39,19 @@ void <%= component.name %>::from_intermediate(<%= type.ref_type %> value, <%= in
 generated_types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
-        m_type = toolkit.find_type(type.name + "_m") %>
+        m_type = typekit.find_type(type.name + "_m") %>
 void <%= component.name %>::to_intermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value)
 {
 <%=
         result = ""
-        type.to_intermediate(toolkit, result, "    ")
+        type.to_intermediate(typekit, result, "    ")
         result %>
 }
 void <%= component.name %>::from_intermediate(<%= type.ref_type %> value, <%= m_type.arg_type %> intermediate)
 {
 <%=
         result = ""
-        type.from_intermediate(toolkit, result, "    ")
+        type.from_intermediate(typekit, result, "    ")
         result %>
 }
 <% end %>

@@ -1,32 +1,32 @@
 module Typelib
     class Type
-	def self.to_property_bag(toolkit, result, indent = "    ")
+	def self.to_property_bag(typekit, result, indent = "    ")
             STDERR.puts "to_property_bag not implemented for #{name}"
             result
         end
-	def self.from_property_bag(toolkit, result, indent = "    ")
+	def self.from_property_bag(typekit, result, indent = "    ")
             STDERR.puts "from_property_bag not implemeted for #{name}"
             result
 	end
 
-        def self.inline_fromPropertyBag(toolkit, result, varname, property_name, indent)
+        def self.inline_fromPropertyBag(typekit, result, varname, property_name, indent)
             orocos_type = registry.base_rtt_type_for(self).cxx_name
             result << indent << "#{varname} = bag.getProperty<#{orocos_type}>(#{property_name})->get();\n"
         end
-        def self.inline_toPropertyBag(toolkit, result, varname, property_name, indent)
+        def self.inline_toPropertyBag(typekit, result, varname, property_name, indent)
             orocos_type = registry.base_rtt_type_for(self).cxx_name
             result << indent << "target_bag.add( new Property<#{orocos_type}>(#{property_name}, \"\", #{varname}) );\n"
         end
     end
 
     class EnumType
-        def self.to_property_bag(toolkit, result, indent)
-            to_string(toolkit, result, indent)
+        def self.to_property_bag(typekit, result, indent)
+            to_string(typekit, result, indent)
             result << "#{indent}target_bag.add( new Property<std::string>(basename, \"\", enum_name) );\n"
             result
         end
 
-        def self.from_property_bag(toolkit, result, indent)
+        def self.from_property_bag(typekit, result, indent)
             result << indent << "std::string enum_name;\n"
             result << indent << "enum_name = bag.getProperty<std::string>(basename)->get();\n"
             first_key = true
@@ -47,10 +47,10 @@ else
     end
 
     class CompoundType
-	def self.to_property_bag(toolkit, result, indent)
+	def self.to_property_bag(typekit, result, indent)
             each_field do |field_name, field_type|
                 if field_type.inlines_code?
-                    field_type.inline_toPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
+                    field_type.inline_toPropertyBag(typekit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
                 elsif field_type < ArrayType
                     result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, target_bag)) return false;\n";
                 else
@@ -60,10 +60,10 @@ else
 	    result
 	end
 
-	def self.from_property_bag(toolkit, result, indent)
+	def self.from_property_bag(typekit, result, indent)
             each_field do |field_name, field_type|
                 if field_type.inlines_code?
-                    field_type.inline_fromPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
+                    field_type.inline_fromPropertyBag(typekit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
                 elsif field_type < ArrayType
                     result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, bag)) return false;\n";
                 else
@@ -75,7 +75,7 @@ else
     end
 
     class ArrayType
-	def self.to_property_bag(toolkit, result, indent)
+	def self.to_property_bag(typekit, result, indent)
             element_type = registry.build(deference.name)
 
             allocate_index do |i|
@@ -86,7 +86,7 @@ else
                 EOT
 
                 if element_type.inlines_code?
-                    element_type.inline_toPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                    element_type.inline_toPropertyBag(typekit, result, "value[#{i}]", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
                     result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, target_bag)) return false;\n";
                 else
@@ -99,7 +99,7 @@ else
 	    result
 	end
 
-	def self.from_property_bag(toolkit, result, indent = "    ")
+	def self.from_property_bag(typekit, result, indent = "    ")
             element_type = registry.build(deference.name)
 
             allocate_index do |i|
@@ -107,7 +107,7 @@ else
                 result << "#{indent}for (int #{i} = 0; #{i} < length; ++#{i})\n"
                 result << "#{indent}{\n"
                 if element_type.inlines_code?
-                    element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                    element_type.inline_fromPropertyBag(typekit, result, "value[#{i}]", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
                     result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag)) return false;\n";
                 else
@@ -120,7 +120,7 @@ else
     end
 
     class ContainerType
-	def self.to_property_bag(toolkit, result, indent)
+	def self.to_property_bag(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -133,7 +133,7 @@ else
                 EOT
 
                 if element_type.inlines_code?
-                    element_type.inline_toPropertyBag(toolkit, result, "(*it)", idx_expr, indent + "    ")
+                    element_type.inline_toPropertyBag(typekit, result, "(*it)", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
                     result << indent << "if (!toPropertyBag(#{idx_expr}, *it, #{element_type.length}, target_bag)) return false;\n";
                 else
@@ -145,7 +145,7 @@ else
             end
 	    result
 	end
-	def self.from_property_bag(toolkit, result, indent = "    ")
+	def self.from_property_bag(typekit, result, indent = "    ")
              collection_name, element_type = container_kind, deference.name
              element_type = registry.build(element_type)
 
@@ -160,7 +160,7 @@ else
                  result << "#{indent}for (size_t #{i} = 0; #{i} < size_#{i}; ++#{i})\n"
                  result << "#{indent}{\n"
                  if element_type.inlines_code?
-                     element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
+                     element_type.inline_fromPropertyBag(typekit, result, "value[#{i}]", idx_expr, indent + "    ")
                  elsif element_type < ArrayType
                      result << "#{indent}    fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag);\n";
                  else
@@ -172,11 +172,11 @@ else
 	end
     end
     specialize_model '/std/string' do
-        def to_property_bag(toolkit, result, indent)
-            inline_toPropertyBag(toolkit, result, "value", "basename", indent);
+        def to_property_bag(typekit, result, indent)
+            inline_toPropertyBag(typekit, result, "value", "basename", indent);
         end
-        def from_property_bag(toolkit, result, indent)
-            inline_fromPropertyBag(toolkit, result, "value", "basename", indent);
+        def from_property_bag(typekit, result, indent)
+            inline_fromPropertyBag(typekit, result, "value", "basename", indent);
         end
     end
 end

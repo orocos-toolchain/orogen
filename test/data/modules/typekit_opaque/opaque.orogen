@@ -1,5 +1,5 @@
-# This module is used primarily in TC_GenerationToolkit#test_opaque in
-# test_toolkit.rb. It is also used in
+# This module is used primarily in TC_GenerationTypekit#test_opaque in
+# test_typekit.rb. It is also used in
 # TC_GenerationDeployment#test_cross_dependencies in test_deployment.rb.
 #
 # It demonstrates the capabilities that orogen has to marshal opaque types
@@ -7,12 +7,12 @@
 # NotOrogenCompatible::Point2D type is defined, that is unknown to orogen. Then,
 # the user provides an intermediate type (TestOpaque::Point2D) that can be
 # handled by orogen, and the user provides convertion functions between those
-# types (see toolkit/*User.*).
+# types (see typekit/*User.*).
 name "opaque"
 
-toolkit do
+typekit do
     # Define an opaque type by giving its name, the intermediate type that will
-    # be used for toolkit generation and the include files that define it.
+    # be used for typekit generation and the include files that define it.
     opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D',
         :includes => [File.expand_path('opaque.h', File.dirname(component.deffile))]
 

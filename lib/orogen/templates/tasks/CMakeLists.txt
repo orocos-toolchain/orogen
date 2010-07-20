@@ -1,9 +1,9 @@
 include(<%= component.name %>TaskLib)
 ADD_LIBRARY(${<%= component.name.upcase %>_TASKLIB_NAME} SHARED 
     ${<%= component.name.upcase %>_TASKLIB_SOURCES})
-<% if component.toolkit %>
+<% if component.typekit %>
 add_dependencies(${<%= component.name.upcase %>_TASKLIB_NAME}
-    regen-toolkit)
+    regen-typekit)
 <% end %>
 
 TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}

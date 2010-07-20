@@ -122,7 +122,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 
     def test_cross_dependencies(with_corba = true)
         # Generate and build all the modules that are needed ...
-        toolkit_opaque = build_test_component("modules/toolkit_opaque", with_corba)
+        typekit_opaque = build_test_component("modules/typekit_opaque", with_corba)
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
         puts ENV['PKG_CONFIG_PATH'].inspect
@@ -140,8 +140,8 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         cross_deployment = Component.load(File.join(TEST_DATA_DIR, "modules", "cross_deployment", "deployment.orogen"))
 
         deployer = cross_deployment.deployers.find { true }
-        assert_equal(["opaque"], cross_deployment.used_toolkits.map(&:name))
-        assert_equal(["opaque"], deployer.used_toolkits.map(&:name))
+        assert_equal(["opaque"], cross_deployment.used_typekits.map(&:name))
+        assert_equal(["opaque"], deployer.used_typekits.map(&:name))
 
         cross_deployment = build_test_component("modules/cross_deployment", with_corba)
         install

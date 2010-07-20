@@ -1,14 +1,14 @@
 #define OROCOS_TARGET gnulinux
-#include <rtt/Toolkit.hpp>
-#include "simpleToolkitTypes.hpp"
-#include "simpleToolkit.hpp"
+#include <rtt/Typekit.hpp>
+#include "simpleTypekitTypes.hpp"
+#include "simpleTypekit.hpp"
 #include <string.h>
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
 #include <rtt/corba/CorbaLib.hpp>
-#include "build/.orogen/toolkit/simpleToolkitC.h"
-#include "simpleToolkitCorba.hpp"
+#include "build/.orogen/typekit/simpleTypekitC.h"
+#include "simpleTypekitCorba.hpp"
 #endif
 
 #include <rtt/os/main.h>
@@ -275,9 +275,9 @@ bool test_complex_array()
 int ORO_main(int argc, char** argv)
 {
     log().setLogLevel( Logger::Debug );
-    RTT::Toolkit::Import( orogen_toolkits::simpleToolkit );
+    RTT::Typekit::Import( orogen_typekits::simpleTypekit );
 #ifdef WITH_CORBA
-    RTT::Toolkit::Import( orogen_toolkits::simpleCorbaTransport );
+    RTT::Typekit::Import( orogen_typekits::simpleCorbaTransport );
 #endif
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();

@@ -2,7 +2,7 @@ name 'regen'
 
 using_library "build_regen_library"
 
-toolkit do
+typekit do
     load "test.h"
     load "regen_lib.h"
 end

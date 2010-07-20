@@ -1,13 +1,13 @@
-#include <rtt/Toolkit.hpp>
-#include "opaqueToolkitTypes.hpp"
-#include "opaqueToolkit.hpp"
+#include <rtt/Typekit.hpp>
+#include "opaqueTypekitTypes.hpp"
+#include "opaqueTypekit.hpp"
 #include "opaque.h"
 
 #ifdef WITH_CORBA
-#include "opaqueToolkitCorba.hpp"
+#include "opaqueTypekitCorba.hpp"
 #include <omniORB4/CORBA.h>
 #include <rtt/corba/CorbaLib.hpp>
-#include "build/.orogen/toolkit/opaqueToolkitC.h"
+#include "build/.orogen/typekit/opaqueTypekitC.h"
 #endif
 
 #include ".orogen/TypelibMarshallerBase.hpp"
@@ -458,9 +458,9 @@ bool test_ro_ptr()
 int ORO_main(int argc, char** argv)
 {
     log().setLogLevel( Logger::Debug );
-    RTT::Toolkit::Import( orogen_toolkits::opaqueToolkit );
+    RTT::Typekit::Import( orogen_typekits::opaqueTypekit );
 #ifdef WITH_CORBA
-    RTT::Toolkit::Import( orogen_toolkits::opaqueCorbaTransport );
+    RTT::Typekit::Import( orogen_typekits::opaqueCorbaTransport );
 #endif
 
     if (!test_plain_opaque())

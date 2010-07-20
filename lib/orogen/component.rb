@@ -110,10 +110,10 @@ module Orocos
             attr_reader :used_libraries
 
             # The subset of +used_libraries+ that should be linked to the
-            # toolkit library.
+            # typekit library.
             #
             # See the discussion in the documentation of #using_library
-            attr_reader :toolkit_libraries
+            attr_reader :typekit_libraries
 
             # A set of ImportedProject objects describing libraries which define
             # tasks. They have to provide a .orogen file which lists the tasks
@@ -168,19 +168,19 @@ module Orocos
                 @name    = nil
 		@corba   = nil
 		@version = "0.0"
-		@used_toolkits  = []
+		@used_typekits  = []
                 @used_libraries = []
-                @toolkit_libraries = []
+                @typekit_libraries = []
                 @used_task_libraries = []
-                @toolkit = nil
+                @typekit = nil
 
                 @deployers = []
 
                 @loaded_orogen_projects = Hash.new
-                @loaded_toolkits = Hash.new
+                @loaded_typekits = Hash.new
 
 		# Load orocos-specific types which cannot be used in the
-		# component-defined toolkit but can be used literally in argument
+		# component-defined typekit but can be used literally in argument
 		# lists or property types
                 if !Component.rtt_registry
                     Component.load_rtt_registry
@@ -205,8 +205,8 @@ module Orocos
                 find_task_context "RTT::TaskContext"
             end
 
-            # The set of toolkits that are already loaded on this oroGen project
-            attr_reader :loaded_toolkits
+            # The set of typekits that are already loaded on this oroGen project
+            attr_reader :loaded_typekits
 
             # The set of task libraries that are already loaded on this oroGen
             # project
@@ -290,9 +290,9 @@ module Orocos
             # The deployment modes that are required for this generation
             attr_reader :deployers
 
-	    # The set of toolkits that are to be used in this component. This is
-            # a set of ImportedToolkit instances.
-	    attr_reader :used_toolkits
+	    # The set of typekits that are to be used in this component. This is
+            # a set of ImportedTypekit instances.
+	    attr_reader :used_typekits
 
             # Imports the types defined by the given argument
             #
@@ -302,51 +302,51 @@ module Orocos
             # project. In the second case, it will build and install a library
             # to support the new types.
             def import_types_from(name, *args)
-                if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
-                    using_toolkit name
+                if Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
+                    using_typekit name
                 else
-                    toolkit(true).load name
+                    typekit(true).load name
                 end
                 import_types_from(*args) unless args.empty?
             end
 
-            # Import an orogen-generated toolkit to be used by this component.
-            # The toolkit is searched by name through the pkg-config tool. It
+            # Import an orogen-generated typekit to be used by this component.
+            # The typekit is searched by name through the pkg-config tool. It
             # means that, if PREFIX is the installation prefix where the component
             # is installed, then
             #
             #   PREFIX/lib/pkgconfig
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
-	    def using_toolkit(name)
-		if used_toolkits.any? { |tk| tk.name == name }
+	    def using_typekit(name)
+		if used_typekits.any? { |tk| tk.name == name }
 		    return
 		end
 
-                toolkit = load_toolkit(name)
-		used_toolkits << toolkit
-                registry.merge(toolkit.registry)
+                typekit = load_typekit(name)
+		used_typekits << typekit
+                registry.merge(typekit.registry)
 	    end
 
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
             def rtt_registry; Component.rtt_registry end
 
-            # Returns true if +typename+ has been defined by a toolkit imported
-            # by using_toolkit
+            # Returns true if +typename+ has been defined by a typekit imported
+            # by using_typekit
             def imported_type?(typename)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
 
                 rtt_registry.includes?(typename) ||
-                    used_toolkits.any? { |tk| tk.includes?(typename) }
+                    used_typekits.any? { |tk| tk.includes?(typename) }
             end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
-            # type must have been defined either by the component's own toolkit
-            # or by the ones imported by #using_toolkit
+            # type must have been defined either by the component's own typekit
+            # or by the ones imported by #using_typekit
 	    def find_type(typename)
 		if typename
 		    if typename.kind_of?(Class) && typename <= Typelib::Type
@@ -361,10 +361,10 @@ module Orocos
                                          registry.build(typename)
                                      rescue Typelib::NotFound
                                          # We may need to define this type for ourselves, so
-                                         # make the toolkit define it ...
-                                         toolkit(true).find_type(typename)
+                                         # make the typekit define it ...
+                                         typekit(true).find_type(typename)
                                          # ... and return our own version of it, not the
-                                         # toolkit's one
+                                         # typekit's one
                                          registry.build(typename)
                                      end
 
@@ -408,12 +408,12 @@ module Orocos
                     FileUtils.touch(File.join(dir, File.basename(deffile)))
                 end
 
-		# The toolkit and the task libraries populate a fake
+		# The typekit and the task libraries populate a fake
 		# installation directory .orogen/<project_name> so that the
 		# includes can be referred to as <project_name>/taskNameBase.hpp.
                 #
 		# We have first to remove the way orogen was doing it before,
-		# and then let toolkit and task library do what they have to do
+		# and then let typekit and task library do what they have to do
                 fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
                 if File.symlink?(fake_install_dir)
                     FileUtils.rm_f fake_install_dir
@@ -426,15 +426,15 @@ module Orocos
                 # and should be usable in any orogen component
                 #
                 # (I know, this is ugly)
-                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshaller.hpp", binding
-		Generation.save_automatic("toolkit/TypelibMarshaller.hpp", typelib_marshaller)
-                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.hpp", binding
+                typelib_marshaller = Generation.render_template "typekit/TypelibMarshaller.hpp", binding
+		Generation.save_automatic("typekit/TypelibMarshaller.hpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.hpp", binding
 		Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
-                typelib_marshaller = Generation.render_template "toolkit/TypelibMarshallerBase.cpp", binding
-		Generation.save_automatic("toolkit/TypelibMarshallerBase.cpp", typelib_marshaller)
+                typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.cpp", binding
+		Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
-		if toolkit
-		    toolkit.generate
+		if typekit
+		    typekit.generate
 		end
 
                 pc = Generation.render_template "project.pc", binding
@@ -489,7 +489,7 @@ module Orocos
 		base_template_dir = Pathname.new(Generation.template_path)
 		base_template_dir.find do |path|
 		    path = Pathname.new(path).relative_path_from(base_template_dir)
-                    if path.to_s == 'toolkit' && !toolkit
+                    if path.to_s == 'typekit' && !typekit
                         Find.prune
                     end
 
@@ -519,10 +519,10 @@ module Orocos
             # Returns a list of BuildDependency object that represent the
             # dependencies for the task library
             def tasklib_dependencies
-                # Get the set of toolkits that we directly depend on, because
+                # Get the set of typekits that we directly depend on, because
                 # some of our task classes use their types in their interface.
-                used_toolkits = self_tasks.inject(Set.new) do |set, task|
-                    set | task.used_toolkits.map(&:name)
+                used_typekits = self_tasks.inject(Set.new) do |set, task|
+                    set | task.used_typekits.map(&:name)
                 end
 
                 used_libraries = self.used_libraries.map(&:name)
@@ -534,8 +534,8 @@ module Orocos
                 # first for the direct dependencies. Then, we look into the
                 # indirect dependencies in type_includes, remove duplicates
                 # and finish
-                used_toolkits.map! do |name|
-                    BuildDependency.new "#{name}_TOOLKIT", "#{name}-toolkit-#{orocos_target}", false, true, true
+                used_typekits.map! do |name|
+                    BuildDependency.new "#{name}_TOOLKIT", "#{name}-typekit-#{orocos_target}", false, true, true
                 end
                 used_libraries.map! do |name|
                     BuildDependency.new name, name, false, true, true
@@ -543,11 +543,11 @@ module Orocos
                 used_tasklibs.map! do |name|
                     BuildDependency.new "#{name}_TASKLIB", "#{name}-tasks-#{orocos_target}", false, true, true
                 end
-                result = (used_toolkits + used_libraries + used_tasklibs)
+                result = (used_typekits + used_libraries + used_tasklibs)
 
                 var_names = result.map(&:var_name).to_set
-                if toolkit
-                    toolkit.dependencies.each do |dep|
+                if typekit
+                    typekit.dependencies.each do |dep|
                         next if dep.corba || var_names.include?(dep.var_name)
                         dep = dep.dup
                         dep.link = false
@@ -568,8 +568,8 @@ module Orocos
                     raise ArgumentError, 'name should be a string'
                 end
 
-		if toolkit && !toolkit.name
-		    toolkit.name new
+		if typekit && !typekit.name
+		    typekit.name new
 		end
 		new
 	    end
@@ -583,63 +583,63 @@ module Orocos
             # necessary files (and those files to be in a directory listed in
             # the +PKG_CONFIG_PATH+ environment variable).
             #
-            # This library will be linked to both the project's toolkit (if any)
+            # This library will be linked to both the project's typekit (if any)
             # and its task library. This is so because the library may contain
-            # the implementation part of types that are exported by the toolkit.
+            # the implementation part of types that are exported by the typekit.
             #
-            # To reduce the link interface, you may use the :toolkit option to
-            # avoid linking the library to the toolkit:
+            # To reduce the link interface, you may use the :typekit option to
+            # avoid linking the library to the typekit:
             #
-            #   using_library 'name', :toolkit => false
+            #   using_library 'name', :typekit => false
             #
             def using_library(name, options = Hash.new)
-                options = Kernel.validate_options options, :toolkit => true
+                options = Kernel.validate_options options, :typekit => true
                 pkg = Utilrb::PkgConfig.new(name)
                 used_libraries << pkg
-                toolkit_libraries << pkg if options[:toolkit]
+                typekit_libraries << pkg if options[:typekit]
                 self
             rescue Utilrb::PkgConfig::NotFound => e
                 raise ConfigError, "no library named '#{name}' is available", e.backtrace
             end
 
 	    # call-seq:
-	    #   component.toolkit do
-	    #      ... toolkit setup ...
-	    #   end => toolkit
-	    #   component.toolkit => current toolkit or nil
+	    #   component.typekit do
+	    #      ... typekit setup ...
+	    #   end => typekit
+	    #   component.typekit => current typekit or nil
 	    #
-            # The first form associates a type toolkit for component, as a
-            # Toolkit intance. The given block can set up this Toolkit instance
+            # The first form associates a type typekit for component, as a
+            # Typekit intance. The given block can set up this Typekit instance
             # by calling any instance method defined on it.
 	    #
-            # The second form returns a Toolkit object if one is defined, and
+            # The second form returns a Typekit object if one is defined, and
             # nil otherwise.
-	    def toolkit(create = nil, &block)
+	    def typekit(create = nil, &block)
                 if create.nil?
                     create = true if block_given?
                 end
                 if create
-                    @toolkit ||= Toolkit.new(self)
+                    @typekit ||= Typekit.new(self)
                 end
 
 		if !block_given?
-		    return @toolkit
+		    return @typekit
                 else
-                    @toolkit.instance_eval(&block)
+                    @typekit.instance_eval(&block)
                     nil
 		end
 	    end
 
-            # Sets or reads the toolkit's type export policy.
+            # Sets or reads the typekit's type export policy.
             #
             # EXPERIMENTAL
             #
-            # See Toolkit#type_export_policy
+            # See Typekit#type_export_policy
             def type_export_policy(*args)
-                if !toolkit(false)
+                if !typekit(false)
                     raise ConfigError, "using type_export_policy here makes no sense since no new types are defined in this project"
                 end
-                toolkit(false).type_export_policy(*args)
+                typekit(false).type_export_policy(*args)
             end
 
             # Explicitely selects types that should be added to the RTT type
@@ -647,12 +647,12 @@ module Orocos
             #
             # EXPERIMENTAL
             #
-            # See Toolkit#export_types
+            # See Typekit#export_types
             def export_types(*args)
-                if !toolkit(false)
+                if !typekit(false)
                     raise ConfigError, "using export_types here makes no sense since no new types are defined in this project"
                 end
-                toolkit(false).export_types(*args)
+                typekit(false).export_types(*args)
             end
 
             attr_writer :extended_states
@@ -734,12 +734,12 @@ module Orocos
                 tasklib
             end
             
-            # Returns the description information for the given toolkit
-            def orogen_toolkit_description(name)
+            # Returns the description information for the given typekit
+            def orogen_typekit_description(name)
                 pkg = begin
-                          Utilrb::PkgConfig.new("#{name}-toolkit-#{orocos_target}")
+                          Utilrb::PkgConfig.new("#{name}-typekit-#{orocos_target}")
                       rescue Utilrb::PkgConfig::NotFound => e
-                          raise ConfigError, "no toolkit named '#{name}' is available"
+                          raise ConfigError, "no typekit named '#{name}' is available"
                       end
 
                 registry = File.read(pkg.type_registry)
@@ -748,28 +748,28 @@ module Orocos
                 return pkg, registry, typelist
             end
 
-            # Returns true if +name+ has a toolkit available
-            def has_toolkit?(name)
-                Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
+            # Returns true if +name+ has a typekit available
+            def has_typekit?(name)
+                Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
             end
 
-            # Returns the ImportedToolkit object that is representing an installed
-            # toolkit.
-            def load_toolkit(name)
+            # Returns the ImportedTypekit object that is representing an installed
+            # typekit.
+            def load_typekit(name)
                 name = name.to_str
-                if tk = loaded_toolkits[name]
+                if tk = loaded_typekits[name]
                     return tk
                 end
 
-                pkg, registry_xml, typelist_txt = orogen_toolkit_description(name)
+                pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
 
-                toolkit_registry = Typelib::Registry.from_xml(registry_xml)
-                toolkit_typelist = typelist_txt.split("\n").map(&:chomp)
+                typekit_registry = Typelib::Registry.from_xml(registry_xml)
+                typekit_typelist = typelist_txt.split("\n").map(&:chomp)
 
-                toolkit = ImportedToolkit.new(self, name,
-                              pkg, toolkit_registry, toolkit_typelist)
-                loaded_toolkits[name] = toolkit
-                toolkit
+                typekit = ImportedTypekit.new(self, name,
+                              pkg, typekit_registry, typekit_typelist)
+                loaded_typekits[name] = typekit
+                typekit
             end
 
             # Declares that this component depends on task contexts defined by
@@ -793,13 +793,13 @@ module Orocos
                 tasks.concat tasklib.tasks
                 used_task_libraries << tasklib
 
-                # Now import the toolkits the component also imports, and the
-                # tasklib's own toolkit if there is one
-                if tasklib.has_toolkit?
-                    using_toolkit tasklib.name
+                # Now import the typekits the component also imports, and the
+                # tasklib's own typekit if there is one
+                if tasklib.has_typekit?
+                    using_typekit tasklib.name
                 end
-                tasklib.used_toolkits.each do |tk|
-                    using_toolkit tk.name
+                tasklib.used_typekits.each do |tk|
+                    using_typekit tk.name
                 end
                 tasklib
             end

@@ -353,8 +353,8 @@ module Orocos
             # name and +type+ is either the type name as a string, or a
             # Typelib::Type object. In both cases, the required type must be
             # defined in the component, either because it is part of its own
-            # toolkit or because it has been imported by a
-            # Component#load_toolkit call.
+            # typekit or because it has been imported by a
+            # Component#load_typekit call.
             #
             # Note that Orocos::RTT does not support having more than 4
             # arguments for a method, and trying that will therefore raise an
@@ -443,8 +443,8 @@ module Orocos
             # Sets the return type for this method. +type+ can either be the
             # type name or a Typelib::Type object. In both cases, the required
             # type must be defined in the component, either because it is part
-            # of its own toolkit or because it has been imported by a
-            # Component#load_toolkit call.
+            # of its own typekit or because it has been imported by a
+            # Component#load_typekit call.
 	    def returns(type)
                 if type
                     type = task.component.find_type(type)
@@ -957,8 +957,8 @@ module Orocos
             # property further. +type+ is the type name for that attribute.  It
             # can be either in Typelib notation (/std/string) or in C++
             # notation (std::string). This type must be defined either by the
-            # component's own toolkit, or by toolkits imported with
-            # Component#load_toolkit.
+            # component's own typekit, or by typekits imported with
+            # Component#load_typekit.
             #
             # The generated task context will have a <tt>_[property name]</tt>
             # attribute of class RTT::Property<type>.
@@ -1000,9 +1000,9 @@ module Orocos
                     output_port 'state', '/int'
                 end
 
-                # Force toolkit generation. The toolkit code will take care of
+                # Force typekit generation. The typekit code will take care of
                 # generating the state enumeration type for us
-                component.toolkit(true)
+                component.typekit(true)
 
                 @extended_state_support = true
             end
@@ -1171,14 +1171,14 @@ module Orocos
             #   input_port 'image', shared_ptr('/Image')
             #
             # Additionally, this method makes sure that the corresponding type
-            # is actually defined on the project's toolkit.
+            # is actually defined on the project's typekit.
             def shared_ptr(name)
                 base_type = component.find_type(name)
                 full_name = "/boost/shared_ptr<#{base_type.name}>"
                 begin
                     component.find_type(full_name)
                 rescue Typelib::NotFound
-                    component.toolkit { shared_ptr(name) }
+                    component.typekit { shared_ptr(name) }
                     component.find_type(full_name)
                 end
             end
@@ -1193,7 +1193,7 @@ module Orocos
             #   input_port 'image', ro_ptr('/Image')
             #
             # Additionally, this method makes sure that the corresponding type
-            # is actually defined on the project's toolkit.
+            # is actually defined on the project's typekit.
             def ro_ptr(name)
                 base_type =
                     begin
@@ -1206,7 +1206,7 @@ module Orocos
                 begin
                     component.find_type(full_name)
                 rescue Typelib::NotFound
-                    component.toolkit { ro_ptr(name) }
+                    component.typekit { ro_ptr(name) }
                     component.find_type(full_name)
                 end
             end
@@ -1582,13 +1582,13 @@ module Orocos
             end
 
 
-            # Returns the set of toolkits that define the types used in this
+            # Returns the set of typekits that define the types used in this
             # task's interface. They are required at compile and link time
             # because of the explicit instanciation of interface templates
             # (ports, ...)
-            def used_toolkits
+            def used_typekits
                 types = interface_types
-                component.used_toolkits.find_all do |tk|
+                component.used_typekits.find_all do |tk|
                     types.any? do |type|
                         tk.includes?(type.name)
                     end

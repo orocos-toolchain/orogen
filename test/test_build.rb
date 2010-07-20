@@ -5,9 +5,9 @@ class TC_GenerationBuild < Test::Unit::TestCase
     include Orocos::Generation::Test
     TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 
-    def test_auto_regen_toolkit
+    def test_auto_regen_typekit
         # Simulate an external library that define a particular type, which we
-        # want to wrap with a toolkit
+        # want to wrap with a typekit
         lib_prefix = File.join(prefix_directory, 'build_regen_library')
         FileUtils.mkdir_p prefix_directory
         FileUtils.rm_rf lib_prefix
@@ -25,7 +25,7 @@ Cflags: -I${prefix}/include -I${prefix}/include/project
         ENV['PKG_CONFIG_PATH'] = "#{lib_prefix}:#{ENV['PKG_CONFIG_PATH']}"
         puts ENV['PKG_CONFIG_PATH']
 
-        build_test_component "modules/build_regen_toolkit", false
+        build_test_component "modules/build_regen_typekit", false
 
         in_wc do
             # Add a new type to test.h
@@ -43,7 +43,7 @@ namespace Test {
                 assert system("make")
             end
 
-            registry = Typelib::Registry.import('.orogen/toolkit/regen.tlb')
+            registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
             assert registry.get("Test/NewType")
         end
 
@@ -57,7 +57,7 @@ namespace Test {
                 assert system("make")
             end
 
-            registry = Typelib::Registry.import('.orogen/toolkit/regen.tlb')
+            registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
             assert registry.get("RegenLibNewType")
         end
 

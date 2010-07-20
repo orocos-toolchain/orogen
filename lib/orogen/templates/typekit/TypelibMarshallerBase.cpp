@@ -12,7 +12,7 @@ TypelibMarshallerBase::TypelibMarshallerBase(std::string const& typelib_typename
 {
     Typelib::Type const* type_def = registry.get(typelib_typename);
     if (!type_def)
-        throw std::runtime_error(typelib_typename + " is not present in the toolkit registry");
+        throw std::runtime_error(typelib_typename + " is not present in the typekit registry");
 
     layout    = Typelib::layout_of(*type_def, false, false);
 }

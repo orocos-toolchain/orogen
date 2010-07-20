@@ -1,0 +1,9 @@
+# This module is used primarily in TC_GenerationTypekit#test_simple in
+# test_typekit.rb. It is also used in TC_GenerationBuild#test_auto_regen_typekit
+# to test the automatic regeneration of typekits when input files change.
+#
+# It demonstrates orogen's typekit generation capabilities for simple types.
+name "simple"
+
+import_types_from "simple.h"
+

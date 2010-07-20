@@ -577,7 +577,7 @@ EXCLUDE_SYMLINKS       = YES
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */templates/* */.git/* */.orogen/toolkit* */.orogen/config* */CMakeFiles/*
+EXCLUDE_PATTERNS       = */templates/* */.git/* */.orogen/typekit* */.orogen/config* */CMakeFiles/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 
@@ -1248,7 +1248,7 @@ HIDE_UNDOC_RELATIONS   = YES
 
 # If you set the HAVE_DOT tag to YES then doxygen will assume the dot tool is 
 # available from the path. This tool is part of Graphviz, a graph visualization 
-# toolkit from AT&T and Lucent Bell Labs. The other options in this section 
+# typekit from AT&T and Lucent Bell Labs. The other options in this section 
 # have no effect if this option is set to NO (the default)
 
 HAVE_DOT               = NO

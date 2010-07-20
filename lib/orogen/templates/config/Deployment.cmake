@@ -6,8 +6,8 @@ include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
 
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
-<% if component.toolkit %>
-target_link_libraries(<%= deployer.name %> <%= component.name %>-toolkit-${OROCOS_TARGET})
+<% if component.typekit %>
+target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
 <% if deployer.corba_enabled? %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-corba-${OROCOS_TARGET})
 <% end %>

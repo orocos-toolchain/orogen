@@ -4,7 +4,7 @@
 # See cross_deployment for more information
 name 'cross_producer'
 
-using_toolkit "opaque"
+using_typekit "opaque"
 
 task_context "Producer" do
     output_port "point", "NotOrogenCompatible/Point2D"

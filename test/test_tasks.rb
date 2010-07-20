@@ -8,7 +8,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name
         component = Component.new
-        component.toolkit(true).load File.join(TEST_DATA_DIR, 'modules', 'toolkit_simple', 'simple.h')
+        component.typekit(true).load File.join(TEST_DATA_DIR, 'modules', 'typekit_simple', 'simple.h')
 
         assert_raises(ArgumentError) { component.task_context("Test") {} }
     end

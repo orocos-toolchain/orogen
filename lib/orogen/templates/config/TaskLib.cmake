@@ -1,7 +1,7 @@
 # What does the task library needs ?
-#  - it needs to be able to include the <toolkit_name>ToolkitTypes.hpp files for
-#    each used toolkit. It does not need to link the library, though, because the
-#    toolkit itself is hidden from the actual task contexts.
+#  - it needs to be able to include the <typekit_name>TypekitTypes.hpp files for
+#    each used typekit. It does not need to link the library, though, because the
+#    typekit itself is hidden from the actual task contexts.
 #  - it needs to have access to the dependent task libraries and libraries. This
 #    is true for both the headers and the link interface itself.
 #
@@ -25,10 +25,10 @@
 
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 
-<% if component.toolkit %>
-include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/toolkit)
+<% if component.typekit %>
+include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
-    <%= component.name %>-toolkit-${OROCOS_TARGET})
+    <%= component.name %>-typekit-${OROCOS_TARGET})
 <% end %>
 
 <%= dependencies = component.tasklib_dependencies

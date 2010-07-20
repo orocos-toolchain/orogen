@@ -9,10 +9,10 @@ class TC_GenerationBase < Test::Unit::TestCase
 	assert_raises(ArgumentError) { Generation.load_template('does', 'not', 'exist') }
 
 	erb = nil
-	assert_nothing_raised { erb = Generation.load_template('toolkit', 'Toolkit.cpp') }
+	assert_nothing_raised { erb = Generation.load_template('typekit', 'Typekit.cpp') }
 	assert_kind_of(ERB, erb)
 
-	assert_same(erb, Generation.load_template('toolkit', 'Toolkit.cpp'))
+	assert_same(erb, Generation.load_template('typekit', 'Typekit.cpp'))
 
 	other_erb = nil
 	assert_nothing_raised { other_erb = Generation.load_template('CMakeLists.txt') }

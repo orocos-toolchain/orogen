@@ -44,18 +44,18 @@ using namespace <%= component.name %>;
         <% end %>
     properties()->addProperty( &_<%= prop.name %> );<% end %>
     <% (task.self_ports - task.event_ports).each do |port| %>
-    ports()->addPort( &_<%= port.name %>, "<%= port.doc %>" );<% end %>
+    ports()->addPort( _<%= port.name %> );<% end %>
     <% (task.event_ports & task.self_ports).each do |port| %>
-    ports()->addEventPort( &_<%= port.name %>, std::string("<%= port.doc %>") );<% end %>
+    ports()->addEventPort( _<%= port.name %> );<% end %>
     <% (task.new_methods + task.new_commands).each do |callable| 
 	argument_setup = callable.arguments.
 	    map { |n, _, d| ", \"#{n}\", \"#{d}\"" }.
 	    join("")
 	kind = callable.class.name.gsub(/^.*::/, '')
     %>
-    <%= kind.downcase %>s()->add<%= kind %>( &_<%= callable.name %>, "<%= callable.doc %>"<%= argument_setup %>);<% end %>
+    provides()->addOperation( _<%= callable.name %> );<% end %>
     <% if task.superclass.name == "RTT::TaskContext" %>
-    methods()->addMethod( &_getModelName, "getModelName()");
+    provides()->addOperation( _getModelName );
     <% end %>
 
     <% if task.extended_state_support? %>

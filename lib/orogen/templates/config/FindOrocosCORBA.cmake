@@ -2,7 +2,7 @@ IF (NOT OrocosRTT_FOUND)
     FIND_PACKAGE(OrocosRTT REQUIRED)
 ENDIF(NOT OrocosRTT_FOUND)
 
-pkg_check_modules(OrocosCORBA orocos-rtt-corba-${OROCOS_TARGET})
+pkg_check_modules(OrocosCORBA "orocos-rtt-corba-${OROCOS_TARGET}>=1.99.4")
 IF(NOT OrocosCORBA_FOUND)
     IF (OrocosCORBA_FIND_REQUIRED)
 	MESSAGE(FATAL_ERROR "RTT has not been built with CORBA support")
@@ -14,7 +14,7 @@ ELSE(NOT OrocosCORBA_FOUND)
     LIST(APPEND OROCOS_COMPONENT_INCLUDE ${OrocosCORBA_INCLUDE_DIRS})
 
     # First, find the actual implementation of the used ORB (TAO or OMNIORB)
-    FIND_FILE( OrocosCORBA_config rtt/corba/rtt-corba-config.h ${OrocosRTT_INCLUDE_DIRS})
+    FIND_FILE( OrocosCORBA_config rtt/transports/corba/rtt-corba-config.h ${OrocosRTT_INCLUDE_DIRS})
     FILE(STRINGS ${OrocosCORBA_config} CORBA_IMPLEMENTATION
         REGEX "define RTT_CORBA_IMPLEMENTATION ")
     STRING(STRIP ${CORBA_IMPLEMENTATION} CORBA_IMPLEMENTATION)
@@ -28,8 +28,8 @@ ELSE(NOT OrocosCORBA_FOUND)
 
     # ORB-specific configuration steps if the TOOLKIT component
     # is required
-    STRING(REGEX MATCH "Toolkit" _orocos_corba_toolkit "${OrocosCORBA_FIND_COMPONENTS}")
-    IF (_orocos_corba_toolkit)
+    STRING(REGEX MATCH "Typekit" _orocos_corba_typekit "${OrocosCORBA_FIND_COMPONENTS}")
+    IF (_orocos_corba_typekit)
         IF (CORBA_IMPLEMENTATION STREQUAL "TAO")
             MESSAGE(STATUS "Orocos uses the TAO ORB")
 
@@ -37,12 +37,12 @@ ELSE(NOT OrocosCORBA_FOUND)
             OROCOS_PKGCONFIG(TAO_CosEvent ORBSVCS_FOUND ORBSVCS_INCLUDE_DIR ORBSVCS_DEFINES ORBSVCS_LINK_DIR ORBSVCS_LIBRARIES)
 
             IF (OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
-                SET(OrocosCORBA_Toolkit_FOUND TRUE)
+                SET(OrocosCORBA_Typekit_FOUND TRUE)
                 ADD_DEFINITIONS(-D_REENTRANT)
-                SET(OrocosCORBA_Toolkit_DEFINES ${ORBSVCS_DEFINES})
+                SET(OrocosCORBA_Typekit_DEFINES ${ORBSVCS_DEFINES})
                 # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
-                SET(OrocosCORBA_Toolkit_INCLUDE_DIR "${ORBSVCS_INCLUDE_DIR};${OrocosCORBA_INCLUDE_DIRS}")
+                SET(OrocosCORBA_Typekit_INCLUDE_DIR "${ORBSVCS_INCLUDE_DIR};${OrocosCORBA_INCLUDE_DIRS}")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE})
             ELSE(OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
                 IF(NOT OrocosCORBA_FIND_QUIETLY)
@@ -55,10 +55,10 @@ ELSE(NOT OrocosCORBA_FOUND)
 
             FIND_PROGRAM(OrocosCORBA_IDL_EXECUTABLE omniidl)
             IF (OrocosCORBA_IDL_EXECUTABLE)
-                SET(OrocosCORBA_Toolkit_FOUND TRUE)
+                SET(OrocosCORBA_Typekit_FOUND TRUE)
                 # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
-                SET(OrocosCORBA_Toolkit_INCLUDE_DIR "${OROCOS_RTT_INCLUDE_DIRS}/rtt;${OROCOS_RTT_INCLUDE_DIRS}/rtt/corba")
+                SET(OrocosCORBA_Typekit_INCLUDE_DIR "${OROCOS_RTT_INCLUDE_DIRS}/rtt;${OROCOS_RTT_INCLUDE_DIRS}/rtt/corba")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE} -bcxx -Wba -Wbh=C.h -Wbs=C.cpp -Wbd=DynSK.cpp)
             ELSE(OrocosCORBA_IDL_EXECUTABLE)
                 IF(NOT OrocosCORBA_FIND_QUIETLY)
@@ -68,6 +68,6 @@ ELSE(NOT OrocosCORBA_FOUND)
         ELSE (CORBA_IMPLEMENTATION STREQUAL "TAO")
             MESSAGE(FATAL_ERROR "unknown Corba implementation ${CORBA_IMPLEMENTATION}")
         ENDIF (CORBA_IMPLEMENTATION STREQUAL "TAO")
-    ENDIF (_orocos_corba_toolkit)
+    ENDIF (_orocos_corba_typekit)
 ENDIF(NOT OrocosCORBA_FOUND)
 

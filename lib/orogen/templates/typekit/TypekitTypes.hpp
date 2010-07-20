@@ -1,20 +1,20 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 #define <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
 
-<%= toolkit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
+<%= typekit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
-<% toolkit.external_loads.each do |file| %>
+<% typekit.external_loads.each do |file| %>
 #include <<%= file %>>
 <% end %>
-<% toolkit.local_headers(false).each do |path, dest_path| %>
+<% typekit.local_headers(false).each do |path, dest_path| %>
 #include "<%= File.join(component.name, dest_path) %>"
 <% end %>
-<% toolkit.used_toolkits.each do |tk| %>
-#include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
+<% typekit.used_typekits.each do |tk| %>
+#include <typekit/<%= tk.name %>TypekitTypes.hpp>
 <% end %>
 
 // This is a hack. We include it unconditionally as it may be required by some
-// toolkits *and* it is a standard header. Ideally, we would actually check if
+// typekits *and* it is a standard header. Ideally, we would actually check if
 // some of the types need std::vector.
 #include <vector>
 #include <boost/cstdint.hpp>
@@ -49,7 +49,7 @@
 <%= 
     catch(:nothing_to_define) do
         generate_all_marshalling_types = true
-        Generation.render_template 'toolkit/marshalling_types.hpp', binding
+        Generation.render_template 'typekit/marshalling_types.hpp', binding
     end %>
 
 #endif

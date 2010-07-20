@@ -1,4 +1,4 @@
-#include "opaqueToolkitUser.hpp"
+#include "opaqueTypekitUser.hpp"
 
 
 void opaque::to_intermediate(TestOpaque::Point2D& intermediate, NotOrogenCompatible::Point2D const& real_type)

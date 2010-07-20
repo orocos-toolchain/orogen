@@ -1,28 +1,28 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_HPP
 #define <%= component.name.upcase %>_TOOLKIT_HPP
 
-#include <rtt/ToolkitPlugin.hpp>
+#include <rtt/TypekitPlugin.hpp>
 
 namespace Typelib {
     class Registry;
 }
 
-namespace orogen_toolkits {
-    class <%= component.name %>ToolkitPlugin
-        : public RTT::ToolkitPlugin
+namespace orogen_typekits {
+    class <%= component.name %>TypekitPlugin
+        : public RTT::TypekitPlugin
     {
         Typelib::Registry* m_registry;
 
     public:
-        <%= component.name %>ToolkitPlugin();
-        ~<%= component.name %>ToolkitPlugin();
+        <%= component.name %>TypekitPlugin();
+        ~<%= component.name %>TypekitPlugin();
         bool loadTypes();
         bool loadOperators();
         bool loadConstructors();
         std::string getName();
     };
 
-    extern <%= component.name %>ToolkitPlugin <%= component.name %>Toolkit;
+    extern <%= component.name %>TypekitPlugin <%= component.name %>Typekit;
 }
 
 #endif

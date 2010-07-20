@@ -2,15 +2,15 @@
 #define <%= component.name %>_INTERMEDIATES_HH
 
 #include <boost/cstdint.hpp>
-#include <<%= component.name %>ToolkitTypes.hpp>
-<% if toolkit.has_opaques_with_templates? %>
-#include <<%= component.name %>ToolkitUser.hpp>
+#include <<%= component.name %>TypekitTypes.hpp>
+<% if typekit.has_opaques_with_templates? %>
+#include <<%= component.name %>TypekitUser.hpp>
 <% end %>
 
 namespace <%= component.name %>
 {
 <%
-toolkit.opaques.find_all { |op| !op.generate_templates? }.each do |opaque_def|
+typekit.opaques.find_all { |op| !op.generate_templates? }.each do |opaque_def|
     from = opaque_def.type
     into = component.find_type(opaque_def.intermediate)
 
@@ -55,7 +55,7 @@ opaques.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
 generated_types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
-        m_type = toolkit.find_type(type.name + "_m")
+        m_type = typekit.find_type(type.name + "_m")
         if !m_type
             raise RuntimeError, "no intermediate marshalling type for #{type.name}"
         end

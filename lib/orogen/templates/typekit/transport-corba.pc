@@ -7,12 +7,12 @@ project_name=<%= component.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
 type_registry=${prefix}/share/orogen/<%= component.name %>.tlb
 
-Name: <%= component.name %>Toolkit
+Name: <%= component.name %>CorbaTransport
 Version: <%= component.version %>
-<% unless toolkit.internal_dependencies.empty? %>
-Requires: <%= toolkit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
+<% unless typekit.internal_dependencies.empty? %>
+Requires: <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
 <% end %>
 Description: <%= component.name %> types support for the Orocos type system
-Libs: -L${libdir} -l@libname@
-Cflags: -I${includedir} <%= toolkit.loaded_files_dirs.map { |s| "-I#{s}" }.join(" ") %> @PKG_CFLAGS@
+Libs: -L${libdir} -l@libname_corba@
+Cflags: -I${includedir}
 

@@ -4,9 +4,8 @@
 #include <string>
 #include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
-<% if !task.new_methods.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Method.hpp><% end %>
-<% unless task.new_commands.empty? %>#include <rtt/Command.hpp><% end %>
-<% unless task.self_ports.empty? %>#include <rtt/Ports.hpp><% end %>
+<% if !task.new_methods.empty? || !task.new_commands.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
+<% unless task.self_ports.empty? %>#include <rtt/Port.hpp><% end %>
 
 
 <% if task.extended_state_support? %>
@@ -14,13 +13,13 @@
 <% end %>
 
 
-<% task.used_toolkits.each do |tk| %>
-#include <toolkit/<%= tk.name %>ToolkitTypes.hpp>
+<% task.used_typekits.each do |tk| %>
+#include <typekit/<%= tk.name %>TypekitTypes.hpp>
 <% end %>
 <% task.implemented_classes.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
-<% if component.toolkit %>#include "toolkit/<%= component.name %>ToolkitTypes.hpp"<% end %>
+<% if component.typekit %>#include "typekit/<%= component.name %>TypekitTypes.hpp"<% end %>
 
 
 namespace <%= component.name %> {
@@ -41,14 +40,14 @@ namespace <%= component.name %> {
 	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
     <% end %>
 
-	<% unless task.self_methods.empty? %>/** Methods */<% end %>
+	<% unless task.self_methods.empty? %>/** Operations */<% end %>
     <% task.new_methods.each do |meth| %>
-	RTT::Method< <%= meth.signature(false) %> > _<%= meth.name %>;
+	RTT::Operation< <%= meth.signature(false) %> > _<%= meth.name %>;
 	virtual <%= meth.signature(true) %> = 0;
     <% end %>
 
     <% if task.superclass.name == "RTT::TaskContext" %>
-	RTT::Method< std::string() > _getModelName;
+	RTT::Operation< std::string() > _getModelName;
     <% end %>
 
 	<% unless task.self_commands.empty? %>/** Commands */<% end %>

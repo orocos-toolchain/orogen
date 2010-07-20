@@ -1,13 +1,13 @@
 module Typelib
     class Type
-        def self.to_stream(toolkit, result, indent)
+        def self.to_stream(typekit, result, indent)
             STDERR.puts "to_ostream not implemented for #{name}"
             result
         end
     end
 
     class ContainerType
-        def self.to_stream(toolkit, result, indent)
+        def self.to_stream(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -39,15 +39,15 @@ module Typelib
     end
 
     class EnumType
-        def self.to_stream(toolkit, result, indent)
-            to_string(toolkit, result, indent)
+        def self.to_stream(typekit, result, indent)
+            to_string(typekit, result, indent)
             result << "#{indent}io << enum_name;\n";
             result
         end
     end
 
     class CompoundType
-        def self.to_stream(toolkit, result, indent)
+        def self.to_stream(typekit, result, indent)
             result << indent << "io << \"{ \";\n"
 
             first_field = true
@@ -70,7 +70,7 @@ module Typelib
         end
     end
     class ArrayType
-        def self.to_stream(toolkit, result, indent)
+        def self.to_stream(typekit, result, indent)
             element_type = registry.build(deference.name)
 
             result << indent << "io << \"[ \";\n"
