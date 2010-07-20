@@ -17,10 +17,6 @@ link_directories(${OrocosRTT_LIBRARY_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/typekit)
 <% end %>
 
-<% typelib_dep = [BuildDependency.new("TYPELIB", "typelib", false, true,
-true)]
-   Generation.cmake_pkgconfig_require(typelib_dep) %>
-
 # Now set up the dependencies
 <%= typekit_deps = typekit.dependencies
     Generation.cmake_pkgconfig_require(typekit_deps) %>
@@ -33,18 +29,16 @@ string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 
 # Generate the base typekit shared library
 set(libname <%= component.name %>-typekit-${OROCOS_TARGET})
-add_library(${libname} SHARED <%= component.name %>Typekit.cpp
-    <%= typekit.template_instanciation_files.join(" ") %>
-    TypelibMarshallerBase.cpp
+add_library(${libname} SHARED
+    <%= implementation_files.sort.join("\n  ") %>
     ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !typekit.opaques.empty? %>
-    <% if typekit.has_opaques_with_templates? %>
-    ${PROJECT_SOURCE_DIR}/typekit/<%= component.name %>TypekitUser.cpp
-    <% end %>
-    <%= component.name %>TypekitIntermediates.cpp
+        <% if typekit.has_opaques_with_templates? %>
+            ${PROJECT_SOURCE_DIR}/typekit/<%= component.name %>TypekitUser.cpp
+        <% end %>
+        <%= component.name %>TypekitIntermediates.cpp
     <% end %>)
 
-<%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typelib_dep) %>
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
@@ -53,15 +47,8 @@ set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-typekit-${
 configure_file(<%= component.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>TypekitTypes.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Typekit.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>TypekitImpl.hpp
-    <% if !typekit.opaques.empty? %>
-    <% if typekit.has_opaques_with_templates? %>
-    ${PROJECT_SOURCE_DIR}/typekit/<%= component.name %>TypekitUser.hpp
-    <% end %>
-    ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/<%= component.name %>TypekitIntermediates.hpp
-    <% end %>
+install(FILES
+    <%= public_header_files.sort.join("\n    ") %>
     DESTINATION include/orocos/typekit)
 
 <% typekit.local_headers(false).each do |path, dest_path| %>
@@ -73,52 +60,6 @@ install(FILES ${PKG_CONFIG_FILE}
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb
     ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.typelist
     DESTINATION share/orogen)
-
-
-<% if typekit.corba_enabled? %>
-include_directories(${OrocosCORBA_INCLUDE_DIRS})
-add_definitions(${OrocosCORBA_CFLAGS_OTHER})
-link_directories(${OrocosCORBA_LIBRARY_DIRS})
-
-# Set up generation of IDL files for CORBA support
-IF (NOT OrocosCORBA_Typekit_FOUND)
-    MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
-ENDIF(NOT OrocosCORBA_Typekit_FOUND)
-
-set(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>TypekitC.cpp)
-if(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-    list(APPEND CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>TypekitDynSK.cpp)
-endif(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-
-add_custom_command(OUTPUT ${CORBA_FILES}
-    COMMAND ${OrocosCORBA_IDL} -Wbkeep_inc_path
-        <%= typekit.used_typekits.map { |tk| "-I" + File.join(tk.pkg.prefix, "include", "orocos") }.join(" ") %>
-        ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Typekit.idl
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Typekit.idl)
-
-add_definitions(${OrocosCORBA_Typekit_DEFINES})
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${OrocosCORBA_Typekit_INCLUDE_DIRS})
-
-# Generate the CORBA transport
-set(libname_corba <%= component.name %>-transport-corba-${OROCOS_TARGET})
-add_library(${libname_corba} SHARED <%= component.name %>TypekitCorba.cpp ${CORBA_FILES})
-target_link_libraries(${libname_corba} ${libname} ${OrocosCORBA_LIBRARIES})
-<%= Generation.cmake_pkgconfig_link_corba('${libname_corba}', typekit_deps) %>
-target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
-
-SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-transport-corba-${OROCOS_TARGET}.pc)
-CONFIGURE_FILE(<%= component.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
-
-install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos)
-install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
-install(FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>TypekitCorba.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>TypekitCorbaImpl.hpp
-    ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>TypekitC.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>Typekit.idl
-    DESTINATION include/orocos/typekit)
-<% end %>
 
 # Add a regeneration target
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")

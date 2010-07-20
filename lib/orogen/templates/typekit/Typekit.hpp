@@ -1,7 +1,7 @@
 #ifndef <%= component.name.upcase %>_TOOLKIT_HPP
 #define <%= component.name.upcase %>_TOOLKIT_HPP
 
-#include <rtt/TypekitPlugin.hpp>
+#include <rtt/types/TypekitPlugin.hpp>
 
 namespace Typelib {
     class Registry;
@@ -9,7 +9,7 @@ namespace Typelib {
 
 namespace orogen_typekits {
     class <%= component.name %>TypekitPlugin
-        : public RTT::TypekitPlugin
+        : public RTT::types::TypekitPlugin
     {
         Typelib::Registry* m_registry;
 

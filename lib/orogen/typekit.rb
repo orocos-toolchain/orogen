@@ -5,9 +5,7 @@ require 'orogen/base'
 require 'utilrb/kernel/options'
 require 'nokogiri'
 
-require 'orogen/marshallers/corba'
-require 'orogen/marshallers/iostream'
-require 'orogen/marshallers/property_bag'
+require 'orogen/marshallers/type_info'
 
 module Typelib
     class Type
@@ -27,6 +25,9 @@ module Typelib
         end
         def self.cxx_namespace
             namespace('::')
+        end
+        def self.name_as_word
+            cxx_name.gsub(/[^\w+]/, '_')
         end
 
         def self.arg_type; "#{cxx_name} const&" end
@@ -330,6 +331,21 @@ module Orocos
             def generate_templates?; !code_generator end
         end
 
+        # This is an internal structure to pass different sets of types to the
+        # code generation plugins
+        class TypeSets
+            # The types that are new in this typekit
+            attr_accessor :types
+            # The types for which a convertion function should be generated,
+            # except for arrays that have to be handled separately
+            attr_accessor :converted_types
+            # The array types for which a convertion function should be
+            # generated
+            attr_accessor :array_types
+            # The types that will end up being registered in the type system
+            attr_accessor :registered_types
+        end
+
 	class Typekit
             # The component this typekit is part of
 	    attr_reader :component
@@ -343,6 +359,10 @@ module Orocos
                 loads.find_all do |name|
                     name !~ /#{Regexp.quote(component.base_dir)}/
                 end
+            end
+
+            def name
+                component.name
             end
 
             # The three possible type export policies. See #type_export_policy
@@ -458,8 +478,8 @@ module Orocos
 	    def initialize(component)
 		@component = component
 
+                @plugins = []
                 @internal_dependencies = []
-		@corba_enabled      = nil
 		@imports, @loads    = [], []
 		@registry           = Typelib::Registry.new
 		@preloaded_registry = Typelib::Registry.new
@@ -475,6 +495,11 @@ module Orocos
 		# lists or property types
 		registry.import File.expand_path('orocos.tlb', File.dirname(__FILE__))
 	    end
+
+            # The set of code generation plugins
+            attr_reader :plugins
+            def each_plugin(&block); plugins.each(&block) end
+            def add_plugin(plugin); plugins << plugin end
 
             # Loads the types defined in +file+, with the same constraints as
             # for #load, but will not generate typekit code for it. This is
@@ -774,49 +799,30 @@ module Orocos
                 # provides.
                 component.used_libraries.each do |pkg|
                     needs_link = component.typekit_libraries.include?(pkg)
-                    result << BuildDependency.new(pkg.name.upcase, pkg.name, false, true, needs_link)
+                    result << BuildDependency.new(pkg.name.upcase, pkg.name).
+                        in_context('core', 'include')
+                    if needs_link
+                        result.last.in_context('core', 'link')
+                    end
                 end
 
                 # We must link to typekits that define our types, as we are
                 # going to reuse the convertion functions that they define
                 used_typekits.each do |tk|
-                    result << BuildDependency.new(tk.name.upcase + "_TOOLKIT", tk.pkg_name, false, true, true)
+                    result << BuildDependency.new(
+                        tk.name.upcase + "_TOOLKIT", tk.pkg_name).
+                        in_context('core', 'include').
+                        in_context('core', 'link')
                 end
 
                 # We must include the typekits that define types that are used
                 # in the other typekits types
-
-                if corba_enabled?
-                    used_typekits.each do |tk|
-                        result << BuildDependency.new(tk.name.upcase + "_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
-                    end
+                each_plugin do |plg|
+                    plg.dependencies(self)
                 end
 
                 result.to_a.sort_by { |dep| dep.var_name }
             end
-
-	    def to_code(generated_types, registry)
-		typekit = self
-
-                # Save all the types that this specific typekit handles
-                Generation.save_automatic "typekit", "#{component.name}.typelist",
-                    generated_types.
-                        map { |type| type.name }.
-                        join("\n")
-
-                generate_typedefs(generated_types, registry)
-
-		type_header = Generation.render_template('typekit/types.hpp', binding)
-		if corba_enabled?
-		    corba  = Generation.render_template 'typekit/corba.hpp', binding
-		    idl    = Orocos::Generation.render_template "typekit/corba.idl", binding
-		end
-		header = Orocos::Generation.render_template "typekit/header.hpp", binding
-		namespace = '/'
-		source = Orocos::Generation.render_template "typekit/typekit.cpp", binding
-
-		return type_header, header, source, corba, idl
-	    end
 
             def opaque_specification(type_def)
                 type = find_type(type_def)
@@ -968,6 +974,11 @@ module Orocos
 	    def generate
 		typekit = self
 
+                add_plugin(Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
+                if corba_enabled?
+                    add_plugin(Orocos::TypekitMarshallers::Corba::Plugin.new)
+                end
+
                 FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'typekit')
 
                 # Populate a fake installation directory so that the include
@@ -1073,54 +1084,60 @@ module Orocos
                     find_all { |type| !typekit.m_type?(type) && !(type <= Typelib::ArrayType) }.
                     sort_by { |type| type.name }.uniq
 
-                # Generate the C++ and IDL files
-                tk_hpp = Generation.render_template "typekit/Typekit.hpp", binding
-		Generation.save_automatic("typekit", "#{component.name}Typekit.hpp", tk_hpp)
-                tk_cpp = Generation.render_template "typekit/Typekit.cpp", binding
-		Generation.save_automatic("typekit", "#{component.name}Typekit.cpp", tk_cpp)
-                tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
-		Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
+                type_sets = TypeSets.new
+                type_sets.types            = generated_types
+                type_sets.converted_types  = converted_types
+                type_sets.array_types      = array_types
+                type_sets.registered_types = registered_types
+
+                public_header_files, implementation_files = [], []
+
 		type_header = Generation.render_template('typekit/TypekitTypes.hpp', binding)
-		Generation.save_automatic("typekit", "#{component.name}TypekitTypes.hpp", type_header)
-		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
-		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
+		public_header_files << Generation.save_automatic("typekit", "#{component.name}TypekitTypes.hpp", type_header)
+                tk_hpp = Generation.render_template "typekit/Typekit.hpp", binding
+		public_header_files << Generation.save_automatic("typekit", "#{component.name}Typekit.hpp", tk_hpp)
+                tk_cpp = Generation.render_template "typekit/Typekit.cpp", binding
+		implementation_files << Generation.save_automatic("typekit", "#{component.name}Typekit.cpp", tk_cpp)
+
+                #tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
+		#Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
 
                 # Generate the explicit instanciation files. We split them on a
                 # by-type basis, as it allows to use parallel build *and* avoid
                 # memory explosion by GCC
-                @template_instanciation_files = registered_types.each_with_index.map do |type, i|
-                    instanciation = Generation.render_template 'typekit/TemplateInstanciation.cpp', binding
-                    out_name =  "#{component.name}TemplateInstanciation#{i}.cpp"
-                    Generation.save_automatic("typekit", out_name, instanciation)
-                    out_name
+                # @template_instanciation_files = registered_types.each_with_index.map do |type, i|
+                #     instanciation = Generation.render_template 'typekit/TemplateInstanciation.cpp', binding
+                #     out_name =  "#{component.name}TemplateInstanciation#{i}.cpp"
+                #     Generation.save_automatic("typekit", out_name, instanciation)
+                #     out_name
+                # end
+
+                each_plugin do |plg|
+                    headers, impl = plg.generate(self, type_sets)
+                    puts impl.inspect
+                    public_header_files.concat(headers)
+                    implementation_files.concat(impl)
                 end
 
-                if corba_enabled?
-                    corba_hpp = Generation.render_template "typekit/TypekitCorba.hpp", binding
-                    Generation.save_automatic("typekit", "#{component.name}TypekitCorba.hpp", corba_hpp)
-                    corba_impl_hpp = Generation.render_template "typekit/TypekitCorbaImpl.hpp", binding
-                    Generation.save_automatic("typekit", "#{component.name}TypekitCorbaImpl.hpp", corba_impl_hpp)
-                    corba_cpp = Generation.render_template "typekit/TypekitCorba.cpp", binding
-                    Generation.save_automatic("typekit", "#{component.name}TypekitCorba.cpp", corba_cpp)
-		    idl    = Orocos::Generation.render_template "typekit/Typekit.idl", binding
-                    Generation.save_automatic "typekit", "#{component.name}Typekit.idl", idl
-                    pkg_config = Generation.render_template 'typekit/transport-corba.pc', binding
-                    Generation.save_automatic("typekit", "#{component.name}-transport-corba.pc.in", pkg_config)
-		end
+
+		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
+		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
+                cmake = Generation.render_template 'typekit', 'CMakeLists-auto.txt', binding
+                Generation.save_automatic("typekit", "CMakeLists.txt", cmake)
 
                 # Generate the opaque-related stuff
-                if !opaques.empty?
-                    intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
-                    Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
-                    intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
-                    Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
-                    if has_opaques_with_templates?
-                        user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
-                        user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
-                        Generation.save_user 'typekit', "#{component.name}TypekitUser.hpp", user_hh
-                        Generation.save_user 'typekit', "#{component.name}TypekitUser.cpp", user_cc
-                    end
-                end
+                # if !opaques.empty?
+                #     intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
+                #     Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
+                #     intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
+                #     Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
+                #     if has_opaques_with_templates?
+                #         user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
+                #         user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
+                #         Generation.save_user 'typekit', "#{component.name}TypekitUser.hpp", user_hh
+                #         Generation.save_user 'typekit', "#{component.name}TypekitUser.cpp", user_cc
+                #     end
+                # end
 
                 # Finished, create the timestamp file
                 Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'typekit', 'stamp')

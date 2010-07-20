@@ -1,6 +1,43 @@
 module Typelib
-    class Type
-        def self.corba_name(plain_name = false)
+    module TypekitMarshallers
+    module Corba
+    class Plugin
+        def initialize
+            Typelib::Type          .extend(TypekitMarshallers::Corba::Type)
+            Typelib::NumericType   .extend(TypekitMarshallers::Corba::NumericType)
+            Typelib::ContainerType .extend(TypekitMarshallers::Corba::ContainerType)
+            Typelib::EnumType      .extend(TypekitMarshallers::Corba::EnumType)
+            Typelib::CompoundType  .extend(TypekitMarshallers::Corba::CompoundType)
+            Typelib::ArrayType     .extend(TypekitMarshallers::Corba::ArrayType)
+        end
+
+        def dependencies(typekit)
+            result = []
+            typekit.used_typekits.each do |tk|
+                build_dep = BuildDependency.new(
+                    tk.name.upcase + "_TRANSPORT_CORBA",
+                    tk.pkg_corba_name)
+                build_dep.in_context('corba', 'include')
+                build_dep.in_context('corba', 'link')
+            end
+        end
+
+        def generate(typekit)
+            corba_hpp = Generation.render_template "typekit/TypekitCorba.hpp", binding
+            Generation.save_automatic("typekit", "#{component.name}TypekitCorba.hpp", corba_hpp)
+            corba_impl_hpp = Generation.render_template "typekit/TypekitCorbaImpl.hpp", binding
+            Generation.save_automatic("typekit", "#{component.name}TypekitCorbaImpl.hpp", corba_impl_hpp)
+            corba_cpp = Generation.render_template "typekit/TypekitCorba.cpp", binding
+            Generation.save_automatic("typekit", "#{component.name}TypekitCorba.cpp", corba_cpp)
+            idl    = Orocos::Generation.render_template "typekit/Typekit.idl", binding
+            Generation.save_automatic "typekit", "#{component.name}Typekit.idl", idl
+            pkg_config = Generation.render_template 'typekit/transport-corba.pc', binding
+            Generation.save_automatic("typekit", "#{component.name}-transport-corba.pc.in", pkg_config)
+        end
+    end
+
+    module Type
+        def corba_name(plain_name = false)
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
@@ -10,28 +47,28 @@ module Typelib
             end
         end
 
-        def self.corba_arg_type; "#{corba_name} const&" end
-        def self.corba_ref_type; "#{corba_name}&" end
+        def corba_arg_type; "#{corba_name} const&" end
+        def corba_ref_type; "#{corba_name}&" end
 
-        def self.to_corba(typekit, result, *args)
+        def to_corba(typekit, result, *args)
             STDERR.puts "to_corba not implemented for #{name}"
             result
         end
-        def self.from_corba(typekit, result, *args)
+        def from_corba(typekit, result, *args)
             STDERR.puts "from_corba not implemented for #{name}"
             result
         end
 
-        def self.inline_fromCorba(result, value, indent)
+        def inline_fromCorba(result, value, indent)
             "#{indent}#{result} = #{value};\n"
         end
-        def self.inline_toCorba(result, value, indent)
+        def inline_toCorba(result, value, indent)
             "#{indent}#{result} = #{value};\n"
         end
     end
 
-    class NumericType
-        def self.corba_name(plain_name = false)
+    module NumericType
+        def corba_name(plain_name = false)
 	    if integer?
 		if name == "/bool"
 		    "CORBA::Boolean"
@@ -58,7 +95,7 @@ module Typelib
         end
     end
 
-    specialize_model '/std/string' do
+    ::Typelib::specialize_model '/std/string' do
         def inlines_code?; true end
         def corba_name(plain_name = false); "char" end
         def corba_arg_type; "char const*" end
@@ -69,8 +106,8 @@ module Typelib
         end
     end
 
-    class ContainerType
-        def self.corba_name(plain_name = false)
+    module ContainerType
+        def corba_name(plain_name = false)
             if plain_name
                 return super
             end
@@ -81,10 +118,10 @@ module Typelib
                 "_CORBA_Unbounded_Sequence< #{deference.corba_name} >"
             end
         end
-        def self.corba_arg_type; "#{corba_name} const&" end
-        def self.corba_ref_type; "#{corba_name}&" end
+        def corba_arg_type; "#{corba_name} const&" end
+        def corba_ref_type; "#{corba_name}&" end
 
-        def self.to_corba(typekit, result, indent)
+        def to_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -118,7 +155,7 @@ module Typelib
             end
 	    result
         end
-        def self.from_corba(typekit, result, indent)
+        def from_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -148,10 +185,10 @@ module Typelib
         end
     end
 
-    class EnumType
-	def self.to_corba(typekit, result, indent)
+    module EnumType
+	def to_corba(typekit, result, indent)
             seen_values = Set.new
-            namespace = self.namespace('::')
+            namespace = namespace('::')
             result << indent << "switch(value) {\n"
             keys.each do |name, value|
                 next if seen_values.include?(value)
@@ -163,9 +200,9 @@ module Typelib
             end
             result << indent << "}\n"
 	end
-	def self.from_corba(typekit, result, indent)
+	def from_corba(typekit, result, indent)
             seen_values = Set.new
-            namespace = self.namespace('::')
+            namespace = namespace('::')
             result << indent << "switch(corba) {\n"
             keys.each do |name, value|
                 next if seen_values.include?(value)
@@ -179,15 +216,15 @@ module Typelib
 	end
     end
 
-    class CompoundType
-        def self.to_corba(typekit, result, indent)
+    module CompoundType
+        def to_corba(typekit, result, indent)
             code_copy(typekit, result, indent, "corba", "value", "toCORBA", true) do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_toCorba("corba.#{field_name}", "value.#{field_name}", indent)
                 end
             end
         end
-        def self.from_corba(typekit, result, indent)
+        def from_corba(typekit, result, indent)
             code_copy(typekit, result, indent, "value", "corba", "fromCORBA", true) do |field_name, field_type|
                 if field_type.inlines_code?
                     field_type.inline_fromCorba("value.#{field_name}", "corba.#{field_name}", indent)
@@ -195,20 +232,23 @@ module Typelib
             end
         end
     end
-    class ArrayType
-        def self.corba_arg_type; "#{deference.corba_name} const*" end
-        def self.corba_ref_type; "#{deference.corba_name}*" end
 
-        def self.to_corba(typekit, result, indent)
+    module ArrayType
+        def corba_arg_type; "#{deference.corba_name} const*" end
+        def corba_ref_type; "#{deference.corba_name}*" end
+
+        def to_corba(typekit, result, indent)
             code_copy(typekit, result, indent, "corba", "value", "toCORBA") do |type, _|
                 type.inlines_code?
             end
         end
-        def self.from_corba(typekit, result, indent)
+        def from_corba(typekit, result, indent)
             code_copy(typekit, result, indent, "value", "corba", "fromCORBA") do |type, _|
                 type.inlines_code?
             end
         end
+    end
+    end
     end
 end
 

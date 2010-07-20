@@ -629,23 +629,49 @@ module Orocos
 
             def dependencies
                 result = []
-                result << BuildDependency.new("OrocosRTT", "orocos-rtt-#{Generation.orocos_target}", false, true, true)
+                result << BuildDependency.new(
+                    "OrocosRTT",
+                    "orocos-rtt-#{Generation.orocos_target}").
+                    in_context('core', 'include').
+                    in_context('core', 'link')
+
                 if browse
-                    result << BuildDependency.new("OrocosOCL", "orocos-ocl-#{Generation.orocos_target}", false, true, true)
+                    result << BuildDependency.new(
+                        "OrocosOCL",
+                        "orocos-ocl-#{Generation.orocos_target}").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
                 end
                 if corba_enabled?
-                    result << BuildDependency.new("OrocosCORBA", "orocos-transport-corba-#{Generation.orocos_target}", true, true, true)
+                    result << BuildDependency.new(
+                        "OrocosCORBA",
+                        "orocos-transport-corba-#{Generation.orocos_target}").
+                        in_context('corba', 'include').
+                        in_context('corba', 'link')
                 end
 
                 used_typekits.each do |tk|
-                    result << BuildDependency.new("#{tk.name}_TOOLKIT", tk.pkg_name, false, true, true)
+                    result << BuildDependency.new(
+                        "#{tk.name}_TOOLKIT",
+                        tk.pkg_name).
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+
                     if corba_enabled?
-                        result << BuildDependency.new("#{tk.name}_TRANSPORT_CORBA", tk.pkg_corba_name, true, true, true)
+                        result << BuildDependency.new(
+                            "#{tk.name}_TRANSPORT_CORBA",
+                            tk.pkg_corba_name).
+                            in_context('corba', 'include').
+                            in_context('corba', 'link')
                     end
                 end
 
                 used_task_libraries.each do |pkg|
-                    result << BuildDependency.new("#{pkg.name}_TASKLIB", "#{pkg.name}-tasks-#{Generation.orocos_target}", false, true, true)
+                    result << BuildDependency.new(
+                        "#{pkg.name}_TASKLIB",
+                        "#{pkg.name}-tasks-#{Generation.orocos_target}").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
                 end
 
                 # Task files could be using headers from external libraries, so add the relevant

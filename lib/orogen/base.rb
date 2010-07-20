@@ -171,11 +171,11 @@ module Orocos
 			logger.info "  overwriting #{file_path}"
 		    else
 			logger.info "  will not overwrite #{file_path}"
-			return
+			return file_path
 		    end
 		else
 		    logger.debug "  #{file_path} has not changed"
-		    return
+		    return file_path
 		end
 	    else
 		logger.info "  creating #{file_path}"
@@ -184,6 +184,7 @@ module Orocos
 	    File.open(file_path, 'w') do |io|
 		io.write data
 	    end
+            file_path
 	end
 
         # Removes from the given path all files that have not been generated
@@ -234,12 +235,13 @@ module Orocos
 	# user-written part of the component, if the said file does
 	# not exist yet
 	def self.save_user(*args)
-	    save_generated false, *args
+	    result = save_generated false, *args
 
 	    # Save the template in path1/path2/.../orogen/file_name
 	    args = args.dup
 	    args.unshift "templates"
 	    save_generated true, *args
+            result
 	end
 
 	# Returns the C++ code which changes the current namespace from +old+
@@ -299,24 +301,46 @@ module Orocos
 	    FileUtils.rm_rf "templates"
 	end
 
-        BuildDependency = Struct.new :var_name, :pkg_name, :corba, :include, :link
+        class BuildDependency
+            attr_reader :var_name
+            attr_reader :pkg_name
+
+            attr_reader :context
+
+            def initialize(var_name, pkg_name)
+                @var_name = var_name
+                @pkg_name = pkg_name
+                @context = []
+            end
+
+            def in_context(*args)
+                context << args.to_set
+                self
+            end
+
+            def in_context?(*args)
+                context.include?(args.to_set)
+                self
+            end
+        end
 
         def self.cmake_pkgconfig_require(depspec)
             depspec.inject([]) do |result, s|
                 result << "pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
-                if s.include
+                if s.in_context?('core', 'include')
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
                     result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
                 end
-                if s.link
+                if s.in_context?('core', 'link')
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
                 end
                 result
             end.join("\n")
         end
-        def self.cmake_pkgconfig_link(only_corba, target, depspec)
+
+        def self.cmake_pkgconfig_link(context, target, depspec)
             depspec.inject([]) do |result, s|
-                if only_corba == s.corba && s.link
+                if s.in_context?('link', context)
                     result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
                 end
                 result
@@ -324,10 +348,10 @@ module Orocos
         end
 
         def self.cmake_pkgconfig_link_corba(target, depspec)
-            cmake_pkgconfig_link(true, target, depspec)
+            cmake_pkgconfig_link('corba', target, depspec)
         end
         def self.cmake_pkgconfig_link_noncorba(target, depspec)
-            cmake_pkgconfig_link(false, target, depspec)
+            cmake_pkgconfig_link('core', target, depspec)
         end
     end
 end

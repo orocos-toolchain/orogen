@@ -482,38 +482,9 @@ module Orocos
                     cmake = Generation.render_template "config", file, binding
                     Generation.save_automatic "config", "#{name}#{file}", cmake
                 end
-		
-		# Generate CMakeLists.txt if there is one in the template directory,
-		# and the target directory exists. We check first for the user area
-		# and then for the automatic area
-		base_template_dir = Pathname.new(Generation.template_path)
-		base_template_dir.find do |path|
-		    path = Pathname.new(path).relative_path_from(base_template_dir)
-                    if path.to_s == 'typekit' && !typekit
-                        Find.prune
-                    end
 
-		    dirname = path.dirname
-		    if path.basename.to_s == "CMakeLists.txt"
-			if File.directory?(dirname)
-			    cmake = Generation.render_template path.to_s, binding
-			    Generation.save_user path, cmake
-			elsif File.directory?(File.join(Generation::AUTOMATIC_AREA_NAME, dirname))
-			    cmake = Generation.render_template path.to_s, binding
-			    Generation.save_automatic path, cmake
-			else
-			    Generation.logger.info "ignoring template #{path}"
-			end
-		    elsif path.basename.to_s == "CMakeLists-auto.txt"
-			if File.directory?(File.join(Generation::AUTOMATIC_AREA_NAME, dirname))
-			    target = File.join(dirname, path.basename.to_s.gsub(/-auto\.txt$/, '.txt'))
-			    cmake = Generation.render_template path.to_s, binding
-			    Generation.save_automatic target, cmake
-			else
-			    Generation.logger.info "ignoring template #{path}"
-			end
-		    end
-		end
+                cmake = Generation.render_template 'CMakeLists.txt', binding
+                Generation.save_user("CMakeLists.txt", cmake)
 	    end
 
             # Returns a list of BuildDependency object that represent the
@@ -535,13 +506,21 @@ module Orocos
                 # indirect dependencies in type_includes, remove duplicates
                 # and finish
                 used_typekits.map! do |name|
-                    BuildDependency.new "#{name}_TOOLKIT", "#{name}-typekit-#{orocos_target}", false, true, true
+                    build_dep = BuildDependency.new("#{name}_TOOLKIT", "#{name}-typekit-#{orocos_target}")
+                    build_dep.in_context('core', 'include')
+                    build_dep.in_context('core', 'link')
                 end
                 used_libraries.map! do |name|
-                    BuildDependency.new name, name, false, true, true
+                    build_dep = BuildDependency.new(name, name)
+                    build_dep.in_context('core', 'include')
+                    build_dep.in_context('core', 'link')
                 end
                 used_tasklibs.map! do |name|
-                    BuildDependency.new "#{name}_TASKLIB", "#{name}-tasks-#{orocos_target}", false, true, true
+                    build_dep = BuildDependency.new(
+                        "#{name}_TASKLIB",
+                        "#{name}-tasks-#{orocos_target}")
+                    build_dep.in_context('core', 'include')
+                    build_dep.in_context('core', 'link')
                 end
                 result = (used_typekits + used_libraries + used_tasklibs)
 
