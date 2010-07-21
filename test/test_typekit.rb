@@ -102,11 +102,14 @@ class TC_GenerationTypekit < Test::Unit::TestCase
             cmake << <<-EOT
 include_directories(${OrocosRTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})
 link_directories(${OrocosCORBA_LIBRARY_DIRS} ${OrocosRTT_LIBRARY_DIRS})
+list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
+
 add_executable(test test.cpp)
 target_link_libraries(test simple-typekit-${OROCOS_TARGET})
 target_link_libraries(test ${OrocosRTT_LIBRARIES})
-find_package( RTTPlugin COMPONENTS rtt-marshalling-${OROCOS_TARGET})
-target_link_libraries(test ${RTT_PLUGIN_LIBRARIES})
+find_package( RTTPlugin COMPONENTS rtt-typekit rtt-marshalling)
+target_link_libraries(test ${RTT_PLUGIN_rtt-marshalling_LIBRARY})
+target_link_libraries(test ${RTT_PLUGIN_rtt-typekit_LIBRARY})
 install(TARGETS test RUNTIME DESTINATION bin)
             EOT
 
