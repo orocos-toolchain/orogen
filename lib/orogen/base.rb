@@ -318,9 +318,19 @@ module Orocos
                 self
             end
 
-            def in_context?(*args)
-                context.include?(args.to_set)
+            def remove_context(*args)
+                args = args.to_set
+                context.delete_if do |ctx|
+                    (args & ctx).size == args.size
+                end
                 self
+            end
+
+            def in_context?(*args)
+                args = args.to_set
+                context.any? do |ctx|
+                    (args & ctx).size == args.size
+                end
             end
         end
 

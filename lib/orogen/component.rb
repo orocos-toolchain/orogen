@@ -527,9 +527,9 @@ module Orocos
                 var_names = result.map(&:var_name).to_set
                 if typekit
                     typekit.dependencies.each do |dep|
-                        next if dep.corba || var_names.include?(dep.var_name)
+                        next if dep.in_context?('corba') || var_names.include?(dep.var_name)
                         dep = dep.dup
-                        dep.link = false
+                        dep.remove_context('link')
                         result << dep
                     end
                 end

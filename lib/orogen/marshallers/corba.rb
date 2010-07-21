@@ -16,7 +16,7 @@ module Orocos
         def dependencies(typekit)
             result = []
             typekit.used_typekits.each do |tk|
-                build_dep = BuildDependency.new(
+                build_dep = Orocos::Generation::BuildDependency.new(
                     tk.name.upcase + "_TRANSPORT_CORBA",
                     tk.pkg_corba_name)
                 build_dep.in_context('corba', 'include')

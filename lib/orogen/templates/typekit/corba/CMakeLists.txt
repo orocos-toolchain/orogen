@@ -39,5 +39,8 @@ install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos)
 install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
 install(FILES
     <%= headers.join("\n   ") %>
+    <%= typekit.name %>ConvertionFunctions.hpp
+    <%= typekit.name %>Typekit.idl
+    ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>TypekitC.h
     DESTINATION include/orocos/typekit)
 

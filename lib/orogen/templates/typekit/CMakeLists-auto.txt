@@ -21,7 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/typekit)
 <%= typekit_deps = typekit.dependencies
     Generation.cmake_pkgconfig_require(typekit_deps) %>
 <%  typekit_deps.each do |dep_def|
-        if dep_def.include && !dep_def.corba %>
+        if dep_def.in_context?('core', 'include') %>
 set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
         <% end %>
     <% end %>

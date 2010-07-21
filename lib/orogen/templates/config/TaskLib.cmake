@@ -34,7 +34,7 @@ list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES
 <%= dependencies = component.tasklib_dependencies
     Generation.cmake_pkgconfig_require(dependencies) %>
 <% dependencies.each do |dep_def|
-   next if !dep_def.link %>
+   next if !dep_def.in_context?('link') %>
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
 <% if dep_def.var_name =~ /TASKLIB/ %>
 list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_TASKLIB_LIBRARIES})

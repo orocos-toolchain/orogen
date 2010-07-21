@@ -1,4 +1,9 @@
 #include "<%= typekit.name %>ConvertionFunctions.hpp"
+
+<% typekit.used_typekits.each do |tk| %>
+#include <typekit/<%= tk.name %>ConvertionFunctions.hpp>
+<% end %>
+
 <% typesets.converted_types.each do |type| %>
 bool orogen_typekits::toCORBA( <%= type.corba_ref_type %> corba, <%= type.arg_type %> value )
 {
