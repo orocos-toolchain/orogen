@@ -7,9 +7,10 @@
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
-#include <rtt/corba/CorbaLib.hpp>
-#include "build/.orogen/typekit/simpleTypekitC.h"
-#include "simpleTypekitCorba.hpp"
+#include <rtt/transports/corba/CorbaLib.hpp>
+#include <rtt/transports/corba/CorbaTypeTransporter.hpp>
+#include "build/.orogen/typekit/corba/simpleTypekitC.h"
+#include ".orogen/typekit/corba/simpleTypekitCorba.hpp"
 #endif
 
 #include <rtt/os/main.h>
@@ -46,21 +47,26 @@ TypeInfo* assert_typeinfo_is_available(std::string const& name)
 
 #ifdef WITH_CORBA
 template<typename T>
-bool generic_corba_test(T const& testValue)
+bool generic_corba_test(T const& testValue, RTT::types::TypeInfo const& ti)
 {
     boost::intrusive_ptr< ValueDataSource<T> > source(new ValueDataSource<T>(testValue));
     source->ref();
 
+    RTT::corba::CorbaTypeTransporter* transport =
+        dynamic_cast<RTT::corba::CorbaTypeTransporter*>(ti.getProtocol(ORO_CORBA_PROTOCOL_ID));
+
     cerr << "- testing CORBA marshalling/unmarshalling ..." << endl;
-    { CORBA::Any* result = reinterpret_cast<CORBA::Any*>(source->createBlob(ORO_CORBA_PROTOCOL_ID));
+    {
+        CORBA::Any* result = transport->createAny(source);
+
         ValueDataSource<T>* reader = new ValueDataSource<T>();
         reader->ref();
-        reader->updateBlob(ORO_CORBA_PROTOCOL_ID, result);
-        T value = reader->get();
-        if (!(value == testValue))
+        transport->updateAny(reader, *result);
+
+        T result_value = reader->get();
+        if (!(result_value == testValue))
         {
-            cerr << "error. Expected\n\n" << testValue <<
-                "\n\nand got\n\n" << value << endl;
+            cerr << "discrepancy between original and unmarshalled values" << endl;
             return false;
         }
     }
@@ -123,7 +129,7 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
     //cerr << "  done" << endl;
 
 #ifdef WITH_CORBA
-    return generic_corba_test(testValue);
+    return generic_corba_test(testValue, ti);
 #else
     return true;
 #endif
@@ -177,19 +183,19 @@ bool test_64bit_handling()
 {
     cerr << "- testing composition/decomposition is disabled" << endl;
     //cerr << "Testing 64bit handling" << endl;
-    //TypeInfo* type = assert_typeinfo_is_available("/Test/Test64BitHandling");
+    TypeInfo* type = assert_typeinfo_is_available("/Test/Test64BitHandling");
 
-    //Test::Test64BitHandling testValue;
-    //memset(&testValue, 0, sizeof(testValue));
-    //testValue.base.v0 = true;
-    //testValue.base.v1 = 'a';
-    //testValue.base.v5 = -100000;
-    //testValue.base.v6 = 3000000000UL;
-    //testValue.base.e   = Test::VALUE_20;
-    //for (int i = 0; i < 20; ++i)
-    //    testValue.base.a[i] = 'a' + i;
-    //testValue.ll  = -(1LL << 40);
-    //testValue.ull = -(1LL << 40);
+    Test::Test64BitHandling testValue;
+    memset(&testValue, 0, sizeof(testValue));
+    testValue.base.v0 = true;
+    testValue.base.v1 = 'a';
+    testValue.base.v5 = -100000;
+    testValue.base.v6 = 3000000000UL;
+    testValue.base.e   = Test::VALUE_20;
+    for (int i = 0; i < 20; ++i)
+        testValue.base.a[i] = 'a' + i;
+    testValue.ll  = -(1LL << 40);
+    testValue.ull = -(1LL << 40);
 
     //boost::intrusive_ptr< ValueDataSource<Test::Test64BitHandling> > source(new ValueDataSource<Test::Test64BitHandling>(testValue));
     //source->ref();
@@ -205,7 +211,7 @@ bool test_64bit_handling()
 
     // But CORBA marshalling should work just fine
 #ifdef WITH_CORBA
-    return generic_corba_test(testValue);
+    return generic_corba_test(testValue, *type);
 #else
     return true;
 #endif
@@ -270,7 +276,7 @@ int ORO_main(int argc, char** argv)
     RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
     RTT::types::TypekitRepository::Import( new orogen_typekits::simpleTypekitPlugin );
 #ifdef WITH_CORBA
-    RTT::types::Import( orogen_typekits::simpleCorbaTransport );
+    RTT::types::TypekitRepository::Import( new orogen_typekits::simpleCorbaTransportPlugin );
 #endif
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();

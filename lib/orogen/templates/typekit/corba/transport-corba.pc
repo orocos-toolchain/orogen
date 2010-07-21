@@ -3,16 +3,16 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
 includedir=${prefix}/include/orocos
 
-project_name=<%= component.name %>
-deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
-type_registry=${prefix}/share/orogen/<%= component.name %>.tlb
+project_name=<%= typekit.component.name %>
+deffile=${prefix}/share/orogen/<%= File.basename(typekit.component.deffile) %>
+type_registry=${prefix}/share/orogen/<%= typekit.name %>.tlb
 
-Name: <%= component.name %>CorbaTransport
-Version: <%= component.version %>
+Name: <%= typekit.name %>CorbaTransport
+Version: <%= typekit.version %>
 <% unless typekit.internal_dependencies.empty? %>
 Requires: <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
 <% end %>
-Description: <%= component.name %> types support for the Orocos type system
+Description: <%= typekit.name %> types support for the Orocos type system
 Libs: -L${libdir} -l@libname_corba@
 Cflags: -I${includedir}
 

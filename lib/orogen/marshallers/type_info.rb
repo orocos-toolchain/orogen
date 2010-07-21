@@ -11,12 +11,12 @@ module Orocos
                 Typelib::ArrayType     .extend(TypekitMarshallers::TypeInfo::ArrayType)
             end
 
-            def name
-                "type_info"
-            end
+            def name; "type_info" end
 
             def dependencies(typekit)
             end
+
+            def separate_cmake?; false end
 
             def generate(typekit, typesets)
                 headers, impl = [], []

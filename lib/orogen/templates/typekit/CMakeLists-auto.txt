@@ -74,3 +74,10 @@ add_custom_command(
 add_custom_target(regen-typekit DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} regen-typekit)
 
+<% typekit.each_plugin do |plg|
+    if plg.separate_cmake? %>
+    add_subdirectory(<%= plg.name %>)
+    <% end
+end %>
+        
+

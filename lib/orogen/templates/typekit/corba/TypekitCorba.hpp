@@ -1,19 +1,20 @@
-#ifndef OROCOS_<%= component.name.upcase %>_CORBA_HPP
-#define OROCOS_<%= component.name.upcase %>_CORBA_HPP
+#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_HPP
+#define OROCOS_<%= typekit.name.upcase %>_CORBA_HPP
 
-#include <rtt/TransportPlugin.hpp>
+#include <rtt/types/TransportPlugin.hpp>
 
 namespace orogen_typekits {
-    class <%= component.name %>CorbaTransportPlugin
-        : public RTT::TransportPlugin
+    class <%= typekit.name %>CorbaTransportPlugin
+        : public RTT::types::TransportPlugin
     {
     public:
-        virtual bool registerTransport(std::string type_name, RTT::TypeInfo* ti);
+        virtual bool registerTransport(std::string type_name, RTT::types::TypeInfo* ti);
         virtual std::string getTransportName() const;
+        virtual std::string getTypekitName() const;
         virtual std::string getName() const;
     };
 
-    extern <%= component.name %>CorbaTransportPlugin <%= component.name %>CorbaTransport;
+    extern <%= typekit.name %>CorbaTransportPlugin <%= typekit.name %>CorbaTransport;
 }
 
 #endif

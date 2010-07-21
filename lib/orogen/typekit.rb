@@ -5,6 +5,7 @@ require 'orogen/base'
 require 'utilrb/kernel/options'
 require 'nokogiri'
 
+require 'orogen/marshallers/corba'
 require 'orogen/marshallers/type_info'
 
 module Typelib
@@ -344,6 +345,10 @@ module Orocos
             attr_accessor :array_types
             # The types that will end up being registered in the type system
             attr_accessor :registered_types
+            #
+            attr_accessor :minimal_registry
+            #
+            attr_accessor :opaque_types
         end
 
 	class Typekit
@@ -363,6 +368,10 @@ module Orocos
 
             def name
                 component.name
+            end
+
+            def version
+                component.version
             end
 
             # The three possible type export policies. See #type_export_policy
@@ -1089,6 +1098,8 @@ module Orocos
                 type_sets.converted_types  = converted_types
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
+                type_sets.minimal_registry = minimal_registry
+                type_sets.opaque_types     = opaques
 
                 public_header_files, implementation_files = [], []
 
@@ -1114,11 +1125,9 @@ module Orocos
 
                 each_plugin do |plg|
                     headers, impl = plg.generate(self, type_sets)
-                    puts impl.inspect
                     public_header_files.concat(headers)
                     implementation_files.concat(impl)
                 end
-
 
 		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
 		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
