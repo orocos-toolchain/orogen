@@ -1,16 +1,16 @@
-#ifndef <%= component.name %>_INTERMEDIATES_HH
-#define <%= component.name %>_INTERMEDIATES_HH
+#ifndef <%= typekit.name %>_INTERMEDIATES_HH
+#define <%= typekit.name %>_INTERMEDIATES_HH
 
 #include <boost/cstdint.hpp>
-#include <<%= component.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>TypekitTypes.hpp>
 <% if typekit.has_opaques_with_templates? %>
-#include <<%= component.name %>TypekitUser.hpp>
+#include <typekit/<%= typekit.name %>TypekitUser.hpp>
 <% end %>
 
 namespace <%= component.name %>
 {
 <%
-typekit.opaques.find_all { |op| !op.generate_templates? }.each do |opaque_def|
+type_sets.opaque_types.find_all { |op| !op.generate_templates? }.each do |opaque_def|
     from = opaque_def.type
     into = component.find_type(opaque_def.intermediate)
 
@@ -38,7 +38,7 @@ end
 # copy first, and then assign it to the real type (usually, a smart pointer).
 #
 # This generates the overloaded from_intermediate function that does just that.
-opaques.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
+type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
     type = opdef.type
     intermediate_type = component.find_type(opdef.intermediate)
 %>
@@ -52,7 +52,7 @@ opaques.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
 # This handles the types that contain opaques, but are not opaque themselves. For those,
 # orogen generates so-called m-types, that are a mapping from the original (opaque-containing)
 # type into a one where opaque fields have been converted to their intermediate counterparts
-generated_types.
+type_sets.types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
         m_type = typekit.find_type(type.name + "_m")

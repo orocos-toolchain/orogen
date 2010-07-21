@@ -47,8 +47,14 @@ module Orocos
             impl << Generation.save_automatic("typekit", "corba",
                     "#{typekit.name}TypekitCorba.cpp", code)
 
-
-            typesets.registered_types.each do |type|
+            typesets.converted_types.each do |type|
+                code  = Generation.render_template "typekit/corba/Type.cpp", binding
+                impl << Generation.save_automatic("typekit", "corba",
+                        "#{typekit.name}_#{type.name_as_word}.cpp", code)
+            end
+            typesets.opaque_types.each do |opdef|
+                type = opdef.type
+                intermediate_type = typekit.find_type(opdef.intermediate)
                 code  = Generation.render_template "typekit/corba/Type.cpp", binding
                 impl << Generation.save_automatic("typekit", "corba",
                         "#{typekit.name}_#{type.name_as_word}.cpp", code)

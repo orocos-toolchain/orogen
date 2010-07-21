@@ -16,7 +16,7 @@ namespace orogen_typekits {
     <% end %>
     <% typesets.opaque_types.each do |opdef|
         type = opdef.type
-        intermediate_type = component.find_type(opdef.intermediate)
+        intermediate_type = typekit.find_type(opdef.intermediate)
         %>
     bool toCORBA( <%= intermediate_type.corba_ref_type %> corba, <%= type.arg_type %> value );
     bool fromCORBA( <%= type.ref_type %> value, <%= intermediate_type.corba_arg_type %> corba );

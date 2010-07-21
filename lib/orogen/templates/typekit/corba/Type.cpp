@@ -8,10 +8,7 @@ namespace orogen_typekits {
     struct <%= type.method_name %>CorbaMarshaller
         : public RTT::corba::CorbaTemplateProtocol< <%= type.cxx_name %> >
     {
-        <% if type.opaque?
-             opdef = typekit.opaque_specification(type)
-             intermediate_type = typekit.find_type(opdef.intermediate)
-        %>
+        <% if type.opaque?  %>
         typedef <%= intermediate_type.corba_name(true) %> CorbaType;
         <% else %>
         typedef <%= type.corba_name(true) %> CorbaType;

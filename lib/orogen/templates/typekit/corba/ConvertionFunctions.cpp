@@ -1,7 +1,13 @@
 #include "<%= typekit.name %>ConvertionFunctions.hpp"
+<% if typekit.has_opaques? %>
+#include "<%= typekit.name %>TypekitIntermediates.hpp"
+<% end %>
 
 <% typekit.used_typekits.each do |tk| %>
 #include <typekit/<%= tk.name %>ConvertionFunctions.hpp>
+<% if tk.has_opaques? %>
+#include <typekit/<%= tk.name %>TypekitIntermediates.hpp>
+<% end %>
 <% end %>
 
 <% typesets.converted_types.each do |type| %>
@@ -43,7 +49,7 @@ bool orogen_typekits::fromCORBA( <%= type.ref_type %> value, int length, <%= typ
 
 <% typesets.opaque_types.each do |opdef|
     type = opdef.type
-    intermediate_type = component.find_type(opdef.intermediate)
+    intermediate_type = typekit.find_type(opdef.intermediate)
     %>
 bool orogen_typekits::toCORBA( <%= intermediate_type.corba_ref_type %> corba, <%= type.arg_type %> value )
 {

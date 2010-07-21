@@ -1,9 +1,9 @@
 #include <rtt/os/main.h>
-<% if component.typekit || !component.used_typekits.empty? %>#include <rtt/Typekit.hpp><% end %>
+<% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
 <% if component.typekit %>
 #include "typekit/<%= component.name %>Typekit.hpp"
 <% if deployer.corba_enabled? %>
-#include "typekit/<%= component.name %>TypekitCorba.hpp"
+#include "typekit/corba/<%= component.name %>TypekitCorba.hpp"
 <% end %>
 <% end %>
 <% deployer.used_typekits.each do |tk| %>
@@ -72,15 +72,15 @@ int ORO_main(int argc, char* argv[])
    <% end %>
 
    <% if component.typekit %>
-   RTT::Typekit::Import( orogen_typekits::<%= component.name %>Typekit );
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
    <% if deployer.corba_enabled? %>
-   RTT::Typekit::Import( orogen_typekits::<%= component.name %>CorbaTransport );
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>CorbaTransportPlugin );
    <% end %>
    <% end %>
    <% deployer.used_typekits.each do |tk| %>
-   RTT::Typekit::Import( orogen_typekits::<%= tk.name %>Typekit );
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
        <% if deployer.corba_enabled? %>
-   RTT::Typekit::Import( orogen_typekits::<%= tk.name %>CorbaTransport );
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>CorbaTransportPlugin );
        <% end %>
    <% end %>
 

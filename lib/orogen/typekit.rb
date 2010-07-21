@@ -549,8 +549,8 @@ module Orocos
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
                 options[:includes] ||= Array.new
-                options[:includes] << 'rtt/ReadWritePointer.hpp'
-                smart_ptr("/RTT/ReadOnlyPointer", find_type(name), options)
+                options[:includes] << 'rtt/extras/ReadOnlyPointer.hpp'
+                smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
             # Make the typekit define the specialization of boost::shared_ptr
@@ -1072,22 +1072,23 @@ module Orocos
                     values.
                     sort_by { |type| type.name }
 
-                registered_types = if type_export_policy == :all
-                                       generated_types.dup
-                                   elsif type_export_policy == :used
-                                       used_types = component.self_tasks.map(&:interface_types).
-                                           map(&:to_value_set).
-                                           inject(&:|).
-                                           map do |t|
-                                               begin registry.get(t.name)
-                                               rescue Typelib::NotFound
-                                               end
-                                           end.compact
+                registered_types =
+                    if type_export_policy == :all
+                        generated_types.dup
+                    elsif type_export_policy == :used
+                        used_types = component.self_tasks.map(&:interface_types).
+                            map(&:to_value_set).
+                            inject(&:|).
+                            map do |t|
+                            begin registry.get(t.name)
+                            rescue Typelib::NotFound
+                            end
+                            end.compact
 
-                                       (used_types.to_value_set & generated_types.to_value_set)
-                                   elsif type_export_policy == :selected
-                                       selected_types.dup
-                                   end
+                            (used_types.to_value_set & generated_types.to_value_set)
+                    elsif type_export_policy == :selected
+                        selected_types.dup
+                    end
 
                 registered_types = registered_types.
                     find_all { |type| !typekit.m_type?(type) && !(type <= Typelib::ArrayType) }.
@@ -1123,6 +1124,24 @@ module Orocos
                 #     out_name
                 # end
 
+                # Generate the opaque convertion files
+                if !opaques.empty?
+                    intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
+                    public_header_files <<
+                        Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
+                    intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
+                    implementation_files <<
+                        Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
+                    if has_opaques_with_templates?
+                        user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
+                        user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
+                        public_header_files <<
+                            Generation.save_user('typekit', "#{component.name}TypekitUser.hpp", user_hh)
+                        implementation_files <<
+                            Generation.save_user('typekit', "#{component.name}TypekitUser.cpp", user_cc)
+                    end
+                end
+
                 each_plugin do |plg|
                     headers, impl = plg.generate(self, type_sets)
                     public_header_files.concat(headers)
@@ -1133,20 +1152,6 @@ module Orocos
 		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
                 cmake = Generation.render_template 'typekit', 'CMakeLists-auto.txt', binding
                 Generation.save_automatic("typekit", "CMakeLists.txt", cmake)
-
-                # Generate the opaque-related stuff
-                # if !opaques.empty?
-                #     intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
-                #     Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
-                #     intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
-                #     Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
-                #     if has_opaques_with_templates?
-                #         user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
-                #         user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
-                #         Generation.save_user 'typekit', "#{component.name}TypekitUser.hpp", user_hh
-                #         Generation.save_user 'typekit', "#{component.name}TypekitUser.cpp", user_cc
-                #     end
-                # end
 
                 # Finished, create the timestamp file
                 Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'typekit', 'stamp')
