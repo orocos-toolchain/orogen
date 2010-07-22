@@ -35,6 +35,7 @@ execute_process(COMMAND cmake -E create_symlink
     ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
 
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
 
 # What does the typekit need ?
 #   - it needs RTT stuff
