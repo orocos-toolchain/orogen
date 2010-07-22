@@ -452,7 +452,7 @@ module Orocos
                     typekit.base_dir = base_dir
                     typekit.user_dir = File.join(base_dir, 'typekit')
                     typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
-                    if enable_corba
+                    if corba_enabled?
                         typekit.enable_plugin('corba')
                     end
 
