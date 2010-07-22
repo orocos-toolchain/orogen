@@ -159,15 +159,7 @@ install(TARGETS test RUNTIME DESTINATION bin)
         ENV['PKG_CONFIG_PATH'] += ":" + File.join(prefix_directory, 'lib', 'pkgconfig')
 
         # And now the final one ...
-        component = build_test_component('modules/typekit_dependencies', with_corba)
-
-        deps = component.typekit.dependencies
-        expected = ["tkdeps_lib", "tkdeps_parent-typekit-gnulinux"]
-        if with_corba
-            expected << "tkdeps_parent-transport-corba-gnulinux"
-        end
-
-        assert_equal expected.to_set, deps.to_a.map(&:pkg_name).to_set
+        build_test_component('modules/typekit_dependencies', with_corba)
     end
     def test_dependencies_without_corba
         test_dependencies(false)
