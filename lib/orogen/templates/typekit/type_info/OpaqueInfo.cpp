@@ -21,9 +21,15 @@ namespace orogen_typekits {
 
         virtual bool composeTypeImpl(const RTT::PropertyBag& source, RTT::internal::AssignableDataSource<T>::reference_t value) const
         {
+            <% if opdef.needs_copy? %>
+            <%= intermediate_type.cxx_name %> intermediate;
+            if (!intermediate_type_info->composeTypeImpl(source, intermediate))
+                return false;
+            <% else %>
             std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>);
             if (!intermediate_type_info->composeTypeImpl(source, *intermediate))
                 return false;
+            <% end %>
 
             <%= typekit.code_fromIntermediate(intermediate_type, opdef.needs_copy?, " " * 8) %>
             return true;
