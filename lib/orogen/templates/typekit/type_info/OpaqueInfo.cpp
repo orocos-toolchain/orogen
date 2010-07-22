@@ -3,36 +3,6 @@
 #include <rtt/types/TypeInfoRepository.hpp>
 #include <<%= typekit.name %>TypekitIntermediates.hpp>
 
-<% if intermediate_type.respond_to?(:to_boost_serialization) %>
-namespace boost
-{
-    namespace serialization
-    {
-        template<typename Archive>
-        void serialize(Archive& a, <%= intermediate_type.cxx_name %>& value, unsigned int version);
-
-        template<typename Archive>
-        void serialize(Archive& a, <%= type.cxx_name %>& value, unsigned int version)
-        {
-            using boost::serialization::make_nvp;
-            <%= typekit.code_toIntermediate(intermediate_type, opdef.needs_copy?, "    ") %>
-            serialize(a, intermediate, version);
-        }
-    }
-}
-
-namespace orogen_typekits {
-    struct <%= type.method_name(true) %>TypeInfo :
-	public RTT::types::StructTypeInfo< <%= type.cxx_name %> >
-    {
-        <%= type.method_name(true) %>TypeInfo()
-            : RTT::types::StructTypeInfo< <%= type.cxx_name %> >("<%= type.full_name %>") {}
-    };
-
-    RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo()
-    { return new <%= type.method_name(true) %>TypeInfo(); }
-}
-<% else %>
 namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
 	public RTT::types::TemplateTypeInfo< <%= type.cxx_name %> >
@@ -98,5 +68,4 @@ namespace orogen_typekits {
     RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo()
     { return new <%= type.method_name(true) %>TypeInfo(); }
 }
-<% end %>
 
