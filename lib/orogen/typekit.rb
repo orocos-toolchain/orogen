@@ -903,7 +903,9 @@ module Orocos
                 # We must include the typekits that define types that are used
                 # in the other typekits types
                 each_plugin do |plg|
-                    plg.dependencies(self)
+                    if deps = plg.dependencies(self)
+                        result.concat(deps)
+                    end
                 end
 
                 result.to_a.sort_by { |dep| dep.var_name }

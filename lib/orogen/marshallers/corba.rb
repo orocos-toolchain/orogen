@@ -23,6 +23,8 @@ module Orocos
                 build_dep.in_context('corba', 'include')
                 build_dep.in_context('corba', 'link')
             end
+
+            nil
         end
 
         def separate_cmake?; true end
