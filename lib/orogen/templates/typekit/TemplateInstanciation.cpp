@@ -3,7 +3,7 @@
 #include <rtt/Properties.hpp>
 #include <rtt/DataSource.hpp>
 
-#include "<%= component.name %>TypekitTypes.hpp"
+#include "<%= name %>TypekitTypes.hpp"
 
 template class RTT::OutputPort< <%= type.cxx_name %> >;
 template class RTT::InputPort< <%= type.cxx_name %> >;

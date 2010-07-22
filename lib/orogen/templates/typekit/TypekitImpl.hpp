@@ -1,7 +1,7 @@
-#ifndef <%= component.name.upcase %>_TOOLKIT_IMPL_HPP
-#define <%= component.name.upcase %>_TOOLKIT_IMPL_HPP
+#ifndef <%= typekit.name.upcase %>_TOOLKIT_IMPL_HPP
+#define <%= typekit.name.upcase %>_TOOLKIT_IMPL_HPP
 
-#include "<%= component.name %>TypekitTypes.hpp"
+#include "<%= typekit.name %>TypekitTypes.hpp"
 #include <string>
 #include <rtt/PropertyBag.hpp>
 #include <rtt/TemplateTypeInfo.hpp>

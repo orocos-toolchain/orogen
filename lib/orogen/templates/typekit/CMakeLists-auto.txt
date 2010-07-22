@@ -28,23 +28,23 @@ set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
 string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 
 # Generate the base typekit shared library
-set(libname <%= component.name %>-typekit-${OROCOS_TARGET})
+set(libname <%= typekit.name %>-typekit-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= implementation_files.sort.join("\n  ") %>
     ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !typekit.opaques.empty? %>
         <% if typekit.has_opaques_with_templates? %>
-            ${PROJECT_SOURCE_DIR}/typekit/<%= component.name %>TypekitUser.cpp
+            ${PROJECT_SOURCE_DIR}/typekit/<%= typekit.name %>TypekitUser.cpp
         <% end %>
-        <%= component.name %>TypekitIntermediates.cpp
+        <%= typekit.name %>TypekitIntermediates.cpp
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 
-set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-typekit-${OROCOS_TARGET}.pc)
-configure_file(<%= component.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
+set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
+configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
 install(FILES
@@ -53,26 +53,13 @@ install(FILES
 
 <% typekit.local_headers(false).each do |path, dest_path| %>
 install(FILES ${PROJECT_SOURCE_DIR}/<%= path %>
-    DESTINATION include/orocos/<%= component.name %>/<%= File.dirname(dest_path) %>)
+    DESTINATION include/orocos/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
 <% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.tlb
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= component.name %>.typelist
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
+    ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.typelist
     DESTINATION share/orogen)
-
-# Add a regeneration target
-set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
-add_custom_command(
-    OUTPUT "${TK_STAMP}"
-    DEPENDS <%= typekit.loads.join(" ") %> <%= typekit.external_loads.join(" ") %>
-    COMMENT "Typekit input changed, regenerating ..."
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
-       orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
-    COMMAND <%= ruby_bin %> <%= orogen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>)
-add_custom_target(regen-typekit DEPENDS "${TK_STAMP}")
-add_dependencies(${libname} regen-typekit)
 
 <% typekit.each_plugin do |plg|
     if plg.separate_cmake? %>

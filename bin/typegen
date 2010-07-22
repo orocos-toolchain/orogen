@@ -1,0 +1,41 @@
+#! /usr/bin/ruby
+require 'orogen'
+
+typekit = Orocos::Generation::Typekit.new
+
+parser = OptionParser.new do |opt|
+    opt.banner = "usage: typegen [--transports=NAME1,NAME2] name input_dir [output_dir]"
+    opt.on('--transports=NAME1,NAME2', String, "list of transports to generate code for") do |transports|
+        transports.each do |name|
+            component.enable_transport(name)
+        end
+    end
+    opt.on('--help') do
+        puts opt
+        exit(0)
+    end
+end
+
+remaining = parser.parse(ARGV)
+if remaining.size != 2 && remaining.size != 3
+    STDERR.puts "invalid number of arguments"
+    STDERR.puts parser
+    exit(1)
+end
+
+typekit.name      = remaining.shift
+typekit.user_dir = File.expand_path(remaining.shift)
+Dir.glob(File.join(typekit.user_dir, "*")) do |path|
+    if path !~ /Typekit/ && File.file?(path)
+        typekit.load(path)
+    end
+end
+
+typekit.automatic_dir =
+    if !remaining.empty?
+        remaining.shift
+    else
+        File.join(File.dirname(typekit.input_dir), "typekits")
+    end
+typekit.generate
+

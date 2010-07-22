@@ -1,3 +1,7 @@
+find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
+INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
+ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
+
 include_directories(${OrocosCORBA_INCLUDE_DIRS})
 add_definitions(${OrocosCORBA_CFLAGS_OTHER})
 link_directories(${OrocosCORBA_LIBRARY_DIRS})

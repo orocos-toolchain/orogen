@@ -1,5 +1,5 @@
-#ifndef <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
-#define <%= component.name.upcase %>_TOOLKIT_TYPES_HPP
+#ifndef <%= typekit.name.upcase %>_TOOLKIT_TYPES_HPP
+#define <%= typekit.name.upcase %>_TOOLKIT_TYPES_HPP
 
 <%= typekit.opaques.map { |opaque_def| opaque_def.includes }.flatten.map { |p| "#include <#{p}>" }.join("\n") %>
 
@@ -7,7 +7,7 @@
 #include <<%= file %>>
 <% end %>
 <% typekit.local_headers(false).each do |path, dest_path| %>
-#include "<%= File.join(component.name, dest_path) %>"
+#include "<%= File.join(typekit.name, dest_path) %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
 #include <typekit/<%= tk.name %>TypekitTypes.hpp>

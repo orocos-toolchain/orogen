@@ -21,13 +21,6 @@ module Orocos
             def include_dirs
                 pkg.include_dirs
             end
-            def has_array_of?(type)
-                typename = if type.respond_to?(:name) then type.name
-                           else type.to_str
-                           end
-
-                typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
-            end
 
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name

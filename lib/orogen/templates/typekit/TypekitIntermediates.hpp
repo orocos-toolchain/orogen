@@ -7,12 +7,12 @@
 #include <typekit/<%= typekit.name %>TypekitUser.hpp>
 <% end %>
 
-namespace <%= component.name %>
+namespace <%= typekit.name %>
 {
 <%
 type_sets.opaque_types.find_all { |op| !op.generate_templates? }.each do |opaque_def|
     from = opaque_def.type
-    into = component.find_type(opaque_def.intermediate)
+    into = typekit.find_type(opaque_def.intermediate)
 
     if opaque_def.needs_copy? %>
     /** Converts \c real_type into \c intermediate */
@@ -40,7 +40,7 @@ end
 # This generates the overloaded from_intermediate function that does just that.
 type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
     type = opdef.type
-    intermediate_type = component.find_type(opdef.intermediate)
+    intermediate_type = typekit.find_type(opdef.intermediate)
 %>
     /** Overloaded from_intermediate function that creates a copy before
      * assigning it to \c value

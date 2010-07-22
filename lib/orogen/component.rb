@@ -108,11 +108,7 @@ module Orocos
 
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
-
-            # The subset of +used_libraries+ that should be linked to the
-            # typekit library.
-            #
-            # See the discussion in the documentation of #using_library
+            # The set of pkg-config dependencies we depend on
             attr_reader :typekit_libraries
 
             # A set of ImportedProject objects describing libraries which define
@@ -325,6 +321,12 @@ module Orocos
 
                 typekit = load_typekit(name)
 		used_typekits << typekit
+                if ours = self.typekit
+                    ours.use_typekit(typekit)
+                    ours.include_dirs |= typekit.include_dirs.to_set
+                    ours.imported_types.merge(typekit.registry)
+                    ours.imported_typelist |= typekit.typelist.to_set
+                end
                 registry.merge(typekit.registry)
 	    end
 
@@ -383,6 +385,7 @@ module Orocos
 		unless name
 		    raise ArgumentError, "you must set a name for this component"
 		end
+
                 if name !~ /[a-z][a-z0-9\_]+/
                     raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
@@ -433,7 +436,26 @@ module Orocos
                 typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.cpp", binding
 		Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
+                # Generate the state enumeration types for each of the task
+                # contexts, and load it
+                if self_tasks.any?(&:extended_state_support?)
+                    state_types = Generation.render_template(
+                        "tasks", "TaskStates.hpp", binding)
+                    header = Generation.save_automatic(
+                        "#{component.name}TaskStates.hpp", state_types)
+                    typekit(true).load(header)
+                end
+
 		if typekit
+                    typekit.name     = name
+                    typekit.version  = version
+                    typekit.base_dir = base_dir
+                    typekit.user_dir = File.join(base_dir, 'typekit')
+                    typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+                    if enable_corba
+                        typekit.enable_plugin('corba')
+                    end
+
 		    typekit.generate
 		end
 
@@ -575,7 +597,13 @@ module Orocos
                 options = Kernel.validate_options options, :typekit => true
                 pkg = Utilrb::PkgConfig.new(name)
                 used_libraries << pkg
-                typekit_libraries << pkg if options[:typekit]
+                if options[:typekit]
+                    typekit_libraries << pkg
+                end
+
+                if self.typekit
+                    self.typekit.using_library(pkg, options[:typekit])
+                end
                 self
             rescue Utilrb::PkgConfig::NotFound => e
                 raise ConfigError, "no library named '#{name}' is available", e.backtrace
@@ -599,6 +627,21 @@ module Orocos
                 end
                 if create
                     @typekit ||= Typekit.new(self)
+
+                    # Initialize the typekit's include_dirs set
+                    typekit.include_dirs << base_dir
+                    typekit.include_dirs |=
+                        used_task_libraries.map { |pkg| pkg.include_dirs }.
+                        flatten.to_set
+
+                    used_libraries.each do |tk|
+                        typekit.used_libraries(tk, typekit_libraries.include?(tk))
+                    end
+
+                    # Initialize the typekit's imported_types registry
+                    used_typekits.each do |tk|
+                        typekit.using_typekit(tk)
+                    end
                 end
 
 		if !block_given?
@@ -771,6 +814,9 @@ module Orocos
                 tasklib = load_task_library(name)
                 tasks.concat tasklib.tasks
                 used_task_libraries << tasklib
+                if self.typekit
+                    self.typekit.include_dirs |= tasklib.inclued_dirs.to_set
+                end
 
                 # Now import the typekits the component also imports, and the
                 # tasklib's own typekit if there is one

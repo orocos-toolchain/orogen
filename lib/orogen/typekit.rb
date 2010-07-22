@@ -5,9 +5,6 @@ require 'orogen/base'
 require 'utilrb/kernel/options'
 require 'nokogiri'
 
-require 'orogen/marshallers/corba'
-require 'orogen/marshallers/type_info'
-
 module Typelib
     class Type
         def self.normalize_typename(name)
@@ -351,27 +348,49 @@ module Orocos
             attr_accessor :opaque_types
         end
 
+        # Support for typekit generation in oroGen
 	class Typekit
-            # The component this typekit is part of
+            class << self
+                attr_reader :plugins
+            end
+            @plugins = Hash.new
+            
+            # Register a new plugin class. The plugin name is taken from
+            # klass.name
+            def self.register_plugin(klass)
+                plugins[klass.name] = klass
+            end
+
+            # The component this typekit is part of. It may be nil if the
+            # Typekit is generated standalone (as, for instance, in typegen)
 	    attr_reader :component
             # The set of headers loaded by #load, as an array of absolute paths
             attr_reader :loads
+
+            # The base directory. Everything under that directory are expected
+            # to be local files and will be installed by the typekit's cmake
+            # code
+            attr_accessor :base_dir
+            # The directory in which generated files that are meant to not be
+            # modified by the user should be saved
+            attr_accessor :automatic_dir
+            # The directory in which files that the user should modify should be
+            # saved
+            attr_accessor :user_dir
+            # The typekit name
+            attr_accessor :name
+            # The typekit version string
+            attr_accessor :version
+            # The set of include directories that should be considered in #load
+            attr_accessor :include_dirs
 
             # The set of external headers that have been imported in this
             # typekit. I.e. it contains the headers that are loaded from a
             # depended-upon library for instance.
             def external_loads
                 loads.find_all do |name|
-                    name !~ /#{Regexp.quote(component.base_dir)}/
+                    name !~ /#{Regexp.quote(base_dir)}/
                 end
-            end
-
-            def name
-                component.name
-            end
-
-            def version
-                component.version
             end
 
             # The three possible type export policies. See #type_export_policy
@@ -406,6 +425,10 @@ module Orocos
                 if !TYPE_EXPORT_POLICIES.include?(new_policy)
                     raise ArgumentError, "invalid type export policy #{new_policy.inspect}, allowed are: :#{TYPE_EXPORT_POLICIES.join(", :")}"
                 end
+                if new_policy == :used && !component
+                    raise ArgumentError, "cannot use a 'used' policy on a standalone typekit"
+                end
+
                 new_policy
             end
 
@@ -424,16 +447,37 @@ module Orocos
             attr_reader :selected_types
 
 	    attr_reader :registry
-            attr_reader :preloaded_registry
+            attr_reader :imported_types
+            attr_reader :imported_typelist
+            attr_reader :imported_typekits
+
+            attr_reader :used_libraries
+            attr_reader :linked_used_libraries
+
             attr_reader :opaques
             attr_reader :opaque_registry
 
-	    dsl_attribute :blob_threshold do |value|
-		value = Integer(value)
-		if value == 0; nil
-		else value
-		end
-	    end
+            def using_typekit(typekit)
+                self.imported_types.merge(typekit.registry)
+                self.imported_typelist |= typekit.typelist
+                self.include_dirs      |= typekit.include_dirs.to_set
+                self.imported_typekits << typekit
+            end
+
+            def using_library(library, link = true)
+                self.used_libraries << library
+                self.include_dirs |= library.include_dirs.to_set
+                if link
+                    self.linked_used_libraries << library
+                end
+            end
+
+            def imported_type?(type)
+                if type.respond_to?(:name)
+                    type = type.name
+                end
+                imported_types.include?(type)
+            end
 
             # Returns the Typelib::Type subclass that represents the type whose
             # name is given. If the type is a derived type (pointer, array or
@@ -454,10 +498,13 @@ module Orocos
                             elsif element_type.contains_opaques?
                                 raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
                             end
-                            component.registry.define_container(container_name,
-                                            component.registry.build(element_name))
+
+                            if component
+                                component.registry.define_container(container_name,
+                                                component.registry.build(element_name))
+                            end
                             registry.define_container(container_name, element_type)
-                        elsif type = component.registry.build(type_name)
+                        elsif component && type = component.registry.build(type_name)
                             while type.respond_to?(:deference)
                                 type = type.deference
                             end
@@ -474,24 +521,40 @@ module Orocos
                 end
 	    end
 
-            # True if we are generating for Linux
-            def linux?;     component.linux? end
-            # True if we are generating for Xenomai
-            def xenomai?;   component.xenomai? end
+            # The target operating system for orocos. Uses the OROCOS_TARGET
+            # environment variable, if set, and defaults to gnulinux otherwise.
+            def orocos_target
+                Orocos::Generation.orocos_target.dup
+            end
+
+            # True if the orocos target is gnulinux
+            def linux?; orocos_target == 'gnulinux' end
+            # True if the orocos target is xenomai
+            def xenomai?; orocos_target == 'xenomai' end
 
 	    # Set of directories in which the header files that have been
 	    # loaded lie. It is used to generate the Cflags: line in the
 	    # pkg-config file
 	    attr_reader :loaded_files_dirs
 
-	    def initialize(component)
+	    def initialize(component = nil)
 		@component = component
 
+                @include_dirs = Set.new
+
                 @plugins = []
+                plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
+
                 @internal_dependencies = []
 		@imports, @loads    = [], []
 		@registry           = Typelib::Registry.new
-		@preloaded_registry = Typelib::Registry.new
+		@imported_typekits  = []
+		@imported_types     = Typelib::Registry.new
+                @imported_typelist  = Set.new
+
+                @used_libraries        = []
+                @linked_used_libraries = []
+
 		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
@@ -507,8 +570,17 @@ module Orocos
 
             # The set of code generation plugins
             attr_reader :plugins
+
+            # Add a generation plugin to the generation stage
+            def enable_plugin(name)
+                if !(plugin = Typekit.plugins[name])
+                    raise ArgumentError, "there is not typekit plugin called #{name}"
+                end
+                plugins << plugin.new
+            end
+
+            # Enumerate all enabled plugins. See #enable_plugin
             def each_plugin(&block); plugins.each(&block) end
-            def add_plugin(plugin); plugins << plugin end
 
             # Loads the types defined in +file+, with the same constraints as
             # for #load, but will not generate typekit code for it. This is
@@ -624,7 +696,9 @@ module Orocos
                 opaque_def = Typelib::Registry.from_xml(typedef)
                 opaque_registry.merge opaque_def
                 registry.merge opaque_def
-                component.registry.merge opaque_def
+                if component
+                    component.registry.merge opaque_def
+                end
 
                 opaque_type = find_type(base_type)
                 orogen_def = OpaqueDefinition.new(opaque_type,
@@ -671,10 +745,9 @@ module Orocos
 	    def load(file, preload = false, add = true)
                 # Find where +file+ is
                 include_dirs = []
-                include_dirs << component.base_dir if component.base_dir
-                include_dirs.concat(component.used_typekits.map   { |tk| tk.include_dirs }.flatten)
-                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
+                if base_dir
+                    include_dirs << base_dir
+                end
 
                 if File.exists?(file) # Local file
                     file = File.expand_path(file)
@@ -696,8 +769,10 @@ module Orocos
                 begin
                     file_registry.import(file, 'c', options)
                     registry.merge(file_registry)
-                    preloaded_registry.merge(file_registry) if preload
-                    component.registry.merge(file_registry)
+                    if component
+                        component.registry.merge(file_registry)
+                    end
+                    imported_types.merge(file_registry) if preload
                 rescue RuntimeError => e
                     raise ArgumentError, "cannot load #{file}: #{e.message}", e.backtrace
                 end
@@ -709,22 +784,23 @@ module Orocos
 
             # Returns the set of headers that have been loaded locally
             def local_headers(absolute = true)
-                list = loads.find_all { |path| path =~ /^#{Regexp.quote(component.base_dir)}\// }
+                list = loads.find_all { |path| path =~ /^#{Regexp.quote(base_dir)}\// }
                 if absolute
                     list
                 else
                     list.map do |p|
-                        relative = p.gsub(/^#{Regexp.quote(component.base_dir)}\//, '')
+                        relative = p.gsub(/^#{Regexp.quote(base_dir)}\//, '')
                         dest = relative.
                             gsub(/^#{Regexp.quote(Generation::AUTOMATIC_AREA_NAME)}\//, '').
-                            gsub(/^#{component.name}\//, '')
+                            gsub(/^#{name}\//, '').
+                            gsub(/^#{user_dir}\//, '')
 
                         [relative, dest]
                     end
                 end
             end
 
-            # Packages defined in this component on which the typekit should
+            # Packages defined in this typekit on which the typekit should
             # depend. See #internal_dependency.
             attr_reader :internal_dependencies
 
@@ -746,22 +822,18 @@ module Orocos
 		raise NotImplementedError
 	    end
 
-            # True if the CORBA-specific part of the typekit should be enabled.
-            # By default, it follows the setting in the component. You can a
-            # per-typekit specific setting by using #enable_corba and
-            # #disable_corba
-	    def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
-            def enable_corba;  @corba_enabled = true end
-	    def disable_corba; @corba_enabled = false end
-
             def normalize_registry
-		minimal_registry = self.registry.
-		    minimal(preloaded_registry).
-		    minimal(component.rtt_registry)
-		minimal_registry = component.used_typekits.
-		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
+		@registry = self.registry.
+		    minimal(imported_types).
+		    minimal(Component.rtt_registry)
+            end
 
-                @registry = minimal_registry
+            def imported_array_of?(type)
+                typename = if type.respond_to?(:name) then type.name
+                           else type.to_str
+                           end
+
+                imported_typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
             end
 
             # List of typekits that this typekit depends on
@@ -779,9 +851,9 @@ module Orocos
                 # define them, and this is therefore not a problem.
 		registry.each_type(true) do |name, type|
                     loop do
-                        component.used_typekits.each do |tk|
+                        imported_typekits.each do |tk|
                             if type < Typelib::ArrayType 
-                                if tk.has_array_of?(type.deference)
+                                if imported_array_of?(type.deference)
                                     result << tk
                                 end
                             elsif tk.includes?(type.name)
@@ -806,8 +878,8 @@ module Orocos
                 # We must link to libraries in case the types we are getting
                 # from them has constructors/destructors that the library
                 # provides.
-                component.used_libraries.each do |pkg|
-                    needs_link = component.typekit_libraries.include?(pkg)
+                used_libraries.each do |pkg|
+                    needs_link = linked_used_libraries.include?(pkg)
                     result << BuildDependency.new(pkg.name.upcase, pkg.name).
                         in_context('core', 'include')
                     if needs_link
@@ -895,7 +967,7 @@ module Orocos
                 # repository
                 generate_all_marshalling_types = false
                 generated_types = registry.enum_for(:each_type).
-                    find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
+                    find_all { |t| !imported_type?(t) && !t.inlines_code? }
 		typekit = self
                 catch(:nothing_to_define) do
                     Tempfile.open('orogen') do |io|
@@ -914,7 +986,7 @@ module Orocos
             # them first, or use them in a compound)
             def generate_typedefs(generated_types, registry)
 		generated_types.each do |type|
-                    next if component.imported_type?(type.name)
+                    next if imported_type?(type)
 		    if type < Typelib::ContainerType
                         registry.alias type.namespace + type.basename.gsub(/[^\w]/, '_'), type.name
 		    end
@@ -936,7 +1008,7 @@ module Orocos
             def self_typenames
 		generated_types = []
 		registry.each_type(true) do |name, type|
-                    next if component.imported_type?(name)
+                    next if imported_type?(name)
 		    if !type.inlines_code?
 			generated_types << name
 		    end
@@ -949,7 +1021,7 @@ module Orocos
             def self_types
 		generated_types = []
 		registry.each_type do |type|
-                    next if component.imported_type?(type.name)
+                    next if imported_type?(type.name)
                     generated_types << type
 		end
                 generated_types
@@ -961,9 +1033,9 @@ module Orocos
             def code_toIntermediate(intermediate_type, needs_copy, indent)
                 if needs_copy
                     "#{indent}#{intermediate_type.cxx_name} intermediate;\n" +
-                    "#{indent}#{component.name}::to_intermediate(intermediate, value);\n"
+                    "#{indent}#{name}::to_intermediate(intermediate, value);\n"
                 else
-                    "#{intermediate_type.cxx_name} const& intermediate = #{component.name}::to_intermediate(value);"
+                    "#{intermediate_type.cxx_name} const& intermediate = #{name}::to_intermediate(value);"
                 end
             end
 
@@ -971,42 +1043,45 @@ module Orocos
             # type based on the data from an intermediate variable
             def code_fromIntermediate(intermediate_type, needs_copy, indent)
                 if needs_copy
-                    "#{indent}#{component.name}::from_intermediate(value, intermediate);\n"
+                    "#{indent}#{name}::from_intermediate(value, intermediate);\n"
                 else
-                    "#{indent}if (#{component.name}::from_intermediate(value, intermediate.get()))\n" +
+                    "#{indent}if (#{name}::from_intermediate(value, intermediate.get()))\n" +
                     "#{indent}    intermediate.release();\n"
                 end
             end
 
             attr_reader :template_instanciation_files
 
+            def save_automatic(*args)
+                if automatic_dir
+                    Generation.save_generated(true, automatic_dir, *args)
+                else
+                    Generation.save_automatic('typekit', *args)
+                end
+            end
+
+            def save_user(*args)
+                if user_dir
+                    Generation.save_generated(false, *args)
+                else
+                    Generation.save_user('typekit', *args)
+                end
+            end
+
 	    def generate
 		typekit = self
 
-                add_plugin(Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
-                if corba_enabled?
-                    add_plugin(Orocos::TypekitMarshallers::Corba::Plugin.new)
-                end
-
-                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+                FileUtils.mkdir_p File.join(automatic_dir, 'typekit')
 
                 # Populate a fake installation directory so that the include
                 # files can be referred to as <project_name>/header.h
-                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                fake_install_dir = File.join(automatic_dir, name)
                 FileUtils.mkdir_p fake_install_dir
-
-                # Generate the state enumeration types for each of the task
-                # contexts, and load it
-                if component.self_tasks.any?(&:extended_state_support?)
-                    state_types = Generation.render_template "tasks", "TaskStates.hpp", binding
-                    Generation.save_automatic "#{component.name}TaskStates.hpp", state_types
-                    load File.join(AUTOMATIC_AREA_NAME, "#{component.name}TaskStates.hpp"), false
-                end
 
                 self.local_headers(false).each do |path, dest_path|
                     dest_path = File.join(fake_install_dir, dest_path)
                     FileUtils.mkdir_p File.dirname(dest_path)
-                    FileUtils.ln_sf File.join(component.base_dir, path), dest_path
+                    FileUtils.ln_sf File.join(base_dir, path), dest_path
                 end
 
                 # Generate opaque-related stuff first, so that we see them in
@@ -1016,16 +1091,12 @@ module Orocos
 
                 opaque_types = opaques.map { |opdef| opdef.type }
                 opaque_intermediates = opaques.map do |opdef|
-                    component.find_type(opdef.intermediate)
+                    find_type(opdef.intermediate)
                 end
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-		minimal_registry = self.registry.
-		    minimal(preloaded_registry).
-		    minimal(component.rtt_registry)
-		minimal_registry = component.used_typekits.
-		    inject(minimal_registry) { |reg, tk| reg.minimal(tk.registry) }
+		minimal_registry = normalize_registry
 
 		issue_warnings(generated_types, minimal_registry)
                 generate_typedefs(generated_types, minimal_registry)
@@ -1040,10 +1111,10 @@ module Orocos
                     opaque_entry['marshal_as'] = spec.intermediate
                     opaque_entry['includes']   = spec.includes.join(':')
                 end
-                Generation.save_automatic "typekit", "#{component.name}.tlb", doc.to_xml
+                save_automatic "#{name}.tlb", doc.to_xml
 
                 # Save all the types that this specific typekit handles
-                Generation.save_automatic "typekit", "#{component.name}.typelist",
+                save_automatic "#{name}.typelist",
                     self_typenames.join("\n")
 
                 # The first array is the set of types for which convertion
@@ -1066,7 +1137,7 @@ module Orocos
 
                 array_types = array_types.
                     delete_if do |type|
-                        component.used_typekits.any? { |tk| tk.has_array_of?(type.deference) }
+                        imported_array_of?(type.deference)
                     end.
                     inject(Hash.new) { |h, type| h[type.deference.name] = type; h }.
                     values.
@@ -1105,11 +1176,11 @@ module Orocos
                 public_header_files, implementation_files = [], []
 
 		type_header = Generation.render_template('typekit/TypekitTypes.hpp', binding)
-		public_header_files << Generation.save_automatic("typekit", "#{component.name}TypekitTypes.hpp", type_header)
+		public_header_files << save_automatic("#{name}TypekitTypes.hpp", type_header)
                 tk_hpp = Generation.render_template "typekit/Typekit.hpp", binding
-		public_header_files << Generation.save_automatic("typekit", "#{component.name}Typekit.hpp", tk_hpp)
+		public_header_files << save_automatic("#{name}Typekit.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Typekit.cpp", binding
-		implementation_files << Generation.save_automatic("typekit", "#{component.name}Typekit.cpp", tk_cpp)
+		implementation_files << save_automatic("#{name}Typekit.cpp", tk_cpp)
 
                 #tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
 		#Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
@@ -1128,17 +1199,19 @@ module Orocos
                 if !opaques.empty?
                     intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
                     public_header_files <<
-                        Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.hpp", intermediates_hpp)
+                        save_automatic("#{name}TypekitIntermediates.hpp", intermediates_hpp)
+
                     intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
                     implementation_files <<
-                        Generation.save_automatic("typekit", "#{component.name}TypekitIntermediates.cpp", intermediates_cpp)
+                        save_automatic("#{name}TypekitIntermediates.cpp", intermediates_cpp)
+
                     if has_opaques_with_templates?
                         user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
                         user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
                         public_header_files <<
-                            Generation.save_user('typekit', "#{component.name}TypekitUser.hpp", user_hh)
+                            save_user("#{name}TypekitUser.hpp", user_hh)
                         implementation_files <<
-                            Generation.save_user('typekit', "#{component.name}TypekitUser.cpp", user_cc)
+                            save_user("#{name}TypekitUser.cpp", user_cc)
                     end
                 end
 
@@ -1149,9 +1222,9 @@ module Orocos
                 end
 
 		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
-		Generation.save_automatic("typekit", "#{component.name}-typekit.pc.in", pkg_config)
+		save_automatic("#{name}-typekit.pc.in", pkg_config)
                 cmake = Generation.render_template 'typekit', 'CMakeLists-auto.txt', binding
-                Generation.save_automatic("typekit", "CMakeLists.txt", cmake)
+                save_automatic("CMakeLists.txt", cmake)
 
                 # Finished, create the timestamp file
                 Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'typekit', 'stamp')
@@ -1160,3 +1233,5 @@ module Orocos
     end
 end
 
+require 'orogen/marshallers/corba'
+require 'orogen/marshallers/type_info'

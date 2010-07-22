@@ -3,7 +3,7 @@
 
 <% generated_types.find_all { |type| type.contains_opaques? && !type.opaque? }.
 each do |type|
-    next if component.imported_type?(type)
+    next if typekit.imported_type?(type)
 
     current_def = begin
                       registry.get("#{type.full_name}_m")
@@ -26,7 +26,7 @@ each do |type|
                     !expected[1].opaque? && expected[1] != current[1]
                     raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
                 elsif expected[1].opaque?
-                    if component.find_type(opaque_specification(field_type).intermediate) != current[1]
+                    if typekit.find_type(opaque_specification(field_type).intermediate) != current[1]
                         raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
                     end
                 end
@@ -45,7 +45,7 @@ struct <%= type.basename %>_m
 {
 <% type.each_field do |field_name, field_type|
     if field_type.opaque? %>
-        <%= component.find_type(opaque_specification(field_type).intermediate).cxx_name %> <%= field_name %>;
+        <%= typekit.find_type(opaque_specification(field_type).intermediate).cxx_name %> <%= field_name %>;
     <% elsif field_type.contains_opaques?
         raise NotImplementedError, "in #{type.cxx_name}, #{field_name} of type #{field_type.cxx_name} contains an opaque, which is forbidden"
        else %>
