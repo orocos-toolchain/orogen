@@ -1,7 +1,7 @@
 // First load all RTT interfaces so that we get all "extern template"
 // declarations in the TypekitImpl files
-#include "<%= typekit.name %>CorbaTypes.hpp"
-#include "<%= typekit.name %>TypekitCorba.hpp"
+#include "transports/corba/Registration.hpp"
+#include "transports/corba/TransportPlugin.hpp"
 #include <rtt/transports/corba/CorbaLib.hpp>
 #include <rtt/types/TypekitPlugin.hpp>
 using namespace RTT;

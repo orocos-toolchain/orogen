@@ -1,6 +1,7 @@
 # Task files could be using headers in tasks/ so add the relevant directory in
 # our include path
 include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= component.name %>)
+include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>

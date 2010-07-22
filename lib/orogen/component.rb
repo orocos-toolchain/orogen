@@ -323,9 +323,6 @@ module Orocos
 		used_typekits << typekit
                 if ours = self.typekit
                     ours.using_typekit(typekit)
-                    ours.include_dirs |= typekit.include_dirs.to_set
-                    ours.imported_types.merge(typekit.registry)
-                    ours.imported_typelist |= typekit.typelist.to_set
                 end
                 registry.merge(typekit.registry)
 	    end
@@ -429,12 +426,12 @@ module Orocos
                 # and should be usable in any orogen component
                 #
                 # (I know, this is ugly)
-                typelib_marshaller = Generation.render_template "typekit/TypelibMarshaller.hpp", binding
-		Generation.save_automatic("typekit/TypelibMarshaller.hpp", typelib_marshaller)
-                typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.hpp", binding
-		Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
-                typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.cpp", binding
-		Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
+                # typelib_marshaller = Generation.render_template "typekit/TypelibMarshaller.hpp", binding
+		# Generation.save_automatic("typekit/TypelibMarshaller.hpp", typelib_marshaller)
+                # typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.hpp", binding
+		# Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
+                # typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.cpp", binding
+		# Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
                 # Generate the state enumeration types for each of the task
                 # contexts, and load it
@@ -451,6 +448,7 @@ module Orocos
                     typekit.version  = version
                     typekit.base_dir = base_dir
                     typekit.user_dir = File.join(base_dir, 'typekit')
+                    typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
                     typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
                     if corba_enabled?
                         typekit.enable_plugin('corba')

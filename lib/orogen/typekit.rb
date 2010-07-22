@@ -354,6 +354,10 @@ module Orocos
                 attr_reader :plugins
             end
             @plugins = Hash.new
+
+            def standalone?
+                !component
+            end
             
             # Register a new plugin class. The plugin name is taken from
             # klass.name
@@ -377,6 +381,9 @@ module Orocos
             # The directory in which files that the user should modify should be
             # saved
             attr_accessor :user_dir
+            # The directory in which new versions of the user files should be
+            # generated. If nil, they will not be generated at all
+            attr_accessor :templates_dir
             # The typekit name
             attr_accessor :name
             # The typekit version string
@@ -461,6 +468,7 @@ module Orocos
                 self.imported_types.merge(typekit.registry)
                 self.imported_typelist |= typekit.typelist
                 self.include_dirs      |= typekit.include_dirs.to_set
+                self.include_dirs << typekit.types_dir
                 self.imported_typekits << typekit
             end
 
@@ -796,8 +804,7 @@ module Orocos
                         relative = p.gsub(/^#{Regexp.quote(base_dir)}\//, '')
                         dest = relative.
                             gsub(/^#{Regexp.quote(Generation::AUTOMATIC_AREA_NAME)}\//, '').
-                            gsub(/^#{name}\//, '').
-                            gsub(/^#{user_dir}\//, '')
+                            gsub(/^#{name}\//, '')
 
                         [relative, dest]
                     end
@@ -1059,33 +1066,41 @@ module Orocos
             attr_reader :template_instanciation_files
 
             def save_automatic(*args)
-                if automatic_dir
-                    Generation.save_generated(true, automatic_dir, *args)
-                else
-                    Generation.save_automatic('typekit', *args)
-                end
+                Generation.save_generated(true, automatic_dir, *args)
             end
 
             def save_user(*args)
-                if user_dir
-                    Generation.save_generated(false, user_dir, *args)
-                else
-                    Generation.save_user('typekit', *args)
+                path = Generation.save_generated(false, user_dir, *args)
+                if templates_dir
+                    Generation.save_generated(true, templates_dir, *args)
                 end
+                path
             end
 
 	    def generate
 		typekit = self
 
-                FileUtils.mkdir_p File.join(automatic_dir, 'typekit')
+                FileUtils.mkdir_p automatic_dir
 
                 # Populate a fake installation directory so that the include
                 # files can be referred to as <project_name>/header.h
                 fake_install_dir = File.join(automatic_dir, name)
-                FileUtils.mkdir_p fake_install_dir
+
+                # Upgrade from directory to symlink
+                if File.symlink?(fake_install_dir)
+                    dest = File.readlink(fake_install_dir)
+                    if dest != automatic_dir
+                        FileUtils.ln_sf automatic_dir, fake_install_dir
+                    end
+                else
+                    if File.exists?(fake_install_dir)
+                        FileUtils.rm_rf fake_install_dir
+                    end
+                    FileUtils.ln_sf automatic_dir, fake_install_dir
+                end
 
                 self.local_headers(false).each do |path, dest_path|
-                    dest_path = File.join(fake_install_dir, dest_path)
+                    dest_path = File.join(automatic_dir, "types", name, dest_path)
                     FileUtils.mkdir_p File.dirname(dest_path)
                     FileUtils.ln_sf File.join(base_dir, path), dest_path
                 end
@@ -1181,12 +1196,15 @@ module Orocos
 
                 public_header_files, implementation_files = [], []
 
-		type_header = Generation.render_template('typekit/TypekitTypes.hpp', binding)
-		public_header_files << save_automatic("#{name}TypekitTypes.hpp", type_header)
-                tk_hpp = Generation.render_template "typekit/Typekit.hpp", binding
-		public_header_files << save_automatic("#{name}Typekit.hpp", tk_hpp)
-                tk_cpp = Generation.render_template "typekit/Typekit.cpp", binding
-		implementation_files << save_automatic("#{name}Typekit.cpp", tk_cpp)
+		type_header = Generation.render_template('typekit/Types.hpp', binding)
+                # Types.hpp is not registered in public_header_files as it gets
+                # installed in TYPEKIT_NAME/ directly instead of
+                # TYPEKIT_NAME/typekit
+		save_automatic("Types.hpp", type_header)
+                tk_hpp = Generation.render_template "typekit/Plugin.hpp", binding
+		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
+                tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding
+		implementation_files << save_automatic("Plugin.cpp", tk_cpp)
 
                 #tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
 		#Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
@@ -1203,21 +1221,24 @@ module Orocos
 
                 # Generate the opaque convertion files
                 if !opaques.empty?
-                    intermediates_hpp = Generation.render_template 'typekit/TypekitIntermediates.hpp', binding
+                    intermediates_hpp = Generation.render_template 'typekit/OpaqueConvertions.hpp', binding
                     public_header_files <<
-                        save_automatic("#{name}TypekitIntermediates.hpp", intermediates_hpp)
+                        save_automatic("OpaqueConvertions.hpp", intermediates_hpp)
 
-                    intermediates_cpp = Generation.render_template 'typekit/TypekitIntermediates.cpp', binding
+                    intermediates_cpp = Generation.render_template 'typekit/OpaqueConvertions.cpp', binding
                     implementation_files <<
-                        save_automatic("#{name}TypekitIntermediates.cpp", intermediates_cpp)
+                        save_automatic("OpaqueConvertions.cpp", intermediates_cpp)
 
                     if has_opaques_with_templates?
-                        user_hh = Generation.render_template 'typekit/TypekitUser.hpp', binding
-                        user_cc = Generation.render_template 'typekit/TypekitUser.cpp', binding
+                        user_hh = Generation.render_template 'typekit/Opaques.hpp', binding
+                        user_cc = Generation.render_template 'typekit/Opaques.cpp', binding
                         public_header_files <<
-                            save_user("#{name}TypekitUser.hpp", user_hh)
+                            save_user("Opaques.hpp", user_hh)
                         implementation_files <<
-                            save_user("#{name}TypekitUser.cpp", user_cc)
+                            save_user("Opaques.cpp", user_cc)
+                        if !File.symlink?(File.join(automatic_dir, "Opaques.hpp"))
+                            FileUtils.ln_sf File.join(user_dir, "Opaques.hpp"), File.join(automatic_dir, "Opaques.hpp")
+                        end
                     end
                 end
 
@@ -1227,13 +1248,24 @@ module Orocos
                     implementation_files.concat(impl)
                 end
 
+                if standalone?
+                    FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
+                    Dir.glob File.join(Generation.template_path('config'), '*') do |path|
+                        basename    = File.basename(path)
+                        if !Component::CMAKE_GENERATED_CONFIG.include?(basename)
+                            save_automatic 'config', basename, File.read(path)
+                        end
+                    end
+                end
+
 		pkg_config = Generation.render_template 'typekit/typekit.pc', binding
 		save_automatic("#{name}-typekit.pc.in", pkg_config)
-                cmake = Generation.render_template 'typekit', 'CMakeLists-auto.txt', binding
+                cmake = Generation.render_template 'typekit', 'CMakeLists.txt', binding
                 save_automatic("CMakeLists.txt", cmake)
 
                 # Finished, create the timestamp file
-                Generation.touch File.join(Generation::AUTOMATIC_AREA_NAME, 'typekit', 'stamp')
+                Generation.cleanup_dir(automatic_dir)
+                Generation.touch File.join(automatic_dir, 'stamp')
 	    end
 	end
     end

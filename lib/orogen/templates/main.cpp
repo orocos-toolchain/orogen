@@ -1,15 +1,15 @@
 #include <rtt/os/main.h>
 <% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
-<% if component.typekit %>
-#include "typekit/<%= component.name %>Typekit.hpp"
+<% if typekit = component.typekit %>
+#include "typekit/Plugin.hpp"
 <% if deployer.corba_enabled? %>
-#include "typekit/corba/<%= component.name %>TypekitCorba.hpp"
+#include "typekit/transports/corba/TransportPlugin.hpp"
 <% end %>
 <% end %>
 <% deployer.used_typekits.each do |tk| %>
-#include <typekit/<%= tk.name %>Typekit.hpp>
+#include <<%= tk.name %>/typekit/Plugin.hpp>
     <% if deployer.corba_enabled? %>
-#include <typekit/<%= tk.name %>TypekitCorba.hpp>
+#include <<%= tk.name %>/transports/corba/TransportPlugin.hpp>
     <% end %>
 <% end %>
 

@@ -1,4 +1,4 @@
-#include <<%= typekit.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>/Types.hpp>
 #include <<%= type.info_type_header %>>
 
 <% if type.respond_to?(:to_boost_serialization) %>

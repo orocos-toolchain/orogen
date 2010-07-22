@@ -1,10 +1,10 @@
-#ifndef <%= typekit.name %>_INTERMEDIATES_HH
-#define <%= typekit.name %>_INTERMEDIATES_HH
+#ifndef <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
+#define <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 
 #include <boost/cstdint.hpp>
-#include <<%= typekit.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>/Types.hpp>
 <% if typekit.has_opaques_with_templates? %>
-#include <typekit/<%= typekit.name %>TypekitUser.hpp>
+#include <<%= typekit.name %>/Opaques.hpp>
 <% end %>
 
 namespace <%= typekit.name %>

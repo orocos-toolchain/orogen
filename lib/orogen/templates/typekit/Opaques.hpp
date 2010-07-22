@@ -1,7 +1,7 @@
 #ifndef <%= typekit.name %>_USER_MARSHALLING_HH
 #define <%= typekit.name %>_USER_MARSHALLING_HH
 
-#include <<%= typekit.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>/Types.hpp>
 
 namespace <%= typekit.name %>
 {

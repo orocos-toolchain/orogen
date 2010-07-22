@@ -1,16 +1,16 @@
 #define OROCOS_TARGET gnulinux
 #include <rtt/types/TypekitPlugin.hpp>
 #include <rtt/typekit/RealTimeTypekit.hpp>
-#include "simpleTypekitTypes.hpp"
-#include "simpleTypekit.hpp"
+#include "simple/Types.hpp"
+#include "simple/Plugin.hpp"
 #include <string.h>
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
 #include <rtt/transports/corba/CorbaLib.hpp>
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
-#include "build/.orogen/typekit/corba/simpleTypekitC.h"
-#include ".orogen/typekit/corba/simpleTypekitCorba.hpp"
+#include "transports/corba/TypesC.h"
+#include "transports/corba/TransportPlugin.hpp"
 #endif
 
 #include <rtt/os/main.h>

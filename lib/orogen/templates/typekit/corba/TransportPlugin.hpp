@@ -1,5 +1,5 @@
-#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_HPP
-#define OROCOS_<%= typekit.name.upcase %>_CORBA_HPP
+#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
+#define OROCOS_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
 
 #include <rtt/types/TransportPlugin.hpp>
 

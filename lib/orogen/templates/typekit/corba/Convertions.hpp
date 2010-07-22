@@ -1,8 +1,8 @@
-#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_IMPL_HPP
-#define OROCOS_<%= typekit.name.upcase %>_CORBA_IMPL_HPP
+#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
+#define OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 
-#include "<%= typekit.name %>TypekitTypes.hpp"
-#include "<%= typekit.name %>TypekitC.h"
+#include "Types.hpp"
+#include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 #include <boost/cstdint.hpp>
 
 namespace orogen_typekits {

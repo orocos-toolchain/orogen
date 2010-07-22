@@ -25,24 +25,24 @@ module Orocos
                 typesets.converted_types.each do |type|
                     code  = Generation.render_template "typekit/type_info/Info.cpp", binding
                     impl << typekit.save_automatic("type_info",
-                        "#{typekit.component.name}_#{type.name_as_word}.cpp", code)
+                        "#{type.name_as_word}.cpp", code)
                 end
                 typesets.array_types.each do |type|
                     code  = Generation.render_template "typekit/type_info/ArrayInfo.cpp", binding
                     impl << typekit.save_automatic("type_info",
-                        "#{typekit.component.name}_#{type.deference.name_as_word}Array.cpp", code)
+                        "#{type.deference.name_as_word}Array.cpp", code)
                 end
                 typesets.opaque_types.each do |opdef|
                     type = opdef.type
                     intermediate_type = typekit.find_type(opdef.intermediate)
                     code  = Generation.render_template "typekit/type_info/OpaqueInfo.cpp", binding
                     impl << typekit.save_automatic("type_info",
-                        "#{typekit.component.name}_#{type.name_as_word}Opaque.cpp", code)
+                        "#{type.name_as_word}.cpp", code)
                 end
 
                 code  = Generation.render_template "typekit/type_info/TypeInfo.hpp", binding
                 typekit.save_automatic("type_info",
-                        "#{typekit.component.name}TypeInfo.hpp", code)
+                        "Registration.hpp", code)
 
                 return headers, impl
             end

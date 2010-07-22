@@ -1,3 +1,41 @@
+<% if typekit.standalone? %>
+project("<%= typekit.name %>-typekit")
+cmake_minimum_required(VERSION 2.6)
+
+SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/config")
+
+# In Orogen components, the build target is specified at generation time
+set(OROCOS_TARGET "<%= typekit.orocos_target %>")
+
+# Enable -Wall for compilers that know it
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-Wall", CXX_SUPPORTS_WALL)
+if (CXX_SUPPORTS_WALL)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif (CXX_SUPPORTS_WALL)
+
+# Define the necessary RPath information for all binaries. That can be stripped
+# later
+option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
+if(WITH_RPATH)
+    include(RPATHHandling)
+    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos")
+endif(WITH_RPATH)
+
+# Set the build type to debug by default
+IF ( NOT CMAKE_BUILD_TYPE )
+  SET( CMAKE_BUILD_TYPE Debug )
+ENDIF ( NOT CMAKE_BUILD_TYPE )
+
+include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
+<% end %>
+
+execute_process(COMMAND cmake -E create_symlink
+    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
+
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
+
 # What does the typekit need ?
 #   - it needs RTT stuff
 #   - it optionally needs CORBA support as well
@@ -6,8 +44,6 @@
 # only if the user does not have disabled Corba support by calling
 # #disable_corba
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${PROJECT_BINARY_DIR}/<%= Orocos::Generation::AUTOMATIC_AREA_NAME %>)
-include_directories(${CMAKE_SOURCE_DIR}/<%= Orocos::Generation::AUTOMATIC_AREA_NAME %>)
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
@@ -34,9 +70,9 @@ add_library(${libname} SHARED
     ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !typekit.opaques.empty? %>
         <% if typekit.has_opaques_with_templates? %>
-            ${PROJECT_SOURCE_DIR}/typekit/<%= typekit.name %>TypekitUser.cpp
+            ${PROJECT_SOURCE_DIR}/typekit/Opaques.cpp
         <% end %>
-        <%= typekit.name %>TypekitIntermediates.cpp
+        OpaqueConvertions.cpp
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
@@ -46,14 +82,17 @@ target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES}
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
-install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos)
+install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos/types)
+install(FILES
+    Types.hpp
+    DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
     <%= public_header_files.sort.join("\n    ") %>
-    DESTINATION include/orocos/typekit)
+    DESTINATION include/orocos/<%= typekit.name %>/typekit)
 
 <% typekit.local_headers(false).each do |path, dest_path| %>
-install(FILES ${PROJECT_SOURCE_DIR}/<%= path %>
-    DESTINATION include/orocos/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
+install(FILES <%= typekit.base_dir %>/<%= path %>
+    DESTINATION include/orocos/<%= typekit.name %>/types/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
 <% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
@@ -63,8 +102,7 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
 
 <% typekit.each_plugin do |plg|
     if plg.separate_cmake? %>
-    add_subdirectory(<%= plg.name %>)
+    add_subdirectory(transports/<%= plg.name %>)
     <% end
 end %>
-        
 

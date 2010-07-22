@@ -2,14 +2,46 @@
 require 'orogen'
 
 typekit = Orocos::Generation::Typekit.new
+typekit_loader = Orocos::Generation::Component.new
 
 parser = OptionParser.new do |opt|
-    opt.banner = "usage: typegen [--transports=NAME1,NAME2] name input_dir [output_dir]"
-    opt.on('--transports=NAME1,NAME2', String, "list of transports to generate code for") do |transports|
-        transports.each do |name|
-            component.enable_transport(name)
+    transports = Orocos::Generation::Typekit.plugins.keys
+    transports.delete('type_info')
+    transports = transports.sort.join(", ")
+    opt.banner = <<-EOF
+usage: typegen [--transports=NAME1,NAME2] [--output output_dir] name inputs
+this installation of typegen knows the following transports: #{transports}
+    EOF
+
+    opt.on('-i LIBRARY', '--import=LIBRARY', String, "a library or typekit to get headers and/or types from, using its pkg-config name") do |name|
+        begin
+            pkg = Utilrb::PkgConfig.new(name)
+            if !pkg.typelist.empty?
+                typekit = typekit_loader.load_typekit(name)
+                typekit.using_typekit(typekit)
+            else
+                typekit.using_library(pkg)
+            end
+        rescue Utilrb::PkgConfig::NotFound
+            STDERR.puts "#{name} cannot be found by pkg-config"
+            exit(1)
         end
     end
+    opt.on('-l LIBRARY', '--library=LIBRARY', String, "a library to get headers from, using its pkg-config name") do |name|
+        typekit.using_library(name)
+    end
+
+    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to generate code for") do |transports|
+        transports.each do |name|
+            typekit.enable_plugin(name)
+        end
+    end
+
+    opt.on('-o DIR', '--output DIR', String, "the directory to which the generated typekit should be written") do |dir|
+        typekit.automatic_dir = dir
+    end
+    opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO }
+    opt.on("-d", "--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
     opt.on('--help') do
         puts opt
         exit(0)
@@ -17,25 +49,32 @@ parser = OptionParser.new do |opt|
 end
 
 remaining = parser.parse(ARGV)
-if remaining.size != 2 && remaining.size != 3
-    STDERR.puts "invalid number of arguments"
-    STDERR.puts parser
-    exit(1)
-end
 
 typekit.name      = remaining.shift
-typekit.user_dir = File.expand_path(remaining.shift)
-Dir.glob(File.join(typekit.user_dir, "*")) do |path|
-    if path !~ /Typekit/ && File.file?(path)
+
+remaining.each do |path|
+    if File.directory?(path)
+        puts "A: #{path}"
+        typekit.user_dir ||= File.expand_path(remaining.shift)
+        typekit.base_dir ||= File.dirname(typekit.user_dir)
+        Find.find(path) do |file|
+            if path !~ /Typekit/ && File.file?(file)
+                puts "adding #{file}"
+                typekit.load(file)
+            end
+        end
+    elsif File.file?(path)
+        typekit.user_dir ||= File.dirname(File.expand_path(remaining.shift))
+        typekit.base_dir ||= File.dirname(typekit.user_dir)
         typekit.load(path)
+    else
+        STDERR.puts "#{path} is neither a file nor a directory"
     end
 end
 
-typekit.automatic_dir =
-    if !remaining.empty?
-        remaining.shift
-    else
-        File.join(File.dirname(typekit.input_dir), "typekits")
-    end
+typekit.automatic_dir ||=
+    File.join(typekit.base_dir, 'typekit')
+
+Orocos::Generation::Component.load_rtt_registry
 typekit.generate
 

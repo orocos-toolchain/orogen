@@ -49,6 +49,8 @@ class TC_GenerationTypekit < Test::Unit::TestCase
             cmake << "\ntarget_link_libraries(test opaque-transport-corba-${OROCOS_TARGET})"
             end
             cmake << "\ntarget_link_libraries(test ${OROCOS_COMPONENT_LIBRARIES})"
+            cmake << "\ninclude_directories(${CMAKE_SOURCE_DIR}/.orogen/typekit)"
+            cmake << "\ninclude_directories(${CMAKE_BINARY_DIR}/.orogen/typekit)"
             cmake << "\nfind_package( RTTPlugin COMPONENTS rtt-typekit rtt-marshalling)"
             cmake << "\ntarget_link_libraries(test ${RTT_PLUGIN_rtt-marshalling_LIBRARY})"
             cmake << "\ntarget_link_libraries(test ${RTT_PLUGIN_rtt-typekit_LIBRARY})"
@@ -105,6 +107,8 @@ class TC_GenerationTypekit < Test::Unit::TestCase
             cmake << "ADD_DEFINITIONS(-DWITH_CORBA)\n" if with_corba
             cmake << <<-EOT
 include_directories(${OrocosRTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/.orogen/typekit)
+include_directories(${CMAKE_BINARY_DIR}/.orogen/typekit)
 link_directories(${OrocosCORBA_LIBRARY_DIRS} ${OrocosRTT_LIBRARY_DIRS})
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 

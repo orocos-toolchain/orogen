@@ -32,45 +32,44 @@ module Orocos
         def generate(typekit, typesets)
             headers, impl = [], []
             
-            idl = Orocos::Generation.render_template "typekit/corba/Typekit.idl", binding
-            idl_file = typekit.save_automatic("corba",
-                "#{typekit.name}Typekit.idl", idl)
+            idl = Orocos::Generation.render_template "typekit", "corba", "Types.idl", binding
+            idl_file = typekit.save_automatic("transports", "corba",
+                "#{typekit.name}Types.idl", idl)
 
-            code  = Generation.render_template "typekit/corba/ConvertionFunctions.hpp", binding
-            headers << typekit.save_automatic("corba",
-                    "#{typekit.name}ConvertionFunctions.hpp", code)
-            code  = Generation.render_template "typekit/corba/ConvertionFunctions.cpp", binding
-            impl << typekit.save_automatic("corba",
-                    "#{typekit.name}ConvertionFunctions.cpp", code)
+            code  = Generation.render_template "typekit", "corba", "Convertions.hpp", binding
+            headers << typekit.save_automatic("transports", "corba",
+                    "Convertions.hpp", code)
+            code  = Generation.render_template "typekit", "corba", "Convertions.cpp", binding
+            impl << typekit.save_automatic("transports", "corba",
+                    "Convertions.cpp", code)
 
-            code  = Generation.render_template "typekit/corba/TypekitCorba.hpp", binding
-            headers << typekit.save_automatic("corba",
-                    "#{typekit.name}TypekitCorba.hpp", code)
-            code  = Generation.render_template "typekit/corba/TypekitCorba.cpp", binding
-            impl << typekit.save_automatic("corba",
-                    "#{typekit.name}TypekitCorba.cpp", code)
+            code  = Generation.render_template "typekit", "corba", "TransportPlugin.hpp", binding
+            headers << typekit.save_automatic("transports", "corba",
+                    "TransportPlugin.hpp", code)
+            code  = Generation.render_template "typekit", "corba", "TransportPlugin.cpp", binding
+            impl << typekit.save_automatic("transports", "corba",
+                    "TransportPlugin.cpp", code)
 
             typesets.converted_types.each do |type|
-                code  = Generation.render_template "typekit/corba/Type.cpp", binding
-                impl << typekit.save_automatic("corba",
-                        "#{typekit.name}_#{type.name_as_word}.cpp", code)
+                code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
+                impl << typekit.save_automatic("transports", "corba",
+                        "#{type.name_as_word}.cpp", code)
             end
             typesets.opaque_types.each do |opdef|
                 type = opdef.type
                 intermediate_type = typekit.find_type(opdef.intermediate)
-                code  = Generation.render_template "typekit/corba/Type.cpp", binding
-                impl << typekit.save_automatic("corba",
-                        "#{typekit.name}_#{type.name_as_word}.cpp", code)
+                code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
+                impl << typekit.save_automatic("transports", "corba",
+                        "#{type.name_as_word}.cpp", code)
             end
 
-            code  = Generation.render_template "typekit/corba/CorbaTypes.hpp", binding
-            typekit.save_automatic("corba",
-                    "#{typekit.name}CorbaTypes.hpp", code)
+            code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
+            typekit.save_automatic("transports", "corba", "Registration.hpp", code)
 
             pkg_config = Generation.render_template 'typekit/corba/transport-corba.pc', binding
-            typekit.save_automatic("corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
+            typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
             code = Generation.render_template "typekit/corba/CMakeLists.txt", binding
-            typekit.save_automatic("corba", "CMakeLists.txt", code)
+            typekit.save_automatic("transports", "corba", "CMakeLists.txt", code)
 
             #code  = Generation.render_template "typekit/corba/Transport.hpp", binding
             #typekit.save_automatic("corba",

@@ -1,14 +1,14 @@
-#include "<%= typekit.name %>ConvertionFunctions.hpp"
+#include "Convertions.hpp"
 #include <memory>
 
 <% if typekit.has_opaques? %>
-#include "<%= typekit.name %>TypekitIntermediates.hpp"
+#include "OpaqueConvertions.hpp"
 <% end %>
 
 <% typekit.used_typekits.each do |tk| %>
-#include <typekit/<%= tk.name %>ConvertionFunctions.hpp>
+#include <<%= tk.name %>/transports/corba/Convertions.hpp>
 <% if tk.has_opaques? %>
-#include <typekit/<%= tk.name %>TypekitIntermediates.hpp>
+#include <<%= tk.name %>/OpaqueConvertions.hpp>
 <% end %>
 <% end %>
 

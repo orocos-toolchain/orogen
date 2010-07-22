@@ -1,4 +1,4 @@
-#include <<%= typekit.name %>TypekitIntermediates.hpp>
+#include "OpaqueConvertions.hpp"
 #include <memory>
 
 <%
@@ -17,7 +17,7 @@ type_sets.opaque_types.
 <%
 # Generate the body of the const-function for from_intermediate,
 # if the type does not need a copy.
-# See the TypekitIntermediates.hpp template for more information
+# See the Opaques.hpp template for more information
 type_sets.opaque_types.
     find_all { |opdef| !opdef.needs_copy? }.
     each do |opdef|

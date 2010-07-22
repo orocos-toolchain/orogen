@@ -1,7 +1,7 @@
-#include <<%= typekit.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>/Types.hpp>
 #include <rtt/types/StructTypeInfo.hpp>
 #include <rtt/types/TypeInfoRepository.hpp>
-#include <<%= typekit.name %>TypekitIntermediates.hpp>
+#include <<%= typekit.name %>/OpaqueConvertions.hpp>
 
 namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :

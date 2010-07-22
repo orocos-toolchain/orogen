@@ -1,5 +1,5 @@
-#ifndef <%= typekit.name.upcase %>_CORBA_TYPES_HPP
-#define <%= typekit.name.upcase %>_CORBA_TYPES_HPP
+#ifndef <%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
+#define <%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
 
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
 

@@ -30,6 +30,11 @@ module Orocos
             def include_dirs
                 pkg.include_dirs
             end
+            # Returns the full path to the types/ subdir in the include
+            # directory
+            def types_dir
+                File.join(pkg.includedir, name, 'types')
+            end
 
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name

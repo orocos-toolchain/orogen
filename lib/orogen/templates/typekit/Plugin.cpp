@@ -1,13 +1,13 @@
 // First load all RTT interfaces so that we get all "extern template"
 // declarations in the TypekitImpl files
-#include "<%= typekit.name %>Typekit.hpp"
+#include "Plugin.hpp"
 
 #include <iostream>
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <rtt/types/TypeInfoRepository.hpp>
-#include "typekit/type_info/<%= typekit.name %>TypeInfo.hpp"
+#include "type_info/Registration.hpp"
 
 using namespace RTT;
 

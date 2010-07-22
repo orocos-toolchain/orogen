@@ -1,7 +1,6 @@
-#include "<%= typekit.name %>CorbaTypes.hpp"
-#include "<%= typekit.name %>TypekitTypes.hpp"
-#include "<%= typekit.name %>TypekitC.h"
-#include "<%= typekit.name %>ConvertionFunctions.hpp"
+#include "Types.hpp"
+#include "transports/corba/Registration.hpp"
+#include "transports/corba/Convertions.hpp"
 #include <rtt/transports/corba/CorbaTemplateProtocol.hpp>
 
 namespace orogen_typekits {

@@ -1,4 +1,4 @@
-#include <<%= typekit.name %>TypekitTypes.hpp>
+#include <<%= typekit.name %>/Types.hpp>
 #include <rtt/internal/carray.hpp>
 #include <<%= type.info_type_header %>>
 
