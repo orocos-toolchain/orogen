@@ -322,7 +322,7 @@ module Orocos
                 typekit = load_typekit(name)
 		used_typekits << typekit
                 if ours = self.typekit
-                    ours.use_typekit(typekit)
+                    ours.using_typekit(typekit)
                     ours.include_dirs |= typekit.include_dirs.to_set
                     ours.imported_types.merge(typekit.registry)
                     ours.imported_typelist |= typekit.typelist.to_set
@@ -635,7 +635,7 @@ module Orocos
                         flatten.to_set
 
                     used_libraries.each do |tk|
-                        typekit.used_libraries(tk, typekit_libraries.include?(tk))
+                        typekit.using_library(tk, typekit_libraries.include?(tk))
                     end
 
                     # Initialize the typekit's imported_types registry

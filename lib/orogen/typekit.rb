@@ -448,7 +448,7 @@ module Orocos
 
 	    attr_reader :registry
             attr_reader :imported_types
-            attr_reader :imported_typelist
+            attr_accessor :imported_typelist
             attr_reader :imported_typekits
 
             attr_reader :used_libraries
@@ -610,6 +610,7 @@ module Orocos
             # The Typekit#ro_ptr and Typekit#shared_ptr shortcuts are defined
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
             def smart_ptr(name, base_type, options = Hash.new)
+                typekit = self
                 opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
                     Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
@@ -744,10 +745,13 @@ module Orocos
             # the exact offsets for all the fields in the structures).
 	    def load(file, preload = false, add = true)
                 # Find where +file+ is
-                include_dirs = []
+                include_dirs = self.include_dirs.dup
                 if base_dir
                     include_dirs << base_dir
                 end
+                include_dirs = include_dirs.to_a
+                puts  "include:"
+                puts "  " + include_dirs.map(&:inspect).join("\n  ")
 
                 if File.exists?(file) # Local file
                     file = File.expand_path(file)
@@ -1062,7 +1066,7 @@ module Orocos
 
             def save_user(*args)
                 if user_dir
-                    Generation.save_generated(false, *args)
+                    Generation.save_generated(false, user_dir, *args)
                 else
                     Generation.save_user('typekit', *args)
                 end

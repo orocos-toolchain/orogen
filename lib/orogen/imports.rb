@@ -10,8 +10,17 @@ module Orocos
             attr_reader :typelist
 
             def initialize(main_project, name, pkg, registry, typelist)
-                @main_project, @name, @pkg, @registry, @typelist = main_project, name, pkg, registry, typelist
+                @main_project, @name, @pkg, @registry, @typelist =
+                    main_project, name, pkg, registry, typelist
             end
+
+            def has_opaques?
+                if @has_opaques.nil?
+                    @has_opaques = registry.any? { |t| t.opaque? }
+                end
+                @has_opaques
+            end
+
             def pkg_name
                 pkg.name
             end
