@@ -1,4 +1,6 @@
 #include "<%= typekit.name %>ConvertionFunctions.hpp"
+#include <memory>
+
 <% if typekit.has_opaques? %>
 #include "<%= typekit.name %>TypekitIntermediates.hpp"
 <% end %>
