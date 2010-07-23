@@ -14,10 +14,10 @@
 
     <depend package="orocos/rtt" />
     <depend package="typelib" />
-    <!-- <depend package="orocos/ocl" /> -->
     <rosdep name="hoe" />
     <rosdep name="webgen" type="doc" />
     <rosdep name="coderay" type="doc" />
     <rosdep name="rdoc" type="doc" />
+    -->
 </package>
 
