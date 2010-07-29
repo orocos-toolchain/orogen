@@ -46,6 +46,10 @@ this installation of typegen knows the following transports: #{transports}
 end
 
 remaining = parser.parse(ARGV)
+if remaining.size < 2
+    puts parser
+    exit(1)
+end
 
 typekit.name      = remaining.shift
 
