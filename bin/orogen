@@ -5,17 +5,28 @@ require 'optparse'
 
 verbosity = 0
 extended_states = false
+transports = []
+component = Orocos::Generation::Component.new
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
     opt.on("--[no-]corba", "enables/disables corba support [disabled]") do |flag|
-        if flag then Orocos::Generation.enable_corba
-        else Orocos::Generation.disable_corba
+        if flag
+            Orocos::Generation.enable_corba
+            transports << "corba"
+        else
+            Orocos::Generation.disable_corba
+            transports.delete("corba")
         end
     end
     opt.on("--extended-states", "enable extended states for all tasks defined in this project") do |flag|
         Orocos::Generation.extended_states = flag
     end
+
+    opt.on('--transports=NAME[,NAME]', 'the set of transports to generate typekits for') do |transport_names|
+        transports = transport_names.split(',')
+    end
+
 
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
         target = target.to_s
@@ -91,34 +102,38 @@ end
 ConfigError = Orocos::Generation::ConfigError
 begin
     filename  = files.first
-    component = 
-        begin
-            component = Orocos::Generation::Component.new
-            component.load(filename)
+    begin
+        component.load(filename)
 
-        rescue Exception => e
-            # Two options:
-            #  * the first line of the backtrace is the orogen file
-            #    => change it into a ConfigError. If, in addition, this is a
-            #       NoMethodError then change it into a statement error
-            #  * the second line of the backtrace is in the orogen file
-            #    => most likely a bad argument, transform it into a ConfigError
-            #       too
-            #  * all other cases are reported as internal errors
-            file_pattern = /#{Regexp.quote(File.basename(filename))}/
-            if e.backtrace.first =~ file_pattern
-                if e.kind_of?(NoMethodError) || e.kind_of?(NameError)
-                    e.message =~ /undefined (?:local variable or )?method `([^']+)'/
-                    method_name = $1
-                    raise ConfigError, "unknown statement '#{method_name}'", e.backtrace
-                else
-                    raise ConfigError, e.message, e.backtrace
-                end
-            elsif (e.backtrace[1] =~ file_pattern) || e.kind_of?(ArgumentError)
+    rescue Exception => e
+        # Two options:
+        #  * the first line of the backtrace is the orogen file
+        #    => change it into a ConfigError. If, in addition, this is a
+        #       NoMethodError then change it into a statement error
+        #  * the second line of the backtrace is in the orogen file
+        #    => most likely a bad argument, transform it into a ConfigError
+        #       too
+        #  * all other cases are reported as internal errors
+        file_pattern = /#{Regexp.quote(File.basename(filename))}/
+        if e.backtrace.first =~ file_pattern
+            if e.kind_of?(NoMethodError) || e.kind_of?(NameError)
+                e.message =~ /undefined (?:local variable or )?method `([^']+)'/
+                method_name = $1
+                raise ConfigError, "unknown statement '#{method_name}'", e.backtrace
+            else
                 raise ConfigError, e.message, e.backtrace
             end
-            raise
+        elsif (e.backtrace[1] =~ file_pattern) || e.kind_of?(ArgumentError)
+            raise ConfigError, e.message, e.backtrace
         end
+        raise
+    end
+
+    if component.typekit
+        transports.each do |transport_name|
+            component.typekit.enable_plugin(transport_name)
+        end
+    end
 
     component.generate
 rescue Orocos::Generation::ConfigError => e
