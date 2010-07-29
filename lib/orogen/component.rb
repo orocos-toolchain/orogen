@@ -632,7 +632,9 @@ module Orocos
                     @typekit ||= Typekit.new(self)
 
                     # Initialize the typekit's include_dirs set
-                    typekit.include_dirs << base_dir
+                    if base_dir
+                        typekit.include_dirs << base_dir
+                    end
                     typekit.include_dirs |=
                         used_task_libraries.map { |pkg| pkg.include_dirs }.
                         flatten.to_set
