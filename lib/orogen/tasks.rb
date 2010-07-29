@@ -1202,7 +1202,7 @@ module Orocos
                         raise ArgumentError, "type #{name} is not available"
                     end
 
-                full_name = "/RTT/ReadOnlyPointer<#{base_type.name}>"
+                full_name = "/RTT/extras/ReadOnlyPointer<#{base_type.name}>"
                 begin
                     component.find_type(full_name)
                 rescue Typelib::NotFound
