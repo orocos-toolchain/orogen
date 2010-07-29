@@ -30,8 +30,11 @@ set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
 add_library(${libname_corba} SHARED
     <%= impl.join("\n    ") %>
     ${CORBA_FILES})
-target_link_libraries(${libname_corba} ${libname} ${OrocosCORBA_LIBRARIES})
-<%= typekit_deps = typekit.dependencies;
+target_link_libraries(${libname_corba}
+    <%= typekit.name %>-typekit-${OROCOS_TARGET}
+    ${OrocosCORBA_LIBRARIES})
+
+<%= typekit_deps = typekit.plugin('corba').dependencies(typekit);
     Generation.cmake_pkgconfig_link_corba('${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
 

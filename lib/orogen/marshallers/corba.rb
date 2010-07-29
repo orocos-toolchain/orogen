@@ -22,9 +22,9 @@ module Orocos
                     tk.pkg_corba_name)
                 build_dep.in_context('corba', 'include')
                 build_dep.in_context('corba', 'link')
+                result << build_dep
             end
-
-            nil
+            result
         end
 
         def separate_cmake?; true end
