@@ -18,13 +18,13 @@ module Orocos
                     typesets.registered_types.each do |type|
                         if type.contains_opaques?
                             if type.opaque?
-                                spec = toolkit.opaque_specification(type)
+                                spec = typekit.opaque_specification(type)
                                 needs_copy = spec.needs_copy?
-                                intermediate = component.find_type(spec.intermediate)
+                                intermediate = typekit.find_type(spec.intermediate)
                             else
                                 # This is not an opaque, but has fields that are opaque themselves
                                 needs_copy = true
-                                intermediate = toolkit.find_type("#{type.name}_m")
+                                intermediate = typekit.find_type("#{type.name}_m")
                             end
 
                             code  = Generation.render_template "typekit", "typelib", "OpaqueType.cpp", binding

@@ -128,7 +128,7 @@ namespace orogen_transports
         void marshal(std::vector<uint8_t>& buffer, Handle* sample) const;
         /** Update the sample in +sample+ from the marshalled data in +buffer+
          */
-        void unmarshal(std::vector<uint8_t>& buffer, Handle* sample) const;
+        virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample) const;
 
         virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
         { return NULL; }

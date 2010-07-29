@@ -1,23 +1,24 @@
 #define OROCOS_TARGET gnulinux
 #include <rtt/types/TypekitPlugin.hpp>
 #include <rtt/typekit/RealTimeTypekit.hpp>
-#include "opaqueTypekitTypes.hpp"
-#include "opaqueTypekit.hpp"
+#include "Types.hpp"
+#include "Plugin.hpp"
 #include "opaque.h"
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
 #include <rtt/transports/corba/CorbaLib.hpp>
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
-#include "build/.orogen/typekit/corba/opaqueTypekitC.h"
-#include ".orogen/typekit/corba/opaqueTypekitCorba.hpp"
+#include "build/.orogen/typekit/transports/corba/opaqueTypesC.h"
+#include ".orogen/typekit/transports/corba/TransportPlugin.hpp"
 #endif
 
 #ifdef WITH_TYPELIB
-#include ".orogen/TypelibMarshallerBase.hpp"
+#include "transports/typelib/TransportPlugin.hpp"
+#include ".orogen/typekit/transports/typelib/TypelibMarshallerBase.hpp"
 #endif
 
-#include ".orogen/typekit/opaqueTypekitIntermediates.hpp"
+#include ".orogen/typekit/OpaqueConvertions.hpp"
 
 #include <rtt/os/main.h>
 #include <rtt/types/Types.hpp>
@@ -75,16 +76,16 @@ void from_intermediate(OrocosType& orocos_value, TypelibType& typelib_value)
     data_source->deref();
 }
 
-template<typename T>
-std::vector<uint8_t> typelib_marshalling(T const& testValue)
+template<typename T, typename Getter>
+bool generic_typelib_test(T const& testValue, TypeInfo const& ti, Getter get_test_value)
 {
+    cerr << "- testing Typelib marshalling/unmarshalling ..." << endl;
     ConstantDataSource<T>* source
         = new ConstantDataSource<T>(testValue);
     source->ref();
 
-    TypeInfo const* type = source->getTypeInfo();
     orogen_transports::TypelibMarshallerBase* transport =
-        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(type->getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
+        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(ti.getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
 
     std::vector<uint8_t> buffer;
     orogen_transports::TypelibMarshallerBase::Handle* handle =
@@ -93,7 +94,19 @@ std::vector<uint8_t> typelib_marshalling(T const& testValue)
     transport->marshal(buffer, handle);
     transport->deleteHandle(handle);
     source->deref();
-    return buffer;
+
+    handle = transport->createSample();
+    transport->unmarshal(buffer, handle);
+    ValueDataSource<T> unmarshalled;
+    transport->writeDataSource(unmarshalled, handle);
+    transport->deleteHandle(handle);
+
+    if (!(get_test_value(unmarshalled.get()) == get_test_value(testValue)))
+    {
+        cerr << "unmarshalled Typelib data does not match original data" << endl;
+        return false;
+    }
+    return true;
 }
 #endif
 
@@ -175,6 +188,11 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
     }
 #endif
 
+#ifdef WITH_TYPELIB
+    if (!generic_typelib_test(testValue, ti, get_test_value))
+        return false;
+#endif
+
     source->deref();
     return true;
 }
@@ -188,35 +206,8 @@ bool test_plain_opaque()
     if (! type)
     {
 	cerr << "cannot find /NotOrogenCompatible/Point2D in the type info repository" << endl;
-	return 1;
+	return false;
     }
-
-    NotOrogenCompatible::Point2D testValue(10, 20);
-    generic_type_handling_test("opaque", testValue, *type, &::identity<NotOrogenCompatible::Point2D> );
-
-#ifdef WITH_TYPELIB
-    // Try marshalling
-    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
-    {
-        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
-
-        if (sizeof(TestOpaque::Point2D) != buffer.size())
-        {
-            cerr << "error in Typelib marshalling" << endl;
-            cerr << "resulting buffer is of size " << buffer.size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
-            return false;
-        }
-
-        TestOpaque::Point2D p = *reinterpret_cast<TestOpaque::Point2D*>(&(buffer)[0]);
-        if (p.padding != 100 || p.x != testValue.x() || p.y != testValue.y())
-        {
-            cerr << "error in Typelib marshalling" << endl;
-            cerr << "expected\n\n" << testValue <<
-                "\n\ngot\n\n" << p << endl;
-            return false;
-        }
-    }
-#endif
 
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
@@ -230,6 +221,11 @@ bool test_plain_opaque()
             return false;
         }
     }
+
+
+    NotOrogenCompatible::Point2D testValue(10, 20);
+    if (!generic_type_handling_test("opaque", testValue, *type, &::identity<NotOrogenCompatible::Point2D> ))
+        return false;
 
     return true;
 }
@@ -252,29 +248,6 @@ bool test_composed_opaque()
     testValue.p.y() = 30;
 
     generic_type_handling_test("composed_opaque", testValue, *type, &::identity<TestOpaque::Position> );
-
-#ifdef WITH_TYPELIB
-    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
-    {
-        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
-        
-        if (sizeof(TestOpaque::Position_m) != buffer.size())
-        {
-            cerr << "error in Typelib marshalling" << endl;
-            cerr << "resulting buffer is of size " << buffer.size() << ", " << sizeof(TestOpaque::Point2D) << " expected" << endl;
-            return false;
-        }
-
-        TestOpaque::Position_m p = *reinterpret_cast<TestOpaque::Position_m*>(&(buffer)[0]);
-        if (p.timestamp != testValue.timestamp ||
-                p.p.x != testValue.p.x() ||
-                p.p.y != testValue.p.y())
-        {
-            cerr << "error in Typelib marshalling for TestOpaque::Position_m" << endl;
-            return false;
-        }
-    }
-#endif
 
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
@@ -321,28 +294,6 @@ bool test_shared_pointer()
 
     generic_type_handling_test("shared_ptr__opaque_type", testValue, *type, &get_ptr_content< std::vector<float> >);
 
-#ifdef WITH_TYPELIB
-    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
-    {
-        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
-
-        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
-        if (size != (*testValue).size())
-        {
-            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<float> >" << endl;
-            return false;
-        }
-
-        float* data = reinterpret_cast<float*>(&buffer[sizeof(size)]);
-        for (int i = 0; i < size; ++i)
-            if (data[i] != (*testValue)[i])
-            {
-            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<float> >" << endl;
-            return false;
-            }
-    }
-#endif
-
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
         boost::shared_ptr< std::vector<float> > result;
@@ -380,28 +331,6 @@ bool test_shared_ptr_shortcut()
 
     generic_type_handling_test("shared_ptr__shared_ptr", testValue, *type, &get_ptr_content< std::vector<int> >);
 
-#ifdef WITH_TYPELIB
-    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
-    {
-        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
-
-        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
-        if (size != (*testValue).size())
-        {
-            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<int> >" << endl;
-            return false;
-        }
-
-        int* data = reinterpret_cast<int*>(&buffer[sizeof(size)]);
-        for (int i = 0; i < size; ++i)
-            if (data[i] != (*testValue)[i])
-            {
-            cerr << "error in Typelib marshalling for boost::shared_ptr< std::vector<int> >" << endl;
-            return false;
-            }
-    }
-#endif
-
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
         boost::shared_ptr< std::vector<int> > result;
@@ -423,10 +352,10 @@ bool test_ro_ptr()
     cerr << "\n======== Testing ReadOnlyPointer (from #ro_ptr) ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
-    TypeInfo* type = ti->type("/RTT/ReadOnlyPointer</std/vector</int>>");
+    TypeInfo* type = ti->type("/RTT/extras/ReadOnlyPointer</std/vector</int>>");
     if (! type)
     {
-	cerr << "cannot find /RTT/ReadOnlyPointer</std/vector</int>> in the type info repository" << endl;
+	cerr << "cannot find /RTT/extras/ReadOnlyPointer</std/vector</int>> in the type info repository" << endl;
 	return 1;
     }
 
@@ -438,28 +367,6 @@ bool test_ro_ptr()
 
 
     generic_type_handling_test("readonlypointer", testValue, *type, &get_ro_ptr_content< std::vector<int> >);
-
-#ifdef WITH_TYPELIB
-    std::cerr << "Testing the Typelib marshalling ..." << std::endl;
-    {
-        std::vector<uint8_t> buffer = typelib_marshalling(testValue);
-
-        uint64_t size = *reinterpret_cast<uint64_t*>(&buffer[0]);
-        if (size != (*testValue).size())
-        {
-            cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
-            return false;
-        }
-
-        int* data = reinterpret_cast<int*>(&buffer[sizeof(size)]);
-        for (int i = 0; i < size; ++i)
-            if (data[i] != (*testValue)[i])
-            {
-                cerr << "error in Typelib marshalling for RTT::extras::ReadOnlyPointer< std::vector<int> >" << endl;
-                return false;
-            }
-    }
-#endif
 
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
@@ -485,6 +392,9 @@ int ORO_main(int argc, char** argv)
     RTT::types::TypekitRepository::Import( new orogen_typekits::opaqueTypekitPlugin );
 #ifdef WITH_CORBA
     RTT::types::TypekitRepository::Import( new orogen_typekits::opaqueCorbaTransportPlugin );
+#endif
+#ifdef WITH_TYPELIB
+    RTT::types::TypekitRepository::Import( new orogen_typekits::opaqueTypelibTransportPlugin );
 #endif
 
     if (!test_plain_opaque())

@@ -46,6 +46,8 @@ class TC_GenerationTypekit < Test::Unit::TestCase
             end
 
             cmake << <<-EOF
+link_directories(${CMAKE_INSTALL_PREFIX}/lib/orocos/plugins ${CMAKE_INSTALL_PREFIX}/lib/orocos/types)
+
 ADD_EXECUTABLE(test test.cpp)
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 target_link_libraries(test opaque-typekit-${OROCOS_TARGET})
