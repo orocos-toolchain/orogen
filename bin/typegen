@@ -27,9 +27,6 @@ this installation of typegen knows the following transports: #{transports}
             exit(1)
         end
     end
-    opt.on('-l LIBRARY', '--library=LIBRARY', String, "a library to get headers from, using its pkg-config name") do |name|
-        typekit.using_library(name)
-    end
 
     opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to generate code for") do |transports|
         transports.each do |name|
