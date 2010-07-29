@@ -36,14 +36,6 @@ execute_process(COMMAND cmake -E create_symlink
 
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
-
-# What does the typekit need ?
-#   - it needs RTT stuff
-#   - it optionally needs CORBA support as well
-#
-# Corba-related generation: IDL, Corba-to-Orocos conversion code. This is done
-# only if the user does not have disabled Corba support by calling
-# #disable_corba
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
