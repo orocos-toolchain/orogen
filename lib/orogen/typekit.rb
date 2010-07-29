@@ -581,10 +581,23 @@ module Orocos
 
             # Add a generation plugin to the generation stage
             def enable_plugin(name)
+                if plugins.any? { |plg| plg.name == name }
+                    # It is already there
+                    return
+                end
+
                 if !(plugin = Typekit.plugins[name])
                     raise ArgumentError, "there is not typekit plugin called #{name}"
                 end
                 plugins << plugin.new
+            end
+
+            def plugin(name)
+                if plg = plugins.find { |p| p.name == name }
+                    return plg
+                else
+                    raise ArgumentError, "there is no plugin called #{name}"
+                end
             end
 
             # Enumerate all enabled plugins. See #enable_plugin
@@ -910,8 +923,10 @@ module Orocos
                 # We must include the typekits that define types that are used
                 # in the other typekits types
                 each_plugin do |plg|
-                    if deps = plg.dependencies(self)
-                        result.concat(deps)
+                    if !plg.separate_cmake?
+                        if deps = plg.dependencies(self)
+                            result.concat(deps)
+                        end
                     end
                 end
 
@@ -1271,5 +1286,6 @@ module Orocos
     end
 end
 
+require 'orogen/marshallers/typelib'
 require 'orogen/marshallers/corba'
 require 'orogen/marshallers/type_info'

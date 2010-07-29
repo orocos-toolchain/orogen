@@ -1,8 +1,8 @@
 #ifndef OROGEN_TYPELIB_MARSHALLER_HPP
 #define OROGEN_TYPELIB_MARSHALLER_HPP
 
-#include "TypelibMarshallerBase.hpp"
-#include <rtt/Ports.hpp>
+#include "transports/typelib/TypelibMarshallerBase.hpp"
+#include <rtt/Port.hpp>
 
 struct orogen_transports::TypelibMarshallerBase::Handle
 {
@@ -88,29 +88,34 @@ namespace orogen_transports
             handle->owns_orocos = handle->owns_typelib = false;
         }
 
-        bool readDataSource(RTT::DataSourceBase& source_base, Handle* handle)
+        void refreshOrocosSample(Handle* handle) const
         {
-            RTT::DataSource<T>& source = dynamic_cast<RTT::DataSource<T>&>(source_base);
+            // Nothing to do
+        }
+
+        bool readDataSource(RTT::base::DataSourceBase& source_base, Handle* handle)
+        {
+            RTT::internal::DataSource<T>& source = dynamic_cast<RTT::internal::DataSource<T>&>(source_base);
             if (source.evaluate())
             {
                 T& data = *reinterpret_cast<T*>(handle->orocos_sample);
-                data = dynamic_cast<RTT::DataSource<T>&>(source_base).get();
+                data = dynamic_cast<RTT::internal::DataSource<T>&>(source_base).get();
                 return true;
             }
             return false;
         }
-        void writeDataSource(RTT::DataSourceBase& source, Handle const* handle)
+        void writeDataSource(RTT::base::DataSourceBase& source, Handle const* handle)
         {
             T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
-            dynamic_cast<RTT::AssignableDataSource<T>&>(source).set(data);
+            dynamic_cast<RTT::internal::AssignableDataSource<T>&>(source).set(data);
         }
 
-        bool readPort(RTT::InputPortInterface& port, Handle* handle)
+        bool readPort(RTT::base::InputPortInterface& port, Handle* handle)
         {
             T& data = *reinterpret_cast<T*>(handle->orocos_sample);
             return dynamic_cast< RTT::InputPort<T>& >(port).read(data);
         }
-        void writePort(RTT::OutputPortInterface& port, Handle const* handle)
+        void writePort(RTT::base::OutputPortInterface& port, Handle const* handle)
         {
             T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
             return dynamic_cast< RTT::OutputPort<T>& >(port).write(data);

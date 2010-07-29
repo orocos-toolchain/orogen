@@ -115,16 +115,20 @@ module Orocos
 		    yield if block_given?
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
+                        make_cmd = ["make"]
+                        if ENV['TEST_MAKE_OPTIONS']
+                            make_cmd.concat(ENV['TEST_MAKE_OPTIONS'].split(','))
+                        end
 			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..")
 			    raise "failed to configure"
-			elsif !system("make")
+			elsif !system(*make_cmd)
 			    raise "failed to build"
 			end
 		    end
 		end
 	    end
 
-            def build_test_component(dirname, with_corba, test_bin = nil, wc_dirname = nil)
+            def build_test_component(dirname, transports = [], test_bin = nil, wc_dirname = nil)
                 source             = File.join(TEST_DATA_DIR, dirname)
                 @working_directory = File.join(TEST_DIR, 'wc', wc_dirname || dirname)
                 @subdir = [dirname]
@@ -141,7 +145,12 @@ module Orocos
                     spec = Dir.glob("*.orogen").to_a.first
                     puts spec
                     component = Component.load(spec)
-                    if with_corba
+                    if component.typekit
+                        transports.each do |transport_name|
+                            component.typekit.enable_plugin(transport_name)
+                        end
+                    end
+                    if transports.include?('corba')
                         component.enable_corba
                     else
                         component.disable_corba

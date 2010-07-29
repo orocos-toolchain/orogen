@@ -1,15 +1,16 @@
 #ifndef OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 #define OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 
-#include <rtt/TypeTransporter.hpp>
-#include <rtt/PortInterface.hpp>
+#include <rtt/types/TypeTransporter.hpp>
+#include <rtt/base/PortInterface.hpp>
 #include <typelib/value_ops.hh>
 
 namespace orogen_transports
 {
     static const int TYPELIB_MARSHALLER_ID = 42;
-    class TypelibMarshallerBase : public RTT::detail::TypeTransporter
+    class TypelibMarshallerBase : public RTT::types::TypeTransporter
     {
+        Typelib::Type const*  type_def;
         Typelib::MemoryLayout layout;
         std::string m_typename_typelib;
         std::string m_typename_orocos;
@@ -40,6 +41,11 @@ namespace orogen_transports
          * has to delete it.
          */
         virtual void setTypelibSample(Handle* data, uint8_t* typelib_data) = 0;
+
+        /** Updates the value of data->orocos_sample based on the data in
+         * data->typelib_sample
+         */
+        virtual void refreshOrocosSample(Handle* data) const = 0;
 
         /** Returns a type-pruned pointer to an object that Typelib understands.
          * This object is of the type returned by getMarshallingType
@@ -84,11 +90,11 @@ namespace orogen_transports
 
         /** Writes the data from from the handle into the data source
          */
-        virtual void writeDataSource(RTT::DataSourceBase& source, Handle const* handle) = 0;
+        virtual void writeDataSource(RTT::base::DataSourceBase& source, Handle const* handle) = 0;
 
         /** Reads the data from a data source a handle
          */
-        virtual bool readDataSource(RTT::DataSourceBase& source, Handle* handle) = 0;
+        virtual bool readDataSource(RTT::base::DataSourceBase& source, Handle* handle) = 0;
 
         /** Reads the data from the given port into the opaque handle type.
          *
@@ -97,7 +103,7 @@ namespace orogen_transports
          *
          * Returns true if a sample has been read, false otherwise.
          */
-        virtual bool readPort(RTT::InputPortInterface& port, Handle* sample) = 0;
+        virtual bool readPort(RTT::base::InputPortInterface& port, Handle* sample) = 0;
 
         /** Writes the data to a port. \c sample is a type-pruned pointer of a
          * typelib-friendly data sample, whose type name is returned by
@@ -106,7 +112,7 @@ namespace orogen_transports
          * I.e. for opaque types, it is a pointer to a sample of the
          * intermediate type.
          */
-        virtual void writePort(RTT::OutputPortInterface& port, Handle const* sample) = 0;
+        virtual void writePort(RTT::base::OutputPortInterface& port, Handle const* sample) = 0;
 
         /** Returns the marshalled size for the given data sample
          */
@@ -120,25 +126,12 @@ namespace orogen_transports
         /** Marshals the given sample into a memory buffer
          */
         void marshal(std::vector<uint8_t>& buffer, Handle* sample) const;
+        /** Update the sample in +sample+ from the marshalled data in +buffer+
+         */
+        void unmarshal(std::vector<uint8_t>& buffer, Handle* sample) const;
 
-        virtual void* createBlob(RTT::DataSourceBase::shared_ptr source) const
+        virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
         { return NULL; }
-        virtual void* reuseBlob(void* blob, RTT::DataSourceBase::shared_ptr source) const
-        { return NULL; }
-        virtual bool updateBlob(const void* blob, RTT::DataSourceBase::shared_ptr target) const
-        { return NULL; }
-
-        RTT::DataSourceBase* proxy(void* data ) const { return 0; }
-        void* server(RTT::DataSourceBase::shared_ptr source, bool assignable, void* arg) const { return 0; }
-        void* method(RTT::DataSourceBase::shared_ptr source, RTT::MethodC* orig, void* arg) const { return 0; }
-        RTT::DataSourceBase* dataProxy( RTT::PortInterface* data ) const { return 0; }
-        RTT::DataSourceBase* dataProxy( void* data ) const { return 0; }
-        void* dataServer( RTT::DataSourceBase::shared_ptr source, void* arg) const { return 0; }
-        RTT::BufferBase* bufferProxy( RTT::PortInterface* data ) const { return 0; }
-        RTT::BufferBase* bufferProxy( void* data ) const { return 0; }
-        void* bufferServer( RTT::BufferBase::shared_ptr source, void* arg) const { return 0; }
-        RTT::DataSourceBase* narrowDataSource(RTT::DataSourceBase* dsb) { return 0; }
-        RTT::DataSourceBase* narrowAssignableDataSource(RTT::DataSourceBase* dsb) { return 0; }
     };
 }
 

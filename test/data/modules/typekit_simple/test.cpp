@@ -9,8 +9,13 @@
 #include <omniORB4/CORBA.h>
 #include <rtt/transports/corba/CorbaLib.hpp>
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
-#include "transports/corba/TypesC.h"
+#include "transports/corba/simpleTypesC.h"
 #include "transports/corba/TransportPlugin.hpp"
+#endif
+
+#ifdef WITH_TYPELIB
+#include "transports/typelib/TransportPlugin.hpp"
+#include ".orogen/typekit/transports/typelib/TypelibMarshallerBase.hpp"
 #endif
 
 #include <rtt/os/main.h>
@@ -75,6 +80,42 @@ bool generic_corba_test(T const& testValue, RTT::types::TypeInfo const& ti)
 }
 #endif
 
+#ifdef WITH_TYPELIB
+template<typename T>
+bool generic_typelib_test(T const& testValue, TypeInfo const& ti)
+{
+    cerr << "- testing Typelib marshalling/unmarshalling ..." << endl;
+    ConstantDataSource<T>* source
+        = new ConstantDataSource<T>(testValue);
+    source->ref();
+
+    orogen_transports::TypelibMarshallerBase* transport =
+        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(ti.getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
+
+    std::vector<uint8_t> buffer;
+    orogen_transports::TypelibMarshallerBase::Handle* handle =
+        transport->createSample();
+    transport->readDataSource(*source, handle);
+    transport->marshal(buffer, handle);
+    transport->deleteHandle(handle);
+    source->deref();
+
+    handle = transport->createSample();
+    transport->unmarshal(buffer, handle);
+    T unmarshalled =
+        reinterpret_cast<T const&>(*transport->getTypelibSample(handle));
+    transport->deleteHandle(handle);
+
+    if (!(unmarshalled == testValue))
+    {
+        cerr << "unmarshalled Typelib data does not match original data" << endl;
+        return false;
+    }
+    return true;
+}
+#endif
+
+
 template<typename T>
 bool generic_type_handling_test(std::string const& name, T const& testValue, TypeInfo const& ti)
 {
@@ -129,10 +170,14 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
     //cerr << "  done" << endl;
 
 #ifdef WITH_CORBA
-    return generic_corba_test(testValue, ti);
-#else
-    return true;
+    if (!generic_corba_test(testValue, ti))
+        return false;
 #endif
+#ifdef WITH_TYPELIB
+    if (!generic_typelib_test(testValue, ti))
+        return false;
+#endif
+    return true;
 }
 
 bool test_base_types()
@@ -151,7 +196,9 @@ bool test_base_types()
     for (int i = 0; i < 20; ++i)
 	testValue.a[i] = 'a' + i;
 
-    return generic_type_handling_test("basic", testValue, *type);
+    if (!generic_type_handling_test("basic", testValue, *type))
+        return false;
+    return true;
 }
 
 bool test_handling_of_invalid_enum_values()
@@ -209,12 +256,16 @@ bool test_64bit_handling()
     //    return false;
     //}
 
-    // But CORBA marshalling should work just fine
+    // But CORBA and typelib marshalling should work just fine
 #ifdef WITH_CORBA
-    return generic_corba_test(testValue, *type);
-#else
-    return true;
+    if (!generic_corba_test(testValue, *type))
+        return false;
 #endif
+#ifdef WITH_TYPELIB
+    if (!generic_typelib_test(testValue, *type))
+        return false;
+#endif
+    return true;
 }
 
 bool test_simple_vector()
@@ -277,6 +328,9 @@ int ORO_main(int argc, char** argv)
     RTT::types::TypekitRepository::Import( new orogen_typekits::simpleTypekitPlugin );
 #ifdef WITH_CORBA
     RTT::types::TypekitRepository::Import( new orogen_typekits::simpleCorbaTransportPlugin );
+#endif
+#ifdef WITH_TYPELIB
+    RTT::types::TypekitRepository::Import( new orogen_typekits::simpleTypelibTransportPlugin );
 #endif
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();

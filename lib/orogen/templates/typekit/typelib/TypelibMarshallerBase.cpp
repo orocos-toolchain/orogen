@@ -9,8 +9,8 @@ TypelibMarshallerBase::TypelibMarshallerBase(std::string const& typelib_typename
         Typelib::Registry const& registry)
     : m_typename_typelib(typelib_typename)
     , m_typename_orocos(orocos_typename)
+    , type_def(registry.get(typelib_typename))
 {
-    Typelib::Type const* type_def = registry.get(typelib_typename);
     if (!type_def)
         throw std::runtime_error(typelib_typename + " is not present in the typekit registry");
 
@@ -34,4 +34,9 @@ void TypelibMarshallerBase::marshal(std::ostream& stream, Handle* handle) const
 { Typelib::dump(handle->typelib_sample, stream, layout); }
 void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, Handle* handle) const
 { Typelib::dump(handle->typelib_sample, buffer, layout); }
+void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* handle) const
+{
+    Typelib::load(handle->typelib_sample, *type_def, buffer, layout);
+    refreshOrocosSample(handle);
+}
 
