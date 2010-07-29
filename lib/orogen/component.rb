@@ -503,6 +503,11 @@ module Orocos
                     Generation.save_automatic "config", "#{name}#{file}", cmake
                 end
 
+                if !self_tasks.empty?
+                    cmake = Generation.render_template 'tasks', 'CMakeLists.txt', binding
+                    Generation.save_user('tasks', "CMakeLists.txt", cmake)
+                end
+
                 cmake = Generation.render_template 'CMakeLists.txt', binding
                 Generation.save_user("CMakeLists.txt", cmake)
 	    end
