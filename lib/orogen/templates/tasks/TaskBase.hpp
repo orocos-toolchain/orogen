@@ -14,12 +14,12 @@
 
 
 <% task.used_typekits.each do |tk| %>
-#include <typekit/<%= tk.name %>TypekitTypes.hpp>
+#include <<%= tk.name %>/Types.hpp>
 <% end %>
 <% task.implemented_classes.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
-<% if component.typekit %>#include "typekit/<%= component.name %>TypekitTypes.hpp"<% end %>
+<% if component.typekit %>#include "<%= component.typekit.name %>/Types.hpp"<% end %>
 
 
 namespace <%= component.name %> {
