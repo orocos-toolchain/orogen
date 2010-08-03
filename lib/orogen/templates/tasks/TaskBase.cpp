@@ -61,6 +61,11 @@ void <%= task.basename %>Base::error(States state)
     _state.write(state);
     TaskContext::error();
 }
+void <%= task.basename %>Base::exception(States state)
+{
+    _state.write(state);
+    TaskContext::exception();
+}
 void <%= task.basename %>Base::fatal(States state)
 {
     _state.write(state);
@@ -108,20 +113,10 @@ bool <%= task.basename %>Base::configure()
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::configure();
 }
-bool <%= task.basename %>Base::activate()
+bool <%= task.basename %>Base::recover()
 {
     StateExporter exporter(*this, _state);
-    return <%= superclass.name %>::activate();
-}
-void <%= task.basename %>Base::recovered()
-{
-    StateExporter exporter(*this, _state);
-    return <%= superclass.name %>::recovered();
-}
-void <%= task.basename %>Base::warning()
-{
-    StateExporter exporter(*this, _state);
-    return <%= superclass.name %>::warning();
+    return <%= superclass.name %>::recover();
 }
 bool <%= task.basename %>Base::stop()
 {
@@ -133,14 +128,11 @@ bool <%= task.basename %>Base::cleanup()
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::cleanup();
 }
-bool <%= task.basename %>Base::resetError()
-{
-    StateExporter exporter(*this, _state);
-    return <%= superclass.name %>::resetError();
-}
 void <%= task.basename %>Base::fatal()
 { return fatal(FATAL_ERROR); }
 void <%= task.basename %>Base::error()
 { return error(RUNTIME_ERROR); }
+void <%= task.basename %>Base::exception()
+{ return fatal(EXCEPTION); }
 <% end %>
 

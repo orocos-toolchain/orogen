@@ -9,7 +9,7 @@
 
 
 <% if task.extended_state_support? %>
-#include <<%= component.name %>/<%= component.name %>TaskStates.hpp>
+#include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
 <% end %>
 
 
@@ -83,14 +83,12 @@ namespace <%= component.name %> {
         // Reimplement TaskCore base methods to export the states to the outside
         // world
         bool configure();
-        bool activate();
-        void warning();
-        void recovered();
-        void error();
-        void fatal();
+        bool recover();
         bool stop();
         bool cleanup();
-        bool resetError();
+        void error();
+        void fatal();
+        void exception();
         <% end %>
 
         virtual std::string getModelName() const;
@@ -99,6 +97,7 @@ namespace <%= component.name %> {
         void state(States state);
         void error(States state);
         void fatal(States state);
+        void exception(States state);
         States state() const;
         <% end %>
     };

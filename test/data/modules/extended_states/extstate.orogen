@@ -10,7 +10,9 @@ task_context "Child" do
 
     runtime_states "STATE1"
     error_states   "STATE2"
+    fatal_states   "STATE4"
     runtime_states "STATE0"
     error_states   "STATE3"
+    exception_states  "STATE5"
 end
 

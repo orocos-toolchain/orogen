@@ -273,10 +273,9 @@ class TC_GenerationTasks < Test::Unit::TestCase
             ["INIT", :toplevel],                                                                                            
             ["PRE_OPERATIONAL", :toplevel],                                                                                  
             ["FATAL_ERROR", :toplevel],                                                                                      
+            ["EXCEPTION", :toplevel],                                                                                      
             ["STOPPED", :toplevel],                                                                                          
-            ["ACTIVE", :toplevel],                                                                                           
             ["RUNNING", :toplevel],                                                                                          
-            ["RUNTIME_WARNING", :toplevel],                                                                                  
             ["RUNTIME_ERROR", :toplevel],
             ['STATE1', :runtime], ['STATE2', :error], ['STATE3', :runtime], ['STATE4', :error]], task.each_state.to_a
     end
