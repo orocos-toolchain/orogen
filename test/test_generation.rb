@@ -7,13 +7,12 @@ class TC_GenerationErrorCases < Test::Unit::TestCase
 
     # Test on a very simple component. This usually catches some buildsystem
     # problems that are hidden by the complexity of full-fledged components
-    def test_simple(with_corba = true)
-        build_test_component('modules/simple', with_corba)
+    def test_simple(*transports)
+        build_test_component('modules/simple', transports)
         install
     end
-    def test_simple_without_corba
-        test_simple(false)
-    end
+    def test_simple_corba; test_simple('corba') end
+    def test_simple_typelib; test_simple('typelib') end
 
     def test_generation_requires_name_and_orogen
 	component = Component.new

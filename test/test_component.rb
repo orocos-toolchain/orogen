@@ -32,7 +32,7 @@ class TC_GenerationComponent < Test::Unit::TestCase
         assert_equal(task, component.find_task_context("TestFindTask::Task"))
         assert_equal(nil, component.find_task_context("Bla"))
 
-        build_test_component("modules/simple", false)
+        build_test_component("modules/simple", [])
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
         component.using_task_library "simple"
@@ -88,7 +88,7 @@ class TC_GenerationComponent < Test::Unit::TestCase
 
     def test_imported_typekits
         # Build the simple typekit first
-        build_test_component('modules/typekit_simple', false)
+        build_test_component('modules/typekit_simple', [])
 
         c = Component.new
         # Then try to load it
