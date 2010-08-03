@@ -320,6 +320,7 @@ module Orocos
 
             def remove_context(*args)
                 args = args.to_set
+                @context = context.dup
                 context.delete_if do |ctx|
                     (args & ctx).size == args.size
                 end
