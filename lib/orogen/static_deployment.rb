@@ -613,6 +613,10 @@ module Orocos
                     end
                     current_size != task_models.size
                 end
+
+                if !task_models.empty?
+                    raise ArgumentError, "cannot find an imported task library which defines #{task_models.map(&:name).join(", ")}"
+                end
                 dependencies
             end
 
