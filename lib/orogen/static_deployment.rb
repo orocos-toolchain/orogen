@@ -463,9 +463,7 @@ module Orocos
             # +name+ is used in the task browser, and will be the global task's
             # name on the CORBA name server.
             def task(name, klass)
-                unless task_context = component.find_task_context(klass)
-                    raise ConfigError, "no such task context: #{klass}"
-                end
+                task_context = component.find_task_context(klass)
 
                 if name !~ /^[a-zA-Z_]+$/
                     raise ArgumentError, "task names can only contain alphanumeric characters and '_'"

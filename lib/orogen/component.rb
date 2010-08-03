@@ -241,7 +241,7 @@ module Orocos
             # defined in this component or in the task libraries loaded
             # by #using_task_library).
             #
-            # Returns nil if the task is not found.
+            # Raises ArgumentError if no such task context exists
             #
             # If the task context is defined in this component, the leading
             # namespace can be omitted. For example, in a component defined by
@@ -263,12 +263,26 @@ module Orocos
             # while this one works as expected:
             #   find_task_context('myComponent::TC')
             def find_task_context(obj)
-                if obj.respond_to?(:to_str)
-                    klass = tasks.find { |t| t.name == obj.to_str }
-                    klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
-                else
-                    obj
+                task_model =
+                    if obj.respond_to?(:to_str)
+                        klass = tasks.find { |t| t.name == obj.to_str }
+                        klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
+                    else
+                        obj
+                    end
+
+                if !task_model
+                    raise ArgumentError, "cannot find a task context model named #{obj}"
                 end
+                task_model
+            end
+
+            # Returns true if there is a registered task context with the given
+            # name, and false otherwise
+            def has_task_context?(name)
+                name = name.to_str
+                klass = tasks.find { |t| t.name == name }
+                klass || tasks.find { |t| t.name == "#{self.name}::#{name}" }
             end
 
             # Returns true if there is, in the type registry, a namespace with
@@ -675,7 +689,7 @@ module Orocos
 	    end
 
             def external_task_context(name, &block)
-		if find_task_context(name)
+		if has_task_context?(name)
 		    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
 		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"

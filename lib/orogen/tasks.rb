@@ -802,7 +802,9 @@ module Orocos
 		end
 
 		@component  = component
-                @superclass = component.default_task_superclass
+                if name != "RTT::TaskContext"
+                    @superclass = component.default_task_superclass
+                end
                 @implemented_classes = []
 		@name = name
                 # This is an array, as we don't want to have it reordered
