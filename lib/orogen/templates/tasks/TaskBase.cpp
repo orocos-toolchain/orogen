@@ -25,7 +25,7 @@ using namespace <%= component.name %>;
         if prop.default_value %>
         _<%= prop.name %>.set(<%= prop.cxx_default_value %>);
         <% end %>
-    properties()->addProperty( &_<%= prop.name %> );<% end %>
+    properties()->addProperty( _<%= prop.name %> );<% end %>
     <% (task.self_ports - task.event_ports).each do |port| %>
     ports()->addPort( _<%= port.name %> );<% end %>
     <% (task.event_ports & task.self_ports).each do |port| %>
