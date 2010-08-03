@@ -801,7 +801,7 @@ module Orocos
 		end
 
                 tasklib = load_task_library(name)
-                tasks.concat tasklib.tasks
+                tasks.concat tasklib.self_tasks
                 used_task_libraries << tasklib
 
                 # Now import the toolkits the component also imports, and the
