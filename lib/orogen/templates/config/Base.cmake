@@ -52,7 +52,8 @@ INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR})
 # Take care of the typekit
 <% if component.typekit %>
 ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
 <% end %>
 
 # Take care of the task library
