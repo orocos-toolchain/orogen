@@ -170,7 +170,7 @@ module Orocos
 		@used_toolkits  = []
                 @used_libraries = []
                 @toolkit_libraries = []
-                @used_task_libraries = []
+                @used_task_libraries = Set.new
                 @toolkit = nil
 
                 @deployers = []
