@@ -614,7 +614,7 @@ module Orocos
                     current_size != task_models.size
                 end
 
-                if !task_models.empty?
+                if !task_models.all? { |t| component.self_tasks.include?(t) }
                     raise ArgumentError, "cannot find an imported task library which defines #{task_models.map(&:name).join(", ")}"
                 end
                 dependencies
