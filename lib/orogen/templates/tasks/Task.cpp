@@ -7,21 +7,9 @@ using namespace <%= task.component.name %>;
 {
 }
 
-<% task.self_methods.each do |meth| %>
-<%= meth.signature { "#{task.basename}::#{meth.method_name}" } %>
+<% task.self_operations.each do |op| %>
+<%= op.signature { "#{task.basename}::#{op.method_name}" } %>
 {
-}
-<% end %>
-
-<% task.self_commands.each do |cmd| %>
-<%= cmd.work_signature { "#{task.basename}::#{cmd.work_method_name}" } %>
-{
-    return true;
-}
-
-<%= cmd.completion_signature { "#{task.basename}::#{cmd.completion_method_name}" } %>
-{
-    return true;
 }
 <% end %>
 

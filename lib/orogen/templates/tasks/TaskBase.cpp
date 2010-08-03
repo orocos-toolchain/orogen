@@ -14,28 +14,11 @@ using namespace <%= component.name %>;
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
     <% task.self_ports.each do |port| %>
     , _<%= port.name %>("<%= port.name %>")<% end %>
-    <% task.new_methods.each do |meth| %>
-    // If you get the following error:
-    //   <%= meth.method_name %> is not a member of <%= task.name %>
-    // it means that you did not implement the "<%= meth.method_name %>" method
-    // in <%= task.name %>. Please update tasks/<%= task.basename %>.*
-    // See
-    //   templates/tasks/<%= task.basename %>.hpp and
-    //   templates/tasks/<%= task.basename %>.cpp
-    , _<%= meth.name %>("<%= meth.name %>", &<%= task.name %>Base::<%= meth.method_name %>, this)<% end %>
-    <% task.new_commands.each do |cmd| %>
-    // If you get one of the following errors:
-    //   <%= cmd.work_method_name %> is not a member of <%= task.name %>
-    //   <%= cmd.completion_method_name %> is not a member of <%= task.name %>
-    // it means that you did not implement one of those two methods in in
-    // <%= task.name %>. Please update tasks/<%= task.basename %>.*
-    // See
-    //   templates/tasks/<%= task.basename %>.hpp and
-    //   templates/tasks/<%= task.basename %>.cpp
-    , _<%= cmd.name %>("<%= cmd.name %>", &<%= task.name %>Base::<%= cmd.work_method_name %>, &<%= task.name %>Base::<%= cmd.completion_method_name %>, this)<% end %>
+    <% task.new_operations.each do |op| %>
+    , _<%= op.name %>("<%= op.name %>", &<%= task.name %>Base::<%= op.method_name %>, this, <%= if op.in_caller_thread then "RTT::ClientThread" else "RTT::OwnThread" end %>)<% end %>
 
     <% if task.superclass.name == "RTT::TaskContext" %>
-    , _getModelName("getModelName", &<%= task.name %>Base::getModelName, this)
+    , _getModelName("getModelName", &<%= task.name %>Base::getModelName, this, RTT::ClientThread)
     <% end %>
 {
     <% task.self_properties.each do |prop|
@@ -47,13 +30,12 @@ using namespace <%= component.name %>;
     ports()->addPort( _<%= port.name %> );<% end %>
     <% (task.event_ports & task.self_ports).each do |port| %>
     ports()->addEventPort( _<%= port.name %> );<% end %>
-    <% (task.new_methods + task.new_commands).each do |callable| 
-	argument_setup = callable.arguments.
+    <% task.new_operations.each do |op| 
+	argument_setup = op.arguments.
 	    map { |n, _, d| ", \"#{n}\", \"#{d}\"" }.
 	    join("")
-	kind = callable.class.name.gsub(/^.*::/, '')
     %>
-    provides()->addOperation( _<%= callable.name %> );<% end %>
+    provides()->addOperation( _<%= op.name %>);<% end %>
     <% if task.superclass.name == "RTT::TaskContext" %>
     provides()->addOperation( _getModelName );
     <% end %>

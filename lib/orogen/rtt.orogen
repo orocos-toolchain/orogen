@@ -14,7 +14,7 @@ external_task_context "TaskContext" do
     # CHEAT !!!!
     # We declare it here so that all orogen-generated components have it in
     # their interface, but we actually add the Method object ourselves
-    method("getModelName").
+    operation("getModelName").
         returns("/std/string")
 end
 

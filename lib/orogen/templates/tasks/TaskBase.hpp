@@ -4,7 +4,7 @@
 #include <string>
 #include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
-<% if !task.new_methods.empty? || !task.new_commands.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
+<% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Port.hpp><% end %>
 
 
@@ -40,21 +40,28 @@ namespace <%= component.name %> {
 	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
     <% end %>
 
-	<% unless task.self_methods.empty? %>/** Operations */<% end %>
-    <% task.new_methods.each do |meth| %>
-	RTT::Operation< <%= meth.signature(false) %> > _<%= meth.name %>;
-	virtual <%= meth.signature(true) %> = 0;
+	<% unless task.self_operations.empty? %>/** Operations */<% end %>
+    <% task.new_operations.each do |op| %>
+	RTT::Operation< <%= op.signature(false) %> > _<%= op.name %>;
+        // If you get the following error:
+        //   Cannot instanciate an object of class <%= task.name %> because the following methods are abstract:
+        //     <%= op.signature(true) %>
+        //
+        // it means that you did not implement the "<%= op.method_name %>" method
+        // in <%= task.name %>, which is required for the <%= op.name %>
+        // operation
+        //
+        // Please update tasks/<%= task.basename %>.*
+        //
+        // See
+        //   templates/tasks/<%= task.basename %>.hpp and
+        //   templates/tasks/<%= task.basename %>.cpp
+        // For template definitions
+	virtual <%= op.signature(true) %> = 0;
     <% end %>
 
     <% if task.superclass.name == "RTT::TaskContext" %>
 	RTT::Operation< std::string() > _getModelName;
-    <% end %>
-
-	<% unless task.self_commands.empty? %>/** Commands */<% end %>
-    <% task.new_commands.each do |cmd| %>
-	RTT::Command< <%= cmd.work_signature(false) %> > _<%= cmd.name %>;
-	virtual <%= cmd.work_signature %> = 0;
-	virtual <%= cmd.completion_signature %> = 0;
     <% end %>
 
     public:

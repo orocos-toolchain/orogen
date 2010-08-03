@@ -16,8 +16,7 @@ module Orocos
                 @value = value
             end
         end
-        class MethodDeployment   < GenericObjectDeployment; end
-        class CommandDeployment  < GenericObjectDeployment; end
+        class OperationDeployment   < GenericObjectDeployment; end
 
         class ConnPolicy
             # The connection type. Can be either :data (the default) or :buffer
@@ -103,10 +102,8 @@ module Orocos
             attr_reader :properties
             # The deployed ports, as PortDeployment instances
             attr_reader :ports
-            # The deployed methods, as MethodDeployment instances
-            attr_reader :methods
-            # The deployed commands, as CommandDeployment instances
-            attr_reader :commands
+            # The deployed operations, as OperationDeployment instances
+            attr_reader :operations
 
             # Overrides the default minimal trigger latency for this particular
             # task
@@ -187,8 +184,7 @@ module Orocos
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
-                    :methods  => MethodDeployment,
-                    :commands => CommandDeployment }.each do |collection_name, klass|
+                    :operations => OperationDeployment }.each do |collection_name, klass|
                         deployed_objects = context.send("all_#{collection_name}").map do |obj|
                             klass.new(self, obj)
                         end
@@ -228,6 +224,7 @@ module Orocos
                     end
                 end
                 @explicit_activity = true
+                @period = nil
                 
                 ActivityDefinition.new(type[0], type[1], type[2])
             end
@@ -267,8 +264,8 @@ module Orocos
             # one of the other triggering methods if you want a different
             # activity type.
             def periodic(value)
-                @period = Float(value)
                 activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                @period = Float(value)
                 self
             end
 
@@ -276,6 +273,7 @@ module Orocos
             # make it periodic, call #period with the required period
 	    def triggered
                 activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                @period = 0
                 self
             end
 
@@ -355,8 +353,7 @@ module Orocos
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
-                    :methods  => MethodDeployment,
-                    :commands => CommandDeployment }.each do |collection_name, klass|
+                    :operations  => OperationDeployment }.each do |collection_name, klass|
                     if obj = send(collection_name).find { |el| el.name == name.to_s }
                         if setter
                             if args.size != 1
@@ -677,9 +674,10 @@ module Orocos
                 # Task files could be using headers from external libraries, so add the relevant
                 # directory in our include path
                 component.tasklib_dependencies.
-                    find_all { |builddep| !builddep.corba && builddep.include }.
+                    find_all { |builddep| builddep.in_context?('core', 'include') }.
                     each do |builddep|
-                        builddep.link = false
+                        builddep = BuildDependency.new(builddep.var_name, builddep.pkg_name)
+                        builddep.in_context('core', 'include')
                         result << builddep
                     end
 

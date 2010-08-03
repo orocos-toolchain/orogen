@@ -83,7 +83,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
 	task = component.task_context("Task")
 
-	meth = task.method("MethodName").
+	meth = task.operation("MethodName").
 	    doc("the method to test")
 
         assert_raises(ArgumentError) { meth.argument("a", "short") }
@@ -95,17 +95,17 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { meth.argument("a", "float") }
     end
 
-    def test_task_method
+    def test_task_operation
 	component = Component.new
 	component.name 'test'
 
 	task = component.task_context("Task")
 
-	meth = task.method("MethodName").
+	meth = task.operation("MethodName").
 	    doc("the method to test")
-	assert_equal([meth], task.self_methods)
+	assert_equal([meth], task.self_operations)
 
-	assert_kind_of(Generation::Method, meth)
+	assert_kind_of(Generation::Operation, meth)
 	assert_equal("MethodName", meth.name)
 	assert_equal("methodName", meth.method_name)
 	assert_equal(nil,  meth.return_type)
@@ -145,71 +145,13 @@ class TC_GenerationTasks < Test::Unit::TestCase
         # Should raise if there is more than 4 arguments
         assert_raises(ArgumentError) { meth.argument "arg5", "double", "fifth argument" }
 
-        task.method(:symbol_name).
+        task.operation(:symbol_name).
             doc "this method's name is a symbol"
+        task.operation(:in_caller_thread).
+            runs_in_caller_thread.
+            doc "this method runs in caller thread"
 
         create_wc("tasks/method")
-	compile_wc(component)
-    end
-
-    def test_task_command
-	component = Component.new 
-	component.name 'test'
-
-	task = component.task_context "task"
-
-	cmd = task.command("Cmd").
-	    doc("the command to test")
-	assert_equal([cmd], task.self_commands)
-
-	assert_kind_of(Generation::Command, cmd)
-	assert_equal("Cmd", cmd.name)
-	assert_equal("cmd", cmd.work_method_name)
-	assert_equal("isCmdCompleted", cmd.completion_method_name)
-	assert_equal("the command to test",  cmd.doc)
-	assert(cmd.arguments.empty?)
-	assert_equal("bool cmd()", cmd.work_signature)
-	assert_equal("bool isCmdCompleted()", cmd.completion_signature)
-
-	assert_same cmd, cmd.work_method_name("another_method_name")
-	assert_equal("Cmd", cmd.name)
-	assert_equal("another_method_name", cmd.work_method_name)
-	assert_equal("isCmdCompleted", cmd.completion_method_name)
-
-	assert_same cmd, cmd.completion_method_name("another_completion_name")
-	assert_equal("Cmd", cmd.name)
-	assert_equal("another_method_name", cmd.work_method_name)
-	assert_equal("another_completion_name", cmd.completion_method_name)
-
-	assert_same cmd, cmd.argument("arg1", "/std/string", "first argument")
-	assert_equal("bool another_method_name(std::string const & arg1)", cmd.work_signature)
-	assert_equal("bool another_completion_name(std::string const & arg1)", cmd.completion_signature)
-	assert_equal("bool(std::string const &)", cmd.work_signature(false))
-	assert_equal("bool(std::string const &)", cmd.completion_signature(false))
-	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
-	assert_equal(expected_arguments, cmd.arguments)
-
-	cmd.argument "arg2", "double", "second argument"
-	assert_equal("bool another_method_name(std::string const & arg1, double arg2)", cmd.work_signature)
-	assert_equal("bool another_completion_name(std::string const & arg1, double arg2)", cmd.completion_signature)
-	assert_equal("bool(std::string const &, double)", cmd.work_signature(false))
-	assert_equal("bool(std::string const &, double)", cmd.completion_signature(false))
-	expected_arguments << ["arg2", component.registry.get('double'), "second argument"]
-	assert_equal(expected_arguments, cmd.arguments)
-
-	cmd.completion_first_argument
-	assert_equal("bool another_completion_name(std::string const & arg1)", cmd.completion_signature)
-	assert_equal("bool(std::string const &)", cmd.completion_signature(false))
-	cmd.completion_no_arguments
-	assert_equal("bool another_completion_name()", cmd.completion_signature)
-	assert_equal("bool()", cmd.completion_signature(false))
-
-        cmd.argument "arg3", "double", "third argument"
-        cmd.argument "arg4", "double", "fourth argument"
-        # Should raise if there is more than 4 arguments
-        assert_raises(ArgumentError) { cmd.argument "arg5", "double", "fifth argument" }
-
-        create_wc("tasks/command")
 	compile_wc(component)
     end
 
@@ -282,7 +224,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
         deployment = component.static_deployment
         activity = deployment.task "task", "task"
-        assert_equal("PeriodicActivity", activity.activity_type)
+        activity_def = activity.activity_type
+        assert_equal("Activity", activity_def.name)
         assert_equal(10, activity.period)
 
         create_wc("tasks/default_activity")
@@ -290,7 +233,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
     end
 
     def test_needs_configuration
-        build_test_component('modules/with_configuration', false)
+        build_test_component('modules/with_configuration', [])
         install
     end
 
@@ -376,8 +319,8 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_raises(ArgumentError) { child.runtime_states("STATE2") }
     end
 
-    def test_state_type_definitions(with_corba = true)
-        component = build_test_component('modules/extended_states', with_corba)
+    def test_state_type_definitions(*transports)
+        component = build_test_component('modules/extended_states', transports)
         install
 
         parent = component.find_task_context "Parent"
@@ -390,9 +333,6 @@ class TC_GenerationTasks < Test::Unit::TestCase
         child_values  = child_states.keys
         assert_equal parent_values['Parent_STATE1'], child_values['Child_STATE1']
         assert_equal parent_values['Parent_STATE2'], child_values['Child_STATE2']
-    end
-    def test_state_type_definitions_without_corba
-        test_state_type_definitions(false)
     end
 end
 

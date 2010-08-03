@@ -17,12 +17,8 @@ namespace <%= component.name %> {
     {
 	friend class <%= task.basename %>Base;
     protected:
-    <% task.self_methods.each do |meth| %>
-	<%= meth.signature %>;
-    <% end %>
-    <% task.self_commands.each do |cmd| %>
-	<%= cmd.work_signature %>;
-	<%= cmd.completion_signature %>;
+    <% task.self_operations.each do |op| %>
+	<%= op.signature %>;
     <% end %>
 
     public:

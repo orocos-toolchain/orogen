@@ -318,12 +318,47 @@ module Orocos
             include DynamicPort
         end
 
-        # Base class for methods and commands
-	class Callable
-	    # The TaskContext instance this method is part of
+        # Representation of a RTT operation. Instances of this object are
+        # usually created through TaskContext#operation. The generated code will
+        # expect the class implementation (user-visible part) to define one
+        # method, to serve the call, with almost the same name that the method
+        # itself.
+        #
+        # For instance, the following definition
+        #   operation('MyMethod')
+        #
+        # will require the user-visible part to define
+        #   [return value] myMethod([arguments]);
+        #
+        # (note that the first character of the method name has been set to
+        # lowercase to generate the C++ method name)
+        #
+        # The argument list of the C++ method (the first one) can be defined
+        # using Callable#argument. Its return type by using #returns. The
+        # default method signature is no return type (i.e. void) and no
+        # arguments.
+        #
+        # The name of the C++ method can be changed #method_name.
+        #
+        # For instance,
+        #   operation('MyMethod').
+        #     argument('x', 'double', 'the target X value').
+        #     argument('y', 'double', 'the target Y value').
+        #     method_name('move').
+        #     returns('double')
+        #
+        # will require the user-visible part to define
+        #   double move(double x, double y);
+	class Operation
+	    # The TaskContext instance this operation is part of
 	    attr_reader :task
-	    # The method name
+	    # The operation name
 	    attr_reader :name
+            # True if this operation runs its associated C++ method in caller
+            # thread (default is false)
+            #
+            # See also #runs_in_caller_thread and #runs_in_callee_thread
+            attr_reader :in_caller_thread
 
 	    def initialize(task, name)
                 name = name.to_s
@@ -334,7 +369,26 @@ module Orocos
 		@task = task
 		@name = name
 		@arguments = []
+                @in_caller_thread = false
+		@method_name = self.name.dup
+		method_name[0, 1] = method_name[0, 1].downcase
 	    end
+
+            # Declares that the C++ method associated with this operation should
+            # be executed in the caller thread (default is callee thread)
+            #
+            # See also #runs_in_callee_thread and #in_caller_thread
+            def runs_in_caller_thread
+                @in_caller_thread = true
+            end
+
+            # Declares that the C++ method associated with this operation should
+            # be executed in the caller thread
+            #
+            # See also #runs_in_callee_thread and #in_caller_thread
+            def runs_in_callee_thread
+                @in_caller_thread = false
+            end
 
 	    # call-seq:
 	    #	doc new_doc -> self
@@ -343,13 +397,13 @@ module Orocos
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 
-	    # The set of arguments of this method, as an array of [name, type,
+	    # The set of arguments of this operation, as an array of [name, type,
 	    # doc] elements. The +type+ objects are Typelib::Type instances.
             # 
             # See #argument
 	    attr_reader :arguments
 
-            # Defines the next argument of this method. +name+ is the argument
+            # Defines the next argument of this operation. +name+ is the argument
             # name and +type+ is either the type name as a string, or a
             # Typelib::Type object. In both cases, the required type must be
             # defined in the component, either because it is part of its own
@@ -357,11 +411,11 @@ module Orocos
             # Component#load_typekit call.
             #
             # Note that Orocos::RTT does not support having more than 4
-            # arguments for a method, and trying that will therefore raise an
+            # arguments for an operation, and trying that will therefore raise an
             # error
 	    def argument(name, type, doc = "")
                 if arguments.size == 4
-                    raise ArgumentError, "Orocos does not support having more than 4 arguments for a method"
+                    raise ArgumentError, "Orocos does not support having more than 4 arguments for an operation"
                 end
 
 		type = task.component.find_type(type)
@@ -370,10 +424,10 @@ module Orocos
 		self
 	    end
 
-            # Returns the set of types that this method/command uses, as a
+            # Returns the set of types that this operation uses, as a
             # ValueSet of Typelib::Type classes.
             def used_types
-                arguments.map { |_, t, _| t }
+                [return_type].compact + arguments.map { |_, t, _| t }
             end
 
 	    # Returns the argument part of the C++ signature for this callable
@@ -392,55 +446,12 @@ module Orocos
 
 		"(" << arglist.join(", ") << ")"
 	    end
-	end
 
-        # Representation of a RTT method. Instances of this object are usually
-        # created through TaskContext#method. The generated code will expect
-        # the class implementation (user-visible part) to define one method, to
-        # serve the call, with almost the same name that the method itself.
-        #
-        # For instance, the following definition
-        #   method('MyMethod')
-        #
-        # will require the user-visible part to define
-        #   [return value] myMethod([arguments]);
-        #
-        # (note that the first character of the method name has been set to
-        # lowercase to generate the C++ method name)
-        #
-        # The argument list of the C++ method (the first one) can be defined
-        # using Callable#argument. Its return type by using #returns. The
-        # default method signature is no return type (i.e. void) and no
-        # arguments.
-        #
-        # The name of the work and completion methods can be changed with
-        # #method_name.
-        #
-        # For instance,
-        #   method('MyMethod').
-        #     argument('x', 'double', 'the target X value').
-        #     argument('y', 'double', 'the target Y value').
-        #     method_name('move').
-        #     returns('double')
-        #
-        # will require the user-visible part to define
-        #   double move(double x, double y);
-	class Method < Callable
-	    def initialize(task, name)
-		super
-		@method_name = self.name.dup
-		method_name[0, 1] = method_name[0, 1].downcase
-	    end
-
-            def used_types # :nodoc:
-                [return_type].compact + super
-            end
-
-	    # The return type of this method, as a Typelib::Type object.
+	    # The return type of this operation, as a Typelib::Type object.
             # See #returns
 	    attr_reader :return_type
 
-            # Sets the return type for this method. +type+ can either be the
+            # Sets the return type for this operation. +type+ can either be the
             # type name or a Typelib::Type object. In both cases, the required
             # type must be defined in the component, either because it is part
             # of its own typekit or because it has been imported by a
@@ -454,7 +465,7 @@ module Orocos
 		self
 	    end
 
-            # Returns the C++ signature for this method. Used in code
+            # Returns the C++ signature for this operation. Used in code
             # generation only.
 	    def signature(with_names = true)
 		result = ""
@@ -481,139 +492,9 @@ module Orocos
             #	method_name -> current_name
 	    #
             # Gets or sets the name of the C++ method which is to be called to
-            # serve this orocos method. It default to the method name with the
+            # serve this operation. It default to the method name with the
             # first character set to lowercase (MyMethod becomes myMethod).
 	    dsl_attribute(:method_name) { |value| value.to_s }
-	end
-
-        # Representation of a RTT command. Instances of this object are usually
-        # created through TaskContext#command. The generated code will expect
-        # the class implementation (user-visible part) to define two methods:
-        # * a _work_ method which is called once when the command is called. This
-        #   method has a boolean return type and should return true if the command
-        #   started, and false otherwise.
-        # * a _completion_ method which is called while the command is running.
-        #   This method should return true when the command is finished and false
-        #   otherwise.
-        #
-        # For instance, the following definition
-        #   command('MyCommand')
-        #
-        # will require the user-visible part to define
-        #   bool myCommand([arguments]);
-        #   bool isMyCommandCompleted([arguments]);
-        #
-        # (note that the first character of the command name has been set to
-        # lowercase for the work-method name)
-        #
-        # The argument list of the work method (the first one) can be defined
-        # using Callable#argument. For the completion method, three choices are
-        # available:
-        # * no arguments at all
-        # * the same first argument that the work method
-        # * all the same arguments than the work method
-        #
-        # The default is to have all arguments. This can be changed using
-        # #completion_no_arguments, #completion_first_argument and
-        # #completion_all_arguments.
-        #
-        # The name of the work and completion methods can be changed with
-        # #work_method_name and #completion_method_name.
-        #
-        # For instance,
-        #   command('my_command').
-        #     argument('x', 'double', 'the target X value').
-        #     argument('y', 'double', 'the target Y value').
-        #     work_method_name('move').
-        #     completion_method_name('hasReachedTarget').
-        #     completion_no_arguments.
-        #
-        # will require the user-visible part to define
-        #   bool move(double x, double y);
-        #   bool hasReachedTarget();
-	class Command < Callable
-	    # The C++ method name to be called to serve this Orocos command.
-	    # This defaults to +name+, but you can customize it by using
-	    # #method_name
-	    dsl_attribute(:work_method_name) { |name| name.to_s }
-	    # The C++ method name to be called to serve this Orocos command.
-	    # This defaults to is+name+Completed, but you can customize it by
-	    # using #method_name
-	    dsl_attribute(:completion_method_name) { |name| name.to_s }
-
-	    # Create a new callable object on the specified task and with the
-	    # specified name. The setup of the callable should be done by
-	    # calling the various setup methods after the object has been
-	    # created.
-	    def initialize(task, name)
-		super
-		@work_method_name = self.name.dup
-		work_method_name[0, 1] = work_method_name[0, 1].downcase
-		@completion_method_name = "is#{name}Completed"
-
-		@completion_signature_type = :all_arguments
-	    end
-
-	    # Which kind of signature do we want for the completion method ?
-	    # It is either +:no_arguments+, +:first_argument+ or +:all_arguments+
-	    # Use #completion_no_arguments, #completion_first_argument or #completion_all_arguments
-	    # to change it
-	    attr_reader :completion_signature_type
-	    
-	    # The completion method for this command has no argument at all
-	    def completion_no_arguments;   @completion_signature_type = :no_arguments   end
-	    # The completion method for this command will be given the same
-	    # first argument than the command method
-	    def completion_first_argument; @completion_signature_type = :first_argument end
-	    # The completion method for this command will be given the same
-	    # arguments than the command method
-	    def completion_all_arguments;  @completion_signature_type = :all_arguments  end
-
-	    # A string representing the signature for the C++ work method.  If
-	    # +with_names+ is true, the name of the method and the names of the
-	    # arguments are included in the string.
-	    def work_signature(with_names = true)
-                result = "bool"
-                if with_names
-                    result << " " <<
-                        if block_given? then yield
-                        else work_method_name
-                        end
-                end
-		result << argument_signature(with_names)
-	    end
-	    
-	    # A string representing the signature for the C++ completion
-	    # method.  If +with_names+ is true, the name of the method and the
-	    # names of the arguments are included in the string.
-	    #
-	    # The result depends on the completion_signature_type attribute,
-	    # which can be changed by the completion_no_arguments,
-	    # completion_first_argument and completion_all_arguments methods.
-	    def completion_signature(with_names = true)
-                result = "bool"
-                if with_names
-                    result << " " <<
-                        if block_given? then yield
-                        else completion_method_name
-                        end
-                end
-
-		result << case completion_signature_type
-		when :no_arguments then "()"
-		when :first_argument
-		    argument_signature(with_names).gsub(/,.*\)$/, ")")
-		when :all_arguments; argument_signature(with_names)
-		end
-
-                result
-	    end
-
-            def pretty_print(pp) # :nodoc:
-                pp.text work_signature(true)
-                pp.breakable
-                pp.text completion_signature(true)
-            end
 	end
 
         # Representation of TaskContext classes. This is usually created using
@@ -811,8 +692,7 @@ module Orocos
                 default_activity 'triggered'
 
 		@properties = Array.new
-		@methods    = Array.new
-		@commands   = Array.new
+		@operations = Array.new
 		@ports	    = Array.new
                 @dynamic_ports = Array.new
                 @event_ports = Array.new
@@ -844,8 +724,7 @@ module Orocos
                 ports = each_port.to_a + each_dynamic_port.to_a
                 pretty_print_interface(pp, "Ports", ports)
                 pretty_print_interface(pp, "Properties", each_property.to_a)
-                pretty_print_interface(pp, "Methods", each_method.to_a)
-                pretty_print_interface(pp, "Commands", each_command.to_a)
+                pretty_print_interface(pp, "Operations", each_operation.to_a)
 	    end
 
             # Returns the object in +set_name+ for which #name returns +name+,
@@ -1017,7 +896,7 @@ module Orocos
                 state_kind(name) || (superclass.state?(name.to_s) if superclass)
             end
 
-            STATE_TYPES = [ :toplevel, :runtime, :error, :fatal ]
+            STATE_TYPES = [ :toplevel, :runtime, :error, :fatal, :exception ]
 
             # Internal method for state definition
             def define_state(name, type) # :nodoc:
@@ -1070,21 +949,28 @@ module Orocos
             #
             # Enumerates all the runtime states
             #
-            # See also #each_error_state, #each_fatal_state and #each_state
+            # See also #each_error_state, #each_exception_state, #each_fatal_state and #each_state
 
             ##
             # :method: each_error_state
             #
             # Enumerates all error states defined for this task context
             #
-            # See also #each_runtime_state, #each_fatal_state, and #each_state
+            # See also #each_runtime_state, #each_exception_state, #each_fatal_state, and #each_state
+
+            ##
+            # :method: each_exception_state
+            #
+            # Enumerates all error states defined for this task context
+            #
+            # See also #each_runtime_state, #each_fatal_state, #each_error_state and #each_state
 
             ##
             # :method: each_fatal_state
             #
             # Enumerates all error states defined for this task context
             #
-            # See also #each_runtime_state, #each_error_state and #each_state
+            # See also #each_runtime_state, #each_exception_state, #each_error_state and #each_state
 
             STATE_TYPES.each do |type|
                 class_eval <<-EOD
@@ -1130,7 +1016,7 @@ module Orocos
             # This method will do nothing if it defines a state that is already
             # defined by one of the superclasses.
             #
-            # See #error_states, #each_state, #each_runtime_state
+            # See #error_states, #exception_states, #each_state, #each_runtime_state
             def runtime_states(*state_names)
                 state_names.each do |name|
                     define_state(name, :runtime)
@@ -1142,10 +1028,22 @@ module Orocos
             # This method will do nothing if it defines a state that is already
             # defined by one of the superclasses.
             #
-            # See #runtime_states, #each_state, #each_error_state
+            # See #runtime_states, #exception_states, #each_state, #each_error_state
             def error_states(*state_names)
                 state_names.each do |name|
                     define_state(name, :error)
+                end
+            end
+
+            # Declares a certain number of exception states
+            #
+            # This method will do nothing if it defines a state that is already
+            # defined by one of the superclasses.
+            #
+            # See #runtime_states, #fatal_states, #error_states, #each_state, #each_error_state
+            def exception_states(*state_names)
+                state_names.each do |name|
+                    define_state(name, :exception)
                 end
             end
 
@@ -1211,49 +1109,32 @@ module Orocos
                 end
             end
 
-	    # Create a new method with the given name. Use the returned Method
-	    # object to configure the method further.
+            # Create a new operation with the given name. Use the returned
+            # Operation object to configure it further
 	    #
-	    # In Orocos, a method is a synchronous method call to a task context:
-	    # the caller will block until the method's procedure is called
-	    def method(name)
-		@methods << Method.new(self, name)
-		@methods.last
+            # In Orocos, an operation publishes a C++ method to the component
+            # interface. The operation can then be called by other components
+            # remotely or locally, and synchronoulsy as well as asynchronously.
+	    def operation(name)
+		@operations << Operation.new(self, name)
+		@operations.last
 	    end
 
-	    # The set of commands that have been added at this level of the
-            # class hierarchy.
-            def new_commands
-                super_names = superclass.all_commands.map(&:name).to_set
-                @commands.find_all do |t|
-                    !super_names.include?(t)
-                end
+            # Interface for RTT 1.x methods
+            #
+            # This raises NotImplementedError with a message asking to convert
+            # to RTT2 operations
+            def method(name)
+                raise NotImplementedError, "RTT 1.x methods must be replaced by RTT 2.x operations. Use #operation"
             end
 
-            # The set of commands that are overloaded in this task class
-            def overloaded_commands
-                super_names = superclass.all_commands.map(&:name).to_set
-                @commands.find_all do |t|
-                    !super_names.include?(t)
-                end
+            # Interface for RTT 1.x commands
+            #
+            # This raises NotImplementedError with a message asking to convert
+            # to RTT2 operations
+            def command(name)
+                raise NotImplementedError, "RTT 1.x commands must be replaced by RTT 2.x operations. Use #operation"
             end
-
-            # Create a new command with the given name. Use the returned
-            # Command object to configure the method further. In Orocos, a
-            # command is an asynchronous method call to a task context.
-            #
-            # The generated class will have a <tt>_[command name]</tt>
-            # attribute of class RTT::Command<>. For instance,
-            #
-            #   command('my_command').
-            #     doc 'description of command'
-            #
-            # will generate an attribute <tt>_my_command</tt> of type
-            # RTT::Command. The 
-	    def command(name)
-		@commands << Command.new(self, name)
-		@commands.last
-	    end
 
             ##
             # :method: each_dynamic_port
@@ -1361,36 +1242,36 @@ module Orocos
             enumerate_inherited_set("command", "commands")
 
             ##
-            # :method: each_method
+            # :operation: each_operation
             # :call-seq:
-            #   each_method(only_self = false) { |method| ... }
+            #   each_operation(only_self = false) { |operation| ... }
             #
-            # Yields all methods that are defined on this task context.
+            # Yields all operations that are defined on this task context.
 
             ##
-            # :method: all_methods
+            # :operation: all_operations
             # :call-seq:
-            #   all_methods -> set_of_methods
+            #   all_operations -> set_of_operations
             #
-            # Returns the set of all methods that are defined on this task
+            # Returns the set of all operations that are defined on this task
             # context
 
             ##
-            # :method: self_methods
+            # :operation: self_operations
             # :call-seq:
-            #   self_methods -> set_of_methods
+            #   self_operations -> set_of_operations
             #
-            # Returns the set of methods that are added at this level of the
-            # model hierarchy. I.e. methods that are either newly defined on
-            # this task context, or overload methods from the parent models.
+            # Returns the set of operations that are added at this level of the
+            # model hierarchy. I.e. operations that are either newly defined on
+            # this task context, or overload operations from the parent models.
 
-            enumerate_inherited_set("method", "methods")
+            enumerate_inherited_set("operation", "operations")
 
-            # Methods that are added by this task context (i.e. methods that are
+            # Operations that are added by this task context (i.e. operations that are
             # defined there but are not present in the superclass)
-            def new_methods
-                super_names = superclass.all_methods.map(&:name).to_set
-                @methods.find_all do |t|
+            def new_operations
+                super_names = superclass.all_operations.map(&:name).to_set
+                @operations.find_all do |t|
                     !super_names.include?(t)
                 end
             end
@@ -1576,7 +1457,7 @@ module Orocos
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
             def interface_types
-                (all_properties + all_methods + all_commands + all_ports).
+                (all_properties + all_operations + all_ports).
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
             end
