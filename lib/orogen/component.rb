@@ -520,6 +520,15 @@ module Orocos
 		end
 	    end
 
+            # Computes the set of task libraries that our own task library
+            # depends on
+            def tasklib_used_task_libraries
+                result = self_tasks.inject(Set.new) do |set, task|
+                    set | task.used_task_libraries
+                end
+                result.to_a.sort_by(&:name)
+            end
+
             # Returns a list of BuildDependency object that represent the
             # dependencies for the task library
             def tasklib_dependencies
@@ -530,9 +539,7 @@ module Orocos
                 end
 
                 used_libraries = self.used_libraries.map(&:name)
-                used_tasklibs = self_tasks.inject(Set.new) do |set, task|
-                    set | task.used_task_libraries.map(&:name)
-                end
+                used_tasklibs = tasklib_used_task_libraries.map(&:name)
 
                 # Cover the package names into BuildDependency objects,
                 # first for the direct dependencies. Then, we look into the
