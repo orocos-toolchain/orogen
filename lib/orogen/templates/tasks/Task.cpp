@@ -25,15 +25,9 @@ using namespace <%= task.component.name %>;
 // {
 //     return true;
 // }
-<% if task.event_ports.empty? %>
 // void <%= task.basename %>::updateHook()
 // {
 // }
-<% else %>
-// void <%= task.basename %>::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
-// {
-// }
-<% end %>
 // void <%= task.basename %>::errorHook()
 // {
 // }

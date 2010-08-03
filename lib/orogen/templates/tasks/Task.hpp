@@ -52,26 +52,19 @@ namespace <%= component.name %> {
 
         /** This hook is called by Orocos when the component is in the Running
          * state, at each activity step. Here, the activity gives the "ticks"
-         * when the hook should be called. See README.txt for different
-         * triggering options.
+         * when the hook should be called.
          *
-         * The warning(), error() and fatal() calls, when called in this hook,
-         * allow to get into the associated RunTimeWarning, RunTimeError and
+         * The error(), exception() and fatal() calls, when called in this hook,
+         * allow to get into the associated RunTimeError, Exception and
          * FatalError states. 
          *
-         * In the first case, updateHook() is still called, and recovered()
-         * allows you to go back into the Running state.  In the second case,
-         * the errorHook() will be called instead of updateHook() and in the
-         * third case the component is stopped and resetError() needs to be
-         * called before starting it again.
-         *<% if !task.event_ports.empty? %>
-         * The \a updated_ports argument is the set of ports that have triggered
-         * this call. If the trigger is caused by something different (for
-         * instance, a periodic update), then this set is empty.<% end %>
+         * In the first case, updateHook() is still called, and recover() allows
+         * you to go back into the Running state.  In the second case, the
+         * errorHook() will be called instead of updateHook(). In Exception, the
+         * component is stopped and recover() needs to be called before starting
+         * it again. Finally, FatalError cannot be recovered.
          */
-        <% if task.event_ports.empty? %>// void updateHook();
-        <% else %>// void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
-        <% end %>
+        // void updateHook();
 
         /** This hook is called by Orocos when the component is in the
          * RunTimeError state, at each activity step. See the discussion in
