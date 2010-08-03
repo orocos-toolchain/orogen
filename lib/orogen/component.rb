@@ -566,7 +566,7 @@ module Orocos
                     end
                 end
 
-                result.to_a.sort_by { |dep| dep.var_name }
+                result.to_set.to_a.sort_by { |dep| dep.var_name }
             end
 
 	    # call-seq:
