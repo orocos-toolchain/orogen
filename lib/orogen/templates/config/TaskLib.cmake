@@ -20,6 +20,10 @@
 #  <PROJECT>_TASKLIB_DEPENDENT_LIBRARIES
 #     the list of libraries to which the task library should be linked.
 #
+#  <PROJECT>_TASKLIB_INTERFACE_LIBRARIES
+#     the list of libraries to which users of the task library should be linked
+#     as well
+#
 # These variables are used in tasks/CMakeLists.txt to actually build the shared
 # object.
 
@@ -37,7 +41,7 @@ list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES
    next if !dep_def.in_context?('link') %>
 list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
 <% if dep_def.var_name =~ /TASKLIB/ %>
-list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_TASKLIB_LIBRARIES})
+list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
 <% end %>
 <% end %>
 
