@@ -20,5 +20,9 @@ Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
 Requires:
 Libs: -L${libdir} -l<%= component.name %>-tasks-<%= component.orocos_target %>
-Cflags: -I${includedir} <%= used_typekits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.join(" ") %>
+<%
+  cflags = component.tasklib_used_task_libraries.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+  cflags |= component.used_toolkits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+%>
+Cflags: -I${includedir} <%= cflags.to_a.sort.join(" ") %>
 

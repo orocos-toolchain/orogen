@@ -683,7 +683,9 @@ module Orocos
 		end
 
 		@component  = component
-                @superclass = component.default_task_superclass
+                if name != "RTT::TaskContext"
+                    @superclass = component.default_task_superclass
+                end
                 @implemented_classes = []
 		@name = name
                 # This is an array, as we don't want to have it reordered
@@ -1444,8 +1446,9 @@ module Orocos
                 default_activity.first == :fd_driven
             end
 	    
-	    # The set of task libraries from which we depend on, because of our 
-	    # superclasses and implements
+	    # The set of task libraries that are required by this task context
+            #
+            # This is the set of task libraries that implement our superclasses
 	    def used_task_libraries
 		component.used_task_libraries.find_all do |tasklib|
 		    tasklib.tasks.any? do |task|

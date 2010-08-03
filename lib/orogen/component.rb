@@ -167,7 +167,7 @@ module Orocos
 		@used_typekits  = []
                 @used_libraries = []
                 @typekit_libraries = []
-                @used_task_libraries = []
+                @used_task_libraries = Set.new
                 @typekit = nil
 
                 @deployers = []
@@ -238,7 +238,7 @@ module Orocos
             # defined in this component or in the task libraries loaded
             # by #using_task_library).
             #
-            # Returns nil if the task is not found.
+            # Raises ArgumentError if no such task context exists
             #
             # If the task context is defined in this component, the leading
             # namespace can be omitted. For example, in a component defined by
@@ -260,12 +260,26 @@ module Orocos
             # while this one works as expected:
             #   find_task_context('myComponent::TC')
             def find_task_context(obj)
-                if obj.respond_to?(:to_str)
-                    klass = tasks.find { |t| t.name == obj.to_str }
-                    klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
-                else
-                    obj
+                task_model =
+                    if obj.respond_to?(:to_str)
+                        klass = tasks.find { |t| t.name == obj.to_str }
+                        klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
+                    else
+                        obj
+                    end
+
+                if !task_model
+                    raise ArgumentError, "cannot find a task context model named #{obj}"
                 end
+                task_model
+            end
+
+            # Returns true if there is a registered task context with the given
+            # name, and false otherwise
+            def has_task_context?(name)
+                name = name.to_str
+                klass = tasks.find { |t| t.name == name }
+                klass || tasks.find { |t| t.name == "#{self.name}::#{name}" }
             end
 
             # Returns true if there is, in the type registry, a namespace with
@@ -512,6 +526,15 @@ module Orocos
                 Generation.save_user("CMakeLists.txt", cmake)
 	    end
 
+            # Computes the set of task libraries that our own task library
+            # depends on
+            def tasklib_used_task_libraries
+                result = self_tasks.inject(Set.new) do |set, task|
+                    set | task.used_task_libraries
+                end
+                result.to_a.sort_by(&:name)
+            end
+
             # Returns a list of BuildDependency object that represent the
             # dependencies for the task library
             def tasklib_dependencies
@@ -522,9 +545,7 @@ module Orocos
                 end
 
                 used_libraries = self.used_libraries.map(&:name)
-                used_tasklibs = self_tasks.inject(Set.new) do |set, task|
-                    set | task.used_task_libraries.map(&:name)
-                end
+                used_tasklibs = tasklib_used_task_libraries.map(&:name)
 
                 # Cover the package names into BuildDependency objects,
                 # first for the direct dependencies. Then, we look into the
@@ -559,7 +580,7 @@ module Orocos
                     end
                 end
 
-                result.to_a.sort_by { |dep| dep.var_name }
+                result.to_set.to_a.sort_by { |dep| dep.var_name }
             end
 
 	    # call-seq:
@@ -711,8 +732,9 @@ module Orocos
                 task
 	    end
 
+            # Declares a task context that is being imported, not defined
             def external_task_context(name, &block)
-		if find_task_context(name)
+		if has_task_context?(name)
 		    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
 		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
@@ -817,7 +839,7 @@ module Orocos
 		end
 
                 tasklib = load_task_library(name)
-                tasks.concat tasklib.tasks
+                tasks.concat tasklib.self_tasks
                 used_task_libraries << tasklib
                 if self.typekit
                     self.typekit.include_dirs |= tasklib.inclued_dirs.to_set

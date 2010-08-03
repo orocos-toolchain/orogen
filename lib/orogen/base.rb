@@ -75,6 +75,8 @@ end
 
 module Orocos
     module Generation
+        OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
+
         class ConfigError < Exception; end
 	AUTOMATIC_AREA_NAME = '.orogen'
 
