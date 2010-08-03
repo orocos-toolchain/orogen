@@ -11,3 +11,4 @@ webgen.cache
 
 *autobuild-stamp
 test/wc
+*.orig
