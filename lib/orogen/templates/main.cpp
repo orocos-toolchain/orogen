@@ -159,9 +159,9 @@ int ORO_main(int argc, char* argv[])
         <% else %>
         {
             <%= policy.to_code("policy") %>
-            OutputPortInterface* src = dynamic_cast<OutputPortInterface*>(
+            base::OutputPortInterface* src = dynamic_cast<base::OutputPortInterface*>(
                     task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
-            InputPortInterface* dst = dynamic_cast<InputPortInterface*>(
+            base::InputPortInterface* dst = dynamic_cast<base::InputPortInterface*>(
                     task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
             src->createConnection(*dst, policy);
         }
