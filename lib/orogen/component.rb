@@ -695,6 +695,7 @@ module Orocos
                 task
 	    end
 
+            # Declares a task context that is being imported, not defined
             def external_task_context(name, &block)
 		if has_task_context?(name)
 		    raise ArgumentError, "there is already a #{name} task"
