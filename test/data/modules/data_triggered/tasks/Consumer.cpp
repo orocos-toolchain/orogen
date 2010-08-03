@@ -18,15 +18,18 @@ bool Consumer::startHook() {
     return true;
 }
 
-void Consumer::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
+void Consumer::updateHook()
 {
-    if (isPortUpdated(_input))
+    double value;
+    bool got_data = false;
+    while (_input.read(value) == RTT::NewData)
     {
-        double value;
-        while (_input.read(value))
-            *outfile << value << " " << flush;
+        got_data = true;
+        *outfile << value << " " << flush;
     }
-    else *outfile << "U " << flush;
+
+    if (!got_data)
+        *outfile << "U " << flush;
 }
 
 // void Consumer::errorHook() {}

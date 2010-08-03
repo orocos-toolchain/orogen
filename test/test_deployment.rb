@@ -56,7 +56,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         context.default_activity :periodic, 0.1
         deployment = component.deployment "test"
         task       = deployment.task "my_name", "task"
-        assert_equal("PeriodicActivity", task.activity_type)
+        assert_equal("Activity", task.activity_type.name)
         assert_equal(0.1, task.period)
     end
     def test_can_change_default_activity
@@ -67,7 +67,8 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         deployment = component.deployment "test"
         task       = deployment.task "my_name", "task"
         task.triggered
-        assert_equal("NonPeriodicActivity", task.activity_type)
+        assert_equal("Activity", task.activity_type.name)
+        assert_equal(nil, task.period)
     end
     def test_cannot_change_required_activity
 	component = Component.new 
@@ -89,17 +90,17 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         assert_raises(ArgumentError) { task.periodic(0.1) }
     end
 
-    def test_data_driven_deployment(with_corba = false)
-        build_test_component "modules/data_triggered", with_corba, "bin/data"
+    def test_data_driven_deployment(*transports)
+        build_test_component "modules/data_triggered", transports, "bin/data"
 
         # Check the resulting file
         in_prefix do
-            assert_equal "U 2 4 6 8 10 ", File.read('data_trigger.txt')
+            assert_equal "2 4 6 8 10 ", File.read('data_trigger.txt')
         end
     end
 
-    def test_fd_driven_deployment(with_corba = false)
-        build_test_component "modules/fd_triggered", with_corba
+    def test_fd_driven_deployment(*transports)
+        build_test_component "modules/fd_triggered", transports
 
         # Start the resulting deployment
         in_prefix do
@@ -120,17 +121,17 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         end
     end
 
-    def test_cross_dependencies(with_corba = true)
+    def test_cross_dependencies(*transports)
         # Generate and build all the modules that are needed ...
-        typekit_opaque = build_test_component("modules/typekit_opaque", with_corba)
+        typekit_opaque = build_test_component("modules/typekit_opaque", transports)
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
         puts ENV['PKG_CONFIG_PATH'].inspect
 
-        cross_producer = build_test_component("modules/cross_producer", with_corba)
+        cross_producer = build_test_component("modules/cross_producer", transports)
         install
         producer_pkgconfig = File.join(prefix_directory, "lib", "pkgconfig")
-        cross_consumer = build_test_component("modules/cross_consumer", with_corba)
+        cross_consumer = build_test_component("modules/cross_consumer", transports)
         install
 
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{producer_pkgconfig}:#{ENV['PKG_CONFIG_PATH']}"
@@ -143,7 +144,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         assert_equal(["opaque"], cross_deployment.used_typekits.map(&:name))
         assert_equal(["opaque"], deployer.used_typekits.map(&:name))
 
-        cross_deployment = build_test_component("modules/cross_deployment", with_corba)
+        cross_deployment = build_test_component("modules/cross_deployment", transports)
         install
 
         in_prefix do
@@ -155,7 +156,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
                 File.read('cross_dependencies.txt')
         end
     end
-    def test_cross_dependencies_without_corba; test_cross_dependencies(true) end
+    def test_cross_dependencies_corba; test_cross_dependencies('corba') end
 end
 
 

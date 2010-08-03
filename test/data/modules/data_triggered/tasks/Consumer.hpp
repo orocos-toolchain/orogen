@@ -55,7 +55,7 @@ namespace data {
          * this call. If the trigger is caused by something different (for
          * instance, a periodic update), then this set is empty.
          */
-        void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
+        void updateHook();
         
 
         /** This hook is called by Orocos when the component is in the

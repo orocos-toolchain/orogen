@@ -9,6 +9,7 @@ name 'fd'
 # expects the character sequence 'ABCDE' to be written on it. It will exit(0) if
 # the right sequence is sent, and exit(1) otherwise.
 task_context 'Consumer' do
+    needs_configuration
     fd_driven
 end
 

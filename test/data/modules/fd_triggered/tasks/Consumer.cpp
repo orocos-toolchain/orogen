@@ -4,20 +4,22 @@
 #include <fcntl.h>
 #include <iostream>
 #include <boost/lexical_cast.hpp>
-#include <rtt/FileDescriptorActivity.hpp>
+#include <rtt/extras/FileDescriptorActivity.hpp>
 
 using namespace std;
 using namespace fd;
 
-RTT::FileDescriptorActivity* Consumer::getFileDescriptorActivity()
-{ return dynamic_cast< RTT::FileDescriptorActivity* >(getActivity().get()); }
-
 Consumer::Consumer(std::string const& name)
     : ConsumerBase(name)
+    , m_fd(-1)
 {
     // The test suite must create a pipe and give us the FD for the read side
     // through the FD_DRIVEN_TEST_FILE environment variable.
-    m_fd = boost::lexical_cast<int>(getenv("FD_DRIVEN_TEST_FILE"));
+    char const* fd = getenv("FD_DRIVEN_TEST_FILE");
+    if (fd)
+        m_fd = boost::lexical_cast<int>(fd);
+    else
+        std::cerr << "FD_DRIVEN_TEST_FILE is not set" << std::endl;
 }
 
 Consumer::~Consumer()
@@ -30,7 +32,8 @@ Consumer::~Consumer()
 // documentation about them.
 
 bool Consumer::configureHook() {
-    getFileDescriptorActivity()->watch(m_fd);
+    if (m_fd != -1)
+        getActivity<RTT::extras::FileDescriptorActivity>()->watch(m_fd);
     return TaskContext::configureHook();
 }
 
