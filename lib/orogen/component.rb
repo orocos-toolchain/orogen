@@ -688,6 +688,11 @@ module Orocos
             # the documentation of that class for more details.
             #
 	    def task_context(name, &block)
+                # If we have a toolkit, resolve all pending loads
+                if toolkit
+                    toolkit.perform_pending_loads
+                end
+
                 task = external_task_context(name, &block)
                 if extended_states?
                     task.extended_state_support
@@ -839,6 +844,11 @@ module Orocos
             # StaticDeployment instance, so see the documentation of that class
             # for more information.
 	    def deployment(name, &block) # :yield:
+                # If we have a toolkit, resolve all pending loads
+                if toolkit
+                    toolkit.perform_pending_loads
+                end
+
                 deployer = StaticDeployment.new(self, name, &block)
                 deployer.instance_eval(&block) if block_given?
 

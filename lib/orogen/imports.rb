@@ -15,6 +15,7 @@ module Orocos
             def pkg_name
                 pkg.name
             end
+            def perform_pending_loads; end
             def pkg_corba_name
                 Utilrb::PkgConfig.new(pkg.name.gsub('toolkit', 'transport-corba')).name
             end

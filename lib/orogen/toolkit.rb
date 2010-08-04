@@ -398,6 +398,8 @@ module Orocos
             attr_reader :preloaded_registry
             attr_reader :opaques
             attr_reader :opaque_registry
+            attr_reader :pending_load_options
+            attr_reader :pending_loads
 
 	    dsl_attribute :blob_threshold do |value|
 		value = Integer(value)
@@ -466,6 +468,14 @@ module Orocos
 		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
+                @pending_load_options = []
+                # The order matters ! GCCXML unfortunately only gives as file
+                # names the argument to #include. So, if we are unlucky, one
+                # file will be loaded recursively and we won't actually detect
+                # it ... :(
+                #
+                # In other words, keep pending_loads an array
+                @pending_loads        = Array.new
 
                 type_export_policy :all
                 @selected_types = Array.new
@@ -610,6 +620,17 @@ module Orocos
                 opaques.any? { |op| op.generate_templates? }
             end
 
+            # Returns the include directories that should be used for file
+            # loading
+            def include_dirs
+                include_dirs = []
+                include_dirs << component.base_dir if component.base_dir
+                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
+                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
+                include_dirs
+            end
+
             # call-seq:
             #   load(file)
             #
@@ -634,29 +655,42 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
-	    def load(file, preload = false, add = true)
-                # Find where +file+ is
-                include_dirs = []
-                include_dirs << component.base_dir if component.base_dir
-                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
-                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
-
-                if File.exists?(file) # Local file
-                    file = File.expand_path(file)
-                else # File from used libraries/task libraries
-                    dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
-                    if !dir
-                        raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
-                    end
-		    loaded_files_dirs << dir
-                    file = File.join(dir, file)
+	    def load(file, preload = false, add = true, user_options = Hash.new)
+                this_options = [preload, add, user_options]
+                if pending_load_options != this_options
+                    perform_pending_loads
                 end
+
+                include_dirs = self.include_dirs
+
+                # Get the full path for +file+
+                file =
+                    if File.exists?(file) # Local file
+                        File.expand_path(file)
+                    else # File from used libraries/task libraries
+                        dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
+                        if !dir
+                            raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
+                        end
+                        loaded_files_dirs << dir
+                        File.join(dir, file)
+                    end
+
+                @pending_load_options = this_options
+                pending_loads << file
+            end
+
+            def perform_pending_loads
+                return if pending_loads.empty?
+
+                preload, add, user_options = *pending_load_options
+
+                include_dirs = self.include_dirs
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :define => '__orogen', :opaques_ignore => true, :merge => false }
+                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
                 options[:include] = include_dirs.dup
                 options = options.merge(user_options) do |a, b|
                     if a.respond_to?(:to_ary)
@@ -670,18 +704,26 @@ module Orocos
                     end
                 end
 
-                begin
-                    file_registry.import(file, 'c', options)
-                    registry.merge(file_registry)
-                    preloaded_registry.merge(file_registry) if preload
-                    component.registry.merge(file_registry)
-                rescue RuntimeError => e
-                    raise ArgumentError, "cannot load #{file}: #{e.message}", e.backtrace
+                File.open("orogen_pending_loads", 'w') do |io|
+                    pending_loads.each do |f|
+                        io.puts "#include \"#{f}\""
+                    end
+                    io.flush
+
+                    begin
+                        file_registry.import(io.path, 'c', options)
+                        registry.merge(file_registry)
+                        preloaded_registry.merge(file_registry) if preload
+                        component.registry.merge(file_registry)
+                    rescue RuntimeError => e
+                        raise ArgumentError, "cannot load one of the header files #{pending_loads.join(", ")}: #{e.message}", e.backtrace
+                    end
                 end
 
                 if add
-                    loads << file
+                    loads.concat(pending_loads.to_a)
                 end
+                pending_loads.clear
 	    end
 
             # Returns the set of headers that have been loaded locally
@@ -979,13 +1021,6 @@ module Orocos
 	    def generate
 		toolkit = self
 
-                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'toolkit')
-
-                # Populate a fake installation directory so that the include
-                # files can be referred to as <project_name>/header.h
-                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
-                FileUtils.mkdir_p fake_install_dir
-
                 # Generate the state enumeration types for each of the task
                 # contexts, and load it
                 if component.self_tasks.any?(&:extended_state_support?)
@@ -993,6 +1028,16 @@ module Orocos
                     Generation.save_automatic "#{component.name}TaskStates.hpp", state_types
                     load File.join(AUTOMATIC_AREA_NAME, "#{component.name}TaskStates.hpp"), false
                 end
+
+                # Load any queued file
+                perform_pending_loads
+
+                FileUtils.mkdir_p File.join(component.base_dir, AUTOMATIC_AREA_NAME, 'toolkit')
+
+                # Populate a fake installation directory so that the include
+                # files can be referred to as <project_name>/header.h
+                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                FileUtils.mkdir_p fake_install_dir
 
                 self.local_headers(false).each do |path, dest_path|
                     dest_path = File.join(fake_install_dir, dest_path)
