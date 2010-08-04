@@ -115,7 +115,6 @@ module Orocos
                 else
                     using_toolkit self.name
                 end
-                import_types_from(*args) unless args.empty?
             end
 
             def toolkit(create = nil, &block) # :nodoc:
