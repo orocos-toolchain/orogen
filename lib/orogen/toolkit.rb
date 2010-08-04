@@ -445,6 +445,13 @@ module Orocos
                 else
                     raise ArgumentError, "expected a type object, got #{type}"
                 end
+
+            rescue Typelib::NotFound => e
+                if !pending_loads.empty?
+                    perform_pending_loads
+                    retry
+                end
+                raise ArgumentError, e.message, e.backtrace
 	    end
 
             # True if we are generating for Linux
