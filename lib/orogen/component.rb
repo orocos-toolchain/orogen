@@ -318,9 +318,8 @@ module Orocos
                 if Utilrb::PkgConfig.has_package?("#{name}-toolkit-#{orocos_target}")
                     using_toolkit name
                 else
-                    toolkit(true).load name
+                    toolkit(true).load name, false, true, *args
                 end
-                import_types_from(*args) unless args.empty?
             end
 
             # Import an orogen-generated toolkit to be used by this component.

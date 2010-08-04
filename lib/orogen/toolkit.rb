@@ -658,6 +658,17 @@ module Orocos
 
                 options = { :define => '__orogen', :opaques_ignore => true, :merge => false }
                 options[:include] = include_dirs.dup
+                options = options.merge(user_options) do |a, b|
+                    if a.respond_to?(:to_ary)
+                        if b.respond_to?(:to_ary)
+                            b.concat(a)
+                        else
+                            [b].concat(a)
+                        end
+                    else
+                        b
+                    end
+                end
 
                 begin
                     file_registry.import(file, 'c', options)
