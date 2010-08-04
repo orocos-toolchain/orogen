@@ -629,8 +629,8 @@ module Orocos
                 if create.nil?
                     create = true if block_given?
                 end
-                if create
-                    @toolkit ||= Toolkit.new(self)
+                if create && !@toolkit
+                    @toolkit = Toolkit.new(self)
                 end
 
 		if !block_given?
