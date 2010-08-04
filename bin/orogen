@@ -94,7 +94,7 @@ begin
     component = 
         begin
             component = Orocos::Generation::Component.new
-            component.load(filename)
+            component.load(filename, verbosity > 1)
 
         rescue Exception => e
             # Two options:

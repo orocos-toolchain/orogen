@@ -918,13 +918,13 @@ module Orocos
             # Apply the project description included in +file+ to +self+
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
-                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
+                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, verbose)
                 self
             end
 
-            def eval(name, file_contents)
+            def eval(name, file_contents, verbose = true)
                 @deffile = "#{name}.orogen"
-                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, false)
+                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, verbose)
                 self
             end
 	end
