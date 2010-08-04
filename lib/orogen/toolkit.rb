@@ -36,7 +36,7 @@ module Typelib
             base = if fullname then full_name('_', true)
                    else basename('_')
                    end
-            base.gsub(/[<>\[\]]/, '_')
+            base.gsub(/[<>\[\] ]/, '_')
         end
 
 	def self.contains_int64?; false end
