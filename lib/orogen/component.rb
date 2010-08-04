@@ -338,6 +338,7 @@ module Orocos
                 toolkit = load_toolkit(name)
 		used_toolkits << toolkit
                 registry.merge(toolkit.registry)
+                toolkit
 	    end
 
             # A Typelib::Registry object defining all the types that are defined
