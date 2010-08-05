@@ -405,7 +405,7 @@ module Orocos
 		    raise ArgumentError, "you must set a name for this component"
 		end
 
-                if name !~ /[a-z][a-z0-9\_]+/
+                if name !~ /^[a-z][a-z0-9\_]+$/
                     raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
                 if !deffile
