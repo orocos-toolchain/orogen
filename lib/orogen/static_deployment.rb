@@ -655,7 +655,7 @@ module Orocos
                 if corba_enabled?
                     result << BuildDependency.new(
                         "OrocosCORBA",
-                        "orocos-transport-corba-#{Generation.orocos_target}").
+                        "orocos-rtt-corba-#{Generation.orocos_target}").
                         in_context('corba', 'include').
                         in_context('corba', 'link')
                 end
