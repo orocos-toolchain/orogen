@@ -745,7 +745,7 @@ module Orocos
                     end
                 end
 
-                File.open("orogen_pending_loads", 'w') do |io|
+                Tempfile.open("orogen_pending_loads") do |io|
                     pending_loads.each do |f|
                         io.puts "#include \"#{f}\""
                     end
