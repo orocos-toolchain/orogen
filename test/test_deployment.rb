@@ -68,7 +68,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         task       = deployment.task "my_name", "task"
         task.triggered
         assert_equal("Activity", task.activity_type.name)
-        assert_equal(nil, task.period)
+        assert_equal(0, task.period)
     end
     def test_cannot_change_required_activity
 	component = Component.new 
