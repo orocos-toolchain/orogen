@@ -380,6 +380,7 @@ module Orocos
             # See also #runs_in_callee_thread and #in_caller_thread
             def runs_in_caller_thread
                 @in_caller_thread = true
+                self
             end
 
             # Declares that the C++ method associated with this operation should
@@ -388,6 +389,7 @@ module Orocos
             # See also #runs_in_callee_thread and #in_caller_thread
             def runs_in_callee_thread
                 @in_caller_thread = false
+                self
             end
 
 	    # call-seq:
