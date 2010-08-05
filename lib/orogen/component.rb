@@ -150,6 +150,7 @@ module Orocos
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
                         component = ImportedProject.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        component.orogen_project = false
                         @@standard_tasks.concat component.tasks
                     end
                 end
@@ -157,8 +158,15 @@ module Orocos
                 @@standard_tasks
             end
 
+            ##
+            # :method:orogen_project?
+            #
+            # True if this class represents an oroGen project, false otherwise
+            attr_predicate :orogen_project, true
+
 	    def initialize
 		@tasks = Component.standard_tasks.dup
+                @orogen_project = true
                 @self_tasks = []
 
                 @name    = nil

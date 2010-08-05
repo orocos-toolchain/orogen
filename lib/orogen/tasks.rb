@@ -524,8 +524,14 @@ module Orocos
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
 	class TaskContext
-	    # The component this task is part of
-	    attr_reader :component
+	    # The oroGen project this task is part of
+	    attr_reader :project
+
+            # for backward compatibility reasons
+            def component # :nodoc:
+                project
+            end
+
 	    # The task name
 	    attr_reader :name
             # The subclass of TaskContext which should be used to define this
@@ -675,16 +681,16 @@ module Orocos
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
-	    def initialize(component, name)
-                if name == component.name
+	    def initialize(project, name)
+                if name == project.name
                     raise ArgumentError, "tasks and projects must not have the same name"
                 elsif name !~ /^(\w+::)*\w+$/
 		    raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
 		end
 
-		@component  = component
+                @project  = project
                 if name != "RTT::TaskContext"
-                    @superclass = component.default_task_superclass
+                    @superclass = project.default_task_superclass
                 end
                 @implemented_classes = []
 		@name = name
@@ -703,6 +709,16 @@ module Orocos
                 @fixed_initial_state = false
                 @needs_configuration = false
 	    end
+
+            # Returns the task context models that are in this model's ancestry
+            def ancestors
+                m = self
+                result = [self]
+                while m = m.superclass
+                    result << m
+                end
+                result
+            end
 
             def pretty_print_interface(pp, name, set)
                 if set.empty?

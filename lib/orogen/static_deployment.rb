@@ -611,11 +611,19 @@ module Orocos
             end
 
             def used_task_libraries
-                task_models = task_activities.map { |task| task.context }
+                task_models = Set.new
+                task_activities.each do |task|
+                    task_models |= task.context.ancestors.to_set
+                end
+                task_models.delete_if do |task|
+                    !task.project.orogen_project?
+                end
+
                 dependencies = component.used_task_libraries.find_all do |tasklib|
                     current_size = task_models.size
+                    tasklib_tasks = tasklib.self_tasks
                     task_models.delete_if do |task|
-                        tasklib.self_tasks.include?(task)
+                        tasklib_tasks.include?(task)
                     end
                     current_size != task_models.size
                 end
