@@ -590,9 +590,9 @@ module Orocos
             # True if the task context implements a parent class which matches
             # +name+. +name+ can either be a string or a regular expression.
             def implements?(name)
+                ancestor_names = ancestors.map(&:name)
                 class_name == name ||
-                    (superclass && superclass.implements?(name)) ||
-                    @implemented_classes.any? { |class_name, _| name === class_name }
+                    ancestor_names.include?(name)
             end
 
             ##
@@ -1469,8 +1469,8 @@ module Orocos
             # This is the set of task libraries that implement our superclasses
 	    def used_task_libraries
 		component.used_task_libraries.find_all do |tasklib|
-		    tasklib.tasks.any? do |task|
-			task.component == tasklib && implements?(task.name)
+		    tasklib.self_tasks.any? do |task|
+			implements?(task.name)
 		    end
 		end
 	    end

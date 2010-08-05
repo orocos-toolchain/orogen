@@ -54,8 +54,12 @@ module Orocos
             # The main Component instance that groups all the imported task
             # libraries
             attr_reader :main_project
-            # The pkg-config file defining this task library
+            # The pkg-config file defining this oroGen project
             attr_reader :pkg
+            # The pkg-config file for the task library of this oroGen project
+            def tasklib_pkg
+                @tasklib_pkg ||= Utilrb::PkgConfig.new("#{name}-tasks-#{Orocos::Generation.orocos_target}")
+            end
 
             # Import in the +base+ component the task library whose orogen
             # specification is included in +file+
