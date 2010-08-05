@@ -687,6 +687,28 @@ module Orocos
                 pending_loads << file
             end
 
+            def filter_unsupported_types(registry)
+                to_delete = Set.new
+                registry.each do |type|
+                    # Multi-dimensional arrays are forbidden in CORBA IDL
+                    # TODO: work around this in Typelib and oroGen by emitting a
+                    # TODO: single-dimension array of the right size
+                    if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
+                        STDERR.puts "WARN: ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        to_delete << type
+                    end
+                end
+
+                already_deleted = to_delete.dup
+                to_delete.each do |type|
+                    deleted_types = registry.remove(type)
+                    deleted_types.each do |dep_type|
+                        next if to_delete.include?(dep_type)
+                        STDERR.puts "WARN: ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                    end
+                end
+            end
+
             def perform_pending_loads
                 return if pending_loads.empty?
 
@@ -719,6 +741,7 @@ module Orocos
 
                     begin
                         file_registry.import(io.path, 'c', options)
+                        filter_unsupported_types(file_registry)
                         registry.merge(file_registry)
                         preloaded_registry.merge(file_registry) if preload
                         component.registry.merge(file_registry)
