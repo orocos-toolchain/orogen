@@ -728,6 +728,10 @@ module Orocos
                 file_registry.merge opaque_registry
 
                 options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
+                # GCCXML can't parse vectorized code, and the Typelib internal
+                # parser can't parse eigen at all. It is therefore safe to do it
+                # here
+                options[:define] = ['EIGEN_DONT_VECTORIZE', '__orogen']
                 options[:include] = include_dirs.dup
                 options = options.merge(user_options) do |a, b|
                     if a.respond_to?(:to_ary)
