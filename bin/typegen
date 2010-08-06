@@ -58,15 +58,15 @@ typekit.name      = remaining.shift
 
 remaining.each do |path|
     if File.directory?(path)
-        typekit.user_dir ||= File.expand_path(remaining.shift)
-        typekit.base_dir ||= File.dirname(typekit.user_dir)
+        typekit.user_dir ||= File.expand_path(path)
+        typekit.base_dir ||= typekit.user_dir
         Find.find(path) do |file|
             if path !~ /Typekit/ && File.file?(file)
                 typekit.load(file)
             end
         end
     elsif File.file?(path)
-        typekit.user_dir ||= File.dirname(File.expand_path(remaining.shift))
+        typekit.user_dir ||= File.dirname(File.expand_path(path))
         typekit.base_dir ||= File.dirname(typekit.user_dir)
         typekit.load(path)
     else
