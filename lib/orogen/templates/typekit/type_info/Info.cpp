@@ -28,4 +28,5 @@ namespace orogen_typekits {
     { return new <%= type.method_name(true) %>TypeInfo(); }
 }
 
+<%= Generation.render_template('typekit', 'TemplateInstanciation.cpp', binding) %>
 
