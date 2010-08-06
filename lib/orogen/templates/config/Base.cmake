@@ -28,7 +28,7 @@ endif (CXX_SUPPORTS_WALL)
 option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
 if(WITH_RPATH)
     include(RPATHHandling)
-    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos")
+    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos:${CMAKE_INSTALL_PREFIX}/lib/orocos/types")
 endif(WITH_RPATH)
 
 # Set the build type to debug by default
