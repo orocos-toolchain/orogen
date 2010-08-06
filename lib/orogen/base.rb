@@ -194,7 +194,11 @@ module Orocos
             dir_path = File.expand_path(File.join(*path))
 
             Find.find(dir_path) do |file|
-                if File.file?(file) && !File.symlink?(file) && !generated_files.include?(file)
+                if File.directory?(file) && File.directory?(File.join(file, "CMakeFiles"))
+                    # This looks like a build directory. Ignore
+                    Find.prune
+                
+                elsif File.file?(file) && !File.symlink?(file) && !generated_files.include?(file)
                     logger.info "   removing #{file}"
                     FileUtils.rm_f file
                 end
