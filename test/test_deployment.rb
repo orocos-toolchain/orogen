@@ -126,7 +126,6 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         typekit_opaque = build_test_component("modules/typekit_opaque", transports)
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
-        puts ENV['PKG_CONFIG_PATH'].inspect
 
         cross_producer = build_test_component("modules/cross_producer", transports)
         install

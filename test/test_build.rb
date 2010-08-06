@@ -23,7 +23,6 @@ Cflags: -I${prefix}/include -I${prefix}/include/project
             PKGFILE
         end
         ENV['PKG_CONFIG_PATH'] = "#{lib_prefix}:#{ENV['PKG_CONFIG_PATH']}"
-        puts ENV['PKG_CONFIG_PATH']
 
         build_test_component "modules/build_regen_typekit", []
 
