@@ -1,7 +1,7 @@
 // First load all RTT interfaces so that we get all "extern template"
 // declarations in the TypekitImpl files
-#include "transports/typelib/Registration.hpp"
-#include "transports/typelib/TransportPlugin.hpp"
+#include "Registration.hpp"
+#include "TransportPlugin.hpp"
 #include <rtt/types/TypekitPlugin.hpp>
 #include <typelib/pluginmanager.hh>
 #include <utilmm/configfile/pkgconfig.hh>

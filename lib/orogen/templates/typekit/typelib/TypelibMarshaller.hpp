@@ -1,7 +1,7 @@
 #ifndef OROGEN_TYPELIB_MARSHALLER_HPP
 #define OROGEN_TYPELIB_MARSHALLER_HPP
 
-#include "transports/typelib/TypelibMarshallerBase.hpp"
+#include "TypelibMarshallerBase.hpp"
 #include <rtt/Port.hpp>
 
 struct orogen_transports::TypelibMarshallerBase::Handle
