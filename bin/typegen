@@ -9,7 +9,7 @@ parser = OptionParser.new do |opt|
     transports.delete('type_info')
     transports = transports.sort.join(", ")
     opt.banner = <<-EOF
-usage: typegen [--transports=NAME1,NAME2] [--output output_dir] name inputs
+usage: typegen [--transports=NAME1,NAME2] [--output output_dir] [--import=LIBRARY,TYPEKIT] name inputs
 this installation of typegen knows the following transports: #{transports}
     EOF
 
