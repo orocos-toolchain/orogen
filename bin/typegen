@@ -58,12 +58,10 @@ typekit.name      = remaining.shift
 
 remaining.each do |path|
     if File.directory?(path)
-        puts "A: #{path}"
         typekit.user_dir ||= File.expand_path(remaining.shift)
         typekit.base_dir ||= File.dirname(typekit.user_dir)
         Find.find(path) do |file|
             if path !~ /Typekit/ && File.file?(file)
-                puts "adding #{file}"
                 typekit.load(file)
             end
         end
