@@ -143,7 +143,6 @@ module Orocos
                 component = nil
                 in_wc do
                     spec = Dir.glob("*.orogen").to_a.first
-                    puts spec
                     component = Component.load(spec)
                     if component.typekit
                         transports.each do |transport_name|

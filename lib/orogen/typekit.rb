@@ -771,8 +771,6 @@ module Orocos
                     include_dirs << base_dir
                 end
                 include_dirs = include_dirs.to_a
-                puts  "include:"
-                puts "  " + include_dirs.map(&:inspect).join("\n  ")
 
                 if File.exists?(file) # Local file
                     file = File.expand_path(file)
