@@ -99,3 +99,13 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
     <% end
 end %>
 
+# Force the user to regenerate its typekit if the inputs changed
+set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
+add_custom_command(
+    OUTPUT "${TK_STAMP}"
+    DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>"
+    <%= typekit.loads.join(" ") %> <%= typekit.external_loads.join(" ") %>
+    COMMENT "Typekit input changed. Run make regen in your build directory first"
+    COMMAND /bin/false)
+add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
+

@@ -4,6 +4,15 @@ ADD_CUSTOM_TARGET(regen
     <%= ruby_bin %> <%= orogen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+add_custom_command(
+    OUTPUT ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>
+    DEPENDS <%= component.deffile %>
+    COMMENT "oroGen specification file changed. Run make regen first."
+    COMMAND /bin/false)
+
+add_custom_target(check-uptodate ALL
+    DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>")
+
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= component.orocos_target %>")
 
@@ -66,7 +75,7 @@ configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= compone
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= component.name %>.pc
     DESTINATION lib/pkgconfig)
 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>
+INSTALL(FILES ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>
     DESTINATION share/orogen)
 
 # Finally, add deployment code

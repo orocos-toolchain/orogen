@@ -423,9 +423,12 @@ module Orocos
                 # enable/disable and extended state support.
                 if File.file?(deffile)
                     orogen_file = Generation.render_template "project.orogen", binding
-                    Generation.save_automatic(File.basename(deffile), orogen_file)
+                    orogen_file = Generation.save_automatic(File.basename(deffile), orogen_file)
+                    # In any case, touch the target file for the sake of
+                    # the check-uptodate targets
+                    FileUtils.touch(orogen_file)
                 else
-                    dir = File.join(File.dirname(deffile), Orocos::Generation::AUTOMATIC_AREA_NAME)
+                    dir = Orocos::Generation::AUTOMATIC_AREA_NAME
                     FileUtils.mkdir_p dir
                     FileUtils.touch(File.join(dir, File.basename(deffile)))
                 end

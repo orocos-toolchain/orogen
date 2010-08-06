@@ -26,6 +26,9 @@ install(TARGETS <%= deployer.name %>
     RUNTIME DESTINATION bin)
 <% end %>
 
+add_dependencies(<%= deployer.name %>
+    check-uptodate)
+
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= deployer.name %>.pc
