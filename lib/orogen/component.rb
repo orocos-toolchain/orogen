@@ -19,6 +19,13 @@ module Orocos
         end
         @command_line_options = Array.new
 
+        # Directory in which the generation command (orogen or typegen) has been
+        # run
+        class << self
+            attr_accessor :generation_directory
+        end
+        @generation_directory = nil
+
         def self.orocos_target=(target)
             @orocos_target = target.to_s
         end

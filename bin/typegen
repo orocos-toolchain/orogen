@@ -45,12 +45,15 @@ this installation of typegen knows the following transports: #{transports}
     end
 end
 
+original_options = ARGV.dup
 remaining = parser.parse(ARGV)
 if remaining.size < 2
     puts parser
     exit(1)
 end
 
+Orocos::Generation.generation_directory = Dir.pwd
+Orocos::Generation.command_line_options = original_options
 typekit.name      = remaining.shift
 
 remaining.each do |path|

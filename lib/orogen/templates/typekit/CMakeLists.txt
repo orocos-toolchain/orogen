@@ -1,3 +1,6 @@
+##
+# Header for typegen-generated typekits
+#
 <% if typekit.standalone? %>
 project("<%= typekit.name %>-typekit")
 cmake_minimum_required(VERSION 2.6)
@@ -29,7 +32,16 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
 pkg_check_modules(OrocosRTT REQUIRED "rtt-${OROCOS_TARGET}>=1.99.4")
+
+ADD_CUSTOM_TARGET(regen
+    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
+       typegen_bin = File.expand_path('../bin/typegen', Orocos::Generation.base_dir) %>
+    <%= ruby_bin %> <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
+    WORKING_DIRECTORY <%= Orocos::Generation.generation_directory %>)
+
 <% end %>
+# END if typekit.standalone?
+##
 
 execute_process(COMMAND cmake -E create_symlink
     ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
@@ -103,8 +115,7 @@ end %>
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>"
-    <%= typekit.loads.join(" ") %> <%= typekit.external_loads.join(" ") %>
+    DEPENDS <%= typekit.loads.join(" ") %> <%= typekit.external_loads.join(" ") %>
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")

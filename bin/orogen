@@ -68,6 +68,7 @@ end
 original_options = ARGV.dup
 files = parser.parse! ARGV
 files.each { |path| original_options.delete(path) }
+Orocos::Generation.generation_directory = Dir.pwd
 Orocos::Generation.command_line_options = original_options
 
 if files.first == "create"
