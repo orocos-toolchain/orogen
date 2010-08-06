@@ -77,8 +77,8 @@ module Orocos
 		FileUtils.cp File.expand_path(file, TEST_DIR), (destination || working_directory)
 	    end
 
-	    def in_wc(&block)
-		Dir.chdir(working_directory, &block)
+	    def in_wc(*subdir, &block)
+		Dir.chdir(File.join(working_directory, *subdir), &block)
 	    end
             def install
                 in_wc do
@@ -105,14 +105,17 @@ module Orocos
                 ENV['PKG_CONFIG_PATH'] = old_pkgconfig
             end
 
-	    def compile_wc(component)
-		in_wc do
-                    unless component.deffile
-                        component.instance_variable_set(:@deffile, File.join(working_directory, "#{component.name}.orogen"))
+	    def compile_wc(component = nil, *subdir)
+		in_wc(*subdir) do
+                    if component
+                        unless component.deffile
+                            component.instance_variable_set(:@deffile, File.join(working_directory, "#{component.name}.orogen"))
+                        end
+                        component.generate
                     end
-		    component.generate
 
 		    yield if block_given?
+
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
                         make_cmd = ["make"]
@@ -127,6 +130,37 @@ module Orocos
 		    end
 		end
 	    end
+
+            def build_typegen(name, header_files, transports)
+                @working_directory = File.join(TEST_DIR, 'wc', name)
+                header_files = header_files.map do |file|
+                    File.join(TEST_DATA_DIR, file)
+                end
+
+                if !ENV['TEST_DONT_CLEAN'] || !File.directory?(working_directory)
+                    # Copy +dirname+ in place of wc
+                    FileUtils.rm_rf working_directory
+                    FileUtils.mkdir_p working_directory
+                end
+
+                in_wc do
+                    FileUtils.mkdir_p "types"
+                    header_files.each do |file|
+                        FileUtils.cp file, "types"
+                    end
+                    cmdline = ["typegen"]
+                    if !transports.empty?
+                        cmdline << "--transports=#{transports.join(",")}"
+                    end
+                    cmdline << "-o" << "typekit_output" << name << "types"
+
+                    if !system(*cmdline)
+                        raise "typegen failed"
+                    end
+                end
+
+                compile_wc(nil, "typekit_output")
+            end
 
             def build_test_component(dirname, transports = [], test_bin = nil, wc_dirname = nil)
                 source             = File.join(TEST_DATA_DIR, dirname)
