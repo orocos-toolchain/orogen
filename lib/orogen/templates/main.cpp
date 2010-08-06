@@ -1,4 +1,10 @@
 #include <rtt/os/main.h>
+
+#include <rtt/typekit/RealTimeTypekit.hpp>
+<% if deployer.corba_enabled? %>
+#include <rtt/transports/corba/TransportPlugin.hpp>
+<% end %>
+
 <% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
 <% if typekit = component.typekit %>
 #include "typekit/Plugin.hpp"
@@ -69,6 +75,11 @@ int ORO_main(int argc, char* argv[])
    if ( log().getLogLevel() < Logger::<%= deployer.loglevel %> ) {
        log().setLogLevel( Logger::<%= deployer.loglevel %> );
    }
+   <% end %>
+
+   RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
+   <% if deployer.corba_enabled? %>
+   RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
    <% end %>
 
    <% if component.typekit %>

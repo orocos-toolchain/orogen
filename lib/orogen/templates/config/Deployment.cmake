@@ -13,6 +13,12 @@ target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCO
 target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-corba-${OROCOS_TARGET})
 <% end %>
 <% end %>
+list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
+find_package(RTTPlugin COMPONENTS rtt-typekit rtt-transport-corba)
+target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-typekit_LIBRARY})
+<% if deployer.corba_enabled? %>
+target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-corba_LIBRARY})
+<% end %>
 <% if !component.self_tasks.empty? %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
