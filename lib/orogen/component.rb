@@ -330,9 +330,8 @@ module Orocos
                 if Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
                     using_typekit name
                 else
-                    typekit(true).load name
+                    typekit(true).load name, false, true, *args
                 end
-                import_types_from(*args) unless args.empty?
             end
 
             # Import an orogen-generated typekit to be used by this component.
@@ -354,6 +353,7 @@ module Orocos
                     ours.using_typekit(typekit)
                 end
                 registry.merge(typekit.registry)
+                typekit
 	    end
 
             # A Typelib::Registry object defining all the types that are defined
@@ -667,8 +667,8 @@ module Orocos
                 if create.nil?
                     create = true if block_given?
                 end
-                if create
-                    @typekit ||= Typekit.new(self)
+                if create && !@typekit
+                    @typekit = Typekit.new(self)
 
                     # Initialize the typekit's include_dirs set
                     if base_dir
@@ -743,6 +743,11 @@ module Orocos
             # the documentation of that class for more details.
             #
 	    def task_context(name, &block)
+                # If we have a toolkit, resolve all pending loads
+                if toolkit
+                    toolkit.perform_pending_loads
+                end
+
                 task = external_task_context(name, &block)
                 if extended_states?
                     task.extended_state_support
@@ -897,6 +902,11 @@ module Orocos
             # StaticDeployment instance, so see the documentation of that class
             # for more information.
 	    def deployment(name, &block) # :yield:
+                # If we have a toolkit, resolve all pending loads
+                if toolkit
+                    toolkit.perform_pending_loads
+                end
+
                 deployer = StaticDeployment.new(self, name, &block)
                 deployer.instance_eval(&block) if block_given?
 
@@ -966,13 +976,13 @@ module Orocos
             # Apply the project description included in +file+ to +self+
             def load(file, verbose = true)
                 @deffile = File.expand_path(file)
-                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, false)
+                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, verbose)
                 self
             end
 
-            def eval(name, file_contents)
+            def eval(name, file_contents, verbose = true)
                 @deffile = "#{name}.orogen"
-                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, false)
+                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, verbose)
                 self
             end
 	end

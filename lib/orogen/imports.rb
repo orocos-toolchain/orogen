@@ -24,6 +24,7 @@ module Orocos
             def pkg_name
                 pkg.name
             end
+            def perform_pending_loads; end
             def pkg_corba_name
                 Utilrb::PkgConfig.new(pkg.name.gsub('typekit', 'transport-corba')).name
             end
@@ -126,7 +127,6 @@ module Orocos
                 else
                     using_typekit self.name
                 end
-                import_types_from(*args) unless args.empty?
             end
 
             def typekit(create = nil, &block) # :nodoc:

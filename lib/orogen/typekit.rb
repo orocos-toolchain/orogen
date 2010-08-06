@@ -35,7 +35,7 @@ module Typelib
             base = if fullname then full_name('_', true)
                    else basename('_')
                    end
-            base.gsub(/[<>\[\]]/, '_')
+            base.gsub(/[<>\[\] ]/, '_')
         end
 
 	def self.contains_int64?; false end
@@ -463,6 +463,8 @@ module Orocos
 
             attr_reader :opaques
             attr_reader :opaque_registry
+            attr_reader :pending_load_options
+            attr_reader :pending_loads
 
             def using_typekit(typekit)
                 self.imported_types.merge(typekit.registry)
@@ -527,6 +529,13 @@ module Orocos
                 else
                     raise ArgumentError, "expected a type object, got #{type}"
                 end
+
+            rescue Typelib::NotFound => e
+                if !pending_loads.empty?
+                    perform_pending_loads
+                    retry
+                end
+                raise ArgumentError, e.message, e.backtrace
 	    end
 
             # The target operating system for orocos. Uses the OROCOS_TARGET
@@ -566,6 +575,14 @@ module Orocos
 		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
+                @pending_load_options = []
+                # The order matters ! GCCXML unfortunately only gives as file
+                # names the argument to #include. So, if we are unlucky, one
+                # file will be loaded recursively and we won't actually detect
+                # it ... :(
+                #
+                # In other words, keep pending_loads an array
+                @pending_loads        = Array.new
 
                 type_export_policy :all
                 @selected_types = Array.new
@@ -740,6 +757,17 @@ module Orocos
                 opaques.any? { |op| op.generate_templates? }
             end
 
+            # Returns the include directories that should be used for file
+            # loading
+            def include_dirs
+                include_dirs = []
+                include_dirs << component.base_dir if component.base_dir
+                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
+                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
+                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
+                include_dirs
+            end
+
             # call-seq:
             #   load(file)
             #
@@ -764,45 +792,115 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
-	    def load(file, preload = false, add = true)
-                # Find where +file+ is
-                include_dirs = self.include_dirs.dup
+	    def load(file, preload = false, add = true, user_options = Hash.new)
+                this_options = [preload, add, user_options]
+                if pending_load_options != this_options
+                    perform_pending_loads
+                end
+
+                include_dirs = self.include_dirs
                 if base_dir
                     include_dirs << base_dir
                 end
-                include_dirs = include_dirs.to_a
 
-                if File.exists?(file) # Local file
-                    file = File.expand_path(file)
-                else # File from used libraries/task libraries
-                    dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
-                    if !dir
-                        raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
+                # Get the full path for +file+
+                file =
+                    if File.exists?(file) # Local file
+                        File.expand_path(file)
+                    else # File from used libraries/task libraries
+                        dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
+                        if !dir
+                            raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
+                        end
+                        loaded_files_dirs << dir
+                        File.join(dir, file)
                     end
-		    loaded_files_dirs << dir
-                    file = File.join(dir, file)
+
+                @pending_load_options = this_options
+                pending_loads << file
+            end
+
+            def filter_unsupported_types(registry)
+                to_delete = Set.new
+                registry.each do |type|
+                    # Multi-dimensional arrays are forbidden in CORBA IDL
+                    # TODO: work around this in Typelib and oroGen by emitting a
+                    # TODO: single-dimension array of the right size
+                    if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
+                        STDERR.puts "WARN: ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        to_delete << type
+                    elsif type < Typelib::CompoundType
+                        type.each_field do |field_name, _|
+                            if field_name !~ /^[a-zA-Z]/
+                                STDERR.puts "WARN: ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
+                                to_delete << type
+                                break
+                            end
+                        end
+                    end
                 end
+
+                already_deleted = to_delete.dup
+                to_delete.each do |type|
+                    deleted_types = registry.remove(type)
+                    deleted_types.each do |dep_type|
+                        next if to_delete.include?(dep_type)
+                        STDERR.puts "WARN: ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                    end
+                end
+            end
+
+            def perform_pending_loads
+                return if pending_loads.empty?
+
+                preload, add, user_options = *pending_load_options
+
+                include_dirs = self.include_dirs
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :define => '__orogen', :opaques_ignore => true, :merge => false }
+                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
+                # GCCXML can't parse vectorized code, and the Typelib internal
+                # parser can't parse eigen at all. It is therefore safe to do it
+                # here
+                options[:define] = ['EIGEN_DONT_VECTORIZE', '__orogen']
                 options[:include] = include_dirs.dup
-
-                begin
-                    file_registry.import(file, 'c', options)
-                    registry.merge(file_registry)
-                    if component
-                        component.registry.merge(file_registry)
+                options = options.merge(user_options) do |a, b|
+                    if a.respond_to?(:to_ary)
+                        if b.respond_to?(:to_ary)
+                            b.concat(a)
+                        else
+                            [b].concat(a)
+                        end
+                    else
+                        b
                     end
-                    imported_types.merge(file_registry) if preload
-                rescue RuntimeError => e
-                    raise ArgumentError, "cannot load #{file}: #{e.message}", e.backtrace
+                end
+
+                Tempfile.open("orogen_pending_loads") do |io|
+                    pending_loads.each do |f|
+                        io.puts "#include \"#{f}\""
+                    end
+                    io.flush
+
+                    begin
+                        file_registry.import(io.path, 'c', options)
+                        filter_unsupported_types(file_registry)
+                        registry.merge(file_registry)
+                        preloaded_registry.merge(file_registry) if preload
+                        if component
+                            component.registry.merge(file_registry)
+                        end
+                    rescue RuntimeError => e
+                        raise ArgumentError, "cannot load one of the header files #{pending_loads.join(", ")}: #{e.message}", e.backtrace
+                    end
                 end
 
                 if add
-                    loads << file
+                    loads.concat(pending_loads.to_a)
                 end
+                pending_loads.clear
 	    end
 
             # Returns the set of headers that have been loaded locally
@@ -1111,6 +1209,9 @@ module Orocos
                     end
                     FileUtils.ln_sf automatic_dir, fake_install_dir
                 end
+
+                # Load any queued file
+                perform_pending_loads
 
                 self.local_headers(false).each do |path, dest_path|
                     dest_path = File.join(automatic_dir, "types", name, dest_path)

@@ -104,7 +104,7 @@ ConfigError = Orocos::Generation::ConfigError
 begin
     filename  = files.first
     begin
-        component.load(filename)
+        component.load(filename, verbosity > 1)
 
     rescue Exception => e
         # Two options:

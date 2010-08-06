@@ -779,9 +779,9 @@ module Orocos
                         STDERR.puts "WARN: #{name} is a method name used in orocos.rb"
                         STDERR.puts "WARN:   if you keep that name, you will not be able to use shortcut access in orocos.rb"
                         STDERR.puts "WARN:   for instance, for a property, you will have to do"
-                        STDERR.puts "WARN:      my_task.property('#{name}').write(new_value)"
+                        STDERR.puts "WARN:      value = my_task.property('#{name}').read(new_value)"
                         STDERR.puts "WARN:   instead of the shorter and clearer"
-                        STDERR.puts "WARN:      my_task.#{name} = new_value"
+                        STDERR.puts "WARN:      value = my_task.#{name}"
                     end
                 end
 
@@ -891,7 +891,7 @@ module Orocos
                     if state_port.kind_of?(InputPort)
                         raise ArgumentError, 
                             "there is already an input port called 'state', cannot enable extended state support"
-                    elsif state_port.type_name != "/int"
+                    elsif state_port.type != component.find_type("/int")
                         raise ArgumentError, 
                             "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.typename}"
                     end
