@@ -14,13 +14,13 @@ class TC_GenerationTypegen < Test::Unit::TestCase
 
         in_wc("typekit_output") do
             # Touch the orogen file
-            FileUtils.touch "types/simple.h"
+            FileUtils.touch File.join("..", "types", "simple.h")
 
             # First check that the user is forbidden to go on with building
             Dir.chdir("build") do
                 assert !system("make")
             end
-            # Now, verify that we can run make regen
+            # Now, verify that we can run make regen and build fine
             Dir.chdir("build") do
                 assert system("make", "regen")
                 assert system("make")
