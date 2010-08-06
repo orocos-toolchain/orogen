@@ -35,7 +35,7 @@ this installation of typegen knows the following transports: #{transports}
     end
 
     opt.on('-o DIR', '--output DIR', String, "the directory to which the generated typekit should be written") do |dir|
-        typekit.automatic_dir = dir
+        typekit.automatic_dir = File.expand_path(dir)
     end
     opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO }
     opt.on("-d", "--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
