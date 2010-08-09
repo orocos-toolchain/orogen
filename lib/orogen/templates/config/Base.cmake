@@ -10,8 +10,10 @@ add_custom_command(
     COMMENT "oroGen specification file changed. Run make regen first."
     COMMAND /bin/false)
 
+<% if File.file?(component.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>")
+<% end %>
 
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= component.orocos_target %>")
