@@ -435,8 +435,7 @@ module Orocos
 	    # Returns the argument part of the C++ signature for this callable
 	    def argument_signature(with_names = true)
 		arglist = arguments.map do |name, type, doc|
-
-		    arg = type.full_name('::', true)
+		    arg = type.cxx_name
                     if !(type < Typelib::NumericType)
                         arg += " const &"
                     end
@@ -472,7 +471,7 @@ module Orocos
 	    def signature(with_names = true)
 		result = ""
 		if return_type
-		    result << return_type.full_name('::', true)
+		    result << return_type.cxx_name
 		else
 		    result << "void"
 		end
