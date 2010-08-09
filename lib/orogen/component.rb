@@ -129,6 +129,14 @@ module Orocos
             # nil if no file has been used
             attr_reader :deffile
 
+            # Sets the project's definition file. It has to be an absolute path
+            def deffile=(path)
+                @deffile = path
+                if typekit
+                    typekit.base_dir = base_dir
+                end
+            end
+
             # If set, the directory in which the .orogen file is. This is used
             # to update include paths for instance.
             def base_dir
@@ -476,12 +484,6 @@ module Orocos
                 end
 
 		if typekit
-                    typekit.name     = name
-                    typekit.version  = version
-                    typekit.base_dir = base_dir
-                    typekit.user_dir = File.join(base_dir, 'typekit')
-                    typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
-                    typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
                     if corba_enabled?
                         typekit.enable_plugin('corba')
                     end
@@ -670,10 +672,13 @@ module Orocos
                 if create && !@typekit
                     @typekit = Typekit.new(self)
 
-                    # Initialize the typekit's include_dirs set
-                    if base_dir
-                        typekit.include_dirs << base_dir
-                    end
+                    typekit.name     = name
+                    typekit.version  = version
+                    typekit.base_dir = base_dir
+                    typekit.user_dir = File.join(base_dir, 'typekit')
+                    typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
+                    typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+
                     typekit.include_dirs |=
                         used_task_libraries.map { |pkg| pkg.include_dirs }.
                         flatten.to_set
@@ -743,9 +748,9 @@ module Orocos
             # the documentation of that class for more details.
             #
 	    def task_context(name, &block)
-                # If we have a toolkit, resolve all pending loads
-                if toolkit
-                    toolkit.perform_pending_loads
+                # If we have a typekit, resolve all pending loads
+                if typekit
+                    typekit.perform_pending_loads
                 end
 
                 task = external_task_context(name, &block)
@@ -902,9 +907,9 @@ module Orocos
             # StaticDeployment instance, so see the documentation of that class
             # for more information.
 	    def deployment(name, &block) # :yield:
-                # If we have a toolkit, resolve all pending loads
-                if toolkit
-                    toolkit.perform_pending_loads
+                # If we have a typekit, resolve all pending loads
+                if typekit
+                    typekit.perform_pending_loads
                 end
 
                 deployer = StaticDeployment.new(self, name, &block)
@@ -975,13 +980,13 @@ module Orocos
 
             # Apply the project description included in +file+ to +self+
             def load(file, verbose = true)
-                @deffile = File.expand_path(file)
+                self.deffile = File.expand_path(file)
                 Kernel.eval_dsl_file(deffile, self, Orocos::Generation, verbose)
                 self
             end
 
             def eval(name, file_contents, verbose = true)
-                @deffile = "#{name}.orogen"
+                self.deffile = "#{name}.orogen"
                 Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, verbose)
                 self
             end

@@ -109,7 +109,7 @@ module Orocos
 		in_wc(*subdir) do
                     if component
                         unless component.deffile
-                            component.instance_variable_set(:@deffile, File.join(working_directory, "#{component.name}.orogen"))
+                            component.deffile = File.join(working_directory, "#{component.name}.orogen")
                         end
                         component.generate
                     end

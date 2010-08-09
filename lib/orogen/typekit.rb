@@ -374,7 +374,16 @@ module Orocos
             # The base directory. Everything under that directory are expected
             # to be local files and will be installed by the typekit's cmake
             # code
-            attr_accessor :base_dir
+            attr_reader :base_dir
+
+            # Changes the typekit base directory
+            def base_dir=(path)
+                @base_dir = path
+                if path
+                    include_dirs << path
+                end
+            end
+
             # The directory in which generated files that are meant to not be
             # modified by the user should be saved
             attr_accessor :automatic_dir
@@ -757,17 +766,6 @@ module Orocos
                 opaques.any? { |op| op.generate_templates? }
             end
 
-            # Returns the include directories that should be used for file
-            # loading
-            def include_dirs
-                include_dirs = []
-                include_dirs << component.base_dir if component.base_dir
-                include_dirs.concat(component.used_toolkits.map   { |tk| tk.include_dirs }.flatten)
-                include_dirs.concat(component.used_libraries.map  { |pkg| pkg.include_dirs }.flatten)
-                include_dirs.concat(component.used_task_libraries.map { |component| component.include_dirs }.flatten)
-                include_dirs
-            end
-
             # call-seq:
             #   load(file)
             #
@@ -799,9 +797,6 @@ module Orocos
                 end
 
                 include_dirs = self.include_dirs
-                if base_dir
-                    include_dirs << base_dir
-                end
 
                 # Get the full path for +file+
                 file =
@@ -855,7 +850,7 @@ module Orocos
 
                 preload, add, user_options = *pending_load_options
 
-                include_dirs = self.include_dirs
+                include_dirs = self.include_dirs.to_a
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
