@@ -544,7 +544,7 @@ module Orocos
                     perform_pending_loads
                     retry
                 end
-                raise ArgumentError, e.message, e.backtrace
+                raise e.class, e.message, e.backtrace
 	    end
 
             # The target operating system for orocos. Uses the OROCOS_TARGET
