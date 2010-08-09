@@ -570,7 +570,7 @@ module Orocos
                 # indirect dependencies in type_includes, remove duplicates
                 # and finish
                 used_typekits.map! do |name|
-                    build_dep = BuildDependency.new("#{name}_TOOLKIT", "#{name}-typekit-#{orocos_target}")
+                    build_dep = BuildDependency.new("#{name}_TYPEKIT", "#{name}-typekit-#{orocos_target}")
                     build_dep.in_context('core', 'include')
                     build_dep.in_context('core', 'link')
                 end

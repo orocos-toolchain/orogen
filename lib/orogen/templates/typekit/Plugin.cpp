@@ -18,9 +18,9 @@ orogen_typekits::<%= typekit.name %>TypekitPlugin::~<%= typekit.name %>TypekitPl
 {}
 
 
-#define TOOLKIT_PACKAGE_NAME_aux0(target) #target
-#define TOOLKIT_PACKAGE_NAME_aux(target) "<%= typekit.name %>-typekit-" TOOLKIT_PACKAGE_NAME_aux0(target)
-#define TOOLKIT_PACKAGE_NAME TOOLKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
+#define TYPEKIT_PACKAGE_NAME_aux0(target) #target
+#define TYPEKIT_PACKAGE_NAME_aux(target) "<%= typekit.name %>-typekit-" TYPEKIT_PACKAGE_NAME_aux0(target)
+#define TYPEKIT_PACKAGE_NAME TYPEKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
 bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
 {
     RTT::types::TypeInfoRepository::shared_ptr ti_repository = RTT::types::TypeInfoRepository::Instance();

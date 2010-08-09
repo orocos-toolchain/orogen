@@ -1,5 +1,5 @@
-#ifndef <%= typekit.name.upcase %>_TOOLKIT_HPP
-#define <%= typekit.name.upcase %>_TOOLKIT_HPP
+#ifndef <%= typekit.name.upcase %>_TYPEKIT_HPP
+#define <%= typekit.name.upcase %>_TYPEKIT_HPP
 
 #include <rtt/types/TypekitPlugin.hpp>
 

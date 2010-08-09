@@ -72,6 +72,7 @@ string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 set(libname <%= typekit.name %>-typekit-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= implementation_files.sort.join("\n  ") %>
+    ${TYPEKIT_ADDITIONAL_SOURCES}
     ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !typekit.opaques.empty? %>
         <% if typekit.has_opaques_with_templates? %>
@@ -81,7 +82,7 @@ add_library(${libname} SHARED
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
-target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)

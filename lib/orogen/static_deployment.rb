@@ -662,7 +662,7 @@ module Orocos
 
                 used_typekits.each do |tk|
                     result << BuildDependency.new(
-                        "#{tk.name}_TOOLKIT",
+                        "#{tk.name}_TYPEKIT",
                         tk.pkg_name).
                         in_context('core', 'include').
                         in_context('core', 'link')

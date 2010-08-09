@@ -1011,7 +1011,7 @@ module Orocos
                 # going to reuse the convertion functions that they define
                 used_typekits.each do |tk|
                     result << BuildDependency.new(
-                        tk.name.upcase + "_TOOLKIT", tk.pkg_name).
+                        tk.name.upcase + "_TYPEKIT", tk.pkg_name).
                         in_context('core', 'include').
                         in_context('core', 'link')
                 end

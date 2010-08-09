@@ -1,5 +1,5 @@
-#ifndef __OROGEN_TOOLKIT_<%= typekit.name.upcase %>_IDL__
-#define __OROGEN_TOOLKIT_<%= typekit.name.upcase %>_IDL__
+#ifndef __OROGEN_TYPEKIT_<%= typekit.name.upcase %>_IDL__
+#define __OROGEN_TYPEKIT_<%= typekit.name.upcase %>_IDL__
 
 <% typekit.used_typekits.each do |tk| %>
 #include <<%= tk.name %>/transports/corba/<%= tk.name %>Types.idl>

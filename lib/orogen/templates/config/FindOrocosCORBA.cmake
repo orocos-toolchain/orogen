@@ -26,7 +26,7 @@ ELSE(NOT OrocosCORBA_FOUND)
         LIST(APPEND OrocosCORBA_LIBS TAO_Strategies)
     ENDIF (CORBA_IMPLEMENTATION STREQUAL "TAO")
 
-    # ORB-specific configuration steps if the TOOLKIT component
+    # ORB-specific configuration steps if the TYPEKIT component
     # is required
     STRING(REGEX MATCH "Typekit" _orocos_corba_typekit "${OrocosCORBA_FIND_COMPONENTS}")
     IF (_orocos_corba_typekit)
