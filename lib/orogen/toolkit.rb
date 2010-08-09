@@ -451,7 +451,7 @@ module Orocos
                     perform_pending_loads
                     retry
                 end
-                raise ArgumentError, e.message, e.backtrace
+                raise e.class, e.message, e.backtrace
 	    end
 
             # True if we are generating for Linux
