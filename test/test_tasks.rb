@@ -120,18 +120,18 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_equal("another_method_name", meth.method_name)
 
 	assert_same(meth, meth.returns("/int"))
-	assert_equal("int another_method_name()", meth.signature)
+	assert_equal("boost::int32_t another_method_name()", meth.signature)
 	assert(meth.arguments.empty?)
 
 	assert_same(meth, meth.argument("arg1", "/std/string", "first argument"))
-	assert_equal("int another_method_name(std::string const & arg1)", meth.signature(true))
-	assert_equal("int(std::string const &)", meth.signature(false))
+	assert_equal("boost::int32_t another_method_name(std::string const & arg1)", meth.signature(true))
+	assert_equal("boost::int32_t(std::string const &)", meth.signature(false))
 	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
 	assert_equal(expected_arguments, meth.arguments)
 
 	meth.argument "arg2", "double", "second argument"
-	assert_equal("int another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
-	assert_equal("int(std::string const &, double)", meth.signature(false))
+	assert_equal("boost::int32_t another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
+	assert_equal("boost::int32_t(std::string const &, double)", meth.signature(false))
 	expected_arguments << ["arg2", component.registry.get('double'), "second argument"]
 	assert_equal(expected_arguments, meth.arguments)
 
@@ -221,12 +221,12 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	read = task.input_port 'r', 'int'
 	assert_kind_of(InputPort, read)
 	assert_equal("RTT::InputPort", read.orocos_class)
-	assert_equal("int", read.type.full_name('::', true))
+	assert_equal("boost::int32_t", read.type.cxx_name)
 
 	write = task.output_port 'w', 'int'
 	assert_kind_of(OutputPort, write)
 	assert_equal("RTT::OutputPort", write.orocos_class)
-	assert_equal("int", write.type.full_name('::', true))
+	assert_equal("boost::int32_t", write.type.cxx_name)
 
 	# read buffer do not have any size
 	assert_raises(ArgumentError) { task.input_port 'r', 'int' }
