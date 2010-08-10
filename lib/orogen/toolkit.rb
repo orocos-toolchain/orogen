@@ -838,7 +838,7 @@ module Orocos
                 # registry.each_type. Note that the registry is minimal, i.e.
                 # contains only our own types plus the types that are needed to
                 # define them, and this is therefore not a problem.
-		registry.each_type(true) do |name, type|
+		registry.each(:with_aliases => true) do |name, type|
                     loop do
                         component.used_toolkits.each do |tk|
                             if type < Typelib::ArrayType 
@@ -974,7 +974,7 @@ module Orocos
                 # practice, we generate C code that we merge back into the
                 # repository
                 generate_all_marshalling_types = false
-                generated_types = registry.enum_for(:each_type).
+                generated_types = registry.each(:with_aliases => true).
                     find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
 		toolkit = self
                 catch(:nothing_to_define) do
@@ -1015,7 +1015,7 @@ module Orocos
             # toolkit.
             def self_typenames
 		generated_types = []
-		registry.each_type(true) do |name, type|
+		registry.each(:with_aliases => true) do |name, type|
                     next if component.imported_type?(name)
 		    if !type.inlines_code?
 			generated_types << name
@@ -1028,7 +1028,7 @@ module Orocos
             # toolkit
             def self_types
 		generated_types = []
-		registry.each_type do |type|
+		registry.each do |type|
                     next if component.imported_type?(type.name)
                     generated_types << type
 		end
