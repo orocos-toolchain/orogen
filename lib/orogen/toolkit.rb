@@ -974,7 +974,7 @@ module Orocos
                 # practice, we generate C code that we merge back into the
                 # repository
                 generate_all_marshalling_types = false
-                generated_types = registry.each(:with_aliases => true).
+                generated_types = registry.each(:with_aliases => false).
                     find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
 		toolkit = self
                 catch(:nothing_to_define) do
