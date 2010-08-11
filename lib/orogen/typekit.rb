@@ -807,7 +807,7 @@ module Orocos
                     else # File from used libraries/task libraries
                         dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
                         if !dir
-                            raise ArgumentError, "cannot find #{file} in #{include_dirs.join(":")}"
+                            raise ArgumentError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
                         end
                         loaded_files_dirs << dir
                         File.join(dir, file)
