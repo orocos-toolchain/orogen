@@ -132,8 +132,14 @@ module Orocos
             # Sets the project's definition file. It has to be an absolute path
             def deffile=(path)
                 @deffile = path
-                if typekit
+                if typekit && path
+                    base_dir = self.base_dir
                     typekit.base_dir = base_dir
+                    if base_dir
+                        typekit.user_dir      = File.join(base_dir, 'typekit')
+                        typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
+                        typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+                    end
                 end
             end
 
@@ -676,9 +682,11 @@ module Orocos
                     typekit.name     = name
                     typekit.version  = version
                     typekit.base_dir = base_dir
-                    typekit.user_dir = File.join(base_dir, 'typekit')
-                    typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
-                    typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+                    if base_dir
+                        typekit.user_dir      = File.join(base_dir, 'typekit')
+                        typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
+                        typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
+                    end
 
                     typekit.include_dirs |=
                         used_task_libraries.map { |pkg| pkg.include_dirs }.
