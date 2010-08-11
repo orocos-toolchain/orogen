@@ -20,16 +20,18 @@ class TC_GenerationTypekit < Test::Unit::TestCase
 	component = Component.new
         component.name 'test_typekit_load'
 
-        # Load a file with errors
-        assert_raises(ArgumentError) do
-            component.typekit(true).load File.join(TEST_DATA_DIR, 'exists')
-        end
-
         # Load a file that does not exist
         assert_raises(ArgumentError) do
             component.typekit do
                 load 'does_not_exist.h'
             end
+        end
+
+        # Load a file with errors
+        assert_raises(ArgumentError) do
+            typekit = component.typekit(true)
+            typekit.load File.join(TEST_DATA_DIR, 'exists')
+            typekit.perform_pending_loads
         end
     end
 
