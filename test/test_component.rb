@@ -48,10 +48,10 @@ class TC_GenerationComponent < Test::Unit::TestCase
             io.flush
 
             begin
-                Component.load(io.path)
+                Component.load(io.path, false)
                 flunk "no exception thrown by load"
             rescue TypeError => e
-                assert_equal("#{io.path}:1", e.backtrace[0])
+                assert_equal("#{io.path}:1", e.backtrace[0], "complete backtrace is:\n  #{e.backtrace.join("\n  ")}")
                 assert_equal("custom exception", e.message)
             end
         end
