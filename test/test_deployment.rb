@@ -115,7 +115,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
             writer.write("AB")
             sleep 0.5
             writer.write("CDE")
-            Process.waitpid(child_pid)
+            ::Process.waitpid(child_pid)
             assert_equal(0, $?.exitstatus)
         end
     end
