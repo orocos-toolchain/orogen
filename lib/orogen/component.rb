@@ -315,9 +315,10 @@ module Orocos
                     name << '/'
                 end
 
-                registry.enum_for(:each_type).any? do |type|
-                    type.namespace =~ /^#{Regexp.quote(name)}/
+                registry.each(name, :with_aliases => true) do |type|
+                    return true
                 end
+                return false
             end
 
             # The deployment modes that are required for this generation

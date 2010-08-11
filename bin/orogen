@@ -3,6 +3,9 @@
 require 'orogen'
 require 'optparse'
 
+# Disable typelib plugin loading
+Typelib.load_type_plugins = false
+
 verbosity = 0
 extended_states = false
 transports = []
