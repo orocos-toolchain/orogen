@@ -52,7 +52,7 @@ else
                 if field_type.inlines_code?
                     field_type.inline_toPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
                 elsif field_type < ArrayType
-                    result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, target_bag)) return false;\n";
+                    result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", reinterpret_cast<#{field_type.deference.cxx_name} const*>(value.#{field_name}), #{field_type.length}, target_bag)) return false;\n";
                 else
                     result << "#{indent}if (!toPropertyBag(basename + \".#{field_name}\", value.#{field_name}, target_bag)) return false;\n";
                 end
@@ -65,7 +65,7 @@ else
                 if field_type.inlines_code?
                     field_type.inline_fromPropertyBag(toolkit, result, "value.#{field_name}", "basename + \".#{field_name}\"", indent)
                 elsif field_type < ArrayType
-                    result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, bag)) return false;\n";
+                    result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", reinterpret_cast<#{field_type.deference.cxx_name}*>(value.#{field_name}), #{field_type.length}, bag)) return false;\n";
                 else
                     result << "#{indent}if (!fromPropertyBag(basename + \".#{field_name}\", value.#{field_name}, bag)) return false;\n";
                 end
@@ -88,7 +88,7 @@ else
                 if element_type.inlines_code?
                     element_type.inline_toPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
-                    result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, target_bag)) return false;\n";
+                    result << "#{indent}if (!toPropertyBag(#{idx_expr}, reinterpret_cast<#{field_type.deference.cxx_name} const*>(value[#{i}]), #{element_type.length}, target_bag)) return false;\n";
                 else
                     result << "#{indent}if (!toPropertyBag(#{idx_expr}, value[#{i}], target_bag)) return false;\n";
                 end
@@ -109,7 +109,7 @@ else
                 if element_type.inlines_code?
                     element_type.inline_fromPropertyBag(toolkit, result, "value[#{i}]", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
-                    result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], #{element_type.length}, bag)) return false;\n";
+                    result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, reinterpret_cast<#{field_type.deference.cxx_name}*>(value[#{i}]), #{element_type.length}, bag)) return false;\n";
                 else
                     result << "#{indent}    if (!fromPropertyBag(#{idx_expr}, value[#{i}], bag)) return false;\n";
                 end
@@ -135,7 +135,7 @@ else
                 if element_type.inlines_code?
                     element_type.inline_toPropertyBag(toolkit, result, "(*it)", idx_expr, indent + "    ")
                 elsif element_type < ArrayType
-                    result << indent << "if (!toPropertyBag(#{idx_expr}, *it, #{element_type.length}, target_bag)) return false;\n";
+                    result << indent << "if (!toPropertyBag(#{idx_expr}, reinterpret_cast<#{field_type.deference.cxx_name} const*>(*it), #{element_type.length}, target_bag)) return false;\n";
                 else
                     result << indent << "if (!toPropertyBag(#{idx_expr}, *it, target_bag)) return false;\n";
                 end
