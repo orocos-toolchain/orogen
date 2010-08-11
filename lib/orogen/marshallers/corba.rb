@@ -108,7 +108,7 @@ module Typelib
                     if element_type.inlines_code?
                         result << element_type.inline_toCorba("corba[#{element_idx}]", "(*it)", indent)
                     elsif element_type < ArrayType
-                        result << indent << "    toCORBA(corba[#{element_idx}], *it, #{element_type.length});\n";
+                        result << indent << "    toCORBA(corba[#{element_idx}], reinterpret_cast<#{element_type.deference.cxx_name} const*>(*it), #{element_type.length});\n";
                     else
                         result << indent << "    toCORBA(corba[#{element_idx}], *it);\n";
                     end
@@ -137,7 +137,7 @@ module Typelib
                 if element_type.inlines_code?
                     result << element_type.inline_fromCorba("value[#{element_idx}]", "corba[#{element_idx}]", indent)
                 elsif element_type < ArrayType
-                    result << "#{indent}    fromCORBA(value[#{element_idx}], #{element_type.length}, corba[#{element_idx}]);\n";
+                    result << "#{indent}    fromCORBA(reinterpret_cast<#{element_type.deference.cxx_name}*>(value[#{element_idx}]), #{element_type.length}, corba[#{element_idx}]);\n";
                 else
                     result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
                 end

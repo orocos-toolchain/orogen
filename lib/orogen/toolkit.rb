@@ -167,10 +167,11 @@ module Typelib
                     s_src  = "#{src}.#{field_name}"
                     s_dest = "#{dest}.#{field_name}"
                     if field_type < ArrayType
-                        s_array = if src == "value" then s_src
-                                  else s_dest
-                                  end
-                        s_array << ", #{field_type.length}"
+                        if src == "value"
+                            s_src = "reinterpret_cast<#{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
+                        else
+                            s_dest = "reinterpret_cast<#{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
+                        end
                     end
 
                     if error_handling
@@ -221,10 +222,11 @@ module Typelib
                     s_src  = "#{src}[#{i}]"
                     s_dest = "#{dest}[#{i}]"
                     if element_type < ArrayType
-                        s_array = if src == "value" then s_src
-                                  else s_dest
-                                  end
-                        s_array << ", #{element_type.length}"
+                        if src == "value"
+                            s_src = "reinterpret_cast<#{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
+                        else
+                            s_dest = "reinterpret_cast<#{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
+                        end
                     end
 
                     result << "#{indent}    if (!#{method}(#{s_dest}, #{s_src})) return false;\n";
