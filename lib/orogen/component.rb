@@ -153,9 +153,9 @@ module Orocos
 
             # Create a new Component object by loading the given orogen
             # specification file
-            def self.load(file)
+            def self.load(file, verbose = true)
                 component = new
-                component.load(file)
+                component.load(file, verbose)
                 component
             end
 
