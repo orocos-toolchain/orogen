@@ -48,6 +48,8 @@ module Orocos
                     headers << typekit.save_automatic("transports", "typelib", "TransportPlugin.hpp", code)
                     code = Generation.render_template "typekit", "typelib", "TransportPlugin.cpp", binding
                     impl << typekit.save_automatic("transports", "typelib", "TransportPlugin.cpp", code)
+                    pkg_config = Generation.render_template "typekit", "typelib", "transport-typelib.pc", binding
+                    typekit.save_automatic("transports", "typelib", "#{typekit.name}-transport-typelib.pc.in", pkg_config)
                     code = Generation.render_template "typekit", "typelib", "CMakeLists.txt", binding
                     typekit.save_automatic("transports", "typelib", "CMakeLists.txt", code)
 
