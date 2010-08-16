@@ -78,7 +78,7 @@ int ORO_main(int argc, char* argv[])
    <% end %>
 
    RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
-   <% if deployer.corba_enabled? %>
+   <% if deployer.transports.include?('corba') %>
    RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
    <% end %>
 
