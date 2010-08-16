@@ -66,7 +66,7 @@ bool generic_corba_test(T const& testValue, RTT::types::TypeInfo const& ti)
 
         ValueDataSource<T>* reader = new ValueDataSource<T>();
         reader->ref();
-        transport->updateAny(reader, *result);
+        transport->updateFromAny(result, reader);
 
         T result_value = reader->get();
         if (!(result_value == testValue))

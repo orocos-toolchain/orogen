@@ -175,7 +175,7 @@ bool generic_type_handling_test(std::string const& name, T const& testValue, Typ
 
         ValueDataSource<T>* reader = new ValueDataSource<T>();
         reader->ref();
-        transport->updateAny(reader, *result);
+        transport->updateFromAny(result, reader);
 
         T value = reader->get();
         if (!(get_test_value(value) == get_test_value(testValue)))
