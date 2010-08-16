@@ -171,9 +171,9 @@ module Typelib
                     s_dest = "#{dest}.#{field_name}"
                     if field_type < ArrayType
                         if src == "value"
-                            s_src = "reinterpret_cast<#{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
+                            s_src = "reinterpret_cast< #{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
                         else
-                            s_dest = "reinterpret_cast<#{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
+                            s_dest = "reinterpret_cast< #{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
                         end
                     end
 
@@ -226,9 +226,9 @@ module Typelib
                     s_dest = "#{dest}[#{i}]"
                     if element_type < ArrayType
                         if src == "value"
-                            s_src = "reinterpret_cast<#{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
+                            s_src = "reinterpret_cast< #{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
                         else
-                            s_dest = "reinterpret_cast<#{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
+                            s_dest = "reinterpret_cast< #{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
                         end
                     end
 
