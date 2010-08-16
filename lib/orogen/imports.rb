@@ -25,8 +25,11 @@ module Orocos
                 pkg.name
             end
             def perform_pending_loads; end
+            def pkg_transport_name(transport_name)
+                Utilrb::PkgConfig.new(pkg.name.gsub('typekit', "transport-#{transport_name}")).name
+            end
             def pkg_corba_name
-                Utilrb::PkgConfig.new(pkg.name.gsub('typekit', 'transport-corba')).name
+                pkg_transport_name('corba')
             end
             def include_dirs
                 pkg.include_dirs

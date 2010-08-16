@@ -409,6 +409,7 @@ module Orocos
                 @corba_enabled   = nil
                 @browse          = nil
                 @loglevel        = nil
+                @transports      = Array.new
             end
 
             KNOWN_LOG_LEVELS = {
@@ -457,6 +458,27 @@ module Orocos
             # Force the non-use of corba -- even though corba is enabled in the
             # component itself.
             def disable_corba; @corba_enabled = false end
+
+            # The set of transports loaded by this deployment for which a
+            # transport should be loaded on the RTT itself
+            def rtt_transports
+                result = self.transports
+                result.delete('typelib')
+                result
+            end
+            # The set of transports loaded by this deployment, as an array of
+            # names
+            def transports
+                @transports.to_a.sort
+            end
+            # Forbid the deployment from loading the given transport
+            def disable_transport(transport_name)
+                @transports.delete(transport_name.to_str)
+            end
+            # Make the deployment load the given transport
+            def enable_transport(transport_name)
+                @transports << transport_name.to_str
+            end
 
             # call-seq:
             #   task name, task_context -> task_deployment
@@ -667,12 +689,12 @@ module Orocos
                         in_context('core', 'include').
                         in_context('core', 'link')
 
-                    if corba_enabled?
+                    transports.each do |transport_name|
                         result << BuildDependency.new(
-                            "#{tk.name}_TRANSPORT_CORBA",
-                            tk.pkg_corba_name).
-                            in_context('corba', 'include').
-                            in_context('corba', 'link')
+                            "#{tk.name}_TRANSPORT_#{transport_name.upcase}",
+                            tk.pkg_transport_name(transport_name)).
+                            in_context('core', 'include').
+                            in_context('core', 'link')
                     end
                 end
 

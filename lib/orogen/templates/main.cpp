@@ -1,21 +1,21 @@
 #include <rtt/os/main.h>
 
 #include <rtt/typekit/RealTimeTypekit.hpp>
-<% if deployer.corba_enabled? %>
-#include <rtt/transports/corba/TransportPlugin.hpp>
+<% deployer.rtt_transports.each do |transport_name| %>
+#include <rtt/transports/<%= transport_name %>/TransportPlugin.hpp>
 <% end %>
 
 <% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
 <% if typekit = component.typekit %>
 #include "typekit/Plugin.hpp"
-<% if deployer.corba_enabled? %>
-#include "typekit/transports/corba/TransportPlugin.hpp"
+<% deployer.transports.each do |transport_name| %>
+#include "typekit/transports/<%= transport_name %>/TransportPlugin.hpp"
 <% end %>
 <% end %>
 <% deployer.used_typekits.each do |tk| %>
 #include <<%= tk.name %>/typekit/Plugin.hpp>
-    <% if deployer.corba_enabled? %>
-#include <<%= tk.name %>/transports/corba/TransportPlugin.hpp>
+    <% deployer.transports.each do |transport_name| %>
+#include <<%= tk.name %>/transports/<%= transport_name %>/TransportPlugin.hpp>
     <% end %>
 <% end %>
 
@@ -84,14 +84,14 @@ int ORO_main(int argc, char* argv[])
 
    <% if component.typekit %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
-   <% if deployer.corba_enabled? %>
-   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>CorbaTransportPlugin );
+   <% deployer.transports.each do |transport_name| %>
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %><%= transport_name.capitalize %>TransportPlugin );
    <% end %>
    <% end %>
    <% deployer.used_typekits.each do |tk| %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
-       <% if deployer.corba_enabled? %>
-   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>CorbaTransportPlugin );
+       <% deployer.transports.each do |transport_name| %>
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %><%= transport_name.capitalize %>TransportPlugin );
        <% end %>
    <% end %>
 

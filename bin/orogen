@@ -133,6 +133,11 @@ begin
         raise
     end
 
+    component.deployers.each do |deployment|
+        transports.each do |transport_name|
+            deployment.enable_transport(transport_name)
+        end
+    end
     if component.typekit
         transports.each do |transport_name|
             component.typekit.enable_plugin(transport_name)

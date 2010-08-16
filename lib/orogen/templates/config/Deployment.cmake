@@ -9,15 +9,15 @@ include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if component.typekit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
-<% if deployer.corba_enabled? %>
-target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-corba-${OROCOS_TARGET})
+<% deployer.transports.each do |transport_name| %>
+target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
 <% end %>
 <% end %>
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
-find_package(RTTPlugin COMPONENTS rtt-typekit rtt-transport-corba)
+find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)
 target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-typekit_LIBRARY})
-<% if deployer.corba_enabled? %>
-target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-corba_LIBRARY})
+<% deployer.rtt_transports.each do |transport_name| %>
+target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-<%= transport_name %>_LIBRARY})
 <% end %>
 <% if !component.self_tasks.empty? %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
