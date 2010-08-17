@@ -1,6 +1,10 @@
 <% namespace = '/'
    did_something = false %>
 
+<% toolkit.loads.each do |path| %>
+#include "<%= path %>"
+<% end %>
+
 <% generated_types.find_all { |type| type.contains_opaques? && !type.opaque? }.
 each do |type|
     next if component.imported_type?(type)
