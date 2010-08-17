@@ -1,6 +1,10 @@
 <% namespace = '/'
    did_something = false %>
 
+<% typekit.loads.each do |path| %>
+#include "<%= path %>"
+<% end %>
+
 <% generated_types.find_all { |type| type.contains_opaques? && !type.opaque? }.
 each do |type|
     next if typekit.imported_type?(type)
