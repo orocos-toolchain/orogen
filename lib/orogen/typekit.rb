@@ -635,14 +635,6 @@ module Orocos
             # Enumerate all enabled plugins. See #enable_plugin
             def each_plugin(&block); plugins.each(&block) end
 
-            # Loads the types defined in +file+, with the same constraints as
-            # for #load, but will not generate typekit code for it. This is
-            # needed to load system files for which there is a "natural"
-            # support in Orocos.
-            def preload(file)
-                load(file, true)
-            end
-
             # Ask to support a smart-pointer implementation on the given type.
             # For instance, after the call
             #  
@@ -796,8 +788,8 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
-	    def load(file, preload = false, add = true, user_options = Hash.new)
-                this_options = [preload, add, user_options]
+	    def load(file, add = true, user_options = Hash.new)
+                this_options = [add, user_options]
                 if pending_load_options != this_options
                     perform_pending_loads
                 end
@@ -854,7 +846,7 @@ module Orocos
             def perform_pending_loads
                 return if pending_loads.empty?
 
-                preload, add, user_options = *pending_load_options
+                add, user_options = *pending_load_options
 
                 include_dirs = self.include_dirs.to_a
 
@@ -889,7 +881,6 @@ module Orocos
                         file_registry.import(io.path, 'c', options)
                         filter_unsupported_types(file_registry)
                         registry.merge(file_registry)
-                        preloaded_registry.merge(file_registry) if preload
                         if component
                             component.registry.merge(file_registry)
                         end

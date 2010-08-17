@@ -345,7 +345,7 @@ module Orocos
                 if Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
                     using_typekit name
                 else
-                    typekit(true).load name, false, true, *args
+                    typekit(true).load name, true, *args
                 end
             end
 
