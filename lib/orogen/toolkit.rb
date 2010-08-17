@@ -733,7 +733,8 @@ module Orocos
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE', '__orogen']
+                options[:define] = ['EIGEN_DONT_VECTORIZE']
+
                 options[:include] = include_dirs.dup
                 options = options.merge(user_options) do |a, b|
                     if a.respond_to?(:to_ary)
@@ -754,12 +755,12 @@ module Orocos
                     io.flush
 
                     begin
-                        file_registry.import(io.path, 'c', options)
+                        do_import(file_registry, io.path, 'c', options)
                         filter_unsupported_types(file_registry)
                         registry.merge(file_registry)
                         preloaded_registry.merge(file_registry) if preload
                         component.registry.merge(file_registry)
-                    rescue RuntimeError => e
+                    rescue Exception => e
                         raise ArgumentError, "cannot load one of the header files #{pending_loads.join(", ")}: #{e.message}", e.backtrace
                     end
                 end
@@ -984,10 +985,33 @@ module Orocos
                         marshalling_code = Generation.render_template 'toolkit/marshalling_types.hpp', binding
                         io << marshalling_code
                         io.flush
+                        self.load(io.path, false, false)
 
-                        registry.import(io.path, 'c', :merge => false)
+                        begin
+                            self.perform_pending_loads
+                        rescue Exception => e
+                            raise InternalError, "cannot load the definition of opaque m-types: #{e.message}", e.backtrace
+                        end
                     end
                 end
+            end
+
+            def do_import(registry, path, kind, options)
+                # Define __orogen2 or __orogen based on us using GCCXML (first
+                # case) or the typelib internal parser (second case)
+                uses_gccxml =
+                    Typelib::Registry.respond_to?(:uses_gccxml?) && Typelib::Registry.uses_gccxml?(path, 'c')
+                options[:define] ||= []
+                if uses_gccxml
+                    options[:define] << '__orogen2'
+                    opaque_names = opaques.map { |opdef| opdef.type.name }
+                    options[:opaques] ||= []
+                    options[:opaques].concat(opaque_names)
+                else
+                    options[:define] << '__orogen'
+                end
+
+                registry.import(path, kind, options)
             end
 
             # This generates typedefs for container types. These
