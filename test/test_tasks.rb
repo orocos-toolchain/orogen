@@ -124,20 +124,20 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert(meth.arguments.empty?)
 
 	assert_same(meth, meth.argument("arg1", "/std/string", "first argument"))
-	assert_equal("boost::int32_t another_method_name(std::string const & arg1)", meth.signature(true))
-	assert_equal("boost::int32_t(std::string const &)", meth.signature(false))
+	assert_equal("boost::int32_t another_method_name(::std::string const & arg1)", meth.signature(true))
+	assert_equal("boost::int32_t(::std::string const &)", meth.signature(false))
 	expected_arguments = [["arg1", component.registry.get('std/string'), "first argument"]]
 	assert_equal(expected_arguments, meth.arguments)
 
 	meth.argument "arg2", "double", "second argument"
-	assert_equal("boost::int32_t another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
-	assert_equal("boost::int32_t(std::string const &, double)", meth.signature(false))
+	assert_equal("boost::int32_t another_method_name(::std::string const & arg1, double arg2)", meth.signature(true))
+	assert_equal("boost::int32_t(::std::string const &, double)", meth.signature(false))
 	expected_arguments << ["arg2", component.registry.get('double'), "second argument"]
 	assert_equal(expected_arguments, meth.arguments)
 
 	meth.returns nil
-	assert_equal("void another_method_name(std::string const & arg1, double arg2)", meth.signature(true))
-	assert_equal("void(std::string const &, double)", meth.signature(false))
+	assert_equal("void another_method_name(::std::string const & arg1, double arg2)", meth.signature(true))
+	assert_equal("void(::std::string const &, double)", meth.signature(false))
 	assert_equal(expected_arguments, meth.arguments)
 
         meth.argument "arg3", "double", "third argument"
