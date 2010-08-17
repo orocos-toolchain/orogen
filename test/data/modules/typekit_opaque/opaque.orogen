@@ -13,8 +13,7 @@ name "opaque"
 typekit do
     # Define an opaque type by giving its name, the intermediate type that will
     # be used for typekit generation and the include files that define it.
-    opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D',
-        :includes => [File.expand_path('opaque.h', File.dirname(component.deffile))]
+    opaque_type '/NotOrogenCompatible/Point2D', 'TestOpaque/Point2D'
 
     # opaque_type name_of_real_type, name_of_intermediate_type,
     #    :includes => [include_file_1, include_file_2]
