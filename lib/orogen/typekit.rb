@@ -790,6 +790,10 @@ module Orocos
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
 	    def load(file, add = true, user_options = Hash.new)
+                if !user_options.respond_to?(:to_hash) 
+                    raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
+                end
+
                 this_options = [add, user_options]
                 if pending_load_options != this_options
                     perform_pending_loads
