@@ -731,7 +731,8 @@ module Orocos
             def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
                 options = validate_options options,
                     :includes => nil,
-                    :needs_copy => true
+                    :needs_copy => true,
+                    :includes => []
 
                 base_type = base_type.to_str
                 if intermediate_type.kind_of?(Class) && intermediate_type < Typelib::Type
