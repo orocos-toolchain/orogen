@@ -75,6 +75,7 @@ end
 
 module Orocos
     module Generation
+        class InternalError < RuntimeError; end
         OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
 
         class ConfigError < Exception; end

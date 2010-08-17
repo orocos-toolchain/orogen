@@ -1092,7 +1092,11 @@ module Orocos
                         io << marshalling_code
                         io.flush
 
+                        begin
                         registry.import(io.path, 'c', :merge => false)
+                        rescue Exception => e
+                            raise InternalError, "cannot load the definition of opaque m-types: #{e.message}", e.backtrace
+                        end
                     end
                 end
             end

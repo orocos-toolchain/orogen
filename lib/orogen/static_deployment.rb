@@ -428,7 +428,7 @@ module Orocos
                 task_typekits.sort.map do |used_name|
                     this_tk = component.used_typekits.find { |tk| tk.name == used_name }
                     if !this_tk
-                        raise "Internal Error: imported typekit is not present in this component's used_typekits set"
+                        raise InternalError, "imported typekit is not present in this component's used_typekits set"
                     end
                     this_tk
                 end
