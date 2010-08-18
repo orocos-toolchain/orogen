@@ -447,18 +447,6 @@ module Orocos
                 @loglevel = orocos_level
             end
 
-            # Makes the deployed component offer a CORBA interface. By default,
-            # follows the value of component.corba_enabled?, but this can be
-            # overriden by using #enable_corba and #disable_corba
-            def corba_enabled?; @corba_enabled.nil? ? component.corba_enabled? : @corba_enabled end
-
-            # Force the use of corba -- even though corba is not enabled in the
-            # component itself.
-            def enable_corba;  @corba_enabled = true end
-            # Force the non-use of corba -- even though corba is enabled in the
-            # component itself.
-            def disable_corba; @corba_enabled = false end
-
             # The set of transports loaded by this deployment for which a
             # transport should be loaded on the RTT itself
             def rtt_transports
@@ -504,6 +492,28 @@ module Orocos
                 task_activities << deployment
                 deployment
             end
+
+            # True if this deployment should export its tasks through CORBA.
+            #
+            # It is true by default if the CORBA transport is enabled
+            def corba_enabled?
+                if @corba_enabled.nil?
+                    transports.include?('corba')
+                else @corba_enabled
+                end
+            end
+
+            # Force disabling CORBA support even though the CORBA transport is
+            # enabled in this deployment
+            #
+            # See #corba_enabled?
+            def disable_corba; @corba_enabled = false end
+
+            # Force enabling CORBA support even though the CORBA transport is
+            # not enabled in this deployment
+            #
+            # See #corba_enabled?
+            def enable_corba; @corba_enabled = true end
 
             # Generates the code associated with this deployment setup
             def generate

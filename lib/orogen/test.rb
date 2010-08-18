@@ -178,16 +178,7 @@ module Orocos
                 in_wc do
                     spec = Dir.glob("*.orogen").to_a.first
                     component = Component.load(spec)
-                    if component.typekit
-                        transports.each do |transport_name|
-                            component.typekit.enable_plugin(transport_name)
-                        end
-                    end
-                    if transports.include?('corba')
-                        component.enable_corba
-                    else
-                        component.disable_corba
-                    end
+                    component.enable_transports(*transports)
 
                     compile_wc(component) do
                         FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'

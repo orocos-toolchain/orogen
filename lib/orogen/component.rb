@@ -4,11 +4,6 @@ require 'utilrb/kernel/load_dsl_file'
 
 module Orocos
     module Generation
-        def self.corba_enabled?; @corba end
-        def self.enable_corba;   @corba = true end
-        def self.disable_corba;  @corba = false end
-        @corba = false
-
         def self.extended_states=(value);  @extended_states = value end
         def self.extended_states_enabled?; @extended_states end
         @extended_states = false
@@ -101,18 +96,6 @@ module Orocos
 		name
 	    end
 
-	    # If the generated component should start Corba support. It can be
-	    # changed by #enable_corba and #disable_corba (disabled by default)
-            #
-            # This setting can also be changed by the command line --corba and
-            # --no-corba flags. Use the #enable_corba and #disable_corba only when
-            # you want to force the use or no-use of corba.
-	    def corba_enabled?; @corba.nil? ? Generation.corba_enabled? : @corba end
-	    # Enables corba in the generated component. See #corba_enabled?.
-	    def enable_corba;   @corba = true end
-	    # Disables corba in the generated component. See #corba_enabled?.
-	    def disable_corba;  @corba = false end
-
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
             # The set of pkg-config dependencies we depend on
@@ -191,7 +174,6 @@ module Orocos
                 @self_tasks = []
 
                 @name    = nil
-		@corba   = nil
 		@version = "0.0"
 		@used_typekits  = []
                 @used_libraries = []
@@ -203,6 +185,7 @@ module Orocos
 
                 @loaded_orogen_projects = Hash.new
                 @loaded_typekits = Hash.new
+                @enabled_transports = Set.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined typekit but can be used literally in argument
@@ -491,10 +474,6 @@ module Orocos
                 end
 
 		if typekit
-                    if corba_enabled?
-                        typekit.enable_plugin('corba')
-                    end
-
 		    typekit.generate
 		end
 
@@ -600,7 +579,7 @@ module Orocos
                 var_names = result.map(&:var_name).to_set
                 if typekit
                     typekit.dependencies.each do |dep|
-                        next if dep.in_context?('corba') || var_names.include?(dep.var_name)
+                        next if !dep.in_context?('core') || var_names.include?(dep.var_name)
                         dep = dep.dup
                         dep.remove_context('link')
                         result << dep
@@ -998,6 +977,22 @@ module Orocos
                 self.deffile = "#{name}.orogen"
                 Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, verbose)
                 self
+            end
+
+            # The set of transport names that are enabled in this project
+            attr_reader :enabled_transports
+
+            # Enable the given transports
+            def enable_transports(*transport_names)
+                transport_names.each do |name|
+                    if typekit
+                        typekit.enable_plugin(name)
+                    end
+                    deployers.each do |d|
+                        d.enable_transport(name)
+                    end
+                end
+                @enabled_transports |= transport_names.to_set
             end
 	end
 

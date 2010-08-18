@@ -6,30 +6,35 @@ require 'optparse'
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
 
+DEFAULT_TRANSPORTS = %w{corba typelib}
+
 verbosity = 0
 extended_states = false
-transports = []
 component = Orocos::Generation::Component.new
+
+transports = DEFAULT_TRANSPORTS.dup.to_set
+
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
-    opt.on("--[no-]corba", "enables/disables corba support [disabled]") do |flag|
-        if flag
-            Orocos::Generation.enable_corba
-            transports << "corba"
-        else
-            Orocos::Generation.disable_corba
-            transports.delete("corba")
-        end
+    opt.on("--[no-]corba", "enables/disables corba support (deprecated, use --transports instead)") do |flag|
+        component.enable_transports('corba')
     end
     opt.on("--extended-states", "enable extended states for all tasks defined in this project") do |flag|
         Orocos::Generation.extended_states = flag
     end
 
-    opt.on('--transports=NAME[,NAME]', 'the set of transports to generate typekits for') do |transport_names|
-        transports = transport_names.split(',')
+    opt.on('--no-transports=NAME[,NAME]', "disables some transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
+        transport_names.split(',').each do |name|
+            transports.delete(name)
+        end
     end
 
+    opt.on('--transports=NAME[,NAME]', "enables some transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled") do |transport_names|
+        transport_names.split(',').each do |name|
+            transports << name
+        end
+    end
 
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
         target = target.to_s
@@ -108,6 +113,7 @@ begin
     filename  = files.first
     begin
         component.load(filename, verbosity > 1)
+        component.enable_transports(*transports)
 
     rescue Exception => e
         # Two options:
@@ -131,17 +137,6 @@ begin
             raise ConfigError, e.message, e.backtrace
         end
         raise
-    end
-
-    component.deployers.each do |deployment|
-        transports.each do |transport_name|
-            deployment.enable_transport(transport_name)
-        end
-    end
-    if component.typekit
-        transports.each do |transport_name|
-            component.typekit.enable_plugin(transport_name)
-        end
     end
 
     component.generate
