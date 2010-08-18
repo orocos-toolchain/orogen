@@ -8,10 +8,14 @@ Typelib.load_type_plugins = false
 
 verbosity = 0
 extended_states = false
+
+# We enable CORBA by default as it is the common case
+Orocos::Generation.enable_corba
+
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
-    opt.on("--[no-]corba", "enables/disables corba support [disabled]") do |flag|
+    opt.on("--[no-]corba", "enables/disables corba support [enabled]") do |flag|
         if flag then Orocos::Generation.enable_corba
         else Orocos::Generation.disable_corba
         end
