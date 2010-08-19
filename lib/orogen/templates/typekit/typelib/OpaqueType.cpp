@@ -107,7 +107,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         dynamic_cast<RTT::internal::AssignableDataSource<opaque_t>&>(source).set(data);
     }
 
-    bool readPort(RTT::base::InputPortInterface& port, MarshallingHandle* handle)
+    RTT::FlowStatus readPort(RTT::base::InputPortInterface& port, MarshallingHandle* handle)
     {
         RTT::InputPort<opaque_t>& typed_port = dynamic_cast< RTT::InputPort<opaque_t>& >(port);
 

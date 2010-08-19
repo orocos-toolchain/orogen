@@ -110,7 +110,7 @@ namespace orogen_transports
             dynamic_cast<RTT::internal::AssignableDataSource<T>&>(source).set(data);
         }
 
-        bool readPort(RTT::base::InputPortInterface& port, Handle* handle)
+        RTT::FlowStatus readPort(RTT::base::InputPortInterface& port, Handle* handle)
         {
             T& data = *reinterpret_cast<T*>(handle->orocos_sample);
             return dynamic_cast< RTT::InputPort<T>& >(port).read(data);

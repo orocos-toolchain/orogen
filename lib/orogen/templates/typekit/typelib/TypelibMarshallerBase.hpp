@@ -3,6 +3,7 @@
 
 #include <rtt/types/TypeTransporter.hpp>
 #include <rtt/base/PortInterface.hpp>
+#include <rtt/FlowStatus.hpp>
 #include <typelib/value_ops.hh>
 
 namespace orogen_transports
@@ -103,7 +104,7 @@ namespace orogen_transports
          *
          * Returns true if a sample has been read, false otherwise.
          */
-        virtual bool readPort(RTT::base::InputPortInterface& port, Handle* sample) = 0;
+        virtual RTT::FlowStatus readPort(RTT::base::InputPortInterface& port, Handle* sample) = 0;
 
         /** Writes the data to a port. \c sample is a type-pruned pointer of a
          * typelib-friendly data sample, whose type name is returned by
