@@ -332,5 +332,20 @@ module Orocos
             cmake_pkgconfig_link(false, target, depspec)
         end
     end
+
+    # Load a separate typelib registry containing the types defined by the given
+    # oroGen project
+    def self.registry_of(typekit_name)
+        registry = Typelib::Registry.new
+        toolkit_pkg =
+            Utilrb::PkgConfig.new("#{typekit_name}-toolkit-#{Orocos::Generation.orocos_target}")
+
+        tlb = toolkit_pkg.type_registry
+        if tlb
+            registry.import(tlb)
+        end
+
+        registry
+    end
 end
 
