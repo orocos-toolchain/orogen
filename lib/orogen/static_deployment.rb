@@ -520,7 +520,7 @@ module Orocos
                 deployer = self
 
                 if !corba_enabled? && !@browse
-                    STDERR.puts "WARN: the deployment #{name} will do nothing. Either generate with --corba or use the 'browse' statement"
+                    STDERR.puts "WARN: the deployment #{name} will do nothing. Either generate with --transports=corba or use the 'browse' statement"
                 end
 
 		main = Generation.render_template 'main.cpp', binding
