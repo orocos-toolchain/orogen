@@ -3,7 +3,6 @@
 #include <rtt/typekit/RealTimeTypekit.hpp>
 #include "Types.hpp"
 #include "Plugin.hpp"
-#include "opaque.h"
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
