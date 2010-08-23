@@ -113,12 +113,12 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
 
         opaque_t& opaque_sample =
             *reinterpret_cast<opaque_t*>(handle->orocos_sample);
-        bool did_read = typed_port.read(opaque_sample);
-        if (! did_read)
-            return NULL;
+        RTT::FlowStatus did_read = typed_port.read(opaque_sample);
+        if (did_read == RTT::NoData)
+            return RTT::NoData;
 
         updateIntermediate(handle);
-        return true;
+        return did_read;
     }
 
     void writePort(RTT::base::OutputPortInterface& port, MarshallingHandle const* handle)
