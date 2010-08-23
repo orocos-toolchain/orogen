@@ -2,16 +2,23 @@
 require 'orogen'
 require 'optparse'
 
+# Disable typelib plugin loading
+Typelib.load_type_plugins = false
+
+DEFAULT_TRANSPORTS = %w{corba typelib}
+
 typekit = Orocos::Generation::Typekit.new
 typekit_loader = Orocos::Generation::Component.new
 
+transports = DEFAULT_TRANSPORTS.dup.to_set
+
 parser = OptionParser.new do |opt|
-    transports = Orocos::Generation::Typekit.plugins.keys
-    transports.delete('type_info')
-    transports = transports.sort.join(", ")
+    available_transports = Orocos::Generation::Typekit.plugins.keys
+    available_transports.delete('type_info')
+    available_transports = available_transports.sort.join(", ")
     opt.banner = <<-EOF
 usage: typegen [--transports=NAME1,NAME2] [--output output_dir] [--import=LIBRARY,TYPEKIT] name inputs
-this installation of typegen knows the following transports: #{transports}
+this installation of typegen knows the following transports: #{available_transports}
     EOF
 
     opt.on('-i LIBRARY', '--import=LIBRARY', String, "a library or typekit to get headers and/or types from, using its pkg-config name") do |name|
@@ -29,9 +36,15 @@ this installation of typegen knows the following transports: #{transports}
         end
     end
 
-    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to generate code for") do |transports|
-        transports.each do |name|
-            typekit.enable_plugin(name)
+    opt.on('--no-transports=NAME1,NAME2', String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transports|
+        transports.split(',').each do |name|
+            transports.delete(name)
+        end
+    end
+
+    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to enable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transports|
+        transports.split(',').each do |name|
+            transports << name
         end
     end
 
@@ -56,6 +69,9 @@ end
 Orocos::Generation.generation_directory = Dir.pwd
 Orocos::Generation.command_line_options = original_options
 typekit.name      = remaining.shift
+transports.each do |transport_name|
+    typekit.enable_plugin(transport_name)
+end
 
 remaining.each do |path|
     if File.directory?(path)
