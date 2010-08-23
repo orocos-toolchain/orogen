@@ -28,6 +28,7 @@
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
 #include <rtt/transports/corba/TaskContextServer.hpp>
+#include <signal.h>
 <% end %>
 
 <% require 'set'
@@ -66,6 +67,11 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
 {
     deinit.m_activities.push_back(&activity);
     return deinit;
+}
+
+void sigint_quit_orb(int)
+{
+    RTT::corba::TaskContextServer::ShutdownOrb(false);
 }
 
 using namespace RTT;
@@ -180,6 +186,24 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 
 <% if deployer.corba_enabled? %>
+    struct sigaction sigint_handler;
+    sigint_handler.sa_handler = &sigint_quit_orb;
+    sigemptyset(&sigint_handler.sa_mask);
+    sigint_handler.sa_flags     = 0;
+    sigint_handler.sa_restorer  = 0;
+    if (-1 == sigaction(SIGINT, &sigint_handler, 0))
+    {
+        std::cerr << "failed to install SIGINT handler" << std::endl;
+        return 1;
+    }
+    sigset_t unblock_sigint;
+    sigemptyset(&unblock_sigint);
+    sigaddset(&unblock_sigint, SIGINT);
+    if (-1 == sigprocmask(SIG_UNBLOCK, &unblock_sigint, NULL))
+    {
+        std::cerr << "failed to install SIGINT handler" << std::endl;
+        return 1;
+    }
     RTT::corba::TaskContextServer::RunOrb();
 <% elsif deployer.browse %>
     OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
