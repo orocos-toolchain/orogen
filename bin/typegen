@@ -1,5 +1,6 @@
 #! /usr/bin/ruby
 require 'orogen'
+require 'optparse'
 
 typekit = Orocos::Generation::Typekit.new
 typekit_loader = Orocos::Generation::Component.new
