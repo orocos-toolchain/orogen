@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/smart_ptr.cpp */
+
 <%= into.arg_type %> <%= typekit.name %>::to_intermediate(<%= from.arg_type %> real_type)
 {
     return *real_type;

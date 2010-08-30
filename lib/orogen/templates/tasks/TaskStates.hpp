@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/tasks/TaskStates.hpp */
+
 #ifndef <%= component.name %>_TASKS_STATES
 #define <%= component.name %>_TASKS_STATES
 

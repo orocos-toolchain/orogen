@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/typelib/OpaqueType.cpp */
+
 #include "OpaqueConvertions.hpp"
 #include "Types.hpp"
 #include "transports/typelib/TypelibMarshaller.hpp"

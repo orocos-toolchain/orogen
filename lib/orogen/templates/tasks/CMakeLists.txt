@@ -1,3 +1,5 @@
+# Generated from orogen/lib/orogen/templates/tasks/CMakeLists.txt
+
 include(<%= component.name %>TaskLib)
 ADD_LIBRARY(${<%= component.name.upcase %>_TASKLIB_NAME} SHARED 
     ${<%= component.name.upcase %>_TASKLIB_SOURCES})

@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/typelib/TransportPlugin.cpp */
+
 // First load all RTT interfaces so that we get all "extern template"
 // declarations in the TypekitImpl files
 #include "Registration.hpp"

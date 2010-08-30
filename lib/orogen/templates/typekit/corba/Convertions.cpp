@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/corba/Convertions.cpp */
+
 #include "Convertions.hpp"
 #include <memory>
 

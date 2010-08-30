@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/TemplateInstanciation.cpp */
+
 #include <rtt/Port.hpp>
 #include <rtt/Attribute.hpp>
 #include <rtt/Property.hpp>

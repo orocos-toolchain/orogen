@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/corba/Convertions.hpp */
+
 #ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 #define OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 

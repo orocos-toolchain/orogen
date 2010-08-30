@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
+
 #ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
 #define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
 

@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/Opaques.cpp */
+
 #include "Opaques.hpp"
 
     /** Returns the intermediate value that is contained in \c real_type */

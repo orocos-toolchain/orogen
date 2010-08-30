@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/typelib/TypelibMarshallerBase.hpp */
+
 #ifndef OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 #define OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 

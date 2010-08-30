@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/corba/Registration.hpp */
+
 #ifndef <%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
 #define <%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
 

@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/marshalling_types.hpp */
+
 <% namespace = '/'
    did_something = false %>
 

@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.cpp */
+
 #include "OpaqueConvertions.hpp"
 #include <memory>
 

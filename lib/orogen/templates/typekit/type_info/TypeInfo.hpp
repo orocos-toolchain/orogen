@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/type_info/TypeInfo.hpp */
+
 #ifndef <%= typekit.name.upcase %>_TYPE_INFO_HPP
 #define <%= typekit.name.upcase %>_TYPE_INFO_HPP
 

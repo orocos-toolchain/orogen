@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/type_info/OpaqueInfo.hpp */
+
 #include <<%= typekit.name %>/Types.hpp>
 #include <rtt/types/StructTypeInfo.hpp>
 #include <rtt/types/TypeInfoRepository.hpp>

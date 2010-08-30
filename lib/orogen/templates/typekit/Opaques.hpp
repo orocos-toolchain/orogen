@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/Opaques.hpp */
+
 #ifndef <%= typekit.name %>_USER_MARSHALLING_HH
 #define <%= typekit.name %>_USER_MARSHALLING_HH
 

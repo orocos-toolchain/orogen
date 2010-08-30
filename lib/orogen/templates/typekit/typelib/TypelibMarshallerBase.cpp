@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/typelib/TypelibMarshallerBase.cpp */
+
 #include "TypelibMarshaller.hpp"
 
 using namespace orogen_transports;

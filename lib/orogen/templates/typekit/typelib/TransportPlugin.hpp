@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/typelib/TransportPlugin.hpp */
+
 #ifndef OROCOS_<%= typekit.name.upcase %>_TYPELIB_PLUGIN_HPP
 #define OROCOS_<%= typekit.name.upcase %>_TYPELIB_PLUGIN_HPP
 

@@ -1,3 +1,5 @@
+# Generated from orogen/lib/orogen/templates/typekit/CMakeLists.txt
+
 ##
 # Header for typegen-generated typekits
 #

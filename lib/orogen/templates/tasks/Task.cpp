@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
+
 #include "<%= task.basename %>.hpp"
 
 using namespace <%= task.component.name %>;

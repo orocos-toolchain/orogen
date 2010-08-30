@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/corba/Type.cpp */
+
 #include "Types.hpp"
 #include "transports/corba/Registration.hpp"
 #include "transports/corba/Convertions.hpp"

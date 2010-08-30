@@ -1,3 +1,5 @@
+# Generated from orogen/lib/orogen/templates/typekit/typelib/CMakeLists.txt
+
 pkg_check_modules(TYPELIB REQUIRED typelib)
 
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})

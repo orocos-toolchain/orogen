@@ -1,3 +1,5 @@
+/* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.hpp */
+
 #ifndef <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 #define <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 

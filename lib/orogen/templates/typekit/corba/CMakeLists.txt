@@ -1,3 +1,5 @@
+# Generated from orogen/lib/orogen/templates/typekit/corba/CMakeLists.txt
+
 find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
 INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
 ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
