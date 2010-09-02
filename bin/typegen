@@ -5,7 +5,7 @@ require 'optparse'
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
 
-DEFAULT_TRANSPORTS = %w{corba typelib}
+DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
 
 typekit = Orocos::Generation::Typekit.new
 typekit_loader = Orocos::Generation::Component.new

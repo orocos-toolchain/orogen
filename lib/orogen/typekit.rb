@@ -1409,3 +1409,4 @@ end
 require 'orogen/marshallers/typelib'
 require 'orogen/marshallers/corba'
 require 'orogen/marshallers/type_info'
+require 'orogen/marshallers/mqueue'
