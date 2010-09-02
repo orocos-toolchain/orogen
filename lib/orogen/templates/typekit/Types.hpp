@@ -21,6 +21,7 @@
 // some of the types need std::vector.
 #include <vector>
 #include <boost/cstdint.hpp>
+#include <boost/serialization/serialization.hpp>
 
 <% registered_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP
@@ -44,6 +45,22 @@
 #ifdef ORO_CORELIB_ATTRIBUTE_HPP
     extern template class RTT::Attribute< <%= type.cxx_name %> >;
 #endif
+
+<% if type.respond_to?(:to_boost_serialization) %>
+namespace boost
+{
+    namespace serialization
+    {
+        template<typename Archive>
+        void serialize(Archive& a, <%= type.cxx_name %>& b, unsigned int version)
+        {
+            using boost::serialization::make_nvp;
+            <%= type.to_boost_serialization %>
+        }
+    }
+}
+<% end %>
+
 <% end %>
                 
 <%= 
