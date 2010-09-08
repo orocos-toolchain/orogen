@@ -34,21 +34,18 @@ ELSE(NOT OrocosCORBA_FOUND)
             MESSAGE(STATUS "Orocos uses the TAO ORB")
 
             FIND_PROGRAM(OrocosCORBA_IDL_EXECUTABLE tao_idl)
-            OROCOS_PKGCONFIG(TAO_CosEvent ORBSVCS_FOUND ORBSVCS_INCLUDE_DIR ORBSVCS_DEFINES ORBSVCS_LINK_DIR ORBSVCS_LIBRARIES)
-
-            IF (OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
+            IF (OrocosCORBA_IDL_EXECUTABLE )
                 SET(OrocosCORBA_Typekit_FOUND TRUE)
                 ADD_DEFINITIONS(-D_REENTRANT)
-                SET(OrocosCORBA_Typekit_DEFINES ${ORBSVCS_DEFINES})
                 # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
-                SET(OrocosCORBA_Typekit_INCLUDE_DIR "${ORBSVCS_INCLUDE_DIR};${OrocosCORBA_INCLUDE_DIRS}")
+                SET(OrocosCORBA_Typekit_INCLUDE_DIR "${OrocosCORBA_INCLUDE_DIRS}")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE})
-            ELSE(OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
+            ELSE(OrocosCORBA_IDL_EXECUTABLE )
                 IF(NOT OrocosCORBA_FIND_QUIETLY)
                     MESSAGE(STATUS "cannot find tao_idl or associated development files")
                 ENDIF(NOT OrocosCORBA_FIND_QUIETLY)
-            ENDIF (OrocosCORBA_IDL_EXECUTABLE AND ORBSVCS_FOUND)
+            ENDIF (OrocosCORBA_IDL_EXECUTABLE)
 
         ELSEIF (CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
             MESSAGE(STATUS "Orocos uses the OmniORB")
