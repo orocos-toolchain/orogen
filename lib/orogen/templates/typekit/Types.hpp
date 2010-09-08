@@ -22,6 +22,7 @@
 #include <vector>
 #include <boost/cstdint.hpp>
 #include <boost/serialization/serialization.hpp>
+#include <boost/serialization/array.hpp>
 
 <% registered_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP

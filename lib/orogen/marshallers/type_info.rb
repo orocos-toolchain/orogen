@@ -83,7 +83,7 @@ module Orocos
                 result = []
                 each_field do |field_name, field_type|
                     if field_type < Typelib::ArrayType
-                        result << "a & make_nvp(\"#{field_name}\", make_array(b.#{field_name}, #{field_type.length}));"
+                        result << "a & make_nvp(\"#{field_name}\", boost::serialization::make_array(b.#{field_name}, #{field_type.length}));"
                     else
                         result << "a & make_nvp(\"#{field_name}\", b.#{field_name});"
                     end
