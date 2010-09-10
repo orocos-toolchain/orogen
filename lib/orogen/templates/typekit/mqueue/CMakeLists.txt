@@ -22,13 +22,3 @@ target_link_libraries(${libname_mqueue}
 <%= typekit_deps = typekit.plugin('mqueue').dependencies(typekit);
     Generation.cmake_pkgconfig_link('mqueue', '${libname_mqueue}', typekit_deps) %>
 target_link_libraries(${libname_mqueue} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_MQUEUE_LIBRARIES})
-
-#SET(PKG_CONFIG_FILE_MQueue ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-mqueue-${OROCOS_TARGET}.pc)
-#CONFIGURE_FILE(<%= typekit.name %>-transport-mqueue.pc.in ${PKG_CONFIG_FILE_MQueue} @ONLY)
-#
-#install(TARGETS ${libname_mqueue} LIBRARY DESTINATION lib/orocos/types)
-#install(FILES ${PKG_CONFIG_FILE_MQueue} DESTINATION lib/pkgconfig)
-#install(FILES
-#    <%= headers.join("\n   ") %>
-#    DESTINATION include/orocos/<%= typekit.name %>/transports/mqueue)
-
