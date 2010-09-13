@@ -25,4 +25,3 @@ for more in-depth usage information:
 
 oroGen is part of the RubyInMotion software suite. Check out
 sites.google.com/sites/rubyinmotion for installation instructions.
-
