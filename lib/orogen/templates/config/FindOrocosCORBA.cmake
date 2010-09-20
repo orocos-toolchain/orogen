@@ -31,7 +31,7 @@ ELSE(NOT OrocosCORBA_FOUND)
     STRING(REGEX MATCH "Typekit" _orocos_corba_typekit "${OrocosCORBA_FIND_COMPONENTS}")
     IF (_orocos_corba_typekit)
         IF (CORBA_IMPLEMENTATION STREQUAL "TAO")
-            MESSAGE(STATUS "Orocos uses the TAO ORB")
+	    MESSAGE(STATUS "Orocos reports in ${OrocosCORBA_config} to use the TAO ORB")
 
             FIND_PROGRAM(OrocosCORBA_IDL_EXECUTABLE tao_idl)
             IF (OrocosCORBA_IDL_EXECUTABLE )
@@ -48,7 +48,7 @@ ELSE(NOT OrocosCORBA_FOUND)
             ENDIF (OrocosCORBA_IDL_EXECUTABLE)
 
         ELSEIF (CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
-            MESSAGE(STATUS "Orocos uses the OmniORB")
+	    MESSAGE(STATUS "Orocos reports in ${OrocosCORBA_config} to use the OMNIORB")
 
             FIND_PROGRAM(OrocosCORBA_IDL_EXECUTABLE omniidl)
             IF (OrocosCORBA_IDL_EXECUTABLE)
