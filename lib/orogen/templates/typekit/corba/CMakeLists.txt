@@ -29,7 +29,7 @@ include_directories(${OrocosCORBA_Typekit_INCLUDE_DIRS})
 
 # Generate the CORBA transport
 set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
-add_library(${libname_corba} SHARED
+rosbuild_add_library(${libname_corba}
     <%= impl.join("\n    ") %>
     ${CORBA_FILES})
 target_link_libraries(${libname_corba}
@@ -40,11 +40,11 @@ target_link_libraries(${libname_corba}
     Generation.cmake_pkgconfig_link_corba('${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
 
-SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-corba-${OROCOS_TARGET}.pc)
-CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
+#SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-corba-${OROCOS_TARGET}.pc)
+#CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
 
-install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos/types)
-install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
+#install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos/types)
+#install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
 install(FILES
     <%= headers.join("\n   ") %>
     Convertions.hpp
