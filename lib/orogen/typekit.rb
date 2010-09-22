@@ -1397,6 +1397,10 @@ module Orocos
 		save_automatic("#{name}-typekit.pc.in", pkg_config)
                 cmake = Generation.render_template 'typekit', 'CMakeLists.txt', binding
                 save_automatic("CMakeLists.txt", cmake)
+                manifest = Generation.render_template 'typekit', 'manifest.xml', binding
+                save_automatic("manifest.xml", manifest)
+                makefile = Generation.render_template 'typekit', 'Makefile', binding
+                save_automatic("Makefile", makefile)
 
                 # Finished, create the timestamp file
                 Generation.cleanup_dir(automatic_dir)
