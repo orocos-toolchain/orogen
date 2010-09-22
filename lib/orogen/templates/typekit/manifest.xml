@@ -1,0 +1,14 @@
+<package>
+  <description brief="<%=typekit.name %>-typekit">
+
+      <%= typekit.name %>-typekit description
+
+  </description>
+  <author></author>
+  <license></license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/<%=typekit.name %>-typekit</url>
+  <depend package="typelib"/>
+  <depend package="rtt_2.0"/>
+
+</package>
