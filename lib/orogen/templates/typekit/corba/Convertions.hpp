@@ -4,7 +4,7 @@
 #define OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 
 #include "Types.hpp"
-#include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
+#include "transports/corba/<%= typekit.name %>TypesC.h"
 #include <boost/cstdint.hpp>
 
 namespace orogen_typekits {
