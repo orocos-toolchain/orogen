@@ -1,6 +1,7 @@
 #! /usr/bin/ruby
 require 'orogen'
 require 'optparse'
+require 'pathname'
 
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
@@ -67,6 +68,8 @@ if remaining.size < 2
 end
 
 Orocos::Generation.generation_directory = Dir.pwd
+Orocos::Generation.relative_generation_directory = Pathname.new(Dir.pwd).relative_path_from(Pathname.new(typekit.automatic_dir))
+
 Orocos::Generation.command_line_options = original_options
 typekit.name      = remaining.shift
 transports.each do |transport_name|

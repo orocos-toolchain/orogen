@@ -37,9 +37,9 @@ pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
 
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
-       typegen_bin = File.expand_path('../bin/typegen', Orocos::Generation.base_dir) %>
-    <%= ruby_bin %> <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
-    WORKING_DIRECTORY <%= Orocos::Generation.generation_directory %>)
+       typegen_bin = 'typegen' %>
+    <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
 
 <% end %>
 # END if typekit.standalone?
@@ -73,7 +73,11 @@ string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 # Generate the base typekit shared library
 set(libname <%= typekit.name %>-typekit-${OROCOS_TARGET})
 add_library(${libname} SHARED
-    <%= implementation_files.sort.join("\n  ") %>
+    <%= relatives = []
+        implementation_files.each do |file| 
+	    relatives << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+        end
+        relatives.sort.join("\n    ") %>
     ${TYPEKIT_ADDITIONAL_SOURCES}
     ${TOOLKIT_ADDITIONAL_SOURCES}
     <% if !typekit.opaques.empty? %>
@@ -95,11 +99,15 @@ install(FILES
     Types.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
-    <%= public_header_files.sort.join("\n    ") %>
+    <%= relatives = []
+        public_header_files.each do |file|
+	    relatives << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+	end
+	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
-
 <% typekit.local_headers(false).each do |path, dest_path| %>
-install(FILES <%= typekit.base_dir %>/<%= path %>
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= (Pathname.new( typekit.base_dir ) + path).relative_path_from(Pathname.new(typekit.automatic_dir)) %>
     DESTINATION include/orocos/<%= typekit.name %>/types/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
 <% end %>
 install(FILES ${PKG_CONFIG_FILE}
@@ -118,7 +126,15 @@ end %>
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS <%= typekit.loads.join(" ") %> <%= typekit.external_loads.join(" ") %>
+    DEPENDS <%= loads = []
+        typekit.loads.each do |file| 
+	    loads << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+        end
+        loads.join(" ") %> <%= extloads = []
+        typekit.external_loads.each do |file| 
+	    extloads << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+        end
+        extloads.join(" ") %>
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")

@@ -21,6 +21,13 @@ module Orocos
         end
         @generation_directory = nil
 
+        # Directory in which the generation command (orogen or typegen) has been
+        # run, relative from the generated directory
+        class << self
+            attr_accessor :relative_generation_directory
+        end
+        @relative_generation_directory = nil
+
         def self.orocos_target=(target)
             @orocos_target = target.to_s
         end
