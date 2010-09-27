@@ -12,6 +12,8 @@ IF(ROS_ROOT)
   include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
   rosbuild_init()
   set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/orocos)
+ELSE(ROS_ROOT)
+  include(FindPkgConfig)
 ENDIF(ROS_ROOT)
 
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/config")

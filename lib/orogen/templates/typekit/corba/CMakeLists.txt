@@ -30,7 +30,11 @@ include_directories(${OrocosCORBA_Typekit_INCLUDE_DIRS})
 # Generate the CORBA transport
 set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
 add_library(${libname_corba} SHARED
-    <%= impl.join("\n    ") %>
+    <%= relatives = []
+        impl.each do |file| 
+	    relatives << File.basename(file)
+        end
+        relatives.sort.join("\n    ") %>
     ${CORBA_FILES})
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
@@ -46,7 +50,11 @@ CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA
 install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
 install(FILES
-    <%= headers.join("\n   ") %>
+    <%= relatives = []
+        headers.each do |file| 
+	    relatives << File.basename(file)
+        end
+        relatives.sort.join("\n    ") %>
     Convertions.hpp
     <%= typekit.name %>Types.idl
     ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>TypesC.h

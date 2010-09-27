@@ -12,7 +12,11 @@ set(MQueue_FILES "")
 # Generate the MQueue transport
 set(libname_mqueue <%= typekit.name %>-transport-mqueue-${OROCOS_TARGET})
 add_library(${libname_mqueue} SHARED
-    <%= impl.join("\n    ") %>
+    <%= relatives = []
+        impl.each do |file| 
+	    relatives << File.basename(file)
+        end
+        relatives.sort.join("\n    ") %>
     ${MQueue_FILES})
 target_link_libraries(${libname_mqueue}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
@@ -28,6 +32,10 @@ CONFIGURE_FILE(<%= typekit.name %>-transport-mqueue.pc.in ${PKG_CONFIG_FILE_MQue
 install(TARGETS ${libname_mqueue} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_MQueue} DESTINATION lib/pkgconfig)
 install(FILES
-    <%= headers.join("\n   ") %>
+    <%= relatives = []
+        headers.each do |file| 
+	    relatives << File.basename(file)
+        end
+        relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/transports/mqueue)
 
