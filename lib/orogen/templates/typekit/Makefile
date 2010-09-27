@@ -1,6 +1,7 @@
-EXTRA_CMAKE_FLAGS=-DCMAKE_PREFIX_PATH=`rospack find rtt_2.0`/install/lib/cmake/orocos-rtt
+EXTRA_CMAKE_FLAGS=-DCMAKE_PREFIX_PATH=`rospack find rtt`/install
 
 include $(shell rospack find mk)/cmake.mk
 
 wipe: clean
-	svn-clean -f
+	rm -rf install lib bin
+	rm -rf installed

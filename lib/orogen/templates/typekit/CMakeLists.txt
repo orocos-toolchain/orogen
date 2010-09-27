@@ -6,6 +6,13 @@
 <% if typekit.standalone? %>
 project("<%= typekit.name %>-typekit")
 cmake_minimum_required(VERSION 2.6)
+SET (ROS_ROOT $ENV{ROS_ROOT})
+IF(ROS_ROOT)
+  MESSAGE("ROS_ROOT environment found")
+  include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+  rosbuild_init()
+  set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/orocos)
+ENDIF(ROS_ROOT)
 
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/config")
 
@@ -32,8 +39,9 @@ IF ( NOT CMAKE_BUILD_TYPE )
   SET( CMAKE_BUILD_TYPE Debug )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
-include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
+#include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+find_package(OROCOS-RTT 2.0.0 REQUIRED)
+add_definitions(${OROCOS-RTT_DEFINITIONS})
 
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
@@ -52,9 +60,9 @@ include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(${OrocosRTT_INCLUDE_DIRS})
-add_definitions(${OrocosRTT_CFLAGS_OTHER})
-link_directories(${OrocosRTT_LIBRARY_DIRS})
+include_directories(${OROCOS-RTT_INCLUDE_DIRS})
+add_definitions(${OROCOS-RTT_CFLAGS_OTHER})
+link_directories(${OROCOS-RTT_LIBRARY_DIRS})
 
 <% if typekit.has_opaques_with_templates? %>
 include_directories(${CMAKE_SOURCE_DIR}/typekit)
@@ -88,8 +96,8 @@ add_library(${libname} SHARED
     <% end %>)
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
-target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
-target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
+target_link_libraries(${libname} ${OROCOS-RTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_LIBRARIES})
 
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)

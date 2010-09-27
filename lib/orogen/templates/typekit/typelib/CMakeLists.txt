@@ -1,6 +1,8 @@
 # Generated from orogen/lib/orogen/templates/typekit/typelib/CMakeLists.txt
 
-pkg_check_modules(TYPELIB REQUIRED typelib)
+IF(NOT ROS_ROOT)
+  pkg_check_modules(TYPELIB REQUIRED typelib)
+ENDIF(NOT ROS_ROOT)
 
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname} SHARED
