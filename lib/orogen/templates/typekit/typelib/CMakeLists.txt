@@ -2,6 +2,7 @@
 
 IF(NOT ROS_ROOT)
   pkg_check_modules(TYPELIB REQUIRED typelib)
+  link_directories( ${TYPELIB_LIBRARY_DIRS} )
 ENDIF(NOT ROS_ROOT)
 
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
