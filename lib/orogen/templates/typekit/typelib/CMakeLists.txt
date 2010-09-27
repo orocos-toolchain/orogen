@@ -6,7 +6,11 @@ ENDIF(NOT ROS_ROOT)
 
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname} SHARED
-    <%= impl.join("\n    ") %>
+    <%= relatives = []
+        impl.each do |file| 
+	    relatives << File.basename(file)
+        end
+        relatives.sort.join("\n    ") %>
     TypelibMarshallerBase.cpp)
 
 target_link_libraries(${libname}
