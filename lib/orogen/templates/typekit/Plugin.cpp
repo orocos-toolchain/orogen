@@ -10,8 +10,12 @@
 
 #include <rtt/types/TypeInfoRepository.hpp>
 #include "type_info/Registration.hpp"
+#include "Types.hpp"
+#include <rtt/types/SequenceConstructor.hpp>
+#include <rtt/types/TemplateConstructor.hpp>
 
 using namespace RTT;
+using namespace RTT::types;
 
 orogen_typekits::<%= typekit.name %>TypekitPlugin::<%= typekit.name %>TypekitPlugin()
 {}
@@ -41,9 +45,22 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
 }
 
 bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadOperators()
-{ return true; }
+{
+	return true;
+}
 bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadConstructors()
-{ return true; }
+{
+    RTT::types::TypeInfoRepository::shared_ptr ti_repository = RTT::types::TypeInfoRepository::Instance();
+
+    // Add sequence constructors for sequence types:
+    <% registered_types.each do |type| if type.info_type == "RTT::types::SequenceTypeInfo" %>
+    ti_repository->type( "<%= type.full_name %>" )->addConstructor( newConstructor(sequence_ctor< <%= type.deference.cxx_name %> >()));
+    ti_repository->type( "<%= type.full_name %>" )->addConstructor( newConstructor(sequence_ctor2< <%= type.deference.cxx_name %> >()));
+    ti_repository->type( "<%= type.full_name %>" )->addConstructor( new SequenceBuilder< <%= type.deference.cxx_name %> >());
+    <% end end %>
+
+	return true;
+}
 std::string orogen_typekits::<%= typekit.name %>TypekitPlugin::getName()
 { return "/orogen/<%= typekit.name %>"; }
 
