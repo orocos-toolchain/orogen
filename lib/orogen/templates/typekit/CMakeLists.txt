@@ -4,6 +4,7 @@
 # Header for typegen-generated typekits
 #
 <% if typekit.standalone? %>
+if (NOT TYPEKIT_IN_PROJECT )
 project("<%= typekit.name %>-typekit")
 cmake_minimum_required(VERSION 2.6)
 SET (ROS_ROOT $ENV{ROS_ROOT})
@@ -16,7 +17,7 @@ ELSE(ROS_ROOT)
   include(FindPkgConfig)
 ENDIF(ROS_ROOT)
 
-SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/config")
+SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= typekit.orocos_target %>")
@@ -42,8 +43,13 @@ IF ( NOT CMAKE_BUILD_TYPE )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 #include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-find_package(OROCOS-RTT 2.0.0 REQUIRED)
+find_package(Orocos-RTT 2.0.0 REQUIRED)
 add_definitions(${OROCOS-RTT_DEFINITIONS})
+
+else(NOT TYPEKIT_IN_PROJECT )
+  set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
+  include(FindPkgConfig)
+endif(NOT TYPEKIT_IN_PROJECT )
 
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
@@ -148,4 +154,5 @@ add_custom_command(
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
+
 
