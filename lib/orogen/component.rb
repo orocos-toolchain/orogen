@@ -195,7 +195,11 @@ module Orocos
 
             def self.load_rtt_registry
                 rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
-                @rtt_registry = Typelib::Registry.import rtt_tlb
+
+                registry = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(registry)
+                registry.import rtt_tlb, 'tlb', :merge => false
+                @rtt_registry = registry
             end
 
 
