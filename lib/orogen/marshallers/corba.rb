@@ -218,20 +218,27 @@ module Orocos
             allocate_index do |element_idx|
                 result << "#{indent}size_t const size_#{element_idx} = corba.length();\n"
                 result << "#{indent}value.resize(size_#{element_idx});\n"
-                result << <<-EOT
-#{indent}for(size_t #{element_idx} = 0; #{element_idx} < size_#{element_idx}; ++#{element_idx})
-#{indent}{
-                EOT
 
-                if element_type.inlines_code?
-                    result << element_type.inline_fromCorba("value[#{element_idx}]", "corba[#{element_idx}]", indent)
-                elsif element_type < ArrayType
-                    result << "#{indent}    fromCORBA(reinterpret_cast< #{element_type.deference.cxx_name}*>(value[#{element_idx}]), #{element_type.length}, corba[#{element_idx}]);\n";
+                if collection_name == "/std/vector" && 
+                    element_type < NumericType
+
+                    result << "if (!value.empty()) #{indent}memcpy(&value[0], &corba[0], size_#{element_idx});"
                 else
-                    result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
-                end
+                    result << <<-EOT
+    #{indent}for(size_t #{element_idx} = 0; #{element_idx} < size_#{element_idx}; ++#{element_idx})
+    #{indent}{
+                    EOT
 
-                result << "#{indent}}\n";
+                    if element_type.inlines_code?
+                        result << element_type.inline_fromCorba("value[#{element_idx}]", "corba[#{element_idx}]", indent)
+                    elsif element_type < ArrayType
+                        result << "#{indent}    fromCORBA(reinterpret_cast<#{element_type.deference.cxx_name}*>(value[#{element_idx}]), #{element_type.length}, corba[#{element_idx}]);\n";
+                    else
+                        result << "#{indent}    fromCORBA(value[#{element_idx}], corba[#{element_idx}]);\n";
+                    end
+
+                    result << "#{indent}}\n";
+                end
             end
 	    result
         end
