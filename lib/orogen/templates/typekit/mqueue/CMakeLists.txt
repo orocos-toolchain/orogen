@@ -29,7 +29,7 @@ target_link_libraries(${libname_mqueue} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_MQ
 SET(PKG_CONFIG_FILE_MQueue ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-mqueue-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-mqueue.pc.in ${PKG_CONFIG_FILE_MQueue} @ONLY)
 
-install(TARGETS ${libname_mqueue} LIBRARY DESTINATION lib/orocos/types)
+install(TARGETS ${libname_mqueue} LIBRARY DESTINATION ${TYPEKIT_LIB_INSTALL_DIR})
 install(FILES ${PKG_CONFIG_FILE_MQueue} DESTINATION lib/pkgconfig)
 install(FILES
     <%= relatives = []

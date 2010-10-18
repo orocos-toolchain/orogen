@@ -5,50 +5,55 @@
 #
 <% if typekit.standalone? %>
 if (NOT TYPEKIT_IN_PROJECT )
-project("<%= typekit.name %>-typekit")
-cmake_minimum_required(VERSION 2.6)
-SET (ROS_ROOT $ENV{ROS_ROOT})
-IF(ROS_ROOT)
-  MESSAGE("ROS_ROOT environment found")
-  include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-  rosbuild_init()
-  set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/orocos/types)
-ELSE(ROS_ROOT)
-  include(FindPkgConfig)
-ENDIF(ROS_ROOT)
+  project("<%= typekit.name %>-typekit")
+  cmake_minimum_required(VERSION 2.6)
+  SET (ROS_ROOT $ENV{ROS_ROOT})
+  IF(ROS_ROOT)
+    MESSAGE("ROS_ROOT environment found")
+    include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+    rosbuild_init()
+    # This sets the resulting output directory of the *build* result.
+    set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/orocos/types)
+  ELSE(ROS_ROOT)
+    include(FindPkgConfig)
+  ENDIF(ROS_ROOT)
 
-SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
+  SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
-# In Orogen components, the build target is specified at generation time
-set(OROCOS_TARGET "<%= typekit.orocos_target %>")
+  # In Orogen components, the build target is specified at generation time
+  set(OROCOS_TARGET "<%= typekit.orocos_target %>")
 
-# Enable -Wall for compilers that know it
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-Wall", CXX_SUPPORTS_WALL)
-if (CXX_SUPPORTS_WALL)
+  # Enable -Wall for compilers that know it
+  include(CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-Wall", CXX_SUPPORTS_WALL)
+  if (CXX_SUPPORTS_WALL)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-endif (CXX_SUPPORTS_WALL)
+  endif (CXX_SUPPORTS_WALL)
 
-# Define the necessary RPath information for all binaries. That can be stripped
-# later
-option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
-if(WITH_RPATH)
+  # Define the necessary RPath information for all binaries. That can be stripped
+  # later
+  option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
+  if(WITH_RPATH)
     include(RPATHHandling)
     CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos")
-endif(WITH_RPATH)
+  endif(WITH_RPATH)
 
-# Set the build type to debug by default
-IF ( NOT CMAKE_BUILD_TYPE )
-  SET( CMAKE_BUILD_TYPE Debug )
-ENDIF ( NOT CMAKE_BUILD_TYPE )
+  # Set the build type to debug by default
+  IF ( NOT CMAKE_BUILD_TYPE )
+    SET( CMAKE_BUILD_TYPE Debug )
+  ENDIF ( NOT CMAKE_BUILD_TYPE )
 
-#include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-find_package(Orocos-RTT 2.0.0 REQUIRED)
-add_definitions(${OROCOS-RTT_DEFINITIONS})
+  #include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+  find_package(Orocos-RTT 2.0.0 REQUIRED)
+  add_definitions(${OROCOS-RTT_DEFINITIONS})
 
+  #set installation path of libraries to global location
+  set( TYPEKIT_LIB_INSTALL_DIR "lib/orocos/types")
 else(NOT TYPEKIT_IN_PROJECT )
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
   include(FindPkgConfig)
+  #set installation path of libraries to project location
+  set( TYPEKIT_LIB_INSTALL_DIR "lib/orocos/${CMAKE_PROJECT_NAME}/types")
 endif(NOT TYPEKIT_IN_PROJECT )
 
 ADD_CUSTOM_TARGET(regen
@@ -110,7 +115,7 @@ target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_LIBRARIES
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
-install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos/types)
+install(TARGETS ${libname} LIBRARY DESTINATION ${TYPEKIT_LIB_INSTALL_DIR})
 install(FILES
     Types.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
