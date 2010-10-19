@@ -1340,6 +1340,8 @@ module Orocos
 		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding
 		implementation_files << save_automatic("Plugin.cpp", tk_cpp)
+                tk_ser = Generation.render_template "typekit/boost_serialization.hpp", binding
+                public_header_files << save_automatic("boost_serialization.hpp", tk_ser)
 
                 #tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
 		#Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)

@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/mqueue/Type.cpp */
 
 #include "Types.hpp"
+#include "boost_serialization.hpp"
 #include "transports/mqueue/Registration.hpp"
 #include <rtt/transports/mqueue/MQSerializationProtocol.hpp>
 
