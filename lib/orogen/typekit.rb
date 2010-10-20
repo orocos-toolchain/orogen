@@ -827,6 +827,11 @@ module Orocos
                     if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
                         STDERR.puts "WARN: ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
                         to_delete << type
+
+                    elsif type < Typelib::PointerType
+                        STDERR.puts "WARN: ignoring #{type.name} as pointers are not allowed"
+                        to_delete << type
+
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
