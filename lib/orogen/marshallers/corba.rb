@@ -209,13 +209,31 @@ module Typelib
         def self.corba_ref_type; "#{deference.corba_name}*" end
 
         def self.to_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type, _|
-                type.inlines_code?
+            element_type = deference.name
+            element_type = registry.build(element_type)
+
+            # Special case for array of numerics, we can do a simple memcpy
+            if  element_type < NumericType 
+                result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
+                result << "#{indent}memcpy(corba, value, array_size);"
+            else
+                code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type, _|
+                    type.inlines_code?
+                end
             end
         end
         def self.from_corba(toolkit, result, indent)
-            code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type, _|
-                type.inlines_code?
+            element_type = deference.name
+            element_type = registry.build(element_type)
+
+            # Special case for array of numerics, we can do a simple memcpy
+            if  element_type < NumericType 
+                result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
+                result << "#{indent}memcpy(value, corba, array_size);"
+            else
+                code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type, _|
+                    type.inlines_code?
+                end
             end
         end
     end
