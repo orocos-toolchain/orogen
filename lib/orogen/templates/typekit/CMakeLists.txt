@@ -62,6 +62,10 @@ ADD_CUSTOM_TARGET(regen
     <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
 
+<% else %>
+  find_package(Orocos-RTT 2.0.0 REQUIRED)
+  #set installation path of libraries to project location
+  set( TYPEKIT_LIB_INSTALL_DIR "lib/orocos/${CMAKE_PROJECT_NAME}/types")
 <% end %>
 # END if typekit.standalone?
 ##
