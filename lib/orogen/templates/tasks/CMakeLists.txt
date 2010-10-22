@@ -9,7 +9,7 @@ add_dependencies(${<%= component.name.upcase %>_TASKLIB_NAME}
 <% end %>
 
 TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}
-    ${OrocosRTT_LIBRARIES}
+    ${Orocos-RTT_LIBRARIES}
     ${<%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES})
 SET_TARGET_PROPERTIES(${<%= component.name.upcase %>_TASKLIB_NAME}
     PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
