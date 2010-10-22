@@ -50,15 +50,6 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadOperators()
 }
 bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadConstructors()
 {
-    RTT::types::TypeInfoRepository::shared_ptr ti_repository = RTT::types::TypeInfoRepository::Instance();
-
-    // Add sequence constructors for sequence types:
-    <% registered_types.each do |type| if type.info_type == "RTT::types::SequenceTypeInfo" %>
-    ti_repository->type( "<%= type.full_name %>" )->addConstructor( newConstructor(sequence_ctor< <%= type.deference.cxx_name %> >()));
-    ti_repository->type( "<%= type.full_name %>" )->addConstructor( newConstructor(sequence_ctor2< <%= type.deference.cxx_name %> >()));
-    ti_repository->type( "<%= type.full_name %>" )->addConstructor( new SequenceBuilder< <%= type.deference.cxx_name %> >());
-    <% end end %>
-
 	return true;
 }
 std::string orogen_typekits::<%= typekit.name %>TypekitPlugin::getName()
