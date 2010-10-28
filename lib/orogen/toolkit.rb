@@ -1024,12 +1024,6 @@ module Orocos
             # allow to reference sequence types directly (you have to typedef
             # them first, or use them in a compound)
             def generate_typedefs(generated_types, registry)
-		generated_types.each do |type|
-                    next if component.imported_type?(type.name)
-		    if type < Typelib::ContainerType
-                        registry.alias type.namespace + type.basename.gsub(/[^\w]/, '_'), type.name
-		    end
-		end
             end
 
 	    def issue_warnings(generated_types, registry)
