@@ -13,9 +13,9 @@ namespace RTT
         struct AnyConversion< <%= type.cxx_name %> >
         {
             <% if type.opaque?  %>
-            typedef <%= intermediate_type.corba_name(true) %> CorbaType;
+            typedef <%= intermediate_type.corba_name %> CorbaType;
             <% else %>
-            typedef <%= type.corba_name(true) %> CorbaType;
+            typedef <%= type.corba_name %> CorbaType;
             <% end %>
             typedef <%= type.cxx_name %>   BaseType;
 

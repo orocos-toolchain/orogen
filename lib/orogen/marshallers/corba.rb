@@ -89,15 +89,18 @@ module Orocos
     end
 
     module Type
-        def corba_name(plain_name = false)
+        def corba_name
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
-                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
+                "#{corba_namespace}::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
             else
-                "orogen#{namespace('::')}Corba::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
+                "#{corba_namespace}::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
             end
         end
+	def self.corba_namespace
+	    "orogen#{namespace('::')}Corba"
+	end
 
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end
@@ -120,7 +123,7 @@ module Orocos
     end
 
     module NumericType
-        def corba_name(plain_name = false)
+        def corba_name
 	    if integer?
 		if name == "/bool"
 		    "CORBA::Boolean"
@@ -149,7 +152,7 @@ module Orocos
 
     ::Typelib::specialize_model '/std/string' do
         def inlines_code?; true end
-        def corba_name(plain_name = false); "char" end
+        def corba_name; "char" end
         def corba_arg_type; "char const*" end
         def corba_ref_type; "CORBA::String_member&" end
 
@@ -159,16 +162,17 @@ module Orocos
     end
 
     module ContainerType
-        def corba_name(plain_name = false)
-            if plain_name
-                return super
-            end
+        def corba_name
+	    container_kind = self.container_kind.gsub /.*\//, ''
+	    element_name   = deference.name.gsub(/[\/ ]/, "_")
+	    typedef_name = container_kind + "_" + element_name
 
-            if deference.corba_name == "CORBA::Octet"
-                "_CORBA_Unbounded_Sequence_Octet"
-            else
-                "_CORBA_Unbounded_Sequence< #{deference.corba_name} >"
-            end
+	    if deference.corba_name !~ /^orogen::/
+		# This type is mapped into the root namespace
+		"orogen::Corba::#{typedef_name}_"
+	    else
+	    	"#{deference.corba_namespace}::#{typedef_name}_"
+	    end
         end
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end
