@@ -618,6 +618,15 @@ module Orocos
 		new
 	    end
 
+            # Returns true if the following pkg-config package is available on
+            # this system
+            def has_library?(name)
+                Utilrb::PkgConfig.new(name)
+                true
+            rescue Utilrb::PkgConfig::NotFound => e
+                false
+            end
+
             # call-seq:
             #   using_library 'name' => self
             #
@@ -852,6 +861,17 @@ module Orocos
                               pkg, typekit_registry, typekit_typelist)
                 loaded_typekits[name] = typekit
                 typekit
+            end
+
+            # Returns true if +name+ is a valid task library on this system
+            #
+            # This can be used to make the definition of parts of the oroGen
+            # project conditional
+            def has_task_library?(name)
+                orogen_project_description(name)
+                true
+            rescue ConfigError
+                false
             end
 
             # Declares that this component depends on task contexts defined by
