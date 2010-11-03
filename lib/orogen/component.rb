@@ -193,6 +193,7 @@ module Orocos
                 @loaded_orogen_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @enabled_transports = Set.new
+                @opaques = Array.new
 
 		# Load orocos-specific types which cannot be used in the
 		# component-defined typekit but can be used literally in argument
@@ -202,6 +203,7 @@ module Orocos
                 end
 		@registry = Typelib::Registry.new
 		@registry.merge rtt_registry
+                @opaque_registry = Typelib::Registry.new
 	    end
 
             class << self
@@ -328,6 +330,10 @@ module Orocos
             # a set of ImportedTypekit instances.
 	    attr_reader :used_typekits
 
+            # The Typelib::Registry object with only opaque definitions. This
+            # does include the opaques defined in our own typekit
+            attr_reader :opaque_registry
+
             # Imports the types defined by the given argument
             #
             # +name+ can either be another orogen project or a header file. In
@@ -362,8 +368,12 @@ module Orocos
                     ours.using_typekit(typekit)
                 end
                 registry.merge(typekit.registry)
+                opaque_registry.merge(typekit.opaque_registry)
+                opaques.concat(typekit.opaques)
                 typekit
 	    end
+
+            attr_reader :opaques
 
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
@@ -853,6 +863,8 @@ module Orocos
                 end
 
                 pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
+                loaded_typekits[name] = ImportedTypekit.
+                    from_raw_data(self, name, pkg, registry_xml, typelist_txt)
 
                 typekit_registry = Typelib::Registry.from_xml(registry_xml)
                 typekit_typelist = typelist_txt.split("\n").map(&:chomp)

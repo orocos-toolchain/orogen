@@ -9,9 +9,44 @@ module Orocos
             attr_reader :registry
             attr_reader :typelist
 
+            attr_reader :opaques
+            attr_reader :opaque_registry
+
+            def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
+                typekit_registry = Typelib::Registry.from_xml(registry_xml)
+                typekit_typelist = typelist_txt.split("\n").map(&:chomp).to_set
+                typekit = ImportedTypekit.new(main, name,
+                              pkg, typekit_registry, typekit_typelist)
+
+                # Now initialize the opaque definitions
+                doc = Nokogiri::XML(registry_xml)
+                doc.xpath('//opaque').each do |opaque_entry|
+                    base_type_name  = opaque_entry['name']
+                    inter_type_name = opaque_entry['marshal_as']
+                    includes        = opaque_entry['includes']
+                    needs_copy      = opaque_entry['needs_copy']
+                    spec = OpaqueDefinition.new(
+                        typekit_registry.get(base_type_name),
+                        inter_type_name,
+                        { :includes => includes.split(':'), :needs_copy => (needs_copy == '1') },
+                        nil)
+
+                    puts "#{base_type_name} from #{name} is opaque"
+                    typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))
+                    typekit.opaques << spec
+                end
+
+                typekit
+            end
+
+            def has_opaques?
+                registry.any? { |t| includes?(t) && t.contains_opaques? }
+            end
+
             def initialize(main_project, name, pkg, registry, typelist)
-                @main_project, @name, @pkg, @registry, @typelist =
-                    main_project, name, pkg, registry, typelist
+                @main_project, @name, @pkg, @registry, @typelist = main_project, name, pkg, registry, typelist
+                @opaques = Array.new
+                @opaque_registry = Typelib::Registry.new
             end
 
             def has_opaques?

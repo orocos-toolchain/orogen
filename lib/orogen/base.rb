@@ -393,10 +393,10 @@ module Orocos
     # oroGen project
     def self.registry_of(typekit_name)
         registry = Typelib::Registry.new
-        toolkit_pkg =
-            Utilrb::PkgConfig.new("#{typekit_name}-toolkit-#{Orocos::Generation.orocos_target}")
+        typekit_pkg =
+            Utilrb::PkgConfig.new("#{typekit_name}-typekit-#{Orocos::Generation.orocos_target}")
 
-        tlb = toolkit_pkg.type_registry
+        tlb = typekit_pkg.type_registry
         if tlb
             registry.import(tlb)
         end
