@@ -549,7 +549,7 @@ module Orocos
                 elsif type.kind_of?(Class) && type <= Typelib::Type
                     type
                 else
-                    raise ArgumentError, "expected a type object, got #{type}"
+                    raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
 
             rescue Typelib::NotFound => e
