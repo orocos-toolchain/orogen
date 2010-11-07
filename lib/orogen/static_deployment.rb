@@ -676,7 +676,7 @@ module Orocos
             def dependencies
                 result = []
                 result << BuildDependency.new(
-                    "OrocosRTT",
+                    "OROCOS-RTT",
                     "orocos-rtt-#{Generation.orocos_target}").
                     in_context('core', 'include').
                     in_context('core', 'link')

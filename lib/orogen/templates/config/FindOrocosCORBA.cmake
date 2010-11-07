@@ -37,7 +37,7 @@ ELSE(NOT OROCOS-RTT_CORBA_FOUND)
             IF (OrocosCORBA_IDL_EXECUTABLE )
                 SET(OrocosCORBA_Typekit_FOUND TRUE)
                 ADD_DEFINITIONS(-D_REENTRANT)
-                # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
+                # The ${OROCOS-RTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
                 SET(OrocosCORBA_Typekit_INCLUDE_DIR "${OrocosCORBA_INCLUDE_DIRS}")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE})
@@ -53,7 +53,7 @@ ELSE(NOT OROCOS-RTT_CORBA_FOUND)
             FIND_PROGRAM(OrocosCORBA_IDL_EXECUTABLE omniidl)
             IF (OrocosCORBA_IDL_EXECUTABLE)
                 SET(OrocosCORBA_Typekit_FOUND TRUE)
-                # The ${OrocosRTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
+                # The ${OROCOS-RTT_INCLUDE_DIRS}/rtt part is a workaround for RTT's
                 # includes brokenness
                 SET(OrocosCORBA_Typekit_INCLUDE_DIR "${OROCOS_RTT_INCLUDE_DIRS}/rtt;${OROCOS_RTT_INCLUDE_DIRS}/rtt/corba")
                 SET(OrocosCORBA_IDL ${OrocosCORBA_IDL_EXECUTABLE} -bcxx -Wba -Wbh=C.h -Wbs=C.cpp -Wbd=DynSK.cpp)

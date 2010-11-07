@@ -43,7 +43,7 @@ if (NOT TYPEKIT_IN_PROJECT )
     SET( CMAKE_BUILD_TYPE Debug )
   ENDIF ( NOT CMAKE_BUILD_TYPE )
 
-  #include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+  include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
   find_package(Orocos-RTT 2.0.0 REQUIRED)
   add_definitions(${OROCOS-RTT_DEFINITIONS})
 
@@ -78,7 +78,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${OROCOS-RTT_INCLUDE_DIRS})
-add_definitions(${OROCOS-RTT_CFLAGS_OTHER})
+add_definitions( -DOROCOS_TARGET=${OROCOS_TARGET} )
 link_directories(${OROCOS-RTT_LIBRARY_DIRS})
 
 <% if typekit.has_opaques_with_templates? %>

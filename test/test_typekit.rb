@@ -51,7 +51,7 @@ class TC_GenerationTypekit < Test::Unit::TestCase
 link_directories(${CMAKE_INSTALL_PREFIX}/lib/orocos/plugins ${CMAKE_INSTALL_PREFIX}/lib/orocos/types)
 
 ADD_EXECUTABLE(test test.cpp)
-list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
+list(APPEND CMAKE_PREFIX_PATH ${OROCOS-RTT_PREFIX})
 target_link_libraries(test opaque-typekit-${OROCOS_TARGET})
 target_link_libraries(test ${OROCOS_COMPONENT_LIBRARIES})
 include_directories(${CMAKE_SOURCE_DIR}/.orogen/typekit)
@@ -118,16 +118,16 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
                 cmake << "ADD_DEFINITIONS(-DWITH_#{transport_name.upcase})\n"
             end
             cmake << <<-EOT
-include_directories(${OrocosRTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})
+include_directories(${OROCOS-RTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/.orogen/typekit)
 include_directories(${CMAKE_BINARY_DIR}/.orogen/typekit)
-link_directories(${OrocosCORBA_LIBRARY_DIRS} ${OrocosRTT_LIBRARY_DIRS})
+link_directories(${OrocosCORBA_LIBRARY_DIRS} ${OROCOS-RTT_LIBRARY_DIRS})
 link_directories(${CMAKE_INSTALL_PREFIX}/lib/orocos/plugins ${CMAKE_INSTALL_PREFIX}/lib/orocos/types)
-list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
+list(APPEND CMAKE_PREFIX_PATH ${OROCOS-RTT_PREFIX})
 
 add_executable(test test.cpp)
 target_link_libraries(test simple-typekit-${OROCOS_TARGET})
-target_link_libraries(test ${OrocosRTT_LIBRARIES})
+target_link_libraries(test ${OROCOS-RTT_LIBRARIES})
 find_package( RTTPlugin COMPONENTS rtt-typekit rtt-marshalling)
 target_link_libraries(test ${RTT_PLUGIN_rtt-marshalling_LIBRARY})
 target_link_libraries(test ${RTT_PLUGIN_rtt-typekit_LIBRARY})

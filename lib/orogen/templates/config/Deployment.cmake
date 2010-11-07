@@ -13,7 +13,7 @@ target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCO
 target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
 <% end %>
 <% end %>
-list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
+list(APPEND CMAKE_PREFIX_PATH ${OROCOS-RTT_PREFIX})
 find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)
 target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-typekit_LIBRARY})
 <% deployer.rtt_transports.each do |transport_name| %>

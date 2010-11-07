@@ -67,7 +67,7 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_T
 set(<%= component.name.upcase %>_TASKLIB_NAME <%= component.name %>-tasks-${OROCOS_TARGET})
 set(<%= component.name.upcase %>_TASKLIB_SOURCES <%= task_files.sort.join(" ") %>)
 set(<%= component.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(" ") %>)
-include_directories(${OrocosRTT_INCLUDE_DIRS})
-link_directories(${OrocosRTT_LIBRARY_DIRS})
-add_definitions(${OrocosRTT_CFLAGS_OTHER})
+include_directories(${OROCOS-RTT_INCLUDE_DIRS})
+link_directories(${OROCOS-RTT_LIBRARY_DIRS})
+add_definitions(${OROCOS-RTT_CFLAGS_OTHER})
 
