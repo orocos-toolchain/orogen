@@ -749,6 +749,10 @@ module Orocos
             # the documentation of that class for more details.
             #
 	    def task_context(name, &block)
+                if name == self.name
+                    raise ArgumentError, "a task cannot have the same name that the project"
+                end
+
                 # If we have a typekit, resolve all pending loads
                 if typekit
                     typekit.perform_pending_loads
