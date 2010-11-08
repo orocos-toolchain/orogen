@@ -36,17 +36,17 @@ using namespace <%= component.name %>;
         <% end %>
     attributes()->addAttribute( _<%= att.name %> );<% end %>
     <% (task.self_ports - task.event_ports).each do |port| %>
-    ports()->addPort( _<%= port.name %> );<% end %>
+    ports()->addPort( _<%= port.name %> ).doc("<%= port.doc %>");<% end %>
     <% (task.event_ports & task.self_ports).each do |port| %>
-    ports()->addEventPort( _<%= port.name %> );<% end %>
+    ports()->addEventPort( _<%= port.name %> ).doc("<%= port.doc %>");<% end %>
     <% task.new_operations.each do |op| 
 	argument_setup = op.arguments.
-	    map { |n, _, d| ", \"#{n}\", \"#{d}\"" }.
+	    map { |n, _, d| ".arg(\"#{n}\", \"#{d}\")" }.
 	    join("")
     %>
-    provides()->addOperation( _<%= op.name %>);<% end %>
+    provides()->addOperation( _<%= op.name %>).doc("<%= op.doc %>")<%= argument_setup %>;<% end %>
     <% if task.superclass.name == "RTT::TaskContext" %>
-    provides()->addOperation( _getModelName );
+    provides()->addOperation( _getModelName ).doc("returns the oroGen model name for this task");
     <% end %>
 
     <% if task.extended_state_support? %>
