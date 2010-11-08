@@ -38,8 +38,18 @@ bool orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::registerTranspo
        typesets.registered_types.each do |type| %>
     <%= 'else ' unless first_type %>if ("<%= type.name %>" == type_name)
     {
-        ti->addProtocol(orogen_transports::TYPELIB_MARSHALLER_ID,
-            <%= type.method_name %>_TypelibMarshaller(*m_registry));
+        try {
+            ti->addProtocol(orogen_transports::TYPELIB_MARSHALLER_ID,
+                <%= type.method_name %>_TypelibMarshaller(*m_registry));
+        }
+        catch(std::runtime_error const& e)
+        {
+            log(Error) << "cannot register a typelib transport for " << type_name << endlog();
+            log(Error) << "  the following error occured:" << endlog();
+            log(Error) << "  " << e.what() << endlog();
+            log(Error) << "  the registry can be found at " << TYPEKIT_REGISTRY << endlog();
+            return false;
+        }
         return true;
     }
     <% first_type = false
