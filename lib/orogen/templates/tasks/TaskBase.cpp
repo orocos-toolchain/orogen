@@ -142,6 +142,6 @@ void <%= task.basename %>Base::fatal()
 void <%= task.basename %>Base::error()
 { return error(RUNTIME_ERROR); }
 void <%= task.basename %>Base::exception()
-{ return fatal(EXCEPTION); }
+{ return exception(EXCEPTION); }
 <% end %>
 
