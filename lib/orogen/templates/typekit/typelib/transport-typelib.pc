@@ -9,7 +9,7 @@ project_name=<%= typekit.name %>
 <% if typekit.component %>
 deffile=${prefix}/share/orogen/<%= File.basename(typekit.component.deffile) %>
 <% end %>
-type_registry=${prefix}/share/orogen/<%= typekit.name %>.tlb
+type_registry=@TYPEKIT_REGISTRY@
 
 Name: <%= typekit.name %>TypelibTransport
 Version: <%= typekit.version %>

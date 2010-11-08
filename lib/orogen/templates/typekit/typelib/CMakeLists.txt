@@ -2,7 +2,8 @@
 
 pkg_check_modules(TYPELIB REQUIRED typelib)
 
-add_definitions(-DPKG_DIR="${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
+set(TYPEKIT_REGISTRY ${CMAKE_INSTALL_PREFIX}/share/orogen/<%= typekit.name %>.tlb)
+add_definitions(-DTYPEKIT_REGISTRY="${TYPEKIT_REGISTRY}")
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= impl.join("\n    ") %>

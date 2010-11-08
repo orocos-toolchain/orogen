@@ -17,20 +17,15 @@ orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::<%= typekit.name %>T
     : m_registry(0)
 {
     try {
-        utilmm::pkgconfig pkg(TYPEKIT_PACKAGE_NAME);
-        std::string tlb = pkg.get("type_registry");
-        m_registry = Typelib::PluginManager::load("tlb", tlb);
+        m_registry = Typelib::PluginManager::load("tlb", TYPEKIT_REGISTRY);
     }
-    catch(utilmm::not_found)
-    {
-        std::cerr << "cannot find the pkg-config specification associated with this typekit:" << std::endl;
-        std::cerr << "  " << TYPEKIT_PACKAGE_NAME << std::endl;
-        std::cerr << "this is required to use the typelib transport" << std::endl;
-        std::cerr << "Remember that you must install the oroGen project with 'make install'" << std::endl;
-        std::cerr << "before you can use it, and that PKG_CONFIG_PATH must include" << std::endl;
-        std::cerr << "  " << PKG_DIR << std::endl;
+    catch(std::exception const& e) {
+        std::cerr << "cannot load the typekit's Typelib registry from" << std::endl;
+        std::cerr << "  " << TYPEKIT_REGISTRY << std::endl;
+        std::cerr << "remember to do 'make install' before you use the oroGen-generated libraries ?" << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "the Typelib transport will not be available for types defined in this typekit" << std::endl;
     }
-
 }
 
 bool orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
