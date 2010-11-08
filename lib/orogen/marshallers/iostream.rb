@@ -27,7 +27,7 @@ module Typelib
                 if element_type.inlines_code?
                     result << "#{indent}    io << *it;\n"
                 elsif element_type < ArrayType
-                    result << "#{indent}    toStream(\"\", *it, #{element_size.length}, io);\n"
+                    result << "#{indent}    toStream(\"\", reinterpret_cast<#{element_type.deference.cxx_name} const*>(*it), #{element_size.length}, io);\n"
                 else
                     result << "#{indent}    toStream(\"\", *it, io);\n"
                 end
@@ -61,7 +61,7 @@ module Typelib
                 if field_type.inlines_code?
                     result << "#{indent}  io << value.#{field_name};\n"
                 elsif field_type < ArrayType
-                    result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, #{field_type.length}, io);\n"
+                    result << "#{indent}  toStream(basename + \".#{field_name}\", reinterpret_cast<#{field_type.deference.cxx_name} const*>(value.#{field_name}), #{field_type.length}, io);\n"
                 else
                     result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, io);\n"
                 end
@@ -89,7 +89,7 @@ module Typelib
                 if element_type.inlines_code?
                     result << "#{indent}    io << value[#{i}];\n"
                 elsif element_type < ArrayType
-                    result << "#{indent}    toStream(\"\", value[#{i}], #{element_type.length}, io);\n"
+                    result << "#{indent}    toStream(\"\", reinterpret_cast<#{element_type.deference.cxx_name} const*>(value[#{i}]), #{element_type.length}, io);\n"
                 else
                     result << "#{indent}    toStream(\"\", value[#{i}], io);\n"
                 end
