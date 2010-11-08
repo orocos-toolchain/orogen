@@ -20,6 +20,7 @@ module Orocos
             :sequential   => 'SequentialActivity'
         }
 
+        # Representation of a task's attribute or property
 	class Property
             # The task on which this property is attached
             attr_reader :task
@@ -75,6 +76,7 @@ module Orocos
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
+        Attribute = Property
 
         # Generic representation of ports. The actual ports are either
         # instance of InputPort or OutputPort
@@ -701,6 +703,7 @@ module Orocos
                 default_activity 'triggered'
 
 		@properties = Array.new
+		@attributes = Array.new
 		@operations = Array.new
 		@ports	    = Array.new
                 @dynamic_ports = Array.new
@@ -743,6 +746,7 @@ module Orocos
                 ports = each_port.to_a + each_dynamic_port.to_a
                 pretty_print_interface(pp, "Ports", ports)
                 pretty_print_interface(pp, "Properties", each_property.to_a)
+                pretty_print_interface(pp, "Attributes", each_attribute.to_a)
                 pretty_print_interface(pp, "Operations", each_operation.to_a)
 	    end
 
@@ -849,17 +853,43 @@ module Orocos
             end
 
 
+            # Create a new attribute with the given name, type and default value
+            # for this task. This returns an Attribute instance representing
+            # the new attribute, whose methods can be used to configure it
+            # further. +type+ is the type name for that attribute.  It
+            # can be either in Typelib notation (/std/string) or in C++
+            # notation (std::string). This type must be defined either by the
+            # component's own typekit, or by typekits imported with
+            # Component#load_typekit.
+            #
+            # The generated task context will have a <tt>_[attribute name]</tt>
+            # attribute of class RTT::Attribute<type>.
+            #
+            # For instance, the following definition
+            #   attribute('device_name', '/std/string/, '').
+            #       doc 'the device name to connect to'
+            #
+            # Will generate a task context with a <tt>_device_name</tt>
+            # attribute of type RTT::Attribute<std::string>.
+	    def attribute(name, type, default_value = nil)
+		check_uniqueness :attributes, name
+		type = component.find_type(type)
+
+		@attributes << Attribute.new(self, name, type, default_value)
+		@attributes.last
+	    end
+
             # Create a new property with the given name, type and default value
             # for this task. This returns the Property instance representing
             # the new property, whose methods can be used to configure the
-            # property further. +type+ is the type name for that attribute.  It
+            # property further. +type+ is the type name for that property.  It
             # can be either in Typelib notation (/std/string) or in C++
             # notation (std::string). This type must be defined either by the
             # component's own typekit, or by typekits imported with
             # Component#load_typekit.
             #
             # The generated task context will have a <tt>_[property name]</tt>
-            # attribute of class RTT::Property<type>.
+            # property of class RTT::Property<type>.
             #
             # For instance, the following definition
             #   property('device_name', '/std/string/, '').
@@ -1206,6 +1236,32 @@ module Orocos
             # context, but not on its parent models.
 
             enumerate_inherited_set("port", "ports")
+
+            ##
+            # :method: each_attribute
+            # :call-seq:
+            #   each_attribute(only_self = false) { |attribute| }
+            #
+            # Yields all attributes that are defined on this task context.
+
+            ##
+            # :method: all_attributes
+            # :call-seq:
+            #   all_attributes -> set_of_attributes
+            #
+            # Returns the set of all attributes that are defined on this task
+            # context
+
+            ##
+            # :method: self_attributes
+            # :call-seq:
+            #   self_attributes -> set_of_attributes
+            #
+            # Returns the set of attributes that are added at this level of the
+            # model hierarchy. I.e. attributes that are defined on this task
+            # context, but not on its parent models.
+
+            enumerate_inherited_set("attribute", "attributes")
 
             ##
             # :method: each_property

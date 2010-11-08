@@ -14,6 +14,8 @@ using namespace <%= component.name %>;
 <% end %>
     <% task.self_properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
+    <% task.self_attributes.each do |att| %>
+    , _<%= att.name %>("<%= att.name %>")<% end %>
     <% task.self_ports.each do |port| %>
     , _<%= port.name %>("<%= port.name %>")<% end %>
     <% task.new_operations.each do |op| %>
@@ -28,6 +30,11 @@ using namespace <%= component.name %>;
         _<%= prop.name %>.set(<%= prop.cxx_default_value %>);
         <% end %>
     properties()->addProperty( _<%= prop.name %> );<% end %>
+    <% task.self_attributes.each do |att|
+        if att.default_value %>
+        _<%= att.name %>.set(<%= att.cxx_default_value %>);
+        <% end %>
+    attributes()->addAttribute( _<%= att.name %> );<% end %>
     <% (task.self_ports - task.event_ports).each do |port| %>
     ports()->addPort( _<%= port.name %> );<% end %>
     <% (task.event_ports & task.self_ports).each do |port| %>

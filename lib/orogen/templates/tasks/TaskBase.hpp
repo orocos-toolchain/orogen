@@ -37,6 +37,11 @@ namespace <%= component.name %> {
 	RTT::Property< <%= prop.type.cxx_name %> > _<%= prop.name %>;
     <% end %>
 
+	<% unless task.self_attributes.empty? %>/** attributes */<% end %>
+    <% task.self_attributes.each do |att| %>
+	RTT::Attribute< <%= att.type.cxx_name %> > _<%= att.name %>;
+    <% end %>
+
 	<% unless task.self_ports.empty? %>/** Ports */<% end %>
     <% task.self_ports.each do |port| %>
 	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
