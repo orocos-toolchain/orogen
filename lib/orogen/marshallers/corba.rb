@@ -98,7 +98,7 @@ module Orocos
                 "#{corba_namespace}::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
             end
         end
-	def self.corba_namespace
+	def corba_namespace
 	    "orogen#{namespace('::')}Corba"
 	end
 
