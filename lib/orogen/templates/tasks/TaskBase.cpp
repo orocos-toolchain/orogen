@@ -6,11 +6,11 @@ using namespace <%= component.name %>;
 
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
-    : <%= task.superclass.name %>(name)
+    : ::<%= task.superclass.name %>(name)
 <% elsif task.needs_configuration? %>
-    : <%= task.superclass.name %>(name, TaskCore::PreOperational)
+    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational)
 <% else %>
-    : <%= task.superclass.name %>(name, state)
+    : ::<%= task.superclass.name %>(name, state)
 <% end %>
     <% task.self_properties.each do |prop| %>
     , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
@@ -19,10 +19,10 @@ using namespace <%= component.name %>;
     <% task.self_ports.each do |port| %>
     , _<%= port.name %>("<%= port.name %>")<% end %>
     <% task.new_operations.each do |op| %>
-    , _<%= op.name %>("<%= op.name %>", &<%= task.name %>Base::<%= op.method_name %>, this, <%= if op.in_caller_thread then "RTT::ClientThread" else "RTT::OwnThread" end %>)<% end %>
+    , _<%= op.name %>("<%= op.name %>", &<%= task.basename %>Base::<%= op.method_name %>, this, <%= if op.in_caller_thread then "RTT::ClientThread" else "RTT::OwnThread" end %>)<% end %>
 
     <% if task.superclass.name == "RTT::TaskContext" %>
-    , _getModelName("getModelName", &<%= task.name %>Base::getModelName, this, RTT::ClientThread)
+    , _getModelName("getModelName", &<%= task.basename %>Base::getModelName, this, RTT::ClientThread)
     <% end %>
 {
     <% task.self_properties.each do |prop|

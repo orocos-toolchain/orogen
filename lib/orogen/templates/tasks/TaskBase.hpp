@@ -26,7 +26,7 @@
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
-    class <%= task.basename %>Base : public <%= task.superclass.name %>
+    class <%= task.basename %>Base : public ::<%= task.superclass.name %>
         <% task.implemented_classes.each do |class_name, _| %>
         , public <%= class_name %>
         <% end %>
