@@ -2,6 +2,7 @@
 
 pkg_check_modules(TYPELIB REQUIRED typelib)
 
+add_definitions(-DPKG_DIR="${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= impl.join("\n    ") %>

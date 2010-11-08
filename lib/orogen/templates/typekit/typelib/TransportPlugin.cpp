@@ -26,7 +26,9 @@ orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::<%= typekit.name %>T
         std::cerr << "cannot find the pkg-config specification associated with this typekit:" << std::endl;
         std::cerr << "  " << TYPEKIT_PACKAGE_NAME << std::endl;
         std::cerr << "this is required to use the typelib transport" << std::endl;
-        std::cerr << "No typelib transport will be available for the types in this typekit" << std::endl;
+        std::cerr << "Remember that you must install the oroGen project with 'make install'" << std::endl;
+        std::cerr << "before you can use it, and that PKG_CONFIG_PATH must include" << std::endl;
+        std::cerr << "  " << PKG_DIR << std::endl;
     }
 
 }
