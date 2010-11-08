@@ -7,6 +7,7 @@
 #include <rtt/types/TypekitPlugin.hpp>
 #include <typelib/pluginmanager.hh>
 #include <utilmm/configfile/pkgconfig.hh>
+#include <rtt/Logger.hpp>
 using namespace RTT;
 
 #define TYPEKIT_PACKAGE_NAME_aux0(target) #target
@@ -20,11 +21,11 @@ orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::<%= typekit.name %>T
         m_registry = Typelib::PluginManager::load("tlb", TYPEKIT_REGISTRY);
     }
     catch(std::exception const& e) {
-        std::cerr << "cannot load the typekit's Typelib registry from" << std::endl;
-        std::cerr << "  " << TYPEKIT_REGISTRY << std::endl;
-        std::cerr << "remember to do 'make install' before you use the oroGen-generated libraries ?" << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "the Typelib transport will not be available for types defined in this typekit" << std::endl;
+        log(Error) << "cannot load the typekit's Typelib registry from" << endlog();
+        log(Error) << "  " << TYPEKIT_REGISTRY << endlog();
+        log(Error) << "remember to do 'make install' before you use the oroGen-generated libraries ?" << endlog();
+        log(Error) << endlog();
+        log(Error) << "the Typelib transport will not be available for types defined in this typekit" << endlog();
     }
 }
 
