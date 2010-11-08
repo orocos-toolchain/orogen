@@ -946,9 +946,12 @@ module Orocos
 	    end
 
             def normalize_registry
-		@registry = self.registry.
-		    minimal(imported_types).
-		    minimal(Component.rtt_registry)
+                base = self.registry
+                result = Typelib::Registry.new
+                self_types.each do |type|
+                    result.merge(base.minimal(type.name))
+                end
+                @registry = result
             end
 
             def imported_array_of?(type)
