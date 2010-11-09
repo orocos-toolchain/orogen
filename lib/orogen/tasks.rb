@@ -1185,6 +1185,7 @@ module Orocos
             # interface. The operation can then be called by other components
             # remotely or locally, and synchronoulsy as well as asynchronously.
 	    def operation(name)
+		check_uniqueness(:operations, name)
 		@operations << Operation.new(self, name)
 		@operations.last
 	    end
