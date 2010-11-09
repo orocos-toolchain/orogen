@@ -12,6 +12,9 @@ using namespace <%= task.component.name %>;
 <% task.self_operations.each do |op| %>
 <%= op.signature { "#{task.basename}::#{op.method_name}" } %>
 {
+    <% if op.has_return_value? %>
+    return <%= op.return_type.first.cxx_name %>();
+    <% end %>
 }
 <% end %>
 
