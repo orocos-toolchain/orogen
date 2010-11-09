@@ -13,6 +13,7 @@ namespace orogen_transports
     static const int TYPELIB_MARSHALLER_ID = 42;
     class TypelibMarshallerBase : public RTT::types::TypeTransporter
     {
+        bool m_plain;
         Typelib::Type const*  type_def;
         Typelib::MemoryLayout layout;
         std::string m_typename_typelib;
@@ -21,10 +22,15 @@ namespace orogen_transports
     public:
         struct Handle;
 
-        TypelibMarshallerBase(std::string const& typelib_typename,
+        TypelibMarshallerBase(bool plain_type,
+                std::string const& typelib_typename,
                 std::string const& orocos_typename,
                 Typelib::Registry const& registry);
 
+        /** Returns true if the underlying orocos type can be manipulated by
+         * typelib directly and false otherwise
+         */
+        bool isPlainTypelibType() const;
         /** Returns the Typelib-friendly type name for this marshaller. I.e. the
          * type name for the pointer returned by getTypelibData.
          *

@@ -73,7 +73,7 @@ namespace orogen_transports
         typedef TypelibMarshallerBase::Handle Handle;
 
         TypelibMarshaller(std::string const& orocos_name, Typelib::Registry const& registry)
-            : orogen_transports::TypelibMarshallerBase(orocos_name, orocos_name, registry) { }
+            : orogen_transports::TypelibMarshallerBase(true, orocos_name, orocos_name, registry) { }
 
         TypelibMarshallerBase::Handle* createSample() { return new Handle(this, new T); }
         void deleteOrocosSample(Handle* data)  { deleteSamples(data); }

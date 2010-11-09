@@ -17,7 +17,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
     typedef <%= intermediate.cxx_name %> intermediate_t;
 
     TypelibMarshaller(std::string const& name, Typelib::Registry const& registry)
-        : orogen_transports::TypelibMarshallerBase("<%= intermediate.name %>", name, registry) { }
+        : orogen_transports::TypelibMarshallerBase(false, "<%= intermediate.name %>", name, registry) { }
 
     MarshallingHandle* createSample()
     {
