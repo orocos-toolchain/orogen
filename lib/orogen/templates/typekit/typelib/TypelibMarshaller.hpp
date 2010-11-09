@@ -4,6 +4,7 @@
 #define OROGEN_TYPELIB_MARSHALLER_HPP
 
 #include "TypelibMarshallerBase.hpp"
+#include <rtt/internal/DataSources.hpp>
 #include <rtt/Port.hpp>
 
 struct orogen_transports::TypelibMarshallerBase::Handle
@@ -90,9 +91,19 @@ namespace orogen_transports
             handle->owns_orocos = handle->owns_typelib = false;
         }
 
-        void refreshOrocosSample(Handle* handle) const
+        void refreshTypelibSample(Handle* handle)
         {
             // Nothing to do
+        }
+
+        void refreshOrocosSample(Handle* handle)
+        {
+            // Nothing to do
+        }
+
+        RTT::base::DataSourceBase::shared_ptr getDataSource(Handle* handle)
+        {
+            return new RTT::internal::ReferenceDataSource<T>(*reinterpret_cast<T*>(handle->orocos_sample));
         }
 
         bool readDataSource(RTT::base::DataSourceBase& source_base, Handle* handle)
@@ -110,17 +121,6 @@ namespace orogen_transports
         {
             T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
             dynamic_cast<RTT::internal::AssignableDataSource<T>&>(source).set(data);
-        }
-
-        RTT::FlowStatus readPort(RTT::base::InputPortInterface& port, Handle* handle)
-        {
-            T& data = *reinterpret_cast<T*>(handle->orocos_sample);
-            return dynamic_cast< RTT::InputPort<T>& >(port).read(data);
-        }
-        void writePort(RTT::base::OutputPortInterface& port, Handle const* handle)
-        {
-            T const& data = *reinterpret_cast<T const*>(handle->orocos_sample);
-            return dynamic_cast< RTT::OutputPort<T>& >(port).write(data);
         }
     };
 }

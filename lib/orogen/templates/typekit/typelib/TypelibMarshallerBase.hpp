@@ -31,6 +31,7 @@ namespace orogen_transports
          * typelib directly and false otherwise
          */
         bool isPlainTypelibType() const;
+
         /** Returns the Typelib-friendly type name for this marshaller. I.e. the
          * type name for the pointer returned by getTypelibData.
          *
@@ -38,6 +39,10 @@ namespace orogen_transports
          * Otherwise, it is the type name itself.
          */
         char const* getMarshallingType() const;
+
+        /** \overload
+         */
+        void setTypelibSample(Handle* data, Typelib::Value typelib_data);
 
         /** Updates the sample handler by using a data sample that Typelib
          * understands. +typelib_data+ must be pointing to an object whose type
@@ -54,7 +59,12 @@ namespace orogen_transports
         /** Updates the value of data->orocos_sample based on the data in
          * data->typelib_sample
          */
-        virtual void refreshOrocosSample(Handle* data) const = 0;
+        virtual void refreshOrocosSample(Handle* data) = 0;
+
+        /** Updates the value of data->typelib_sample based on the data in
+         * data->orocos_sample
+         */
+        virtual void refreshTypelibSample(Handle* handle) = 0;
 
         /** Returns a type-pruned pointer to an object that Typelib understands.
          * This object is of the type returned by getMarshallingType
@@ -97,6 +107,11 @@ namespace orogen_transports
          */
         void deleteHandle(Handle* data);
 
+        /** Returns a data source that can be used to modify the Orocos sample
+         * stored in this handle
+         */
+        virtual RTT::base::DataSourceBase::shared_ptr getDataSource(Handle* handle) = 0;
+
         /** Writes the data from from the handle into the data source
          */
         virtual void writeDataSource(RTT::base::DataSourceBase& source, Handle const* handle) = 0;
@@ -105,39 +120,21 @@ namespace orogen_transports
          */
         virtual bool readDataSource(RTT::base::DataSourceBase& source, Handle* handle) = 0;
 
-        /** Reads the data from the given port into the opaque handle type.
-         *
-         * Use getTypelibData() to get a type-pruned pointer that can be
-         * interpreted by Typelib
-         *
-         * Returns true if a sample has been read, false otherwise.
-         */
-        virtual RTT::FlowStatus readPort(RTT::base::InputPortInterface& port, Handle* sample) = 0;
-
-        /** Writes the data to a port. \c sample is a type-pruned pointer of a
-         * typelib-friendly data sample, whose type name is returned by
-         * getMarshallingType.
-         *
-         * I.e. for opaque types, it is a pointer to a sample of the
-         * intermediate type.
-         */
-        virtual void writePort(RTT::base::OutputPortInterface& port, Handle const* sample) = 0;
-
         /** Returns the marshalled size for the given data sample
          */
         size_t getMarshallingSize(Handle const* sample) const;
         /** Marshals the given sample directly on to a file
          */
-        void marshal(int fd, Handle* sample) const;
+        void marshal(int fd, Handle* sample);
         /** Marshals the given sample directly on to a C++ stream
          */
-        void marshal(std::ostream& stream, Handle* sample) const;
+        void marshal(std::ostream& stream, Handle* sample);
         /** Marshals the given sample into a memory buffer
          */
-        void marshal(std::vector<uint8_t>& buffer, Handle* sample) const;
+        void marshal(std::vector<uint8_t>& buffer, Handle* sample);
         /** Update the sample in +sample+ from the marshalled data in +buffer+
          */
-        virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample) const;
+        virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample);
 
         virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
         { return NULL; }

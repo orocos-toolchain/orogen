@@ -35,15 +35,17 @@ char const* TypelibMarshallerBase::getMarshallingType() const
 { return m_typename_typelib.c_str(); }
 size_t TypelibMarshallerBase::getMarshallingSize(Handle const* handle) const
 { return Typelib::getDumpSize(handle->typelib_sample, layout); }
-void TypelibMarshallerBase::marshal(int fd, Handle* handle) const
+void TypelibMarshallerBase::marshal(int fd, Handle* handle)
 { Typelib::dump(handle->typelib_sample, fd, layout); }
-void TypelibMarshallerBase::marshal(std::ostream& stream, Handle* handle) const
+void TypelibMarshallerBase::marshal(std::ostream& stream, Handle* handle)
 { Typelib::dump(handle->typelib_sample, stream, layout); }
-void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, Handle* handle) const
+void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, Handle* handle)
 { Typelib::dump(handle->typelib_sample, buffer, layout); }
-void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* handle) const
+void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* handle)
 {
     Typelib::load(handle->typelib_sample, *type_def, buffer, layout);
     refreshOrocosSample(handle);
 }
+void TypelibMarshallerBase::setTypelibSample(Handle* data, Typelib::Value typelib_data)
+{ return setTypelibSample(data, reinterpret_cast<uint8_t*>(typelib_data.getData())); }
 
