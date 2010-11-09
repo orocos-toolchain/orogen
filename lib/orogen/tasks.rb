@@ -370,6 +370,7 @@ module Orocos
 
 		@task = task
 		@name = name
+                @return_type = [nil, 'void']
 		@arguments = []
                 @in_caller_thread = false
 		@method_name = self.name.dup
@@ -407,6 +408,16 @@ module Orocos
             # See #argument
 	    attr_reader :arguments
 
+            # This version of find_type returns both a Typelib::Type object and
+            # a normalized version for +name+. It does accept const and
+            # reference qualifiers in +name+.
+            def find_type(qualified_type)
+                type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
+		type      = task.component.find_type(type_name)
+                Orocos.validate_toplevel_type(type)
+                return type, qualified_type.gsub(type_name, type.cxx_name)
+            end
+
             # Defines the next argument of this operation. +name+ is the argument
             # name and +type+ is either the type name as a string, or a
             # Typelib::Type object. In both cases, the required type must be
@@ -417,30 +428,37 @@ module Orocos
             # Note that Orocos::RTT does not support having more than 4
             # arguments for an operation, and trying that will therefore raise an
             # error
-	    def argument(name, type, doc = "")
+	    def argument(name, qualified_type, doc = "")
                 if arguments.size == 4
                     raise ArgumentError, "Orocos does not support having more than 4 arguments for an operation"
                 end
 
-		type = task.component.find_type(type)
-                Orocos.validate_toplevel_type(type)
-		arguments << [name, type, doc]
+                type, qualified_type = find_type(qualified_type)
+		arguments << [name, type, doc, qualified_type]
 		self
 	    end
+
+            # Shortcut for #arg
+            def arg(*args, &block)
+                argument(*args, &block)
+            end
 
             # Returns the set of types that this operation uses, as a
             # ValueSet of Typelib::Type classes.
             def used_types
-                [return_type].compact + arguments.map { |_, t, _| t }
+                [return_type.first].compact + arguments.map { |_, t, _| t }
             end
 
 	    # Returns the argument part of the C++ signature for this callable
 	    def argument_signature(with_names = true)
-		arglist = arguments.map do |name, type, doc|
-		    arg = type.cxx_name
-                    if !(type < Typelib::NumericType)
-                        arg += " const &"
-                    end
+		arglist = arguments.map do |name, type, doc, qualified_type|
+                    # Auto-add const-ref for non-trivial types
+                    arg =
+                        if type.cxx_name == qualified_type && !(type < Typelib::NumericType)
+                            "#{type.cxx_name} const &"
+                        else
+                            qualified_type
+                        end
 
 		    if with_names then "#{arg} #{name}"
 		    else arg
@@ -450,7 +468,9 @@ module Orocos
 		"(" << arglist.join(", ") << ")"
 	    end
 
-	    # The return type of this operation, as a Typelib::Type object.
+	    # The return type of this operation, as a [type_object,
+            # qualified_cxx_type] pair.
+            #
             # See #returns
 	    attr_reader :return_type
 
@@ -460,23 +480,23 @@ module Orocos
             # of its own typekit or because it has been imported by a
             # Component#load_typekit call.
 	    def returns(type)
-                if type
-                    type = task.component.find_type(type)
-                    Orocos.validate_toplevel_type(type)
-                end
-		@return_type = type
+                @return_type =
+                    if type then find_type(type)
+                    else [nil, 'void']
+                    end
+
 		self
 	    end
+
+            # Returns true if this operation's signature is not void
+            def has_return_value?
+                !!@return_type.first
+            end
 
             # Returns the C++ signature for this operation. Used in code
             # generation only.
 	    def signature(with_names = true)
-		result = ""
-		if return_type
-		    result << return_type.cxx_name
-		else
-		    result << "void"
-		end
+		result = return_type.last.dup
                 if with_names
                     result << " " <<
                         if block_given? then yield

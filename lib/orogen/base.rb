@@ -302,6 +302,14 @@ module Orocos
 	    clean
 	end
 
+        # Returns the unqualified version of +type_name+
+        def self.unqualified_cxx_type(type_name)
+            type_name.
+                gsub(/(^|[^\w])const($|[^\w])/, '').
+                gsub(/&/, '').
+                strip
+        end
+
 	def self.clean
 	    FileUtils.rm_rf Generation::AUTOMATIC_AREA_NAME
 	    FileUtils.rm_rf "build"
