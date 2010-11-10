@@ -1,12 +1,14 @@
 # Generated from orogen/lib/orogen/templates/typekit/typelib/CMakeLists.txt
 
 pkg_check_modules(TYPELIB REQUIRED typelib)
+include_directories(${TYPELIB_INCLUDE_DIRS})
 
 set(libname <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= impl.join("\n    ") %>
     TypelibMarshallerBase.cpp)
 
+link_directories(${TYPELIB_LIBRARY_DIRS})
 target_link_libraries(${libname}
     ${TYPELIB_LIBRARIES})
 target_link_libraries(${libname}
