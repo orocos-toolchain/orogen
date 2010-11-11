@@ -12,7 +12,10 @@ module Typelib
         end
 
         def self.normalize_cxxname(name)
-            name = name.gsub("<::", "<").gsub('>>', '> >')
+            name = name.
+                gsub(/<::(\w+)>/, '<\1>').
+                gsub("<::", "< ::").
+                gsub('>>', '> >')
             if name =~ /::/
                 name = "::#{name}"
             end
