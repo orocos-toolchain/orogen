@@ -863,6 +863,17 @@ module Orocos
                 typekit
             end
 
+            # Returns true if +name+ is a known typekit on this system
+            #
+            # This can be used to make the definition of parts of the oroGen
+            # project conditional
+            def has_typekit?(name)
+                pkg = orogen_project_description(name)
+                !!pkg.type_registry
+            rescue ConfigError
+                false
+            end
+
             # Returns true if +name+ is a valid task library on this system
             #
             # This can be used to make the definition of parts of the oroGen
