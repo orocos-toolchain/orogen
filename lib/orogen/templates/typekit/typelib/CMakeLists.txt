@@ -10,7 +10,12 @@ add_library(${libname_typelib} SHARED
     TypelibMarshallerBase.cpp)
 
 target_link_libraries(${libname_typelib}
-    ${TYPELIB_LIBRARIES})
+    ${TYPELIB_LIBRARIES}
+    ${OrocosRTT_LIBRARIES}
+    <% if !typekit.opaques.empty? %>
+    <%= typekit.name %>-typekit-${OROCOS_TARGET}
+    <% end %>)
+
 target_link_libraries(${libname_typelib}
     LINK_INTERFACE_LIBRARIES)
 
