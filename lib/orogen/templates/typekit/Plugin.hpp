@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Plugin.hpp */
 
-#ifndef <%= typekit.name.upcase %>_TYPEKIT_HPP
-#define <%= typekit.name.upcase %>_TYPEKIT_HPP
+#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPEKIT_HPP
+#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPEKIT_HPP
 
 #include <rtt/types/TypekitPlugin.hpp>
 

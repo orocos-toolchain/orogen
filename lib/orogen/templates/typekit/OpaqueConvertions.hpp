@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.hpp */
 
-#ifndef <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
-#define <%= typekit.name %>_OPAQUE_CONVERTIONS_HH
+#ifndef __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
+#define __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 
 #include <boost/cstdint.hpp>
 #include <<%= typekit.name %>/Types.hpp>

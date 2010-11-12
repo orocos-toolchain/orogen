@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/Convertions.hpp */
 
-#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
-#define OROCOS_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
+#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
+#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 
 #include "Types.hpp"
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"

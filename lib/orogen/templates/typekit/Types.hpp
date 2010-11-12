@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Types.hpp */
 
-#ifndef <%= typekit.name.upcase %>_TYPES_HPP
-#define <%= typekit.name.upcase %>_TYPES_HPP
+#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
+#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
 
 <%= typekit.opaques.map { |opaque_def| opaque_def.includes }.
     flatten.map { |p| "#include <#{p}>" }.join("\n") %>

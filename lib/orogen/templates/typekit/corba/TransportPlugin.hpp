@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/TransportPlugin.hpp */
 
-#ifndef OROCOS_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
-#define OROCOS_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
+#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
+#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_PLUGIN_HPP
 
 #include <rtt/types/TransportPlugin.hpp>
 
