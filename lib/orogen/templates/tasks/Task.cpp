@@ -24,22 +24,30 @@ using namespace <%= task.component.name %>;
 
 // bool <%= task.basename %>::configureHook()
 // {
+//     if (! <%= task.basename %>Base::configureHook())
+//         return false;
 //     return true;
 // }
 // bool <%= task.basename %>::startHook()
 // {
+//     if (! <%= task.basename %>Base::startHook())
+//         return false;
 //     return true;
 // }
 // void <%= task.basename %>::updateHook()
 // {
+//     <%= task.basename %>Base::updateHook();
 // }
 // void <%= task.basename %>::errorHook()
 // {
+//     <%= task.basename %>Base::errorHook();
 // }
 // void <%= task.basename %>::stopHook()
 // {
+//     <%= task.basename %>Base::stopHook();
 // }
 // void <%= task.basename %>::cleanupHook()
 // {
+//     <%= task.basename %>Base::cleanupHook();
 // }
 
