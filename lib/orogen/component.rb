@@ -336,7 +336,7 @@ module Orocos
             # project. In the second case, it will build and install a library
             # to support the new types.
             def import_types_from(name, *args)
-                if Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
+                if has_typekit?(name)
                     using_typekit name
                 else
                     typekit(true).load name, true, *args
@@ -843,11 +843,6 @@ module Orocos
                 return pkg, registry, typelist
             end
 
-            # Returns true if +name+ has a typekit available
-            def has_typekit?(name)
-                Utilrb::PkgConfig.has_package?("#{name}-typekit-#{orocos_target}")
-            end
-
             # Returns the ImportedTypekit object that is representing an installed
             # typekit.
             def load_typekit(name)
@@ -872,7 +867,7 @@ module Orocos
             # This can be used to make the definition of parts of the oroGen
             # project conditional
             def has_typekit?(name)
-                pkg = orogen_project_description(name)
+                pkg, _ = orogen_project_description(name)
                 !!pkg.type_registry
             rescue ConfigError
                 false
