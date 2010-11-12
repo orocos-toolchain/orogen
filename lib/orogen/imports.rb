@@ -121,9 +121,6 @@ module Orocos
             def export_types(*args); self end
             def type_export_policy(*args); self end
 
-            # True if this task library defines a typekit
-            attr_predicate :has_typekit?, true
-
             def import_types_from(name, *args)
                 if main_project && main_project.has_typekit?(name)
                     using_typekit name

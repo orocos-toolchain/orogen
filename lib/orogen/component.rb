@@ -868,7 +868,7 @@ module Orocos
             # project conditional
             def has_typekit?(name)
                 pkg, _ = orogen_project_description(name)
-                !!pkg.type_registry
+                !pkg.type_registry.empty?
             rescue ConfigError
                 false
             end
@@ -910,7 +910,7 @@ module Orocos
 
                 # Now import the typekits the component also imports, and the
                 # tasklib's own typekit if there is one
-                if tasklib.has_typekit?
+                if has_typekit?(tasklib.name)
                     using_typekit tasklib.name
                 end
                 tasklib.used_typekits.each do |tk|
