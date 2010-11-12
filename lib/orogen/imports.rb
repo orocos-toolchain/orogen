@@ -40,6 +40,9 @@ module Orocos
                 File.join(pkg.includedir, name, 'types')
             end
 
+            def using_library(*args); end
+            def using_typekit(*args); end
+
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
                            else type.to_str
@@ -90,6 +93,10 @@ module Orocos
             end
             def load_typekit(name)
                 main_project.load_typekit(name)
+            end
+
+            def using_task_library(name)
+                load_task_library(name)
             end
 
             def task_context(name, &block) # :nodoc:
