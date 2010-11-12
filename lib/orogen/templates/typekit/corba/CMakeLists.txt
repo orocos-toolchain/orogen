@@ -1,5 +1,7 @@
 # Generated from orogen/lib/orogen/templates/typekit/corba/CMakeLists.txt
 
+<% typekit_deps = typekit.plugin('corba').dependencies(typekit); %>
+
 find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
 INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})
 ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
@@ -7,6 +9,8 @@ ADD_DEFINITIONS(${OrocosCORBA_DEFINES})
 include_directories(${OrocosCORBA_INCLUDE_DIRS})
 add_definitions(${OrocosCORBA_CFLAGS_OTHER})
 link_directories(${OrocosCORBA_LIBRARY_DIRS})
+
+<%= Generation.cmake_pkgconfig_require(typekit_deps, 'corba') %>
 
 # Set up generation of IDL files for CORBA support
 IF (NOT OrocosCORBA_Typekit_FOUND)
@@ -36,8 +40,7 @@ target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosCORBA_LIBRARIES})
 
-<%= typekit_deps = typekit.plugin('corba').dependencies(typekit);
-    Generation.cmake_pkgconfig_link_corba('${libname_corba}', typekit_deps) %>
+<%= Generation.cmake_pkgconfig_link('corba', '${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
 
 SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-corba-${OROCOS_TARGET}.pc)
