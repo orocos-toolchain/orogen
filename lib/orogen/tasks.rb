@@ -919,7 +919,7 @@ module Orocos
             # Will generate a task context with a <tt>_device_name</tt>
             # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
-                name = name.to_s if name.respond_to?(:to_sym)
+                name = Generation.verify_valid_identifier(name)
 		check_uniqueness :properties, name
 		type = component.find_type(type)
 
@@ -1189,7 +1189,7 @@ module Orocos
             # interface. The operation can then be called by other components
             # remotely or locally, and synchronoulsy as well as asynchronously.
 	    def operation(name)
-                name = name.to_s if name.respond_to?(:to_sym)
+                name = Generation.verify_valid_identifier(name)
 		check_uniqueness(:operations, name)
 		@operations << Operation.new(self, name)
 		@operations.last
@@ -1385,7 +1385,7 @@ module Orocos
 	    #
 	    # See also #input_port
 	    def output_port(name, type)
-                name = name.to_s if name.respond_to?(:to_sym)
+                name = Generation.verify_valid_identifier(name)
 		check_uniqueness(:ports, name)
                 @ports << OutputPort.new(self, name, type)
                 @ports.last
@@ -1418,7 +1418,7 @@ module Orocos
 	    #
 	    # See also #output_port
 	    def input_port(name, type)
-                name = name.to_s if name.respond_to?(:to_sym)
+                name = Generation.verify_valid_identifier(name)
 		check_uniqueness(:ports, name)
                 @ports << InputPort.new(self, name, type)
                 @ports.last

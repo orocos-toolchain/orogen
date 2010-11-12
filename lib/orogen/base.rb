@@ -379,6 +379,14 @@ module Orocos
         def self.cmake_pkgconfig_link_noncorba(target, depspec)
             cmake_pkgconfig_link('core', target, depspec)
         end
+
+        def self.verify_valid_identifier(name)
+            name = name.to_s if name.respond_to?(:to_sym)
+            if name !~ /^[a-zA-Z0-9_][a-zA-Z0-9_]*$/
+                raise ArgumentError, "task name '#{name}' invalid: it can contain only alphanumeric characters and '_', and cannot start with a number"
+            end
+            name
+        end
     end
 
     # Load a separate typelib registry containing the types defined by the given

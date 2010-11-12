@@ -765,6 +765,7 @@ module Orocos
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name that the project"
                 end
+                name = Generation.verify_valid_identifier(name)
 
                 # If we have a typekit, resolve all pending loads
                 if typekit

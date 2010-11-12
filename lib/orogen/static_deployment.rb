@@ -527,10 +527,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ConfigError, "#{klass} is not a known task context model"
                 end
 
-                if name !~ /^[a-zA-Z_]+$/
-                    raise ArgumentError, "task names can only contain alphanumeric characters and '_'"
-                end
-
+                name = Generation.verify_valid_identifier(name)
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment
