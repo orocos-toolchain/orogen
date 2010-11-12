@@ -15,6 +15,25 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         assert_equal "my_name", task.name
     end
 
+    def test_all_activity_types
+	component = Component.new 
+	component.name 'test_all_activity_types'
+	context    = component.task_context "task"
+        deployment = component.deployment "test"
+
+        deployment.task("slave", "task").slave
+        deployment.task("periodic", "task").periodic(0.1)
+        deployment.task("triggered", "task").triggered
+        deployment.task("fd_driven", "task").fd_driven
+        deployment.task("sequential", "task").sequential
+        deployment.task("irq_driven", "task").irq_driven
+
+        create_wc('test_all_activity_types')
+        in_wc do
+            compile_wc(component)
+        end
+    end
+
     def test_task_fails_if_model_does_not_exist
 	component = Component.new 
 	component.name 'test'

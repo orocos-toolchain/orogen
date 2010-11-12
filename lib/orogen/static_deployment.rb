@@ -225,6 +225,7 @@ module Orocos
                 end
                 @explicit_activity = true
                 @period = nil
+                @activity_setup = nil
                 
                 ActivityDefinition.new(type[0], type[1], type[2])
             end
@@ -248,6 +249,11 @@ module Orocos
             # method is explicitely called on it.
             def slave
                 activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                activity_setup do
+                    result = <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
+                    EOD
+                end
                 self
             end
 
@@ -265,6 +271,18 @@ module Orocos
             # activity type.
             def periodic(value)
                 activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                activity_setup do
+                   result = <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
+    #{rtt_scheduler},
+    #{rtt_priority},
+    #{period},
+    task_#{name}.engine());
+RTT::os::Thread* thread_#{name} =
+    dynamic_cast<RTT::os::Thread*>(activity_#{name}->thread());
+thread_#{name}->setMaxOverrun(#{max_overruns});
+                   EOD
+                end
                 @period = Float(value)
                 self
             end
@@ -281,7 +299,32 @@ module Orocos
             # thread-less, and are triggered by the component that is calling
             # step() on them, or -- in the case of port-driven tasks -- by the
             # component that wrote on their read ports.
-            def sequential; @activity_type = nil; self end
+            def sequential
+                activity_type 'Sequential', 'RTT::extras::SequentialActivity', 'rtt/extras/SequentialActivity.hpp'
+                activity_setup do
+                    result = <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
+                    EOD
+                end
+                self
+            end
+
+            def activity_setup(&block)
+                @activity_setup = block
+            end
+
+            def generate_activity_setup
+                if @activity_setup
+                    @activity_setup.call
+                else
+                    result = <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
+            #{rtt_scheduler},
+            #{rtt_priority},
+            task_#{name}.engine());
+                    EOD
+                end
+            end
 
             # Call to make the deployer start this task when the component is
             # launched

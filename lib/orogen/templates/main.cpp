@@ -109,21 +109,8 @@ int ORO_main(int argc, char* argv[])
 
 <% task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
-    <% if task.activity_type %>
-    <%= task.activity_type.class_name %>* activity_<%= task.name%> = new <%= task.activity_type.class_name %>(
-            <%= task.rtt_scheduler %>,
-            <%= task.rtt_priority %>,
-            <% if task.period %><%= task.period %>, <% end %>
-            task_<%= task.name%>.engine());
+    <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
-    <% if task.period %>
-    RTT::os::Thread* thread_<%= task.name %> =
-        dynamic_cast<RTT::os::Thread*>(activity_<%= task.name %>->thread());
-    thread_<%= task.name %>->setMaxOverrun(<%= task.max_overruns %>);
-    <% end %>
-    <% else %>
-    RTT::base::ActivityInterface* activity_<%= task.name %> = task_<%= task.name %>.getActivity().get();
-    <% end # activity_type %>
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
         if prop.value %>
     dynamic_cast< RTT::Property<  <%= prop.interface_object.type.cxx_name %> >*>(
