@@ -147,6 +147,7 @@ module Orocos
                 @typekit
             end
 
+            def deployment(name)
             end
 
             # Task library objects represent an import, and as such they cannot
