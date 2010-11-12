@@ -126,7 +126,9 @@ int ORO_main(int argc, char* argv[])
     <% end # activity_type %>
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
         if prop.value %>
-    task_<%= task.name %>.properties()->getProperty<<%= prop.interface_object.type.cxx_name %>>("<%= prop.name %>")->set(<%= prop.value.inspect %>);
+    dynamic_cast< RTT::Property<  <%= prop.interface_object.type.cxx_name %> >*>(
+            task_<%= task.name %>.properties()->getProperty("<%= prop.name %>"))
+        ->set(<%= prop.value.inspect %>);
         <% end %>
     <% end %>
 
