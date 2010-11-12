@@ -10,7 +10,7 @@
 <% typekit.used_typekits.each do |tk| %>
 #include <<%= tk.name %>/transports/corba/Convertions.hpp>
 <% if tk.has_opaques? %>
-#include <<%= tk.name %>/OpaqueConvertions.hpp>
+#include <<%= tk.name %>/typekit/OpaqueConvertions.hpp>
 <% end %>
 <% end %>
 
