@@ -905,7 +905,7 @@ module Orocos
                 tasks.concat tasklib.self_tasks
                 used_task_libraries << tasklib
                 if self.typekit
-                    self.typekit.include_dirs |= tasklib.inclued_dirs.to_set
+                    self.typekit.include_dirs |= tasklib.include_dirs.to_set
                 end
 
                 # Now import the typekits the component also imports, and the
