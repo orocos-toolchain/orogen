@@ -450,6 +450,10 @@ module Orocos
                 if !TYPE_EXPORT_POLICIES.include?(new_policy)
                     raise ArgumentError, "invalid type export policy #{new_policy.inspect}, allowed are: :#{TYPE_EXPORT_POLICIES.join(", :")}"
                 end
+                if new_policy != :all
+                    raise NotImplementedError
+                end
+
                 if new_policy == :used && !component
                     raise ArgumentError, "cannot use a 'used' policy on a standalone typekit"
                 end
