@@ -350,14 +350,14 @@ module Orocos
             end
         end
 
-        def self.cmake_pkgconfig_require(depspec)
+        def self.cmake_pkgconfig_require(depspec, context = 'core')
             depspec.inject([]) do |result, s|
                 result << "pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
-                if s.in_context?('core', 'include')
+                if s.in_context?(context, 'include')
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
                     result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
                 end
-                if s.in_context?('core', 'link')
+                if s.in_context?(context, 'link')
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
                 end
                 result
@@ -366,7 +366,7 @@ module Orocos
 
         def self.cmake_pkgconfig_link(context, target, depspec)
             depspec.inject([]) do |result, s|
-                if s.in_context?('link', context)
+                if s.in_context?(context, 'link')
                     result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
                 end
                 result
