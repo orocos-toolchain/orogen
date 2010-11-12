@@ -925,6 +925,8 @@ module Orocos
 
 		@properties << Property.new(self, name, type, default_value)
 		@properties.last
+            rescue Typelib::NotFound
+                raise ConfigError, "type #{type} is not declared"
 	    end
 
             # Asks orogen to implement the extended state support interface in
