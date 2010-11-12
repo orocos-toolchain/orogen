@@ -112,8 +112,8 @@ ConfigError = Orocos::Generation::ConfigError
 begin
     filename  = files.first
     begin
-        component.load(filename, verbosity > 1)
         component.enable_transports(*transports)
+        component.load(filename, verbosity > 1)
 
     rescue Exception => e
         # Two options:

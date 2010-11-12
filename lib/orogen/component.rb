@@ -689,6 +689,10 @@ module Orocos
                         typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
                     end
 
+                    @enabled_transports.each do |t|
+                        typekit.enable_plugin(t)
+                    end
+
                     typekit.include_dirs |=
                         used_task_libraries.map { |pkg| pkg.include_dirs }.
                         flatten.to_set
@@ -949,6 +953,9 @@ module Orocos
                 end
 
                 deployer = StaticDeployment.new(self, name, &block)
+                @enabled_transports.each do |t|
+                    deployer.enable_transport(t)
+                end
                 deployer.instance_eval(&block) if block_given?
 
                 # If the deployer is meant to be installed, check that there is
