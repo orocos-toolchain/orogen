@@ -130,13 +130,16 @@ module Orocos
             end
 
             def typekit(create = nil, &block) # :nodoc:
-                if !create && !block_given?
-                    super
-                else
-                    @typekit = using_typekit(name)
-                    self.has_typekit = true
-                    @typekit
+                if @typekit.nil?
+                    @typekit =
+                        if main_project && main_project.has_typekit?(name)
+                            using_typekit(name)
+                        else nil
+                        end
                 end
+                @typekit
+            end
+
             end
 
             # Task library objects represent an import, and as such they cannot
