@@ -319,6 +319,9 @@ module Orocos
             # is assumed that the user will provide that code.
             attr_reader :code_generator
 
+            # Backtrace at the definition point
+            attr_accessor :caller
+
             def initialize(type, intermediate, options, code_generator)
                 if !type || !intermediate
                     raise ArgumentError, "trying to create an opaque definition with nil types"
@@ -760,6 +763,7 @@ module Orocos
                 opaque_type = find_type(base_type)
                 orogen_def  = OpaqueDefinition.new(opaque_type,
                                                  intermediate_type, options, convert_code_generator) 
+                orogen_def.caller = caller
                 @opaques << orogen_def
                 @opaques = opaques.
                     sort_by { |orogen_def| orogen_def.type.name }
@@ -1112,7 +1116,11 @@ module Orocos
                 # Make sure all opaque intermediate types are existing or can be
                 # instanciated
                 opaques.each do |opaque_def|
-                    find_type(opaque_def.intermediate)
+                    begin
+                        find_type(opaque_def.intermediate)
+                    rescue Typelib::NotFound
+                        raise ConfigError, "type #{opaque_def.intermediate}, used as intermediate for opaque #{opaque_def.type.name}, does not exist", opaque_def.caller
+                    end
                 end
 
                 # Generate some type definitions for the pocosim marshalling. In
