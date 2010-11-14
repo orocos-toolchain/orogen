@@ -8,6 +8,7 @@
 <% end %>
 
 <% typekit.used_typekits.each do |tk| %>
+<% next if tk.virtual? %>
 #include <<%= tk.name %>/transports/corba/Convertions.hpp>
 <% if tk.has_opaques? %>
 #include <<%= tk.name %>/typekit/OpaqueConvertions.hpp>

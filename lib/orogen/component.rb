@@ -198,27 +198,26 @@ module Orocos
 		# Load orocos-specific types which cannot be used in the
 		# component-defined typekit but can be used literally in argument
 		# lists or property types
-                if !Component.rtt_registry
-                    Component.load_rtt_registry
-                end
 		@registry = Typelib::Registry.new
-		@registry.merge rtt_registry
                 @opaque_registry = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(registry)
+                Component.using_rtt_typekit(self)
 	    end
 
-            class << self
-                attr_reader :rtt_registry
+            def self.using_rtt_typekit(obj)
+                rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
+                rtt_typelist = File.expand_path('orocos.typelist', File.dirname(__FILE__))
+                typekit = RTTTypekit.from_raw_data(
+                    nil, 'rtt', nil,
+                    File.read(rtt_tlb),
+                    File.read(rtt_typelist))
+                obj.using_typekit(typekit)
             end
 
             def self.load_rtt_registry
                 rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
-
-                registry = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(registry)
-                registry.import rtt_tlb, 'tlb', :merge => false
-                @rtt_registry = registry
+                Typelib::Registry.from_xml(File.read(rtt_tlb))
             end
-
 
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
@@ -357,12 +356,14 @@ module Orocos
             #   PREFIX/lib/pkgconfig
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
-	    def using_typekit(name)
-		if used_typekits.any? { |tk| tk.name == name }
-		    return
-		end
+	    def using_typekit(typekit)
+                if typekit.respond_to?(:to_str)
+                    if used_typekits.any? { |tk| tk.name == typekit }
+                        return
+                    end
+                    typekit = load_typekit(typekit)
+                end
 
-                typekit = load_typekit(name)
 		used_typekits << typekit
                 if ours = self.typekit
                     ours.using_typekit(typekit)
@@ -386,15 +387,18 @@ module Orocos
             # in the RTT, as for instance vector<double> and string.
             def rtt_registry; Component.rtt_registry end
 
-            # Returns true if +typename+ has been defined by a typekit imported
-            # by using_typekit
-            def imported_type?(typename)
+            # Returns the typekit object that defines this type
+            def imported_typekit_for(typename)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
+                return used_typekits.find { |tk| tk.includes?(typename) }
+            end
 
-                rtt_registry.includes?(typename) ||
-                    used_typekits.any? { |tk| tk.includes?(typename) }
+            # Returns true if +typename+ has been defined by a typekit imported
+            # by using_typekit
+            def imported_type?(typename)
+                !!imported_typekit_for(typename)
             end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
@@ -577,7 +581,7 @@ module Orocos
                 # Get the set of typekits that we directly depend on, because
                 # some of our task classes use their types in their interface.
                 used_typekits = self_tasks.inject(Set.new) do |set, task|
-                    set | task.used_typekits.map(&:name)
+                    set | task.used_typekits.find_all { |tk| !tk.virtual? }.map(&:name)
                 end
 
                 used_libraries = self.used_libraries.map(&:name)
@@ -872,14 +876,6 @@ module Orocos
                 pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
                 loaded_typekits[name] = ImportedTypekit.
                     from_raw_data(self, name, pkg, registry_xml, typelist_txt)
-
-                typekit_registry = Typelib::Registry.from_xml(registry_xml)
-                typekit_typelist = typelist_txt.split("\n").map(&:chomp)
-
-                typekit = ImportedTypekit.new(self, name,
-                              pkg, typekit_registry, typekit_typelist)
-                loaded_typekits[name] = typekit
-                typekit
             end
 
             # Returns true if +name+ is a known typekit on this system

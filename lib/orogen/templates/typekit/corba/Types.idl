@@ -4,6 +4,7 @@
 #define __OROGEN_TYPEKIT_<%= typekit.name.upcase %>_IDL__
 
 <% typekit.used_typekits.each do |tk| %>
+<% next if tk.virtual? %>
 #include <<%= tk.name %>/transports/corba/<%= tk.name %>Types.idl>
 <% end %>
 

@@ -10,10 +10,11 @@
 #include "<%= File.join(component.name, dest_path) %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
+<% next if tk.virtual? %>
 #include <<%= tk.name %>/Types.hpp>
-<% end
+<% end %>
 
-needed_types.each do |type|
+<% needed_types.each do |type|
     current_def = begin
                       registry.get("#{type.full_name}_m")
                   rescue Typelib::NotFound
@@ -52,20 +53,7 @@ needed_types.each do |type|
     namespace = type.namespace
     did_something = true
     code %>
-    struct <%= type.basename %>_m
-    {
-    <% type.each_field do |field_name, field_type|
-        field_cxxname =
-            if field_type.contains_opaques?
-                typekit.intermediate_cxxname_for(field_type.name)
-            else
-                [field_type.cxx_name]
-            end
-            %>
-        <%= field_cxxname[0] %> <%= field_name %><%= field_cxxname[1] %>;
-    <% end %>
-    };
-
+    <%= type.to_m_type(typekit) %>
     <%= Generation.adapt_namespace(namespace, '/') %>
 <% end %>
 

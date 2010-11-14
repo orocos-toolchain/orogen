@@ -13,6 +13,7 @@
 #include "<%= typekit.name %>/types/<%= typekit.name %>/<%= dest_path %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
+<% next if tk.virtual? %>
 #include <<%= tk.name %>/Types.hpp>
 <% end %>
 

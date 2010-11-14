@@ -18,6 +18,7 @@ module Orocos
         def dependencies(typekit)
             result = []
             typekit.used_typekits.each do |tk|
+                next if tk.virtual?
                 build_dep = Orocos::Generation::BuildDependency.new(
                     tk.name.upcase + "_TRANSPORT_CORBA",
                     tk.pkg_transport_name('corba'))
@@ -88,9 +89,9 @@ module Orocos
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
-                "#{corba_namespace}::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}_m"
+                "#{corba_namespace}::#{normalize_cxxname(basename.gsub(/[^\w]/, '_'))}_m"
             else
-                "#{corba_namespace}::#{normalize_cxxname(basename).gsub(/[^\w]/, '_')}"
+                "#{corba_namespace}::#{normalize_cxxname(basename.gsub(/[^\w]/, '_'))}"
             end
         end
 	def corba_namespace

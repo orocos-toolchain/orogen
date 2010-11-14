@@ -16,6 +16,22 @@ class TC_GenerationTypekit < Test::Unit::TestCase
 	assert_equal(registry.get('double'), registry.base_rtt_type_for(registry.get('float')))
     end
 
+    def test_base_types_are_imported
+        typekit = Orocos::Generation::Typekit.new
+        assert(typekit.imported_type?('/nil'))
+        assert(typekit.imported_type?('/int32_t'))
+    end
+
+    def test_self_types_is_initially_empty
+        typekit = Orocos::Generation::Typekit.new
+        assert_equal [], typekit.self_types.to_a
+    end
+
+    def test_normalized_registry_is_initially_empty
+        typekit = Orocos::Generation::Typekit.new
+        assert_equal [], typekit.normalize_registry.to_a
+    end
+
     def test_typekit_load
 	component = Component.new
         component.name 'test_typekit_load'

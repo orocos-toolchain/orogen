@@ -12,14 +12,24 @@ module Typelib
         end
 
         def self.normalize_cxxname(name)
-            name = name.
-                gsub(/<::(\w+)>/, '<\1>').
-                gsub("<::", "< ::").
-                gsub('>>', '> >')
-            if name =~ /::/
+            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
+
+            if name =~ /^::(\w+)$/
+                name = $1
+            elsif name =~ /::/ && name !~ /^::/
                 name = "::#{name}"
             end
-            name
+            if !template_arguments.empty?
+                template_arguments.map! do |arg|
+                    if arg !~ /^\d+$/
+                        normalize_cxxname(arg)
+                    else arg
+                    end
+                end
+
+                "#{name}< #{template_arguments.join(", ")} >"
+            else name
+            end
         end
 
         def self.cxx_name(fullname = true)
@@ -86,10 +96,21 @@ module Typelib
 	def self.contains_int64?; deference.contains_int64?  end
         def self.contains_opaques?; deference.contains_opaques? end
 
-        def self.cxx_name
-            kind = container_kind.
+        def self.to_m_type(typekit)
+            target_cxxname = typekit.intermediate_cxxname_for(deference)
+            "struct __gccxml_workaround_#{method_name(true)} { #{container_cxx_kind}< #{target_cxxname} > instanciate; };\n"  +
+            "typedef #{container_cxx_kind}< #{target_cxxname} > orogen_typekits_mtype_#{method_name(true)};"
+        end
+
+        def self.container_cxx_kind
+            container_kind.
                 gsub('/', '::').
                 gsub(/^::/, '')
+        end
+
+
+        def self.cxx_name
+            kind = container_cxx_kind
             if name =~ /</
                 normalize_cxxname(kind + "< " + deference.cxx_name + " >")
             else
@@ -161,6 +182,23 @@ module Typelib
 	def self.contains_int64?; enum_for(:each_field).any? { |_, type| type.contains_int64? } end
 	def self.contains_opaques?; enum_for(:each_field).any? { |_, type| type.contains_opaques? } end
 
+        def self.to_m_type(typekit)
+            result = <<-EOCODE
+struct #{basename}_m
+{
+            EOCODE
+            each_field do |field_name, field_type|
+                field_cxxname =
+                    if field_type.contains_opaques?
+                        typekit.intermediate_cxxname_for(field_type.name)
+                    else
+                        [field_type.cxx_name]
+                    end
+                result << "   #{field_cxxname[0]} #{field_name} #{field_cxxname[1]};"
+            end
+            result << "};"
+        end
+
         def self.code_copy(typekit, result, indent, dest, src, method, error_handling)
             each_field do |field_name, field_type|
                 if string = yield(field_name, field_type)
@@ -208,6 +246,11 @@ module Typelib
 
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
+
+        def self.to_m_type(typekit)
+            deference_name = typekit.intermediate_cxxname_for(deference)
+            "typedef #{deference_name[0]} orogen_typekits_mtype_#{method_name(true)}#{deference_name[1]}"
+        end
 
         def self.code_copy(typekit, result, indent, dest, src, method)
             element_type = registry.build(deference.name)
@@ -483,7 +526,16 @@ module Orocos
             attr_reader :used_libraries
             attr_reader :linked_used_libraries
 
+            # Returns the set of opaque definitions that are known by the
+            # typekit
             attr_reader :opaques
+
+            # Returns the set of opaques that have been added to this particular
+            # typekit
+            def self_opaques
+                opaques.find_all { |opdef| !imported_type?(opdef.type) }
+            end
+
             attr_reader :opaque_registry
             attr_reader :pending_load_options
             attr_reader :pending_loads
@@ -492,7 +544,10 @@ module Orocos
                 self.imported_types.merge(typekit.registry)
                 self.imported_typelist |= typekit.typelist
                 self.include_dirs      |= typekit.include_dirs.to_set
-                self.include_dirs << typekit.types_dir
+                self.opaques.concat(typekit.opaques)
+                if dir = typekit.types_dir
+                    self.include_dirs << dir
+                end
                 self.imported_typekits << typekit
             end
 
@@ -504,11 +559,18 @@ module Orocos
                 end
             end
 
-            def imported_type?(type)
-                if type.respond_to?(:name)
-                    type = type.name
-                end
-                imported_types.include?(type)
+            # Returns the typekit object that defines this type
+            def imported_typekit_for(typename)
+		if typename.respond_to?(:name)
+		    typename = typename.name
+		end
+                return imported_typekits.find { |tk| tk.includes?(typename) }
+            end
+
+            # Returns true if +typename+ has been defined by a typekit imported
+            # by using_typekit
+            def imported_type?(typename)
+                !!imported_typekit_for(typename)
             end
 
             # Returns the Typelib::Type subclass that represents the type whose
@@ -527,8 +589,6 @@ module Orocos
                             element_type   = find_type(element_name)
                             if !element_type
                                 raise ArgumentError, "the type #{element_name.inspect} is not defined"
-                            elsif element_type.contains_opaques?
-                                raise ArgumentError, "cannot create a container of #{element_name}: it contains an opaque type or is opaque itself"
                             end
 
                             if component
@@ -607,12 +667,9 @@ module Orocos
                 @pending_loads        = Array.new
 
                 type_export_policy :all
-                @selected_types = Array.new
-
-		# Load orocos-specific types which cannot be used in the
-		# component-defined typekit but can be used literally in argument
-		# lists or property types
-		registry.merge Component.load_rtt_registry
+                @selected_types = ValueSet.new
+                @excluded_types = ValueSet.new
+                Component.using_rtt_typekit(self)
 	    end
 
             # The set of code generation plugins
@@ -770,12 +827,12 @@ module Orocos
             # True if there are some opaques in this typekit. The result of this
             # method is only valid during generation. Don't use it in general.
             def has_opaques?
-                !opaques.empty? || m_types_code
+                !self_opaques.empty? || m_types_code
             end
 
             # True if some opaques require to generate templates
             def has_opaques_with_templates?
-                opaques.any? { |op| op.generate_templates? }
+                self_opaques.any? { |op| op.generate_templates? }
             end
 
             # call-seq:
@@ -874,7 +931,7 @@ module Orocos
                 include_dirs = self.include_dirs.to_a
 
                 file_registry = Typelib::Registry.new
-                file_registry.merge component.opaque_registry
+                file_registry.merge opaque_registry
 
                 options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
                 # GCCXML can't parse vectorized code, and the Typelib internal
@@ -1029,6 +1086,7 @@ module Orocos
                 # We must link to typekits that define our types, as we are
                 # going to reuse the convertion functions that they define
                 used_typekits.each do |tk|
+                    next if tk.virtual?
                     result << BuildDependency.new(
                         tk.name.upcase + "_TYPEKIT", tk.pkg_name).
                         in_context('core', 'include').
@@ -1049,14 +1107,10 @@ module Orocos
             end
 
             def opaque_specification(type_def)
-                if component.imported_type?(type_def)
-                    component.opaque_specification(type_def)
-                else
-                    type = find_type(type_def)
-                    raise "#{type} is unknown" unless type
-                    raise "#{type} is not opaque" unless type.opaque?
-                    opaques.find { |opaque_def| opaque_def.type == type }
-                end
+                type = find_type(type_def)
+                raise "#{type} is unknown" unless type
+                raise "#{type} is not opaque" unless type.opaque?
+                opaques.find { |opaque_def| opaque_def.type == type }
             end
 
             def intermediate_cxxname_for(type_def)
@@ -1113,7 +1167,7 @@ module Orocos
             def handle_opaques_generation(generated_types)
                 # Make sure all opaque intermediate types are existing or can be
                 # instanciated
-                opaques.each do |opaque_def|
+                self_opaques.each do |opaque_def|
                     begin
                         find_type(opaque_def.intermediate)
                     rescue Typelib::NotFound
@@ -1125,25 +1179,25 @@ module Orocos
                 # practice, we generate C code that we merge back into the
                 # repository
                 generate_all_marshalling_types = false
-                generated_types = registry.each(:with_aliases => false).
-                    find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
-
-                needed_definitions = generated_types.
-                    find_all { |t| t.contains_opaques? && !t.opaque? }.
-                    find_all { |t| t < Typelib::CompoundType }
+                needed_definitions = self_types.
+                    find_all { |t| t.contains_opaques? && !t.opaque? }
 
                 needed_types = []
-                needed_definitions.delete_if do |type|
-                    next if type.dependencies.any? { |t| needed_definitions.include?(t) }
-                    needed_types << type
+                while !needed_definitions.empty?
+                    needed_definitions.delete_if do |type|
+                        next if type.dependencies.any? { |t| needed_definitions.include?(t) }
+                        needed_types << type
+                    end
                 end
 
-                options = { :include => [File.join(component.base_dir, Orocos::Generation::AUTOMATIC_AREA_NAME)] }
+                options = { :include => include_dirs.dup }
 
                 typekit = self
                 catch(:nothing_to_define) do
                     Tempfile.open('orogen') do |io|
-                        marshalling_code = Generation.render_template 'typekit/marshalling_types.hpp', binding
+                        Orocos::Generation.debug "loading m-type definitions"
+                        marshalling_code = Generation.render_template 'typekit', 'marshalling_types.hpp', binding
+                        puts marshalling_code
                         @m_types_code = marshalling_code
                         io << marshalling_code
                         io.flush
@@ -1295,10 +1349,10 @@ module Orocos
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
-                generated_types = self_types
+                generated_types = self_types.to_value_set
 
-                opaque_types = opaques.map { |opdef| opdef.type }
-                opaque_intermediates = opaques.map do |opdef|
+                opaque_types = self_opaques.map { |opdef| opdef.type }
+                opaque_intermediates = self_opaques.map do |opdef|
                     find_type(opdef.intermediate)
                 end
 
@@ -1379,7 +1433,7 @@ module Orocos
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
                 type_sets.minimal_registry = minimal_registry
-                type_sets.opaque_types     = opaques
+                type_sets.opaque_types     = self_opaques
 
                 public_header_files, implementation_files = [], []
 
@@ -1392,19 +1446,6 @@ module Orocos
 		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding
 		implementation_files << save_automatic("Plugin.cpp", tk_cpp)
-
-                #tk_impl_hpp = Generation.render_template "typekit/TypekitImpl.hpp", binding
-		#Generation.save_automatic("typekit", "#{component.name}TypekitImpl.hpp", tk_impl_hpp)
-
-                # Generate the explicit instanciation files. We split them on a
-                # by-type basis, as it allows to use parallel build *and* avoid
-                # memory explosion by GCC
-                # @template_instanciation_files = registered_types.each_with_index.map do |type, i|
-                #     instanciation = Generation.render_template 'typekit/TemplateInstanciation.cpp', binding
-                #     out_name =  "#{component.name}TemplateInstanciation#{i}.cpp"
-                #     Generation.save_automatic("typekit", out_name, instanciation)
-                #     out_name
-                # end
 
                 # Generate the opaque convertion files
                 if has_opaques?
@@ -1419,8 +1460,7 @@ module Orocos
                     if has_opaques_with_templates?
                         user_hh = Generation.render_template 'typekit/Opaques.hpp', binding
                         user_cc = Generation.render_template 'typekit/Opaques.cpp', binding
-                        public_header_files <<
-                            save_user("Opaques.hpp", user_hh)
+                        save_user("Opaques.hpp", user_hh)
                         implementation_files <<
                             save_user("Opaques.cpp", user_cc)
                         if !File.symlink?(File.join(automatic_dir, "Opaques.hpp"))

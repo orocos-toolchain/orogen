@@ -13,6 +13,7 @@
 <% end %>
 <% end %>
 <% deployer.used_typekits.each do |tk| %>
+    <% next if tk.virtual? %>
 #include <<%= tk.name %>/typekit/Plugin.hpp>
     <% deployer.transports.each do |transport_name| %>
 #include <<%= tk.name %>/transports/<%= transport_name %>/TransportPlugin.hpp>
@@ -97,6 +98,7 @@ int ORO_main(int argc, char* argv[])
    <% end %>
    <% end %>
    <% deployer.used_typekits.each do |tk| %>
+   <% next if tk.virtual? %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
        <% deployer.transports.each do |transport_name| %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %><%= transport_name.capitalize %>TransportPlugin );

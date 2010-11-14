@@ -737,6 +737,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
 
                 used_typekits.each do |tk|
+                    next if tk.virtual?
                     result << BuildDependency.new(
                         "#{tk.name}_TYPEKIT",
                         tk.pkg_name).

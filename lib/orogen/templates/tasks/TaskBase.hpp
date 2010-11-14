@@ -16,6 +16,7 @@
 
 
 <% task.used_typekits.each do |tk| %>
+  <% next if tk.virtual? %>
 #include <<%= tk.name %>/Types.hpp>
 <% end %>
 <% task.implemented_classes.each do |class_name, include_file| %>

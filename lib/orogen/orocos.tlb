@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 <typelib>
-<!-- define here some placeholders for types that are already implemented in
-     the Orocos::RTT typekit -->
-
-    <alias name="/string" source="/std/string"/>
-    <alias name="/uint" source="/uint32_t"/>
-    <alias name="/int64" source="/int64_t"/>
-    <alias name="/uint64" source="/uint64_t"/>
+  <alias name="/int64" source="/int64_t"/>
+  <alias name="/uint32" source="/uint32_t"/>
+  <alias name="/uint64" source="/uint64_t"/>
+  <container  name="/std/string" of="/int8_t" size="8" kind="/std/string"/>
+  <alias name="/string" source="/std/string"/>
 </typelib>
-

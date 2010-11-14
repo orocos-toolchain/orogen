@@ -3,8 +3,12 @@
 #include "OpaqueConvertions.hpp"
 #include <memory>
 
-<%
-# We first handle the definitions that declare convertions functions
+<% typekit.imported_typekits.each do |tk| %>
+<% next if tk.virtual? %>
+#include <<%= tk.name %>/typekit/OpaqueConvertions.hpp>
+<% end %>
+
+<% # We first handle the definitions that declare convertions functions
 # (i.e. the ones for which we don't need to generate anything)
 type_sets.opaque_types.
     find_all(&:code_generator).
