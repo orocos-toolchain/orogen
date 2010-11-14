@@ -764,6 +764,7 @@ module Orocos
                 @opaques << orogen_def
                 @opaques = opaques.
                     sort_by { |orogen_def| orogen_def.type.name }
+                opaque_type.name
             end
 
             # True if there are some opaques in this typekit. The result of this
