@@ -56,7 +56,7 @@ module Orocos
                     raise ArgumentError, "property names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
 		end
 
-                type = task.component.find_type(type)
+                type = task.component.find_interface_type(type)
                 Orocos.validate_toplevel_type(type)
 
 		@name, @type, @default_value = name, type, default_value
@@ -125,7 +125,7 @@ module Orocos
                     end
                 end
 
-                type = task.component.find_type(type)
+                type = task.component.find_interface_type(type)
                 Orocos.validate_toplevel_type(type)
                 if type.name == "/std/vector<double>"
                     Orocos::Generation.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
@@ -408,12 +408,12 @@ module Orocos
             # See #argument
 	    attr_reader :arguments
 
-            # This version of find_type returns both a Typelib::Type object and
+            # This version of find_interface_type returns both a Typelib::Type object and
             # a normalized version for +name+. It does accept const and
             # reference qualifiers in +name+.
-            def find_type(qualified_type)
+            def find_interface_type(qualified_type)
                 type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
-		type      = task.component.find_type(type_name)
+		type      = task.component.find_interface_type(type_name)
                 Orocos.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end
@@ -433,7 +433,7 @@ module Orocos
                     raise ArgumentError, "Orocos does not support having more than 4 arguments for an operation"
                 end
 
-                type, qualified_type = find_type(qualified_type)
+                type, qualified_type = find_interface_type(qualified_type)
 		arguments << [name, type, doc, qualified_type]
 		self
 	    end
@@ -481,7 +481,7 @@ module Orocos
             # Component#load_typekit call.
 	    def returns(type)
                 @return_type =
-                    if type then find_type(type)
+                    if type then find_interface_type(type)
                     else [nil, 'void']
                     end
 
@@ -894,7 +894,7 @@ module Orocos
 	    def attribute(name, type, default_value = nil)
                 name = name.to_s if name.respond_to?(:to_sym)
 		check_uniqueness :attributes, name
-		type = component.find_type(type)
+		type = component.find_interface_type(type)
 
 		@attributes << Attribute.new(self, name, type, default_value)
 		@attributes.last
@@ -921,7 +921,7 @@ module Orocos
 	    def property(name, type, default_value = nil)
                 name = Generation.verify_valid_identifier(name)
 		check_uniqueness :properties, name
-		type = component.find_type(type)
+		type = component.find_interface_type(type)
 
 		@properties << Property.new(self, name, type, default_value)
 		@properties.last

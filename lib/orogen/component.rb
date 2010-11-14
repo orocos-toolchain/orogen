@@ -400,6 +400,18 @@ module Orocos
             def imported_type?(typename)
                 !!imported_typekit_for(typename)
             end
+
+            # Returns the type object for +typename+, validating that we can use
+            # it in a task interface, i.e. that it will be registered in the
+            # RTT's typeinfo system
+            def find_interface_type(typename)
+                type = find_type(typename)
+                tk   = imported_typekit_for(typename)
+                if tk && !tk.interface_type?(type.name)
+                    raise ConfigError, "#{typename}, defined in the #{tk.name} typekit, is not exported by it"
+                end
+                type
+            end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the

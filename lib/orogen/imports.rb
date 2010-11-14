@@ -8,15 +8,31 @@ module Orocos
             attr_reader :pkg
             attr_reader :registry
             attr_reader :typelist
+            attr_reader :interface_typelist
 
             attr_reader :opaques
             attr_reader :opaque_registry
 
             def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
-                typekit_registry = Typelib::Registry.from_xml(registry_xml)
-                typekit_typelist = typelist_txt.split("\n").map(&:chomp).to_set
-                typekit = ImportedTypekit.new(main, name,
-                              pkg, typekit_registry, typekit_typelist)
+                typekit_registry = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(typekit_registry)
+                typekit_registry.merge_xml(registry_xml)
+
+                raw_typelist = typelist_txt.split("\n").map(&:strip)
+                typekit_typelist, typekit_interface_typelist = [], []
+                raw_typelist.each do |decl|
+                    decl =~ /^([^\s]*)(?:\s+(\d+))?$/
+                    type, is_interface = $1, $2
+                    typekit_typelist << type
+                    if !is_interface || is_interface != '0'
+                        typekit_interface_typelist << type
+                    end
+                end
+
+                typekit = self.new(main, name,
+                              pkg, typekit_registry,
+                              typekit_typelist,
+                              typekit_interface_typelist)
 
                 # Now initialize the opaque definitions
                 doc = Nokogiri::XML(registry_xml)
@@ -42,8 +58,15 @@ module Orocos
                 registry.any? { |t| includes?(t) && t.contains_opaques? }
             end
 
-            def initialize(main_project, name, pkg, registry, typelist)
-                @main_project, @name, @pkg, @registry, @typelist = main_project, name, pkg, registry, typelist
+            def interface_type?(typename)
+                typename = typename.name if typename.respond_to?(:name)
+                interface_typelist.include?(typename)
+            end
+
+            def initialize(main_project, name, pkg, registry, typelist, interface_typelist)
+                @main_project, @name, @pkg, @registry = main_project, name, pkg, registry
+                @typelist = typelist
+                @interface_typelist = interface_typelist
                 @opaques = Array.new
                 @opaque_registry = Typelib::Registry.new
             end

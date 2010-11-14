@@ -513,7 +513,7 @@ module Orocos
             # See also #type_export_policy
             def export_types(*selection)
                 type_export_policy :selected
-                @selected_types.concat(selection.map { |name| find_type(name) })
+                @selected_types |= selection.map { |name| find_type(name) }.to_value_set
             end
 
             attr_reader :selected_types
@@ -1376,10 +1376,6 @@ module Orocos
                 end
                 save_automatic "#{name}.tlb", doc.to_xml
 
-                # Save all the types that this specific typekit handles
-                save_automatic "#{name}.typelist",
-                    self_typenames.join("\n")
-
                 # The first array is the set of types for which convertion
                 # functions are generated. The second is the set of types that
                 # are actually registered into the RTT type system
@@ -1422,6 +1418,15 @@ module Orocos
                     elsif type_export_policy == :selected
                         selected_types.dup
                     end
+
+                # Save all the types that this specific typekit handles
+                registered_typenames = registered_types.map(&:name)
+                typelist_txt = []
+                self_typenames.each do |typename|
+                    typelist_txt << "#{typename} #{registered_typenames.include?(typename) ? '1' : '0'}"
+                end
+                save_automatic "#{name}.typelist",
+                    typelist_txt.join("\n")
 
                 registered_types = registered_types.
                     find_all { |type| !typekit.m_type?(type) }.
