@@ -1361,12 +1361,12 @@ module Orocos
                             map(&:to_value_set).
                             inject(&:|).
                             map do |t|
-                            begin registry.get(t.name)
-                            rescue Typelib::NotFound
-                            end
+                                begin registry.get(t.name)
+                                rescue Typelib::NotFound
+                                end
                             end.compact
 
-                            (used_types.to_value_set & generated_types.to_value_set)
+                        (used_types.to_value_set & generated_types.to_value_set)
                     elsif type_export_policy == :selected
                         selected_types.dup
                     end
