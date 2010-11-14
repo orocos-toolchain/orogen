@@ -23,7 +23,7 @@ namespace orogen_typekits {
 
         virtual bool composeTypeImpl(const RTT::PropertyBag& source, RTT::internal::AssignableDataSource<T>::reference_t value) const
         {
-            <% if opdef.needs_copy? %>
+            <% if needs_copy %>
             <%= intermediate_type.cxx_name %> intermediate;
             if (!intermediate_type_info->composeTypeImpl(source, intermediate))
                 return false;
@@ -33,7 +33,7 @@ namespace orogen_typekits {
                 return false;
             <% end %>
 
-            <%= typekit.code_fromIntermediate(intermediate_type, opdef.needs_copy?, " " * 8) %>
+            <%= typekit.code_fromIntermediate(intermediate_type, needs_copy, " " * 8) %>
             return true;
         }
 
@@ -46,7 +46,7 @@ namespace orogen_typekits {
             }
 
             <%= type.cxx_name %> const& value = (*value_source).get();
-            <%= typekit.code_toIntermediate(intermediate_type, opdef.needs_copy?, " " * 8) %>
+            <%= typekit.code_toIntermediate(intermediate_type, needs_copy, " " * 8) %>
 
             typedef RTT::internal::ValueDataSource< <%= intermediate_type.cxx_name %> > IntermediateSource;
             IntermediateSource::shared_ptr intermediate_ptr =
@@ -65,7 +65,7 @@ namespace orogen_typekits {
             }
 
             <%= type.cxx_name %> const& value = (*value_source).get();
-            <%= typekit.code_toIntermediate(intermediate_type, opdef.needs_copy?, " " * 8) %>
+            <%= typekit.code_toIntermediate(intermediate_type, needs_copy, " " * 8) %>
             typedef RTT::internal::ValueDataSource< <%= intermediate_type.cxx_name %> > IntermediateSource;
             IntermediateSource::shared_ptr intermediate_ptr =
                new IntermediateSource(intermediate);

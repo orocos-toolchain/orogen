@@ -29,12 +29,13 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
 
     RTT::types::TypeInfo* ti = 0;
     <% registered_types.each do |type| %>
+        <% if type < Typelib::ArrayType %>
+    ti = <%= type.method_name(true) %>_ArrayTypeInfo();
+    ti_repository->addType( ti );
+        <% else %>
     ti = <%= type.method_name(true) %>_TypeInfo();
     ti_repository->addType( ti );
-    <% end %>
-    <% array_types.each do |type| %>
-    ti = <%= type.deference.method_name(true) %>_ArrayTypeInfo();
-    ti_repository->addType( ti );
+        <% end %>
     <% end %>
 
     return true;

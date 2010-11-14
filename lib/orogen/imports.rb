@@ -31,7 +31,6 @@ module Orocos
                         { :includes => includes.split(':'), :needs_copy => (needs_copy == '1') },
                         nil)
 
-                    puts "#{base_type_name} from #{name} is opaque"
                     typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))
                     typekit.opaques << spec
                 end

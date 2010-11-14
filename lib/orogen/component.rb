@@ -375,6 +375,13 @@ module Orocos
 
             attr_reader :opaques
 
+            def opaque_specification(type_def)
+                type = find_type(type_def)
+                raise "#{type} is unknown" unless type
+                raise "#{type} is not opaque" unless type.opaque?
+                opaques.find { |opaque_def| opaque_def.type == type }
+            end
+
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
             def rtt_registry; Component.rtt_registry end

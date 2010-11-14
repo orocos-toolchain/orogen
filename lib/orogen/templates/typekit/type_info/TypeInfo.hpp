@@ -5,12 +5,13 @@
 
 namespace orogen_typekits {
     <% typesets.registered_types.each do |type| %>
-    /** Creates and returns a TypeInfo object for <%= type.cxx_name %> */
-    RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo();
-    <% end %>
-    <% typesets.array_types.each do |type| %>
+        <% if type < Typelib::ArrayType %>
     /** Creates and returns a TypeInfo object for <%= type.cxx_name %> */
     RTT::types::TypeInfo* <%= type.deference.method_name(true) %>_ArrayTypeInfo();
+        <% else %>
+    /** Creates and returns a TypeInfo object for <%= type.cxx_name %> */
+    RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo();
+        <% end %>
     <% end %>
 }
 

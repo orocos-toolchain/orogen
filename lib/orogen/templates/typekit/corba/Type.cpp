@@ -12,11 +12,7 @@ namespace RTT
         template<>
         struct AnyConversion< <%= type.cxx_name %> >
         {
-            <% if type.opaque?  %>
-            typedef <%= intermediate_type.corba_name %> CorbaType;
-            <% else %>
-            typedef <%= type.corba_name %> CorbaType;
-            <% end %>
+            typedef <%= target_type.corba_name %> CorbaType;
             typedef <%= type.cxx_name %>   BaseType;
 
             static bool update(const CORBA::Any& any, BaseType& tp)

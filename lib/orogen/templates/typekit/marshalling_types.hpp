@@ -6,11 +6,14 @@
 <% typekit.loads.each do |path| %>
 #include "<%= path %>"
 <% end %>
+<% typekit.local_headers(false).each do |path, dest_path| %>
+#include "<%= File.join(component.name, dest_path) %>"
+<% end %>
+<% typekit.used_typekits.each do |tk| %>
+#include <<%= tk.name %>/Types.hpp>
+<% end
 
-<% generated_types.find_all { |type| type.contains_opaques? && !type.opaque? }.
-each do |type|
-    next if typekit.imported_type?(type)
-
+needed_types.each do |type|
     current_def = begin
                       registry.get("#{type.full_name}_m")
                   rescue Typelib::NotFound
@@ -32,7 +35,7 @@ each do |type|
                     !expected[1].opaque? && expected[1] != current[1]
                     raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
                 elsif expected[1].opaque?
-                    if typekit.find_type(opaque_specification(field_type).intermediate) != current[1]
+                    if typekit.intermediate_type_for(field_type) != current[1]
                         raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
                     end
                 end
@@ -43,25 +46,28 @@ each do |type|
         end
         next
     end %>
-<%= code = Generation.adapt_namespace(namespace, type.namespace)
+
+    <%=
+    code = Generation.adapt_namespace('/', type.namespace)
     namespace = type.namespace
     did_something = true
     code %>
-struct <%= type.basename %>_m
-{
-<% type.each_field do |field_name, field_type|
-    if field_type.opaque? %>
-        <%= typekit.find_type(opaque_specification(field_type).intermediate).cxx_name %> <%= field_name %>;
-    <% elsif field_type.contains_opaques?
-        raise NotImplementedError, "in #{type.cxx_name}, #{field_name} of type #{field_type.cxx_name} contains an opaque, which is forbidden"
-       else %>
-        <%= field_type.cxx_name %> <%= field_name %>;
+    struct <%= type.basename %>_m
+    {
+    <% type.each_field do |field_name, field_type|
+        field_cxxname =
+            if field_type.contains_opaques?
+                typekit.intermediate_cxxname_for(field_type.name)
+            else
+                [field_type.cxx_name]
+            end
+            %>
+        <%= field_cxxname[0] %> <%= field_name %><%= field_cxxname[1] %>;
     <% end %>
-<% end %>
-};
-<% end %>
+    };
 
-<%= Generation.adapt_namespace(namespace, '/') %>
+    <%= Generation.adapt_namespace(namespace, '/') %>
+<% end %>
 
 <% if !did_something
      throw :nothing_to_define

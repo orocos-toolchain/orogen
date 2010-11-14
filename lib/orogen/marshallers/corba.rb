@@ -9,6 +9,7 @@ module Orocos
             Typelib::EnumType      .extend(TypekitMarshallers::Corba::EnumType)
             Typelib::CompoundType  .extend(TypekitMarshallers::Corba::CompoundType)
             Typelib::ArrayType     .extend(TypekitMarshallers::Corba::ArrayType)
+            Typelib::OpaqueType    .extend(TypekitMarshallers::Corba::OpaqueType)
         end
 
         def self.name; "corba" end
@@ -50,14 +51,8 @@ module Orocos
             impl << typekit.save_automatic("transports", "corba",
                     "TransportPlugin.cpp", code)
 
-            typesets.converted_types.each do |type|
-                code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
-                impl << typekit.save_automatic("transports", "corba",
-                        "#{type.name_as_word}.cpp", code)
-            end
-            typesets.opaque_types.each do |opdef|
-                type = opdef.type
-                intermediate_type = typekit.find_type(opdef.intermediate)
+            typesets.registered_types.each do |type|
+                target_type = typekit.intermediate_type_for(type)
                 code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
                 impl << typekit.save_automatic("transports", "corba",
                         "#{type.name_as_word}.cpp", code)
@@ -106,12 +101,10 @@ module Orocos
         def corba_ref_type; "#{corba_name}&" end
 
         def to_corba(typekit, result, *args)
-            STDERR.puts "to_corba not implemented for #{name}"
-            result
+            raise NotImplementedError
         end
         def from_corba(typekit, result, *args)
-            STDERR.puts "from_corba not implemented for #{name}"
-            result
+            raise NotImplementedError
         end
 
         def inline_fromCorba(result, value, indent)
@@ -306,7 +299,7 @@ module Orocos
         def corba_arg_type; "#{deference.corba_name} const*" end
         def corba_ref_type; "#{deference.corba_name}*" end
 
-        def to_corba(toolkit, result, indent)
+        def to_corba(typekit, result, indent)
             element_type = deference.name
             element_type = registry.build(element_type)
 
@@ -315,12 +308,12 @@ module Orocos
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(corba, value, array_size);"
             else
-                code_copy(toolkit, result, indent, "corba", "value", "toCORBA") do |type, _|
+                code_copy(typekit, result, indent, "corba", "value", "toCORBA") do |type, _|
                     type.inlines_code?
                 end
             end
         end
-        def from_corba(toolkit, result, indent)
+        def from_corba(typekit, result, indent)
             element_type = deference.name
             element_type = registry.build(element_type)
 
@@ -329,12 +322,42 @@ module Orocos
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(value, corba, array_size);"
             else
-                code_copy(toolkit, result, indent, "value", "corba", "fromCORBA") do |type, _|
+                code_copy(typekit, result, indent, "value", "corba", "fromCORBA") do |type, _|
                     type.inlines_code?
                 end
             end
         end
     end
+
+    module OpaqueType
+        def to_corba(typekit, result, indent)
+            spec        = typekit.opaque_specification(self.name)
+            target_type = typekit.intermediate_type_for(self)
+            result << typekit.code_toIntermediate(target_type, spec.needs_copy?, "    ")
+            result << "#{indent} if (!toCORBA(corba, intermediate)) return false;"
+        end
+
+        def from_corba(typekit, result, indent)
+            spec        = typekit.opaque_specification(self.name)
+            target_type = typekit.intermediate_type_for(self)
+            if spec.needs_copy?
+                result << <<-EOCODE
+#{target_type.cxx_name} intermediate;
+if (!fromCORBA(intermediate, corba))
+    return false;
+#{typekit.code_fromIntermediate(target_type, true, "    ")}
+                EOCODE
+            else
+                result << <<-EOCODE
+std::auto_ptr< #{target_type.cxx_name} > intermediate(new #{target_type.cxx_name});
+if (!fromCORBA(*intermediate, corba))
+    return false;
+#{typekit.code_fromIntermediate(target_type, false, "    ")}
+                EOCODE
+            end
+        end
+    end
+
     Orocos::Generation::Typekit.register_plugin(Plugin)
 
     end

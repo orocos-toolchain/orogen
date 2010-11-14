@@ -10,9 +10,9 @@ type_sets.opaque_types.
     find_all(&:code_generator).
     each do |opdef|
         type = opdef.type
-        intermediate_type = typekit.find_type(opdef.intermediate)
+        target_type = typekit.intermediate_type_for(type)
     %>
-    <%= opdef.code_generator.call(type, intermediate_type) %>
+    <%= opdef.code_generator.call(type, target_type) %>
 <% end %>
 
 
@@ -24,12 +24,12 @@ type_sets.opaque_types.
     find_all { |opdef| !opdef.needs_copy? }.
     each do |opdef|
         type = opdef.type
-        intermediate_type = typekit.find_type(opdef.intermediate)
+        target_type = typekit.intermediate_type_for(type)
     %>
-void <%= typekit.name %>::from_intermediate(<%= type.ref_type %> value, <%= intermediate_type.arg_type %> _intermediate)
+void orogen_typekits::fromIntermediate(<%= type.ref_type %> value, <%= target_type.arg_type %> _intermediate)
 {
-    std::auto_ptr< <%= intermediate_type.cxx_name %> > intermediate(new <%= intermediate_type.cxx_name %>(_intermediate));
-<%= typekit.code_fromIntermediate(intermediate_type, false, "    ") %>
+    std::auto_ptr< <%= target_type.cxx_name %> > intermediate(new <%= target_type.cxx_name %>(_intermediate));
+<%= typekit.code_fromIntermediate(target_type, false, "    ") %>
 }
 <%
     end
@@ -41,15 +41,15 @@ void <%= typekit.name %>::from_intermediate(<%= type.ref_type %> value, <%= inte
 type_sets.types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
-        m_type = typekit.find_type(type.name + "_m") %>
-void <%= typekit.name %>::to_intermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value)
+        m_type = intermediate_type_for(type) %>
+void orogen_typekits::toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value)
 {
 <%=
         result = ""
         type.to_intermediate(typekit, result, "    ")
         result %>
 }
-void <%= typekit.name %>::from_intermediate(<%= type.ref_type %> value, <%= m_type.arg_type %> intermediate)
+void orogen_typekits::fromIntermediate(<%= type.ref_type %> value, <%= m_type.arg_type %> intermediate)
 {
 <%=
         result = ""

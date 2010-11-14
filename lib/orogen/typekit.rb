@@ -97,7 +97,7 @@ module Typelib
             end
         end
 
-        def self.code_copy(typekit, result, indent, dest, src, method)
+        def self.code_copy(typekit, result, indent, dest, src, method, src_type, dest_type)
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
@@ -106,14 +106,14 @@ module Typelib
             end
 
             result << <<-EOT
-#{indent}for(#{cxx_name}::const_iterator it = value.begin(); it != value.end(); ++it)
+#{indent}for(#{src_type.cxx_name}::const_iterator it = #{src}.begin(); it != #{src}.end(); ++it)
 #{indent}{
             EOT
 
             if yield(element_type)
                 result << "#{indent}    #{dest}.push_back(*it);\n"
             else
-                result << "#{indent}    #{dest}.push_back(<%= cxx_name %>::value_type());\n"
+                result << "#{indent}    #{dest}.push_back(#{dest_type.deference.cxx_name}());\n"
                 result << "#{indent}    #{method}(*#{dest}.rbegin(), *it);\n";
             end
 
@@ -121,12 +121,12 @@ module Typelib
         end
 
         def self.to_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate", self, typekit.intermediate_type_for(self)) do |type|
                 !type.contains_opaques?
             end
         end
         def self.from_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate", typekit.intermediate_type_for(self), self) do |type|
                 !type.contains_opaques?
             end
         end
@@ -191,12 +191,12 @@ module Typelib
         end
 
         def self.to_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate", false) do |field_name, field_type|
+            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate", false) do |field_name, field_type|
                 !field_type.contains_opaques?
             end
         end
         def self.from_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate", false) do |field_name, field_type|
+            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate", false) do |field_name, field_type|
                 !field_type.contains_opaques?
             end
         end
@@ -218,7 +218,7 @@ module Typelib
 #{indent}{
                 EOT
 
-                if string = yield(element_type, "#{dest}[#{i}]", "#{src}[#{i}")
+                if string = yield(element_type, "#{dest}[#{i}]", "#{src}[#{i}]")
                     if !string.respond_to?(:to_str)
                         result << "#{indent}  #{dest}[#{i}] = #{src}[#{i}];\n"
                     else
@@ -229,13 +229,13 @@ module Typelib
                     s_dest = "#{dest}[#{i}]"
                     if element_type < ArrayType
                         if src == "value"
-                            s_src = "reinterpret_cast< #{field_type.deference.cxx_name} const*>(#{s_src}), #{field_type.length}"
+                            s_src = "reinterpret_cast< #{element_type.deference.cxx_name} const*>(#{s_src}), #{element_type.length}"
                         else
-                            s_dest = "reinterpret_cast< #{field_type.deference.cxx_name}*>(#{s_dest}), #{field_type.length}"
+                            s_dest = "reinterpret_cast< #{element_type.deference.cxx_name}*>(#{s_dest}), #{element_type.length}"
                         end
                     end
 
-                    result << "#{indent}    if (!#{method}(#{s_dest}, #{s_src})) return false;\n";
+                    result << "#{indent}    #{method}(#{s_dest}, #{s_src});\n";
                 end
 
                 result << "#{indent}}\n";
@@ -244,13 +244,13 @@ module Typelib
         end
 
         def self.to_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "intermediate", "value", "to_intermediate") do |type|
+            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate") do |type, _|
                 !type.contains_opaques?
             end
         end
 
         def self.from_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "value", "intermediate", "from_intermediate") do |type|
+            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate") do |type, _|
                 !type.contains_opaques?
             end
         end
@@ -709,28 +709,28 @@ module Orocos
             # be converted. If true (the default), orogen will generate
             # convertion methods whose signature are:
             #
-            #   void project_name::to_intermediate(intermediate_type& intermediate, base_type const& sample)
-            #   void project_name::from_intermediate(base_type& sample, intermediate_type const& intermediate)
+            #   void orogen_typekits::toIntermediate(intermediate_type& intermediate, base_type const& sample)
+            #   void orogen_typekits::fromIntermediate(base_type& sample, intermediate_type const& intermediate)
             #
             # In the first examples above, this would be (assuming an "imu" orogen project)
             #
-            #   void imu::to_intermediate(imu::Vector3f& intermediate, Eigen::Vector3f const& sample)
-            #   void imu::from_intermediate(Eigen::Vector3f& sample, imu::Vector3f& intermediate)
+            #   void orogen_typekits::toIntermediate(imu::Vector3f& intermediate, Eigen::Vector3f const& sample)
+            #   void orogen_typekits::fromIntermediate(Eigen::Vector3f& sample, imu::Vector3f& intermediate)
             #
-            # Note that in from_intermediate, the +intermediate+ argument in
+            # Note that in fromIntermediate, the +intermediate+ argument in
             # non-const. It is actually allows to modify it, as for instance to
             # get better performance (example: use +vector<>.swap()+ instead of
             # doing a big copy).
             #
             # If +:needs_copy+ is false, then we assume that a copy is not
-            # needed. In that case, the to_intermediate convertion method will
+            # needed. In that case, the toIntermediate convertion method will
             # return the intermediate type directly. The signature will
             # therefore be changed to
             #
-            #   intermediate_type& project_name::to_intermediate(base_type const& sample)
-            #   bool project_name::from_intermediate(base_type& sample, intermediate_type* intermediate)
+            #   intermediate_type& orogen_typekits::toIntermediate(base_type const& sample)
+            #   bool orogen_typekits::fromIntermediate(base_type& sample, intermediate_type* intermediate)
             #
-            # Note that in from_intermediate the +intermediate+ argument is now
+            # Note that in fromIntermediate the +intermediate+ argument is now
             # given as a non-const pointer.  The convertion function can choose
             # to take ownership on that value, in which case it has to return
             # true. If the function returns false, then the sample is deleted after
@@ -758,16 +758,17 @@ module Orocos
                 end
 
                 opaque_type = find_type(base_type)
-                orogen_def = OpaqueDefinition.new(opaque_type,
+                orogen_def  = OpaqueDefinition.new(opaque_type,
                                                  intermediate_type, options, convert_code_generator) 
                 @opaques << orogen_def
                 @opaques = opaques.
                     sort_by { |orogen_def| orogen_def.type.name }
             end
 
-            # True if there are some opaques in this typekit
+            # True if there are some opaques in this typekit. The result of this
+            # method is only valid during generation. Don't use it in general.
             def has_opaques?
-                !opaques.empty?
+                !opaques.empty? || m_types_code
             end
 
             # True if some opaques require to generate templates
@@ -871,16 +872,16 @@ module Orocos
                 include_dirs = self.include_dirs.to_a
 
                 file_registry = Typelib::Registry.new
-                file_registry.merge opaque_registry
+                file_registry.merge component.opaque_registry
 
                 options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE']
+                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{Orocos::Generation.orocos_target}"]
 
                 options[:include] = include_dirs.dup
-                options = options.merge(user_options) do |a, b|
+                options = options.merge(user_options) do |key, a, b|
                     if a.respond_to?(:to_ary)
                         if b.respond_to?(:to_ary)
                             b.concat(a)
@@ -1046,11 +1047,45 @@ module Orocos
             end
 
             def opaque_specification(type_def)
-                type = find_type(type_def)
-                raise "#{type} is unknown" unless type
-                raise "#{type} is not opaque" unless type.opaque?
+                if component.imported_type?(type_def)
+                    component.opaque_specification(type_def)
+                else
+                    type = find_type(type_def)
+                    raise "#{type} is unknown" unless type
+                    raise "#{type} is not opaque" unless type.opaque?
+                    opaques.find { |opaque_def| opaque_def.type == type }
+                end
+            end
 
-                opaques.find { |opaque_def| opaque_def.type == type }
+            def intermediate_cxxname_for(type_def)
+                type = find_type(type_def)
+                if type.opaque?
+                    [find_type(opaque_specification(type_def).intermediate).cxx_name]
+                else
+                    if type < Typelib::ArrayType
+                        [intermediate_cxxname_for(type.deference), "[#{type.length}]"]
+                    elsif type < Typelib::ContainerType
+                        ["#{type.cxx_namespace}#{type.container_kind.gsub(/.*\//, '')}<#{intermediate_cxxname_for(type.deference)}>"]
+                    else
+                        ["#{type.cxx_name}_m"]
+                    end
+                end
+            end
+
+            def intermediate_type_for(type_def)
+                type = find_type(type_def)
+                if type.opaque?
+                    find_type(opaque_specification(type_def).intermediate)
+                elsif type.contains_opaques?
+                    if type < Typelib::ArrayType
+                        find_type("#{intermediate_type_for(type.deference).name}[#{type.length}]")
+                    elsif type < Typelib::ContainerType
+                        find_type("#{type.container_kind}<#{intermediate_type_for(type.deference).name}>")
+                    else
+                        find_type("#{type.cxx_name}_m")
+                    end
+                else type
+                end
             end
 
             def intermediate_type?(type)
@@ -1059,40 +1094,18 @@ module Orocos
 
             def m_type?(type)
                 typename = type.name
-                return false if typename !~ /_m$/
+                if type.name =~ /_m$/
+                    return true
+                end
+
                 begin
-                    registry.get($`).contains_opaques?
+                    type.dependencies.any? { |t| m_type?(t) }
                 rescue Typelib::NotFound
                 end
             end
 
-            # Builds a map telling where are the opaque fields used in this
-            # type. The returned value is an array of the form
-            #  [
-            #     [opaque_type, intermediate_type, path]
-            #     ...
-            #  ]
-            # where the first two objects are subclasses of Typelib::Type and
-            # the third is the "path" of the field in the structure (of the
-            # form "a.b.c.d").
-            def build_opaque_map(type)
-                unless type < Typelib::CompoundType
-                    raise "build_opaque_map is only valid for compound types"
-                end
-
-                result = []
-                type.each_field do |field_name, field_type|
-                    if field_type.opaque?
-                        spec = opaque_specification(field_type)
-                        result << [field_type, find_type(spec.intermediate), field_name]
-                    elsif field_type < Typelib::CompoundType
-                        inner = build_opaque_map(field_type)
-                        if !inner.empty?
-                            result.concat(inner.map { |a, b, path| [a, b, "#{field_name}.#{path}"] })
-                        end
-                    end
-                end
-                result
+            def m_types_code
+                @m_types_code
             end
 
             def handle_opaques_generation(generated_types)
@@ -1107,14 +1120,28 @@ module Orocos
                 # repository
                 generate_all_marshalling_types = false
                 generated_types = registry.each(:with_aliases => false).
-                    find_all { |t| !imported_type?(t) && !t.inlines_code? }
-		typekit = self
+                    find_all { |t| !component.imported_type?(t.name) && !t.inlines_code? }
+
+                needed_definitions = generated_types.
+                    find_all { |t| t.contains_opaques? && !t.opaque? }.
+                    find_all { |t| t < Typelib::CompoundType }
+
+                needed_types = []
+                needed_definitions.delete_if do |type|
+                    next if type.dependencies.any? { |t| needed_definitions.include?(t) }
+                    needed_types << type
+                end
+
+                options = { :include => [File.join(component.base_dir, Orocos::Generation::AUTOMATIC_AREA_NAME)] }
+
+                typekit = self
                 catch(:nothing_to_define) do
                     Tempfile.open('orogen') do |io|
                         marshalling_code = Generation.render_template 'typekit/marshalling_types.hpp', binding
+                        @m_types_code = marshalling_code
                         io << marshalling_code
                         io.flush
-                        self.load(io.path, false)
+                        self.load(io.path, false, options)
 
                         begin
                             self.perform_pending_loads
@@ -1123,6 +1150,7 @@ module Orocos
                         end
                     end
                 end
+                true
             end
 
             def do_import(registry, path, kind, options)
@@ -1188,21 +1216,27 @@ module Orocos
             # +intermediate+ variable of the right type, containing the data in
             # +value+.
             def code_toIntermediate(intermediate_type, needs_copy, indent)
-                if needs_copy
+                if intermediate_type < Typelib::ArrayType
+                    "#{indent}std::vector<#{intermediate_type.deference.cxx_name}> intermediate;\n" +
+                    "#{indent}intermediate.resize(length);\n" +
+                    "#{indent}orogen_typekits::toIntermediate(&intermediate[0], value, length);\n"
+                elsif needs_copy
                     "#{indent}#{intermediate_type.cxx_name} intermediate;\n" +
-                    "#{indent}#{name}::to_intermediate(intermediate, value);\n"
+                    "#{indent}orogen_typekits::toIntermediate(intermediate, value);\n"
                 else
-                    "#{intermediate_type.cxx_name} const& intermediate = #{name}::to_intermediate(value);"
+                    "#{intermediate_type.cxx_name} const& intermediate = orogen_typekits::toIntermediate(value);"
                 end
             end
 
             # Helper method that returns the code needed to update an opaque
             # type based on the data from an intermediate variable
             def code_fromIntermediate(intermediate_type, needs_copy, indent)
-                if needs_copy
-                    "#{indent}#{name}::from_intermediate(value, intermediate);\n"
+                if intermediate_type < Typelib::ArrayType
+                    "#{indent}orogen_typekits::fromIntermediate(value, length, &intermediate[0]);\n"
+                elsif needs_copy
+                    "#{indent}orogen_typekits::fromIntermediate(value, intermediate);\n"
                 else
-                    "#{indent}if (#{name}::from_intermediate(value, intermediate.get()))\n" +
+                    "#{indent}if (orogen_typekits::fromIntermediate(value, intermediate.get()))\n" +
                     "#{indent}    intermediate.release();\n"
                 end
             end
@@ -1278,6 +1312,7 @@ module Orocos
 
                     opaque_entry['marshal_as'] = spec.intermediate
                     opaque_entry['includes']   = spec.includes.join(':')
+                    opaque_entry['needs_copy'] = (spec.needs_copy? ? '1' : '0')
                 end
                 save_automatic "#{name}.tlb", doc.to_xml
 
@@ -1293,7 +1328,6 @@ module Orocos
                 # unnecessarily (the original sets are hashes, and therefore don't
                 # have a stable order).
                 converted_types = generated_types.
-                    find_all { |type| !type.opaque? && !typekit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
 
                 # We need a special case for arrays. The issue is the following:
@@ -1330,7 +1364,7 @@ module Orocos
                     end
 
                 registered_types = registered_types.
-                    find_all { |type| !typekit.m_type?(type) && !(type <= Typelib::ArrayType) }.
+                    find_all { |type| !typekit.m_type?(type) }.
                     sort_by { |type| type.name }.uniq
 
                 type_sets = TypeSets.new
@@ -1367,7 +1401,7 @@ module Orocos
                 # end
 
                 # Generate the opaque convertion files
-                if !opaques.empty?
+                if has_opaques?
                     intermediates_hpp = Generation.render_template 'typekit/OpaqueConvertions.hpp', binding
                     public_header_files <<
                         save_automatic("OpaqueConvertions.hpp", intermediates_hpp)

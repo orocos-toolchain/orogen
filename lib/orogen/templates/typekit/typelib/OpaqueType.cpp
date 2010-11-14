@@ -51,10 +51,10 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         intermediate_t& typelib_sample =
             *reinterpret_cast<intermediate_t*>(handle->typelib_sample);
         <% if needs_copy %>
-        <%= typekit.name %>::from_intermediate(opaque_sample, typelib_sample);
+        orogen_typekits::fromIntermediate(opaque_sample, typelib_sample);
         <% else %>
         handle->owns_typelib =
-            !<%= typekit.name %>::from_intermediate(opaque_sample, &typelib_sample);
+            !orogen_typekits::fromIntermediate(opaque_sample, &typelib_sample);
         <% end %>
     }
 
@@ -92,14 +92,14 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         <% if needs_copy %>
         intermediate_t& intermediate_sample =
             *reinterpret_cast<intermediate_t*>(handle->typelib_sample);
-        <%= typekit.name %>::to_intermediate(intermediate_sample, opaque_sample);
+        orogen_typekits::toIntermediate(intermediate_sample, opaque_sample);
         <% else %>
         if (handle->typelib_sample && handle->owns_typelib)
             deleteTypelibSample(handle);
 
         handle->typelib_sample = const_cast<uint8_t*>(
                 reinterpret_cast<uint8_t const*>(
-                    &<%= typekit.name %>::to_intermediate(opaque_sample) ));
+                    &orogen_typekits::toIntermediate(opaque_sample) ));
         handle->owns_typelib = false;
         <% end %>
     }

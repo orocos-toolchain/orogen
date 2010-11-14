@@ -25,6 +25,8 @@
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/vector.hpp>
 
+<%= typekit.m_types_code %>
+
 <% registered_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP
     extern template class RTT::internal::DataSource< <%= type.cxx_name %> >;
@@ -47,29 +49,25 @@
 #ifdef ORO_CORELIB_ATTRIBUTE_HPP
     extern template class RTT::Attribute< <%= type.cxx_name %> >;
 #endif
+<% end %>
 
-<% if type.respond_to?(:to_boost_serialization) %>
+<% boost_serialize_types = converted_types.find_all { |t| t.respond_to?(:to_boost_serialization) } %>
+<% if !boost_serialize_types.empty? %>
 namespace boost
 {
     namespace serialization
     {
+<%    boost_serialize_types.each do |type| %>
         template<typename Archive>
         void serialize(Archive& a, <%= type.cxx_name %>& b, unsigned int version)
         {
             using boost::serialization::make_nvp;
             <%= type.to_boost_serialization %>
         }
+<%    end %>
     }
 }
 <% end %>
-
-<% end %>
-                
-<%= 
-    catch(:nothing_to_define) do
-        generate_all_marshalling_types = true
-        Generation.render_template 'typekit/marshalling_types.hpp', binding
-    end %>
 
 #endif
 

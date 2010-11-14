@@ -80,7 +80,7 @@ add_library(${libname} SHARED
         relatives.sort.join("\n    ") %>
     ${TYPEKIT_ADDITIONAL_SOURCES}
     ${TOOLKIT_ADDITIONAL_SOURCES}
-    <% if !typekit.opaques.empty? %>
+    <% if typekit.has_opaques? %>
         <% if typekit.has_opaques_with_templates? %>
             ${PROJECT_SOURCE_DIR}/typekit/Opaques.cpp
         <% end %>

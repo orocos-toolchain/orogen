@@ -22,19 +22,27 @@ module Orocos
             def generate(typekit, typesets)
                 headers, impl = [], []
 
-                typesets.converted_types.each do |type|
+                arrays, plain = typesets.registered_types.
+                    find_all { |t| !t.contains_opaques? }.
+                    partition { |t| t < Typelib::ArrayType }
+
+                plain.find_all { |t| !t.contains_opaques? }.each do |type|
                     code  = Generation.render_template "typekit/type_info/Info.cpp", binding
                     impl << typekit.save_automatic("type_info",
                         "#{type.name_as_word}.cpp", code)
                 end
-                typesets.array_types.each do |type|
+                arrays.find_all { |t| !t.contains_opaques? }.each do |type|
                     code  = Generation.render_template "typekit/type_info/ArrayInfo.cpp", binding
                     impl << typekit.save_automatic("type_info",
                         "#{type.deference.name_as_word}Array.cpp", code)
                 end
-                typesets.opaque_types.each do |opdef|
-                    type = opdef.type
-                    intermediate_type = typekit.find_type(opdef.intermediate)
+                typesets.registered_types.find_all { |t| t.contains_opaques? }.each do |type|
+                    needs_copy =
+                        if type.opaque? then typekit.opaque_specification(type).needs_copy?
+                        else true
+                        end
+
+                    intermediate_type = typekit.intermediate_type_for(type)
                     code  = Generation.render_template "typekit/type_info/OpaqueInfo.cpp", binding
                     impl << typekit.save_automatic("type_info",
                         "#{type.name_as_word}.cpp", code)

@@ -9,26 +9,26 @@
 #include <<%= typekit.name %>/Opaques.hpp>
 <% end %>
 
-namespace <%= typekit.name %>
+namespace orogen_typekits
 {
 <%
 type_sets.opaque_types.find_all { |op| !op.generate_templates? }.each do |opaque_def|
     from = opaque_def.type
-    into = typekit.find_type(opaque_def.intermediate)
+    into = typekit.intermediate_type_for(from)
 
     if opaque_def.needs_copy? %>
     /** Converts \c real_type into \c intermediate */
-    void to_intermediate(<%= into.ref_type %> intermediate, <%= from.arg_type %> real_type);
+    void toIntermediate(<%= into.ref_type %> intermediate, <%= from.arg_type %> real_type);
     /** Converts \c intermediate into \c real_type */
-    void from_intermediate(<%= from.ref_type %> real_type, <%= into.arg_type %> intermediate);
+    void fromIntermediate(<%= from.ref_type %> real_type, <%= into.arg_type %> intermediate);
     <%
     else
     %>
     /** Returns the intermediate value that is contained in \c real_type */
-    <%= into.arg_type %> to_intermediate(<%= from.arg_type %> real_type);
+    <%= into.arg_type %> toIntermediate(<%= from.arg_type %> real_type);
     /** Stores \c intermediate into \c real_type. \c intermediate is owned by \c
      * real_type afterwards. */
-    bool from_intermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate);
+    bool fromIntermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate);
     <%
     end
 end
@@ -42,12 +42,12 @@ end
 # This generates the overloaded from_intermediate function that does just that.
 type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
     type = opdef.type
-    intermediate_type = typekit.find_type(opdef.intermediate)
+    intermediate_type = typekit.intermediate_type_for(type)
 %>
     /** Overloaded from_intermediate function that creates a copy before
      * assigning it to \c value
      */
-    void from_intermediate(<%= type.ref_type %> value, <%= intermediate_type.arg_type %> _intermediate);
+    void fromIntermediate(<%= type.ref_type %> value, <%= intermediate_type.arg_type %> _intermediate);
 <% end %>
 
 <%
@@ -57,13 +57,13 @@ type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
 type_sets.types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
-        m_type = typekit.find_type(type.name + "_m")
+        m_type = typekit.intermediate_type_for(type)
         if !m_type
             raise RuntimeError, "no intermediate marshalling type for #{type.name}"
         end
 %>
-    void to_intermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value);
-    void from_intermediate(<%= type.ref_type %> value, <%= m_type.arg_type %> intermediate);
+    void toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value<%= ", int length" if type < Typelib::ArrayType %>);
+    void fromIntermediate(<%= type.ref_type %> value<%= ", int length" if type < Typelib::ArrayType %>, <%= m_type.arg_type %> intermediate);
 <% end %>
 }
 
