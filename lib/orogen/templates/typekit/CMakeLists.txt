@@ -80,13 +80,7 @@ add_library(${libname} SHARED
         end
         relatives.sort.join("\n    ") %>
     ${TYPEKIT_ADDITIONAL_SOURCES}
-    ${TOOLKIT_ADDITIONAL_SOURCES}
-    <% if typekit.has_opaques? %>
-        <% if typekit.has_opaques_with_templates? %>
-            ${PROJECT_SOURCE_DIR}/typekit/Opaques.cpp
-        <% end %>
-        OpaqueConvertions.cpp
-    <% end %>)
+    ${TOOLKIT_ADDITIONAL_SOURCES})
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
