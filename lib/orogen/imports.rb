@@ -110,7 +110,7 @@ module Orocos
         end
 
         class RTTTypekit < ImportedTypekit
-            RTT_INTERFACE_TYPELIST = %w{/double /float /int32_t}
+            RTT_INTERFACE_TYPELIST = %w{/bool /double /float /int32_t}
             def initialize(*args)
                 super
                 @typelist = registry.each.
