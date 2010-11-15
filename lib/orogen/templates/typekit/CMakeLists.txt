@@ -63,6 +63,7 @@ include_directories(${CMAKE_SOURCE_DIR}/typekit)
 # Now set up the dependencies
 <%= typekit_deps = typekit.dependencies
     Generation.cmake_pkgconfig_require(typekit_deps) %>
+set(PKG_CFLAGS ${OrocosRTT_CFLAGS})
 <%  typekit_deps.each do |dep_def|
         if dep_def.in_context?('core', 'include') %>
 set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
