@@ -92,7 +92,7 @@ configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos/types)
 install(FILES
     Types.hpp
-    <% if typekit.has_opaques? %>
+    <% if typekit.has_opaques_with_templates? %>
     Opaques.hpp
     <% end %>
     DESTINATION include/orocos/<%= typekit.name %>)
