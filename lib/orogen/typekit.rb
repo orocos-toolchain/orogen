@@ -1337,28 +1337,28 @@ module Orocos
                     FileUtils.ln_sf automatic_dir, fake_install_dir
                 end
 
-                # Load any queued file
-                perform_pending_loads
-
                 self.local_headers(false).each do |path, dest_path|
                     dest_path = File.join(automatic_dir, "types", name, dest_path)
                     FileUtils.mkdir_p File.dirname(dest_path)
                     FileUtils.ln_sf File.join(base_dir, path), dest_path
                 end
 
+                # Load any queued file
+                perform_pending_loads
+
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
+
+		# Do some registry mumbo-jumbo to remove unneeded types to the
+                # dumped registry
+		minimal_registry = normalize_registry
                 generated_types = self_types.to_value_set
 
                 opaque_types = self_opaques.map { |opdef| opdef.type }
                 opaque_intermediates = self_opaques.map do |opdef|
                     find_type(opdef.intermediate)
                 end
-
-		# Do some registry mumbo-jumbo to remove unneeded types to the
-                # dumped registry
-		minimal_registry = normalize_registry
 
 		issue_warnings(generated_types, minimal_registry)
                 generate_typedefs(generated_types, minimal_registry)
