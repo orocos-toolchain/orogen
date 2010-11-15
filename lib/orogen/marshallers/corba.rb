@@ -164,7 +164,7 @@ module Orocos
     module ContainerType
         def corba_name
 	    container_kind = self.container_kind.gsub /.*\//, ''
-	    element_name   = deference.name.gsub(/[\/ ]/, "_")
+	    element_name   = deference.name.gsub(/[^\w]/, "_")
 	    typedef_name = container_kind + "_" + element_name
 
 	    if deference.corba_name !~ /^orogen::/
