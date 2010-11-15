@@ -406,9 +406,12 @@ module Orocos
             # RTT's typeinfo system
             def find_interface_type(typename)
                 type = find_type(typename)
-                tk   = imported_typekit_for(typename)
+                tk   = imported_typekit_for(type.name)
+                if tk
+                    Orocos::Generation.debug "#{type.name} is exported by #{tk.name}"
+                end
                 if tk && !tk.interface_type?(type.name)
-                    raise ConfigError, "#{typename}, defined in the #{tk.name} typekit, is not exported by it"
+                    raise ConfigError, "#{type.name}, defined in the #{tk.name} typekit, is not exported by it"
                 end
                 type
             end
