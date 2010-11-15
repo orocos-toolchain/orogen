@@ -1401,6 +1401,12 @@ module Orocos
                     values.
                     sort_by { |type| type.name }
 
+                # If the selected type export policy is used, check if it makes
+                # sense. If it does not, switch back to 'all'
+                if type_export_policy == :used && (!component || component.self_tasks.empty?)
+                    type_export_policy :all
+                end
+
                 registered_types =
                     if type_export_policy == :all
                         generated_types.dup
