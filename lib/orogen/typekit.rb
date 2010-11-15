@@ -1422,7 +1422,8 @@ module Orocos
                 # Save all the types that this specific typekit handles
                 registered_typenames = registered_types.map(&:name)
                 typelist_txt = []
-                self_typenames.each do |typename|
+                generated_types.each do |type|
+                    typename = type.name
                     typelist_txt << "#{typename} #{registered_typenames.include?(typename) ? '1' : '0'}"
                 end
                 save_automatic "#{name}.typelist",
