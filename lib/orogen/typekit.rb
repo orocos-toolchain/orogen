@@ -8,7 +8,20 @@ require 'nokogiri'
 module Typelib
     class Type
         def self.normalize_typename(name)
-            name.to_str.gsub(/<(\w)/) { "</#{$1}" }
+            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
+            template_arguments.map! do |arg|
+                arg =
+                    if arg !~ /^\d+$/ && arg[0, 1] != "/"
+                        "/#{arg}"
+                    else arg
+                    end
+            end
+
+            if !template_arguments.empty?
+                "#{name}<#{template_arguments.join(",")}>"
+            else
+                name
+            end
         end
 
         def self.normalize_cxxname(name)
