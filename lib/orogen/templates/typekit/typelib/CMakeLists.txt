@@ -2,6 +2,7 @@
 
 IF(NOT ROS_ROOT)
   pkg_check_modules(TYPELIB REQUIRED typelib)
+  include_directories(${TYPELIB_INCLUDE_DIRS})
   link_directories( ${TYPELIB_LIBRARY_DIRS} )
 ENDIF(NOT ROS_ROOT)
 

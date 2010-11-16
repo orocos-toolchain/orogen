@@ -47,6 +47,14 @@ class TC_GenerationTypekit < Test::Unit::TestCase
                 cmake << "ADD_DEFINITIONS(-DWITH_#{transport_name.upcase})\n"
             end
 
+            if transports.include?('typelib')
+                cmake << <<-EOT
+pkg_check_modules(TYPELIB REQUIRED typelib)
+include_directories(${TYPELIB_INCLUDE_DIRS})
+link_directories(${TYPELIB_LIBRARY_DIRS})
+                EOT
+            end
+
             cmake << <<-EOF
 link_directories(${CMAKE_INSTALL_PREFIX}/lib/orocos/plugins ${CMAKE_INSTALL_PREFIX}/lib/orocos/types)
 
@@ -116,6 +124,13 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
 
             transports.each do |transport_name|
                 cmake << "ADD_DEFINITIONS(-DWITH_#{transport_name.upcase})\n"
+            end
+            if transports.include?('typelib')
+                cmake << <<-EOT
+pkg_check_modules(TYPELIB REQUIRED typelib)
+include_directories(${TYPELIB_INCLUDE_DIRS})
+link_directories(${TYPELIB_LIBRARY_DIRS})
+                EOT
             end
             cmake << <<-EOT
 include_directories(${OROCOS-RTT_INCLUDE_DIRS} ${OrocosCORBA_INCLUDE_DIRS})

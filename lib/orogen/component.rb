@@ -490,6 +490,8 @@ module Orocos
 		if !self_tasks.empty?
 		    self_tasks.each { |t| t.generate }
 
+		    deployer = Generation.render_template "tasks", "DeployerComponent.cpp", binding
+		    Generation.save_automatic "tasks", "DeployerComponent.cpp", deployer
 		    pc = Generation.render_template "tasks", "tasks.pc", binding
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 		end

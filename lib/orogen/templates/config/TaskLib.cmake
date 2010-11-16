@@ -65,9 +65,16 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_T
 %>
 
 set(<%= component.name.upcase %>_TASKLIB_NAME <%= component.name %>-tasks-${OROCOS_TARGET})
-set(<%= component.name.upcase %>_TASKLIB_SOURCES <%= task_files.sort.join(" ") %>)
-set(<%= component.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(" ") %>)
+set(<%= component.name.upcase %>_TASKLIB_SOURCES <%= task_files.sort.join(";") %>)
+set(<%= component.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(";") %>)
 include_directories(${OROCOS-RTT_INCLUDE_DIRS})
 link_directories(${OROCOS-RTT_LIBRARY_DIRS})
 add_definitions(${OROCOS-RTT_CFLAGS_OTHER})
+
+pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.0")
+if (OrocosOCL_FOUND)
+    add_definitions(-DRTT_COMPONENT)
+    include_directories(${OrocosOCL_INCLUDE_DIRS})
+    list(APPEND <%= component.name.upcase %>_TASKLIB_SOURCES "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/DeployerComponent.cpp")
+endif()
 

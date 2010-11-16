@@ -69,10 +69,12 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
     return deinit;
 }
 
+<% if deployer.corba_enabled? %>
 void sigint_quit_orb(int)
 {
     RTT::corba::TaskContextServer::ShutdownOrb(false);
 }
+<% end %>
 
 using namespace RTT;
 int ORO_main(int argc, char* argv[])

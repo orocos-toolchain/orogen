@@ -49,8 +49,8 @@ rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
 rescue Exception => e
     if e.message !~ /\.rubyforge/
-        STDERR.puts "cannot load the Hoe gem, or Hoe fails. Distribution is disabled"
-        STDERR.puts "error message is: #{e.message}"
+        STDERR.puts "WARN: cannot load the Hoe gem, or Hoe fails. Publishing tasks are disabled"
+        STDERR.puts "WARN: error message is: #{e.message}"
     end
 end
 
@@ -59,8 +59,8 @@ do_doc = begin
              require 'rdoc/task'
              true
          rescue LoadError => e
-             STDERR.puts "ERROR: cannot load webgen and/or RDoc, documentation generation disabled"
-             STDERR.puts "ERROR:   #{e.message}"
+             STDERR.puts "WARN: cannot load webgen and/or RDoc, documentation generation disabled"
+             STDERR.puts "WARN:   #{e.message}"
          end
 
 if do_doc
