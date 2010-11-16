@@ -9,7 +9,7 @@ Typelib.load_type_plugins = false
 DEFAULT_TRANSPORTS = %w{corba typelib}
 
 verbosity = 0
-extended_states = false
+extended_states = true
 component = Orocos::Generation::Component.new
 
 transports = []
@@ -21,7 +21,7 @@ parser = OptionParser.new do |opt|
     opt.on("--[no-]corba", "enables/disables corba support (deprecated, use --transports instead)") do |flag|
         component.enable_transports('corba')
     end
-    opt.on("--extended-states", "enable extended states for all tasks defined in this project") do |flag|
+    opt.on("--[no-]extended-states", "disable or enable extended states for all tasks defined in this project (enabled by default)") do |flag|
         Orocos::Generation.extended_states = flag
     end
 
