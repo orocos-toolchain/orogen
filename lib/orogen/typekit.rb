@@ -1441,6 +1441,11 @@ module Orocos
                         selected_types.dup
                     end
 
+                # Array types cannot be directly used in interfaces
+                registered_types.delete_if do |t|
+                    t < Typelib::ArrayType
+                end
+
                 # Save all the types that this specific typekit handles
                 registered_typenames = registered_types.map(&:name)
                 typelist_txt = []

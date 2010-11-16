@@ -406,6 +406,9 @@ module Orocos
             # RTT's typeinfo system
             def find_interface_type(typename)
                 type = find_type(typename)
+                if type < Typelib::ArrayType
+                    raise ConfigError, "static arrays are not valid interface types. Use an array in a structure or a std::vector"
+                end
                 tk   = imported_typekit_for(type.name)
                 if tk
                     Orocos::Generation.debug "#{type.name} is exported by #{tk.name}"
