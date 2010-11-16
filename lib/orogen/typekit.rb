@@ -1211,7 +1211,6 @@ module Orocos
                     Tempfile.open('orogen') do |io|
                         Orocos::Generation.debug "loading m-type definitions"
                         marshalling_code = Generation.render_template 'typekit', 'marshalling_types.hpp', binding
-                        puts marshalling_code
                         @m_types_code = marshalling_code
                         io << marshalling_code
                         io.flush
