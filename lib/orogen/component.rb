@@ -722,6 +722,7 @@ module Orocos
                     typekit.name     = name
                     typekit.version  = version
                     typekit.base_dir = base_dir
+                    typekit.type_export_policy :used
                     if base_dir
                         typekit.user_dir      = File.join(base_dir, 'typekit')
                         typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')

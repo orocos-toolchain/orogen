@@ -679,7 +679,7 @@ module Orocos
                 # In other words, keep pending_loads an array
                 @pending_loads        = Array.new
 
-                type_export_policy :used
+                type_export_policy :all
                 @selected_types = ValueSet.new
                 @excluded_types = ValueSet.new
                 Component.using_rtt_typekit(self)
