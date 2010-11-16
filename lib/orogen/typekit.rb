@@ -1351,14 +1351,17 @@ module Orocos
                     FileUtils.ln_sf automatic_dir, fake_install_dir
                 end
 
+                # Load any queued file. This must be done before the call
+                # to local_headers below, as the new files will get
+                # registered only after the call
+                perform_pending_loads
+
                 self.local_headers(false).each do |path, dest_path|
+		    puts "#{path} #{dest_path}"
                     dest_path = File.join(automatic_dir, "types", name, dest_path)
                     FileUtils.mkdir_p File.dirname(dest_path)
                     FileUtils.ln_sf File.join(base_dir, path), dest_path
                 end
-
-                # Load any queued file
-                perform_pending_loads
 
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
