@@ -1,6 +1,8 @@
 # Generated from orogen/lib/orogen/templates/typekit/typelib/CMakeLists.txt
 
 pkg_check_modules(TYPELIB REQUIRED typelib)
+include_directories(${TYPELIB_INCLUDE_DIRS})
+link_directories(${TYPELIB_LIBRARY_DIRS})
 
 set(TYPEKIT_REGISTRY ${CMAKE_INSTALL_PREFIX}/share/orogen/<%= typekit.name %>.tlb)
 add_definitions(-DTYPEKIT_REGISTRY="${TYPEKIT_REGISTRY}")
