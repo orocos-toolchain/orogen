@@ -36,7 +36,6 @@ using namespace RTT;
 using namespace RTT::types;
 using namespace RTT::internal;
 using namespace RTT::marsh;
-using namespace opaque;
 using std::cerr;
 using std::endl;
 
@@ -55,7 +54,7 @@ T identity(T const& value) { return value; }
 
 #ifdef WITH_TYPELIB
 template<typename OrocosType, typename TypelibType>
-void from_intermediate(OrocosType& orocos_value, TypelibType& typelib_value)
+void fromIntermediate(OrocosType& orocos_value, TypelibType& typelib_value)
 {
     ValueDataSource<OrocosType>* data_source
         = new ValueDataSource<OrocosType>();
@@ -212,7 +211,7 @@ bool test_plain_opaque()
     {
         TestOpaque::Point2D testValue = { 100, 20, 30 };
         NotOrogenCompatible::Point2D p(0, 0);
-        from_intermediate(p, testValue);
+        fromIntermediate(p, testValue);
 
         if (testValue.x != p.x() || testValue.y != p.y())
         {
@@ -250,10 +249,10 @@ bool test_composed_opaque()
 
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
-        TestOpaque::Position_m testValue = { 100, 20, 30 };
+        TestOpaque::Position_m testValue = { 100, { 20, 30 } };
         TestOpaque::Position p;
         memset(&p, 0, sizeof(p));
-        from_intermediate(p, testValue);
+        fromIntermediate(p, testValue);
 
         if (testValue.timestamp != p.timestamp || testValue.p.x != p.p.x() || testValue.p.y != p.p.y())
         {
@@ -296,7 +295,7 @@ bool test_shared_pointer()
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
         boost::shared_ptr< std::vector<float> > result;
-        from_intermediate(result, *testValue);
+        fromIntermediate(result, *testValue);
 
         for (int i = 0; i < data.size(); ++i)
             if ((*result)[i] != (*testValue)[i])
@@ -333,7 +332,7 @@ bool test_shared_ptr_shortcut()
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
         boost::shared_ptr< std::vector<int> > result;
-        from_intermediate(result, data);
+        fromIntermediate(result, data);
 
         for (int i = 0; i < data.size(); ++i)
             if ((*result)[i] != (*testValue)[i])
@@ -370,7 +369,7 @@ bool test_ro_ptr()
     std::cerr << "Testing the initialization of the types from an intermediate..." << std::endl;
     {
         RTT::extras::ReadOnlyPointer< std::vector<int> > result;
-        from_intermediate(result, *data);
+        fromIntermediate(result, *data);
 
         for (int i = 0; i < data->size(); ++i)
             if ((*result)[i] != (*testValue)[i])
