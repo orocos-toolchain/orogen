@@ -73,8 +73,11 @@ add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
 pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.1.0")
 if (OrocosOCL_FOUND)
+    message(STATUS "OCL found, the generated task library will be compatible with the deployer component")
     add_definitions(-DRTT_COMPONENT)
     include_directories(${OrocosOCL_INCLUDE_DIRS})
     list(APPEND <%= component.name.upcase %>_TASKLIB_SOURCES "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/DeployerComponent.cpp")
+else()
+    message(STATUS "OCL not found, the generated task library won't be loadable by the deployer component")
 endif()
 
