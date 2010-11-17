@@ -36,6 +36,7 @@ using namespace RTT;
 using namespace RTT::types;
 using namespace RTT::internal;
 using namespace RTT::marsh;
+using namespace orogen_typekits;
 using std::cerr;
 using std::endl;
 
