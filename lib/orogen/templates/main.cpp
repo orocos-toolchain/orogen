@@ -94,7 +94,7 @@ int ORO_main(int argc, char* argv[])
    <% if component.typekit %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
    <% deployer.transports.each do |transport_name| %>
-   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %><%= transport_name.capitalize %>TransportPlugin );
+   RTT::types::TypekitRepository::Import( new <%= typekit.transport_plugin_name(transport_name) %> );
    <% end %>
    <% end %>
    <% deployer.used_typekits.each do |tk| %>

@@ -29,6 +29,10 @@ module Orocos
 
         def separate_cmake?; true end
 
+        def plugin_name(typekit_name)
+            "orogen_typekits::#{typekit_name}MQueueTransportPlugin"
+        end
+
         def generate(typekit, typesets)
             headers, impl = [], []
             
