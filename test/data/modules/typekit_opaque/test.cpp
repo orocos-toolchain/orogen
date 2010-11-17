@@ -282,7 +282,7 @@ bool test_shared_pointer()
     if (! type)
     {
 	cerr << "cannot find /boost/shared_ptr</std/vector</float>> in the type info repository" << endl;
-	return 1;
+	return false;
     }
 
     boost::shared_ptr< std::vector<float> > testValue( new std::vector<float> );
@@ -317,8 +317,8 @@ bool test_shared_ptr_shortcut()
     TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</int>>");
     if (! type)
     {
-	cerr << "cannot find /boost/shared_ptr</std/vector</int>> in the type info repository" << endl;
-	return 1;
+	cerr << "cannot find /boost/shared_ptr</std/vector</int32_t>> in the type info repository" << endl;
+	return false;
     }
 
     boost::shared_ptr< std::vector<int> > testValue( new std::vector<int> );
@@ -354,8 +354,8 @@ bool test_ro_ptr()
     TypeInfo* type = ti->type("/RTT/extras/ReadOnlyPointer</std/vector</int>>");
     if (! type)
     {
-	cerr << "cannot find /RTT/extras/ReadOnlyPointer</std/vector</int>> in the type info repository" << endl;
-	return 1;
+	cerr << "cannot find /RTT/extras/ReadOnlyPointer</std/vector</int32_t>> in the type info repository" << endl;
+	return false;
     }
 
     std::vector<int>* data = new std::vector<int>();
