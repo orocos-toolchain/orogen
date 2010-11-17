@@ -1365,7 +1365,6 @@ module Orocos
                 perform_pending_loads
 
                 self.local_headers(false).each do |path, dest_path|
-		    puts "#{path} #{dest_path}"
                     dest_path = File.join(automatic_dir, "types", name, dest_path)
                     FileUtils.mkdir_p File.dirname(dest_path)
                     FileUtils.ln_sf File.join(base_dir, path), dest_path

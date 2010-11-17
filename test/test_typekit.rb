@@ -11,7 +11,6 @@ class TC_GenerationTypekit < Test::Unit::TestCase
                 send(name, transport)
             end
         end
-        puts "define test_#{name}_all"
         define_method("test_#{name}_all") do
             send(name, *TRANSPORTS)
         end
