@@ -7,7 +7,7 @@
 #include "<%= path %>"
 <% end %>
 <% typekit.local_headers(false).each do |path, dest_path| %>
-#include "<%= File.join(component.name, dest_path) %>"
+#include "<%= File.join(typekit.name, dest_path) %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
 <% next if tk.virtual? %>
