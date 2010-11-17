@@ -12,7 +12,8 @@ verbosity = 0
 extended_states = false
 component = Orocos::Generation::Component.new
 
-transports = DEFAULT_TRANSPORTS.dup.to_set
+transports = []
+no_transports = false
 
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
@@ -24,13 +25,11 @@ parser = OptionParser.new do |opt|
         Orocos::Generation.extended_states = flag
     end
 
-    opt.on('--no-transports=NAME[,NAME]', "disables some transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
-        transport_names.split(',').each do |name|
-            transports.delete(name)
-        end
+    opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
+        no_transports = true
     end
 
-    opt.on('--transports=NAME[,NAME]', "enables some transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled") do |transport_names|
+    opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled") do |transport_names|
         transport_names.split(',').each do |name|
             transports << name
         end
@@ -75,6 +74,9 @@ end
 
 original_options = ARGV.dup
 files = parser.parse! ARGV
+if !no_transports && transports.empty?
+    transports = DEFAULT_TRANSPORTS.dup.to_set
+end
 files.each { |path| original_options.delete(path) }
 Orocos::Generation.generation_directory = Dir.pwd
 Orocos::Generation.command_line_options = original_options
