@@ -1330,9 +1330,7 @@ module Orocos
 
             def transport_plugin_name(transport_name)
                 plg = plugin(transport_name)
-                puts plg
                 if plg.respond_to?(:plugin_name)
-                    puts "PL"
                     plg.plugin_name(self.name)
                 else
                     "orogen_typekits::#{name}#{transport_name.capitalize}TransportPlugin"
