@@ -90,6 +90,9 @@ int ORO_main(int argc, char* argv[])
    <% if deployer.transports.include?('corba') %>
    RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
    <% end %>
+   <% if deployer.transports.include?('mqueue') %>
+   RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
+   <% end %>
 
    <% if component.typekit %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
