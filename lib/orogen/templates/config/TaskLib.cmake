@@ -71,7 +71,7 @@ include_directories(${OrocosRTT_INCLUDE_DIRS})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
-pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.0")
+pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.1.0")
 if (OrocosOCL_FOUND)
     add_definitions(-DRTT_COMPONENT)
     include_directories(${OrocosOCL_INCLUDE_DIRS})
