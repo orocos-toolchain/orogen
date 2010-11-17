@@ -314,7 +314,7 @@ bool test_shared_ptr_shortcut()
     cerr << "\n======== Testing shared pointer (from #shared_ptr) ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
-    TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</int>>");
+    TypeInfo* type = ti->type("/boost/shared_ptr</std/vector</int32_t>>");
     if (! type)
     {
 	cerr << "cannot find /boost/shared_ptr</std/vector</int32_t>> in the type info repository" << endl;
@@ -351,7 +351,7 @@ bool test_ro_ptr()
     cerr << "\n======== Testing ReadOnlyPointer (from #ro_ptr) ========" << endl;
 
     TypeInfoRepository::shared_ptr ti = TypeInfoRepository::Instance();
-    TypeInfo* type = ti->type("/RTT/extras/ReadOnlyPointer</std/vector</int>>");
+    TypeInfo* type = ti->type("/RTT/extras/ReadOnlyPointer</std/vector</int32_t>>");
     if (! type)
     {
 	cerr << "cannot find /RTT/extras/ReadOnlyPointer</std/vector</int32_t>> in the type info repository" << endl;
