@@ -214,11 +214,6 @@ module Orocos
                 obj.using_typekit(typekit)
             end
 
-            def self.load_rtt_registry
-                rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
-                Typelib::Registry.from_xml(File.read(rtt_tlb))
-            end
-
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
             def default_task_superclass

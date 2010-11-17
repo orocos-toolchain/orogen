@@ -97,6 +97,5 @@ end
 typekit.automatic_dir ||=
     File.join(typekit.base_dir, 'typekit')
 
-Orocos::Generation::Component.load_rtt_registry
 typekit.generate
 
