@@ -6,7 +6,7 @@
 #include <rtt/types/TypeMarshaller.hpp>
 
 namespace orogen_typekits {
-    <% typesets.registered_types.each do |type| %>
+    <% mqueue_registered_types.each do |type| %>
     RTT::types::TypeMarshaller*  <%= type.method_name %>_MQueueTransport();
     <% end %>
 }

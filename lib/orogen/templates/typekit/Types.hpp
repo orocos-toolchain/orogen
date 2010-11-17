@@ -52,7 +52,11 @@
 #endif
 <% end %>
 
-<% boost_serialize_types = converted_types.find_all { |t| t.respond_to?(:to_boost_serialization) } %>
+<% boost_serialize_types = converted_types.
+    find_all do |t|
+        t.boost_serialization_compatible? &&
+            t.respond_to?(:to_boost_serialization)
+    end %>
 <% if !boost_serialize_types.empty? %>
 namespace boost
 {

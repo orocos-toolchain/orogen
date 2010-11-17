@@ -57,6 +57,7 @@ module Orocos
         end
 
         module Type
+            def boost_serialization_compatible?; false end
             def info_type_header
                 raise NotImplementedError, "don't know what to use to handle #{self}"
             end
@@ -67,6 +68,7 @@ module Orocos
         end
 
         module NumericType
+            def boost_serialization_compatible?; true end
             def info_type_header
                 "rtt/types/TemplateTypeInfo.hpp"
             end
@@ -77,6 +79,7 @@ module Orocos
         end
 
         module EnumType
+            def boost_serialization_compatible?; true end
             def info_type_header
                 "rtt/types/TemplateTypeInfo.hpp"
             end
@@ -87,6 +90,9 @@ module Orocos
         end
 
         module CompoundType
+            def boost_serialization_compatible?
+                dependencies.all?(&:boost_serialization_compatible?)
+            end
             def to_boost_serialization
                 result = []
                 each_field do |field_name, field_type|
@@ -109,6 +115,10 @@ module Orocos
         end
 
         module ContainerType
+            def boost_serialization_compatible?
+                dependencies.all?(&:boost_serialization_compatible?)
+            end
+
             def info_type_header
                 "rtt/types/SequenceTypeInfo.hpp"
             end
@@ -119,6 +129,10 @@ module Orocos
         end
 
         module ArrayType
+            def boost_serialization_compatible?
+                deference.boost_serialization_compatible?
+            end
+
             def info_type_header
                 "rtt/types/CArrayTypeInfo.hpp"
             end

@@ -9,6 +9,7 @@ module Orocos
             Typelib::EnumType      .extend(TypekitMarshallers::MQueue::EnumType)
             Typelib::CompoundType  .extend(TypekitMarshallers::MQueue::CompoundType)
             Typelib::ArrayType     .extend(TypekitMarshallers::MQueue::ArrayType)
+            Typelib::OpaqueType    .extend(TypekitMarshallers::MQueue::OpaqueType)
         end
 
         def self.name; "mqueue" end
@@ -35,6 +36,15 @@ module Orocos
 
         def generate(typekit, typesets)
             headers, impl = [], []
+
+            mqueue_registered_types =
+                typesets.registered_types.find_all do |type|
+                    if !type.mqueue_compatible?
+                        STDERR.puts "WARN: #{type.name} cannot be marshalled in the MQueue transport"
+                        false
+                    else true
+                    end
+                end
             
             code  = Generation.render_template "typekit", "mqueue", "TransportPlugin.hpp", binding
             headers << typekit.save_automatic("transports", "mqueue",
@@ -43,14 +53,7 @@ module Orocos
             impl << typekit.save_automatic("transports", "mqueue",
                     "TransportPlugin.cpp", code)
 
-            typesets.converted_types.each do |type|
-                code  = Generation.render_template "typekit", "mqueue", "Type.cpp", binding
-                impl << typekit.save_automatic("transports", "mqueue",
-                        "#{type.name_as_word}.cpp", code)
-            end
-            typesets.opaque_types.each do |opdef|
-                type = opdef.type
-                intermediate_type = typekit.find_type(opdef.intermediate)
+            mqueue_registered_types.each do |type|
                 code  = Generation.render_template "typekit", "mqueue", "Type.cpp", binding
                 impl << typekit.save_automatic("transports", "mqueue",
                         "#{type.name_as_word}.cpp", code)
@@ -64,27 +67,19 @@ module Orocos
             code = Generation.render_template "typekit/mqueue/CMakeLists.txt", binding
             typekit.save_automatic("transports", "mqueue", "CMakeLists.txt", code)
 
-            #code  = Generation.render_template "typekit/mqueue/Transport.hpp", binding
-            #typekit.save_automatic("mqueue",
-            #        "#{typekit.name}MQueueTransport.hpp", code)
-
-            #mqueue_hpp = Generation.render_template "typekit/mqueue/TypekitMQueue.hpp", binding
-            #impl << typekit.save_automatic("mqueue", "#{component.name}TypekitMQueue.hpp", mqueue_hpp)
-            #mqueue_impl_hpp = Generation.render_template "typekit/mqueue/TypekitMQueueImpl.hpp", binding
-            #impl << typekit.save_automatic("mqueue", "#{component.name}TypekitMQueueImpl.hpp", mqueue_impl_hpp)
-            #mqueue_cpp = Generation.render_template "typekit/mqueue/TypekitMQueue.cpp", binding
-            #impl << typekit.save_automatic("mqueue", "#{component.name}TypekitMQueue.cpp", mqueue_cpp)
-            #pkg_config = Generation.render_template 'typekit/mqueue/transport-mqueue.pc', binding
-            #impl << typekit.save_automatic("mqueue", "#{component.name}-transport-mqueue.pc.in", pkg_config)
-
             return [], []
         end
     end
 
     module Type
+        def mqueue_compatible?; false end
     end
 
     module NumericType
+        def mqueue_compatible?; true end
+    end
+
+    module OpaqueType
     end
 
     module ContainerType
@@ -94,6 +89,7 @@ module Orocos
     end
 
     module CompoundType
+        def mqueue_compatible?; boost_serialization_compatible? end
     end
 
     module ArrayType

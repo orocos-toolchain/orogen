@@ -11,7 +11,7 @@ using namespace RTT;
 bool orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
 {
     <% first_type = true;
-       typesets.registered_types.each do |type| %>
+       mqueue_registered_types.each do |type| %>
     <%= 'else ' unless first_type %>if ("<%= type.name %>" == type_name)
     {
         ti->addProtocol(ORO_MQUEUE_PROTOCOL_ID,

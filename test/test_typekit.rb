@@ -4,8 +4,22 @@ require 'orogen/test'
 class TC_GenerationTypekit < Test::Unit::TestCase
     include Orocos::Generation::Test
 
+    TRANSPORTS = %w{corba typelib mqueue}
+    def self.transport_tests(name)
+        TRANSPORTS.each do |transport|
+            define_method("test_#{name}_#{transport}") do
+                send(name, transport)
+            end
+        end
+        puts "define test_#{name}_all"
+        define_method("test_#{name}_all") do
+            send(name, *TRANSPORTS)
+        end
+    end
+
     def test_orocos_type_equivalence
 	registry = Typelib::Registry.new
+        Typelib::Registry.add_standard_cxx_types(registry)
 
 	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('int32_t')))
 	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('uint32_t')))
@@ -57,7 +71,7 @@ class TC_GenerationTypekit < Test::Unit::TestCase
         assert_equal(expected, output)
     end
 
-    def test_opaque(*transports)
+    def opaque(*transports)
         build_test_component('modules/typekit_opaque', transports, "bin/test") do |cmake|
             transports.each do |transport_name|
                 cmake << "ADD_DEFINITIONS(-DWITH_#{transport_name.upcase})\n"
@@ -102,39 +116,13 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
         #check_output_file('modules/typekit_opaque', 'readonlypointer.xml')
         #check_output_file('modules/typekit_opaque', 'readonlypointer.cpf')
     end
-    def test_opaque_corba; test_opaque('corba') end
-    def test_opaque_typelib; test_opaque('typelib') end
+    transport_tests 'opaque'
 
     def test_opaque_autodef
         build_test_component('modules/typekit_autodef', ['corba'])
     end
 
-    def test_opaque_validation
-        # First, check that the actual opaque module generates properly
-        create_wc("modules/typekit_opaque_validation_ok")
-        FileUtils.rm_rf working_directory
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/typekit_opaque"), working_directory
-
-        component = Component.new
-        in_wc do
-            component.load 'opaque.orogen'
-            assert_nothing_raised { component.generate }
-        end
-
-        # Second, check that it fails if an invalid file is loaded
-        create_wc("modules/typekit_opaque_validation_fail")
-        FileUtils.rm_rf working_directory
-        FileUtils.cp_r File.join(TEST_DATA_DIR, "modules/typekit_opaque"), working_directory
-
-        component = Component.new
-        in_wc do
-            component.load 'opaque.orogen'
-            component.typekit(true).load File.join(TEST_DATA_DIR, 'opaque_invalid.h')
-            assert_raises(NotImplementedError) { component.generate }
-        end
-    end
-
-    def test_simple(*transports)
+    def simple(*transports)
         build_test_component('modules/typekit_simple', transports, "bin/test") do |cmake|
             ENV['CMAKE_LIBRARY_PATH'] = "#{ENV['CMAKE_LIBRARY_PATH']}:#{prefix_directory}"
 
@@ -182,10 +170,9 @@ install(TARGETS test RUNTIME DESTINATION bin)
         #check_output_file('modules/typekit_simple', 'complex_array.cpf')
         #check_output_file('modules/typekit_simple', 'complex_array.xml')
     end
-    def test_simple_corba; test_simple('corba') end
-    def test_simple_typelib; test_simple('typelib') end
+    transport_tests 'simple'
 
-    def test_dependencies(*transports)
+    def dependencies(*transports)
         # Install a fake library
         libprefix = File.join(prefix_directory, "libs/typekit_dependencies_lib")
         FileUtils.mkdir_p File.join(libprefix, "include")
@@ -209,11 +196,6 @@ install(TARGETS test RUNTIME DESTINATION bin)
         # And now the final one ...
         build_test_component('modules/typekit_dependencies', transports)
     end
-    def test_dependencies_corba
-        test_dependencies('corba')
-    end
-    def test_dependencies_typelib
-        test_dependencies('typelib')
-    end
+    transport_tests 'dependencies'
 end
 
