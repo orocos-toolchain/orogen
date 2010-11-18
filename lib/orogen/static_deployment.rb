@@ -291,6 +291,15 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # make it periodic, call #period with the required period
 	    def triggered
                 activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                activity_setup do
+                   result = <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
+    #{rtt_scheduler},
+    #{rtt_priority},
+    0,
+    task_#{name}.engine());
+                   EOD
+                end
                 @period = 0
                 self
             end
