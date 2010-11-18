@@ -897,8 +897,8 @@ module Orocos
             # This can be used to make the definition of parts of the oroGen
             # project conditional
             def has_typekit?(name)
-                pkg, _ = orogen_project_description(name)
-                !pkg.type_registry.empty?
+                orogen_typekit_description(name)
+                true
             rescue ConfigError
                 false
             end
