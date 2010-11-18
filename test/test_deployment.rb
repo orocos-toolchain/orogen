@@ -159,7 +159,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         cross_deployment = Component.load(File.join(TEST_DATA_DIR, "modules", "cross_deployment", "deployment.orogen"))
 
         deployer = cross_deployment.deployers.find { true }
-        assert_equal(["opaque"], cross_deployment.used_typekits.map(&:name))
+        assert_equal(["rtt", "opaque"], cross_deployment.used_typekits.map(&:name))
         assert_equal(["opaque"], deployer.used_typekits.map(&:name))
 
         cross_deployment = build_test_component("modules/cross_deployment", transports)
