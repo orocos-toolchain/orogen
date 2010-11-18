@@ -86,13 +86,13 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	meth = task.operation("MethodName").
 	    doc("the method to test")
 
-        assert_raises(ArgumentError) { meth.argument("a", "short") }
-        assert_raises(ArgumentError) { meth.argument("a", "unsigned short") }
-        assert_raises(ArgumentError) { meth.argument("a", "char") }
-        assert_raises(ArgumentError) { meth.argument("a", "unsigned char") }
-        assert_raises(ArgumentError) { meth.argument("a", "long long") }
-        assert_raises(ArgumentError) { meth.argument("a", "unsigned long long") }
-        assert_raises(ArgumentError) { meth.argument("a", "float") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "short") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned short") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "char") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned char") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "long long") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned long long") }
+        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "float") }
     end
 
     def test_task_operation

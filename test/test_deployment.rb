@@ -41,7 +41,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 	context    = component.task_context "task"
         deployment = component.deployment "test"
 
-        assert_raises(ArgumentError) { deployment.task "name", "Bla" }
+        assert_raises(Orocos::Generation::ConfigError) { deployment.task "name", "Bla" }
     end
 
     def test_connpolicy
