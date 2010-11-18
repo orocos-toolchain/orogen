@@ -110,10 +110,11 @@ class TC_GenerationDeployment < Test::Unit::TestCase
     end
 
     def test_data_driven_deployment(*transports)
-        build_test_component "modules/data_triggered", transports, "bin/data"
+        build_test_component "modules/data_triggered", transports
 
         # Check the resulting file
         in_prefix do
+            system(File.join("bin", "data"))
             assert_equal "2 4 6 8 10 ", File.read('data_trigger.txt')
         end
     end
@@ -135,8 +136,10 @@ class TC_GenerationDeployment < Test::Unit::TestCase
             writer.write("AB")
             sleep 0.5
             writer.write("CDE")
-            ::Process.waitpid(child_pid)
-            assert_equal(0, $?.exitstatus)
+            sleep 0.5
+            ::Process.kill 'SIGINT', child_pid
+            result = ::Process.waitpid(child_pid)
+            assert_equal(0, result.exitstatus)
         end
     end
 
