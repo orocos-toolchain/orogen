@@ -24,6 +24,7 @@ task_context 'Producer' do
 end
 
 deployment "data" do
+    enable_corba
     consumer = task("consumer", 'Consumer').
         triggered.
         start
@@ -33,6 +34,5 @@ deployment "data" do
 
     connect producer.output,  consumer.input, :type => :buffer, :size => 2
     connect producer.output2, consumer.input2, :type => :buffer, :size => 2
-    browse consumer
 end
 
