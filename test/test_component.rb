@@ -75,16 +75,6 @@ class TC_GenerationComponent < Test::Unit::TestCase
         # The container should have been defined on the typekit as well
         assert_equal c.typekit.registry.get("/std/vector</int>"), t
     end
-    def test_containers_of_opaques_is_forbidden
-        c = Component.new
-        Tempfile.open("opaque_def") do |io|
-            io.write "<typelib><opaque name=\"/opaque_type\" size=\"0\" /></typelib>"
-            io.flush
-
-            c.registry.import(io.path, "tlb")
-        end
-        assert_raises(ArgumentError) { c.find_type "/std/vector</opaque_type>" }
-    end
 
     def test_imported_typekits
         # Build the simple typekit first
