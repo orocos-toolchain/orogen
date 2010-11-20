@@ -942,7 +942,9 @@ module Orocos
                 add, user_options = *pending_load_options
 
                 include_dirs = self.include_dirs.to_a
-                include_dirs << File.join(automatic_dir, "types")
+                if automatic_dir
+                    include_dirs << File.join(automatic_dir, "types")
+                end
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
