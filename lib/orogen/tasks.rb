@@ -4,9 +4,9 @@ require 'utilrb/value_set'
 module Orocos
     def self.validate_toplevel_type(type)
         if type < Typelib::ArrayType
-            raise ArgumentError, "array types can be used only in a structure"
+            raise Generation::ConfigError, "array types can be used only in a structure"
         elsif type < Typelib::NumericType && !Typelib::Registry.base_rtt_type?(type)
-            raise ArgumentError, "#{type.name} cannot be used as a toplevel type"
+            raise Generation::ConfigError, "#{type.name} cannot be used as a toplevel type"
         end
     end
 
