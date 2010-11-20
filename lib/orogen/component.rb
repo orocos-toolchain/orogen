@@ -311,7 +311,7 @@ module Orocos
                     name << '/'
                 end
 
-                registry.each(name, :with_aliases => true) do |type|
+                registry.each(name, :with_aliases => true) do |*_|
                     return true
                 end
                 return false
