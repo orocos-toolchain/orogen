@@ -67,6 +67,8 @@ module Orocos
             code = Generation.render_template "typekit/mqueue/CMakeLists.txt", binding
             typekit.save_automatic("transports", "mqueue", "CMakeLists.txt", code)
 
+            # We generate our own CMake code, no need to export anything to the
+            # main typekit code
             return [], []
         end
     end

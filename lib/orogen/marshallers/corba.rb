@@ -68,6 +68,8 @@ module Orocos
             code = Generation.render_template "typekit/corba/CMakeLists.txt", binding
             typekit.save_automatic("transports", "corba", "CMakeLists.txt", code)
 
+            # We generate our own CMake code, no need to export anything to the
+            # main typekit code
             #code  = Generation.render_template "typekit/corba/Transport.hpp", binding
             #typekit.save_automatic("corba",
             #        "#{typekit.name}CorbaTransport.hpp", code)
