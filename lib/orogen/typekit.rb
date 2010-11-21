@@ -534,6 +534,8 @@ module Orocos
             def export_types(*selection)
                 type_export_policy :selected
                 @selected_types |= selection.map { |name| find_type(name) }.to_value_set
+            rescue Typelib::NotFound => e
+                raise ConfigError, e.message, e.backtrace
             end
 
             attr_reader :selected_types
