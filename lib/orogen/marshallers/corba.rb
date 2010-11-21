@@ -57,32 +57,18 @@ module Orocos
                 code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
                 [type, code]
             end
-
             impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "corba")
 
             code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
             typekit.save_automatic("transports", "corba", "Registration.hpp", code)
 
-            pkg_config = Generation.render_template 'typekit/corba/transport-corba.pc', binding
+            pkg_config = Generation.render_template 'typekit", "corba", "transport-corba.pc', binding
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
-            code = Generation.render_template "typekit/corba/CMakeLists.txt", binding
+            code = Generation.render_template "typekit", "corba", "CMakeLists.txt", binding
             typekit.save_automatic("transports", "corba", "CMakeLists.txt", code)
 
             # We generate our own CMake code, no need to export anything to the
             # main typekit code
-            #code  = Generation.render_template "typekit/corba/Transport.hpp", binding
-            #typekit.save_automatic("corba",
-            #        "#{typekit.name}CorbaTransport.hpp", code)
-
-            #corba_hpp = Generation.render_template "typekit/corba/TypekitCorba.hpp", binding
-            #impl << typekit.save_automatic("corba", "#{component.name}TypekitCorba.hpp", corba_hpp)
-            #corba_impl_hpp = Generation.render_template "typekit/corba/TypekitCorbaImpl.hpp", binding
-            #impl << typekit.save_automatic("corba", "#{component.name}TypekitCorbaImpl.hpp", corba_impl_hpp)
-            #corba_cpp = Generation.render_template "typekit/corba/TypekitCorba.cpp", binding
-            #impl << typekit.save_automatic("corba", "#{component.name}TypekitCorba.cpp", corba_cpp)
-            #pkg_config = Generation.render_template 'typekit/corba/transport-corba.pc', binding
-            #impl << typekit.save_automatic("corba", "#{component.name}-transport-corba.pc.in", pkg_config)
-
             return [], []
         end
     end

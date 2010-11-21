@@ -47,9 +47,9 @@ module Orocos
                     [type, c]
                 end
 
-                code  = Generation.render_template "typekit/type_info/TypeInfo.hpp", binding
                 impl += typekit.render_typeinfo_snippets(code_snippets, "type_info")
 
+                code  = Generation.render_template "typekit", "type_info", "TypeInfo.hpp", binding
                 typekit.save_automatic("type_info",
                         "Registration.hpp", code)
 
