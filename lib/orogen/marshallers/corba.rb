@@ -52,12 +52,13 @@ module Orocos
             impl << typekit.save_automatic("transports", "corba",
                     "TransportPlugin.cpp", code)
 
-            typesets.registered_types.each do |type|
+            code_snippets = typesets.registered_types.map do |type|
                 target_type = typekit.intermediate_type_for(type)
                 code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
-                impl << typekit.save_automatic("transports", "corba",
-                        "#{type.name_as_word}.cpp", code)
+                [type, code]
             end
+
+            impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "corba")
 
             code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
             typekit.save_automatic("transports", "corba", "Registration.hpp", code)

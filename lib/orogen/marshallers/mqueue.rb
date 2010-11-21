@@ -53,11 +53,11 @@ module Orocos
             impl << typekit.save_automatic("transports", "mqueue",
                     "TransportPlugin.cpp", code)
 
-            mqueue_registered_types.each do |type|
+            code_snippets = mqueue_registered_types.map do |type|
                 code  = Generation.render_template "typekit", "mqueue", "Type.cpp", binding
-                impl << typekit.save_automatic("transports", "mqueue",
-                        "#{type.name_as_word}.cpp", code)
+                [type, code]
             end
+            impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "mqueue")
 
             code  = Generation.render_template "typekit", "mqueue", "Registration.hpp", binding
             typekit.save_automatic("transports", "mqueue", "Registration.hpp", code)

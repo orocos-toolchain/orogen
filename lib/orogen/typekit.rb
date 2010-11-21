@@ -359,6 +359,13 @@ end
 
 module Orocos
     module Generation
+        class << self
+            attr_accessor :typekit_slice
+        end
+        # The default value of 2 has been benchmarked with GCC 4.4.5. Big
+        # transition from 1 to 2, but no big improvement afterwards.
+        @typekit_slice = 2
+
         # Data structure that represents the definition for an opaque type
         #
         # See Typekit#opaque_type
@@ -1338,6 +1345,22 @@ module Orocos
                     "orogen_typekits::#{name}#{transport_name.capitalize}TransportPlugin"
                 end
             end
+
+            def render_typeinfo_snippets(code_snippets, *place)
+                impl = []
+                place = File.join(*place)
+                code_snippets.each do |code|
+                    code[0] = code[0].name_as_word
+                end
+                code_snippets = code_snippets.sort_by { |code| code[0] }
+                code_snippets.each_slice(Orocos::Generation.typekit_slice) do |code|
+                    file_name = code.map(&:first).join("_")
+                    code = code.map(&:last).join("\n")
+                    impl << save_automatic(place, "#{file_name}.cpp", code)
+                end
+                impl
+            end
+
 
 	    def generate
 		typekit = self

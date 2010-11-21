@@ -26,29 +26,30 @@ module Orocos
                     find_all { |t| !t.contains_opaques? }.
                     partition { |t| t < Typelib::ArrayType }
 
-                plain.find_all { |t| !t.contains_opaques? }.each do |type|
-                    code  = Generation.render_template "typekit/type_info/Info.cpp", binding
-                    impl << typekit.save_automatic("type_info",
-                        "#{type.name_as_word}.cpp", code)
+                code_snippets = []
+                code_snippets += plain.find_all { |t| !t.contains_opaques? }.map do |type|
+                    c = Generation.render_template "typekit", "type_info", "Info.cpp", binding
+                    [type, c]
                 end
-                arrays.find_all { |t| !t.contains_opaques? }.each do |type|
-                    code  = Generation.render_template "typekit/type_info/ArrayInfo.cpp", binding
-                    impl << typekit.save_automatic("type_info",
-                        "#{type.deference.name_as_word}Array.cpp", code)
+                code_snippets += arrays.find_all { |t| !t.contains_opaques? }.map do |type|
+                    c = Generation.render_template "typekit", "type_info", "ArrayInfo.cpp", binding
+                    [type, c]
                 end
-                typesets.registered_types.find_all { |t| t.contains_opaques? }.each do |type|
+
+                code_snippets += typesets.registered_types.find_all { |t| t.contains_opaques? }.map do |type|
                     needs_copy =
                         if type.opaque? then typekit.opaque_specification(type).needs_copy?
                         else true
                         end
 
                     intermediate_type = typekit.intermediate_type_for(type)
-                    code  = Generation.render_template "typekit/type_info/OpaqueInfo.cpp", binding
-                    impl << typekit.save_automatic("type_info",
-                        "#{type.name_as_word}.cpp", code)
+                    c  = Generation.render_template "typekit", "type_info", "OpaqueInfo.cpp", binding
+                    [type, c]
                 end
 
                 code  = Generation.render_template "typekit/type_info/TypeInfo.hpp", binding
+                impl += typekit.render_typeinfo_snippets(code_snippets, "type_info")
+
                 typekit.save_automatic("type_info",
                         "Registration.hpp", code)
 

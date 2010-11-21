@@ -28,6 +28,9 @@ parser = OptionParser.new do |opt|
     opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         no_transports = true
     end
+    opt.on('--typekit-slice=NUMBER', Integer) do |slice_size|
+        Orocos::Generation.typekit_slice = slice_size
+    end
 
     opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled") do |transport_names|
         transport_names.split(',').each do |name|
