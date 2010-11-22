@@ -1429,33 +1429,6 @@ module Orocos
             enumerate_inherited_set("property", "properties")
 
             ##
-            # :method: each_command
-            # :call-seq:
-            #   each_command(only_self = false) { |command| }
-            #
-            # Yields all commands that are defined on this task context.
-
-            ##
-            # :method: all_commands
-            #
-            # :call-seq:
-            #   all_commands -> set_of_commands
-            #
-            # Returns the set of all commands that are defined on this task
-            # context
-
-            ##
-            # :method: self_commands
-            # :call-seq:
-            #   self_commands -> set_of_commands
-            #
-            # Returns the set of commands that are added at this level of the
-            # model hierarchy. I.e. commands that are either newly defined on
-            # this task context, or overload commands from the parent models.
-
-            enumerate_inherited_set("command", "commands")
-
-            ##
             # :operation: each_operation
             # :call-seq:
             #   each_operation(only_self = false) { |operation| ... }
