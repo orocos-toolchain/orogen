@@ -1621,8 +1621,21 @@ module Orocos
             #   task = task("MyDFDrivenTask").
             #       start
             #
-            # To configure the activity, you will have to implement the
-            # getFileDescriptor() method that is generated in the target class.
+            # To configure the activity, you will need to declare the FDs you
+            # want to watch in the configureHook():
+            #
+            #   RTT::extras::FileDescriptorActivity* fd_activity =
+            #       getActivity<RTT::extras::FileDescriptorActivity>();
+            #   if (fd_activity)
+            #       fd_activity->watch(my_fd);
+            #
+            # Don't forget to remove all watches in cleanupHook with
+            #
+            #   RTT::extras::FileDescriptorActivity* fd_activity =
+            #       getActivity<RTT::extras::FileDescriptorActivity>();
+            #   if (fd_activity)
+            #       fd_activity->clearAllWatches();
+            #
             def fd_driven
                 default_activity "fd_driven"
                 needs_configuration
