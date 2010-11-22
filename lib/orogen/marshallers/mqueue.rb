@@ -62,7 +62,7 @@ module Orocos
             code  = Generation.render_template "typekit", "mqueue", "Registration.hpp", binding
             typekit.save_automatic("transports", "mqueue", "Registration.hpp", code)
 
-            pkg_config = Generation.render_template 'typekit', "mqueue", "transport-mqueue.pc', binding
+            pkg_config = Generation.render_template 'typekit', "mqueue", "transport-mqueue.pc", binding
             typekit.save_automatic("transports", "mqueue", "#{typekit.name}-transport-mqueue.pc.in", pkg_config)
             code = Generation.render_template "typekit", "mqueue", "CMakeLists.txt", binding
             typekit.save_automatic("transports", "mqueue", "CMakeLists.txt", code)
