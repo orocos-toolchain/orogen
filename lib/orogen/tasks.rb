@@ -21,7 +21,7 @@ module Orocos
         }
 
         # Representation of a task's attribute or property
-	class Property
+	class ConfigurationObject
             # The task on which this property is attached
             attr_reader :task
 	    # The property name
@@ -59,7 +59,7 @@ module Orocos
                 type = task.component.find_interface_type(type)
                 Orocos.validate_toplevel_type(type)
 
-		@name, @type, @default_value = name, type, default_value
+		@task, @name, @type, @default_value = task, name, type, default_value
 	    end
 
             def pretty_print(pp)
@@ -76,7 +76,36 @@ module Orocos
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
 	end
-        Attribute = Property
+
+        class Property < ConfigurationObject
+            def register_for_generation
+                constructor = []
+                if default_value
+                    constructor << "_#{name}.set(#{cxx_default_value});"
+                end
+                constructor << "properties()->addProperty( _#{name} );"
+
+                task.add_base_member("property", "_#{name}",
+                    "RTT::Property< #{type.cxx_name} >").
+                    initializer("_#{name}(\"#{name}\", \"#{doc}\")").
+                    constructor(constructor.join("\n"))
+            end
+        end
+
+        class Attribute < ConfigurationObject
+            def register_for_generation
+                constructor = []
+                if default_value
+                    constructor << "_#{name}.set(#{cxx_default_value});"
+                end
+                constructor << "attributes()->addAttribute( _#{name} );"
+
+                task.add_base_member("attribute", "_#{name}",
+                    "RTT::Attribute< #{type.cxx_name} >").
+                    initializer("_#{name}(\"#{name}\")").
+                    constructor(constructor.join("\n"))
+            end
+        end
 
         # Generic representation of ports. The actual ports are either
         # instance of InputPort or OutputPort
@@ -139,6 +168,25 @@ module Orocos
 	    #
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
+
+            def register_for_generation
+                add =
+                    if task.event_ports.include?(self)
+                        "addEventPort"
+                    else "addPort"
+                    end
+
+                constructor = []
+                constructor << "ports()->#{add}(_#{name})"
+                if doc
+                    constructor << ".doc(\"#{doc}\")"
+                end
+
+                task.add_base_member("port", "_#{name}",
+                    "#{orocos_class}< #{type.cxx_name} >").
+                    initializer("_#{name}(\"#{name}\")").
+                    constructor(constructor.join("\n") + ";")
+            end
 	end
 
         # Specification for an output port
@@ -465,7 +513,7 @@ module Orocos
 		    end
 		end
 
-		"(" << arglist.join(", ") << ")"
+		arglist.join(", ")
 	    end
 
 	    # The return type of this operation, as a [type_object,
@@ -503,12 +551,16 @@ module Orocos
                         else method_name
                         end
                 end
-		result << argument_signature(with_names)
+		result << "(" << argument_signature(with_names) << ")"
 	    end
 
             def pretty_print(pp)
                 pp.text signature(true)
             end
+
+            attr_predicate :hidden?, true
+
+            attr_accessor :body
 
 	    # call-seq:
 	    #	method_name new_name -> self
@@ -518,6 +570,44 @@ module Orocos
             # serve this operation. It default to the method name with the
             # first character set to lowercase (MyMethod becomes myMethod).
 	    dsl_attribute(:method_name) { |value| value.to_s }
+
+            # Called to register methods/hook code and so on on the task context
+            def register_for_generation
+                thread_flag =
+                    if in_caller_thread then "RTT::ClientThread"
+                    else "RTT::OwnThread"
+                    end
+
+                constructor = "provides()->addOperation( _#{name})\n" +
+                    "    .doc(\"#{doc}\")"
+                if !arguments.empty?
+                    constructor += "\n" + arguments.map { |n, _, d| "    .arg(\"#{n}\", \"#{d}\")" }.join("\n")
+                end
+
+                if hidden? && !self.body
+                    raise InternalError, "a hidden operation must have a body"
+                end
+
+                body =
+                    if self.body
+                        self.body
+                    elsif has_return_value?
+                        "    return #{return_type.first.cxx_name}();"
+                    else ""
+                    end
+
+                add = if hidden? then "add_base_method"
+                      else "add_user_method"
+                      end
+
+                task.add_base_member("operation", "_#{name}", "RTT::Operation< #{signature(false)} >").
+                    initializer("_#{name}(\"#{name}\", &#{task.basename}Base::#{method_name}, this, #{thread_flag})").
+                    constructor("#{constructor};")
+
+                m = task.send(add, return_type.last, method_name, argument_signature).
+                    doc("Handler for the #{method_name} operation").
+                    body(body)
+            end
 	end
 
         # Representation of TaskContext classes. This is usually created using
@@ -677,9 +767,9 @@ module Orocos
             def header_file
                 if external_definition?
                     library_name, name = self.name.split("::")
-                    "#{library_name.downcase}/#{name}.hpp"
+                    File.join("#{library_name.downcase}", "#{name}.hpp")
                 else
-                    "#{component.name.downcase}/#{basename}.hpp"
+                    File.join("#{component.name.downcase}", "#{basename}.hpp")
                 end
             end
 
@@ -732,6 +822,20 @@ module Orocos
 
                 @fixed_initial_state = false
                 @needs_configuration = false
+
+                hooks = %w{configure start update error exception fatal stop cleanup}
+                @base_hook_code = Hash.new
+                @user_hook_code = Hash.new
+                hooks.each do |hook_name|
+                    @base_hook_code[hook_name] = Array.new
+                    @user_hook_code[hook_name] = Array.new
+                end
+
+                @base_methods = Array.new
+                @user_methods = Array.new
+
+                @base_members = Array.new
+                @user_members = Array.new
 	    end
 
             # Returns the task context models that are in this model's ancestry
@@ -1195,6 +1299,15 @@ module Orocos
 		@operations.last
 	    end
 
+            # Defines an operation whose implementation is in the Base class
+            # (i.e. "hidden" from the user)
+            def hidden_operation(name, body)
+                op = operation(name)
+                op.hidden = true
+                op.body = body
+                op
+            end
+
             # Interface for RTT 1.x methods
             #
             # This raises NotImplementedError with a message asking to convert
@@ -1590,6 +1703,20 @@ module Orocos
 	    def generate
                 return if external_definition?
 
+                if superclass.name == "RTT::TaskContext"
+                    hidden_operation("getModelName", "    return \"#{name}\";").
+                        returns("std::string").
+                        doc("returns the oroGen model name for this task")
+                else
+                    add_base_method("std::string", "getModelName", "").
+                        body("    return \"#{name}\";")
+                end
+
+                new_operations.each(&:register_for_generation)
+                self_properties.each(&:register_for_generation)
+                self_attributes.each(&:register_for_generation)
+                self_ports.each(&:register_for_generation)
+
 		# Make this task be available in templates as 'task'
 		task = self
 
@@ -1614,6 +1741,228 @@ module Orocos
 
 		self
 	    end
+
+            # Helper method for in_base_hook and in_user_hook
+            def in_hook(set, hook, string, &block) # :nodoc:
+                if string && block
+                    raise ArgumentError, "in #in_hook: you can provide either a string or a block, not both"
+                elsif !set.has_key?(hook)
+                    raise ArgumentError, "unknown hook '#{hook}', must be one of #{@additional_base_hook_code.keys.join(", ")}"
+                end
+                set[hook] << (string || block)
+            end
+
+            # Call to add some code to the generated hooks in the Base task
+            # classes
+            def in_base_hook(hook, string = nil, &block)
+                in_hook(@base_hook_code, hook, string, &block)
+            end
+
+            # Call to add some code to the generated hooks in the user task
+            # classes
+            def in_user_hook(hook, string = nil, &block)
+                in_hook(@user_hook_code, hook, string, &block)
+            end
+
+            enumerate_inherited_set "base_method", "base_methods"
+            enumerate_inherited_set "user_method", "user_methods"
+            attr_reader :base_initializers
+            attr_reader :base_constructions
+
+            # Base class for code generation in tasks
+            class GeneratedObject
+                attr_reader :task
+
+                def self.code_snippet(name, with_generation = true)
+                    class_eval <<-EOD
+                    def #{name}(code = nil, &block)
+                        if !code && !block
+                            return @#{name}
+                        elsif code && block
+                            raise ArgumentError, "can only provide either a string or a block"
+                        end
+                        @#{name} = code || block
+                        self
+                    end
+                    EOD
+                    
+                    if with_generation
+                        class_eval <<-EOD
+                        def generate_#{name}
+                            if @#{name}
+                                if @#{name}.respond_to?(:call)
+                                    @#{name}.call
+                                else
+                                    @#{name}.to_str
+                                end
+                            end
+                        end
+                        EOD
+                    end
+                end
+
+                def initialize(task)
+                    @task = task
+                    @doc = nil
+                end
+
+                def doc(*lines)
+                    if lines.empty?
+                        return @doc
+                    end
+
+                    comment = lines.join("\n * ") + "\n"
+                    if !@doc
+                        @doc = "/* #{comment}"
+                    else
+                        @doc = " * #{comment}"
+                    end
+                    self
+                end
+
+                def with_indent(number, method)
+                    text = send("generate_#{method}")
+                    if text
+                        indent = " " * number
+                        indent + text.split("\n").join("\n#{indent}")
+                    end
+                end
+            end
+
+            # Represents a class member in the generated code
+            #
+            # This is mainly meant for plugins
+            class GeneratedMember < GeneratedObject
+                attr_reader :kind
+                attr_reader :name
+                attr_reader :type
+
+                def initialize(task, kind, name, type = nil)
+                    super(task)
+                    @kind, @name, @type = kind, name, type
+                end
+
+                code_snippet 'initializer'
+                code_snippet 'constructor'
+
+                def generate_declaration
+                    if type
+                        result = "#{type} #{name};"
+                        if doc
+                            "#{doc} */#{result}"
+                        else result
+                        end
+                    end
+                end
+            end
+
+            # Represents a method definition/declaration in the generated code
+            #
+            # This is mainly meant for plugins
+            #
+            # See also #in_base_hook and #in_user_hook to add code to the hooks
+            class GeneratedMethod < GeneratedObject
+                attr_accessor :in_base
+
+                attr_reader :return_type
+                attr_reader :name
+                attr_reader :signature
+                attr_reader :body
+
+                def initialize(task, return_type, name, signature)
+                    super(task)
+
+                    @return_type = return_type
+                    @name = name
+                    @signature = signature
+                end
+
+                code_snippet 'body'
+
+                def generate_declaration
+                    decl = "virtual #{return_type} #{name}(#{signature})"
+                    if doc
+                        decl = "#{doc} */\n#{decl}"
+                    end
+                    if !body
+                        decl = "#{decl} = 0"
+                    end
+                    "#{decl};"
+                end
+
+                def generate_definition
+                    if body
+                        "#{return_type} #{task.basename}#{'Base' if in_base}::#{name}(#{signature})\n" +
+                        "{\n" +
+                        generate_body +
+                        "\n}"
+                    end
+                end
+            end
+
+            # Helper method for #add_base_method and #add_method
+            def add_method(kind, return_type, name, signature)
+                self_set = send("self_#{kind}")
+                if !name.respond_to?(:to_str)
+                    raise ArgumentError, "expected a string for 'name', got #{name} (#{name.class})"
+                elsif self_set.any? { |m| m.name == name }
+                    raise ArgumentError, "there is already a method called #{name} defined at this level"
+                end
+
+                m = GeneratedMethod.new(self, return_type, name, signature)
+                self_set << m
+                m
+            end
+
+            # Define a new method on the Base class of this task
+            #
+            # Note that you do not have to do this explicitely if #add_method is
+            # called: #add_method will add a pure virtual method to the base
+            # class
+            def add_base_method(return_type, name, signature)
+                m = add_method("base_methods", return_type, name, signature)
+                m.in_base = true
+                m
+            end
+
+            # Returns true if +name+ is a method defined with #add_base_method
+            # or #add_user_method
+            def has_base_method?(name)
+                all_base_methods.any? { |m| m.name == name }
+            end
+
+            # Define a new method on the user-part class of this task
+            #
+            # It will also add a pure-virtual method with the same signature on
+            # the Base class, to ensure that the user does define the method on
+            # its side.
+            def add_user_method(return_type, name, signature)
+                if !has_base_method?(name)
+                    # Add a pure virtual method to remind the user that he
+                    # should add it to its implementation
+                    add_base_method(return_type, name, signature).
+                        doc "If the compiler issues an error at this point, it is probably that",
+                            "you forgot to add the corresponding method to the #{self.name} class."
+                end
+                add_method("user_methods", return_type, name, signature)
+            end
+
+            def self_base_members(&block); @base_members end
+            def self_user_members(&block); @user_members end
+
+            # Add a code snippet to the generated Base class declaration
+            def add_base_member(kind, name, type = nil)
+                m = GeneratedMember.new(self, kind, name, type)
+                @base_members << m
+                m
+            end
+
+            # Add a code snippet to the generated user class declaration
+            def add_user_member(kind, name, type = nil)
+                m = GeneratedMember.new(kind, name, type)
+                @user_members << m
+                m
+            end
 
             # Generate a graphviz fragment to represent this task
             def to_dot

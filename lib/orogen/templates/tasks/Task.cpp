@@ -9,14 +9,9 @@ using namespace <%= task.component.name %>;
 {
 }
 
-<% task.self_operations.each do |op| %>
-<%= op.signature { "#{task.basename}::#{op.method_name}" } %>
-{
-    <% if op.has_return_value? %>
-    return <%= op.return_type.first.cxx_name %>();
-    <% end %>
-}
-<% end %>
+<%= task.self_user_methods.sort_by(&:name).
+    map { |m| m.with_indent(0, :definition) }.
+    compact.join("\n") %>
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See <%= task.basename %>.hpp for more detailed

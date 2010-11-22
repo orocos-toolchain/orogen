@@ -33,44 +33,15 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
-	<% unless task.self_properties.empty? %>/** Properties */<% end %>
-    <% task.self_properties.each do |prop| %>
-	RTT::Property< <%= prop.type.cxx_name %> > _<%= prop.name %>;
-    <% end %>
 
-	<% unless task.self_attributes.empty? %>/** attributes */<% end %>
-    <% task.self_attributes.each do |att| %>
-	RTT::Attribute< <%= att.type.cxx_name %> > _<%= att.name %>;
-    <% end %>
-
-	<% unless task.self_ports.empty? %>/** Ports */<% end %>
-    <% task.self_ports.each do |port| %>
-	<%= port.orocos_class %>< <%= port.type.cxx_name %> > _<%= port.name %>;
-    <% end %>
-
-	<% unless task.self_operations.empty? %>/** Operations */<% end %>
-    <% task.new_operations.each do |op| %>
-	RTT::Operation< <%= op.signature(false) %> > _<%= op.name %>;
-        // If you get the following error:
-        //   Cannot instanciate an object of class <%= task.name %> because the following methods are abstract:
-        //     <%= op.signature(true) %>
-        //
-        // it means that you did not implement the "<%= op.method_name %>" method
-        // in <%= task.name %>, which is required for the <%= op.name %>
-        // operation
-        //
-        // Please update tasks/<%= task.basename %>.*
-        //
-        // See
-        //   templates/tasks/<%= task.basename %>.hpp and
-        //   templates/tasks/<%= task.basename %>.cpp
-        // For template definitions
-	virtual <%= op.signature(true) %> = 0;
-    <% end %>
-
-    <% if task.superclass.name == "RTT::TaskContext" %>
-	RTT::Operation< std::string() > _getModelName;
-    <% end %>
+<%= task.self_base_methods.
+    sort_by(&:name).
+    map { |m| m.with_indent(8, :declaration) }.
+    compact.join("\n") %>
+<%= task.self_base_members.
+    sort_by { |m| [m.kind, m.name] }.
+    map { |m| m.with_indent(8, :declaration) }.
+    compact.join("\n") %>
 
     public:
         <% if extended_state_support? %>
@@ -98,8 +69,6 @@ namespace <%= component.name %> {
         void fatal();
         void exception();
         <% end %>
-
-        virtual std::string getModelName() const;
 
         <% if task.extended_state_support? %>
         void state(States state);

@@ -12,42 +12,15 @@ using namespace <%= component.name %>;
 <% else %>
     : ::<%= task.superclass.name %>(name, state)
 <% end %>
-    <% task.self_properties.each do |prop| %>
-    , _<%= prop.name %>("<%= prop.name %>", "<%= prop.doc %>")<% end %>
-    <% task.self_attributes.each do |att| %>
-    , _<%= att.name %>("<%= att.name %>")<% end %>
-    <% task.self_ports.each do |port| %>
-    , _<%= port.name %>("<%= port.name %>")<% end %>
-    <% task.new_operations.each do |op| %>
-    , _<%= op.name %>("<%= op.name %>", &<%= task.basename %>Base::<%= op.method_name %>, this, <%= if op.in_caller_thread then "RTT::ClientThread" else "RTT::OwnThread" end %>)<% end %>
-
-    <% if task.superclass.name == "RTT::TaskContext" %>
-    , _getModelName("getModelName", &<%= task.basename %>Base::getModelName, this, RTT::ClientThread)
-    <% end %>
+    , <%= task.self_base_members.
+            sort_by { |m| [m.kind, m.name] }.
+            map { |m| m.with_indent(4, :initializer).strip }.
+            compact.join("\n    , ") %> 
 {
-    <% task.self_properties.each do |prop|
-        if prop.default_value %>
-        _<%= prop.name %>.set(<%= prop.cxx_default_value %>);
-        <% end %>
-    properties()->addProperty( _<%= prop.name %> );<% end %>
-    <% task.self_attributes.each do |att|
-        if att.default_value %>
-        _<%= att.name %>.set(<%= att.cxx_default_value %>);
-        <% end %>
-    attributes()->addAttribute( _<%= att.name %> );<% end %>
-    <% (task.self_ports - task.event_ports).each do |port| %>
-    ports()->addPort( _<%= port.name %> ).doc("<%= port.doc %>");<% end %>
-    <% (task.event_ports & task.self_ports).each do |port| %>
-    ports()->addEventPort( _<%= port.name %> ).doc("<%= port.doc %>");<% end %>
-    <% task.new_operations.each do |op| 
-	argument_setup = op.arguments.
-	    map { |n, _, d| ".arg(\"#{n}\", \"#{d}\")" }.
-	    join("")
-    %>
-    provides()->addOperation( _<%= op.name %>).doc("<%= op.doc %>")<%= argument_setup %>;<% end %>
-    <% if task.superclass.name == "RTT::TaskContext" %>
-    provides()->addOperation( _getModelName ).doc("returns the oroGen model name for this task");
-    <% end %>
+<%= task.self_base_members.
+    sort_by { |m| [m.kind, m.name] }.
+    map { |m| m.with_indent(4, :constructor) }.
+    compact.join("\n") %>
 
     <% if task.extended_state_support? %>
     _state.keepLastWrittenValue(true);
@@ -55,10 +28,10 @@ using namespace <%= component.name %>;
     <% end %>
 }
 
-std::string <%= task.basename %>Base::getModelName() const
-{
-    return "<%= task.name %>";
-}
+<%= task.self_base_methods.
+        sort_by { |m| [m.name] }.
+        map { |m| m.with_indent(0, :definition) }.
+        compact.join("\n") %>
 
 <% if task.extended_state_support? %>
 void <%= task.basename %>Base::state(States state)

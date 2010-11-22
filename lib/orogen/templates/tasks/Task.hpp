@@ -5,30 +5,18 @@
 
 #include "<%= component.name.downcase %>/<%= task.basename %>Base.hpp"
 
-<% if task.default_activity
-      activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
-%>
-namespace RTT
-{
-    class <%= activity_type %>;
-}
-<% end %>
-
 namespace <%= component.name %> {
     class <%= task.basename %> : public <%= task.basename %>Base
     {
 	friend class <%= task.basename %>Base;
     protected:
-    <% task.self_operations.each do |op| %>
-	<%= op.signature %>;
-    <% end %>
+
+<%= task.self_user_methods.sort_by(&:name).
+    map { |m| m.with_indent(8, :declaration) }.
+    compact.join("\n") %>
 
     public:
         <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
-
-        <% if task.default_activity
-              activity_type = Orocos::Generation::ACTIVITY_TYPES[task.default_activity.first]
-        %>RTT::<%= activity_type %>* get<%= activity_type %>();<% end %>
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
