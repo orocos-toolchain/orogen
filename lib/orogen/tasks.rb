@@ -836,10 +836,8 @@ module Orocos
 
                 hooks = %w{configure start update error exception fatal stop cleanup}
                 @base_hook_code = Hash.new
-                @user_hook_code = Hash.new
                 hooks.each do |hook_name|
                     @base_hook_code[hook_name] = Array.new
-                    @user_hook_code[hook_name] = Array.new
                 end
 
                 @base_methods = Array.new
@@ -1755,11 +1753,6 @@ module Orocos
                 in_hook(@base_hook_code, hook, string, &block)
             end
 
-            # Call to add some code to the generated hooks in the user task
-            # classes
-            def in_user_hook(hook, string = nil, &block)
-                in_hook(@user_hook_code, hook, string, &block)
-            end
 
             enumerate_inherited_set "base_method", "base_methods"
             enumerate_inherited_set "user_method", "user_methods"
