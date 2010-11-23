@@ -1978,6 +1978,14 @@ module Orocos
                 m
             end
 
+            def add_base_construction(kind, name, code, &block)
+                add_base_member(kind, name).constructor(code, &block)
+            end
+
+            def add_base_destruction(kind, name, code)
+                add_base_member(kind, name).destructor(code, &block)
+            end
+
             # Generate a graphviz fragment to represent this task
             def to_dot
                 html_escape = lambda { |s| s.gsub(/</, "&lt;").gsub(/>/, "&gt;") }
