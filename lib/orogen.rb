@@ -9,3 +9,4 @@ require 'orogen/static_deployment'
 require 'orogen/component'
 require 'orogen/imports'
 
+Orocos::Generation.load_plugins

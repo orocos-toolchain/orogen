@@ -387,6 +387,35 @@ module Orocos
             end
             name
         end
+
+        def self.each_orogen_plugin_dir(&block)
+            if dirs = ENV['OROGEN_PLUGIN_PATH']
+                dirs.split(':').each(&block)
+            else
+                [].each(&block)
+            end
+        end
+
+        def self.load_plugins
+            each_orogen_plugin_dir do |dir|
+                begin
+                    # Add the plugin dir to the
+                    if !$LOAD_PATH.include?(dir)
+                        added_dir = true
+                        $LOAD_PATH << dir
+                    end
+                    Dir.glob(File.join(dir, '*.rb')).each do |file|
+                        logger.info "loading plugin #{file}"
+                        require file
+                    end
+                ensure
+                    # Now that we loaded the plugin, remove the added path from $LOAD_PATH
+                    if added_dir
+                        $LOAD_PATH.pop
+                    end
+                end
+            end
+        end
     end
 
     # Load a separate typelib registry containing the types defined by the given
