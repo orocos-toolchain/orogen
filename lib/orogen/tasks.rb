@@ -1781,6 +1781,7 @@ module Orocos
                 in_hook(@base_hook_code, hook, string, &block)
             end
 
+            attr_reader :base_hook_code
 
             enumerate_inherited_set "base_method", "base_methods"
             enumerate_inherited_set "user_method", "user_methods"
