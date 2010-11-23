@@ -182,7 +182,13 @@ module Orocos
                     constructor << ".doc(\"#{doc}\")"
                 end
 
-                task.add_base_member("port", "_#{name}",
+                kind =
+                    case self
+                    when InputPort then "input_port"
+                    else "output_port"
+                    end
+
+                task.add_base_member(kind, "_#{name}",
                     "#{orocos_class}< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\")").
                     constructor(constructor.join("\n") + ";")
