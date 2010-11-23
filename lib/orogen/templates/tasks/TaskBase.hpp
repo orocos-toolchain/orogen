@@ -85,6 +85,13 @@ namespace <%= component.name %> {
         void exception(States state);
         States state() const;
         <% end %>
+
+<% task.base_hook_code.keys.sort.each do |hook_name| %>
+<%    snippets = task.base_hook_code[hook_name] %>
+<%    next if snippets.empty? %>
+<%    is_boolean = (hook_name == "start" || hook_name == "configure") %>
+        <%= (is_boolean ? 'bool' : 'void') %> <%= hook_name %>Hook();
+<% end %>
     };
 }
 

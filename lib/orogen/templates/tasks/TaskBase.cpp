@@ -134,5 +134,30 @@ void <%= task.basename %>Base::exception()
 { return exception(EXCEPTION); }
 <% end %>
 
+<% task.base_hook_code.keys.sort.each do |hook_name| %>
+<%    snippets = task.base_hook_code[hook_name] %>
+<%    next if snippets.empty? %>
+<%    is_boolean = (hook_name == "start" || hook_name == "configure") %>
+<%= (is_boolean ? 'bool' : 'void') %> <%= task.basename %>Base::<%= hook_name %>Hook()
+{
+    <% if is_boolean %>
+    if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
+        return false;
+    <% end %>
+
+    <% snippets.each do |code| %>
+        <% if code.respond_to?(:to_str) %>
+<%= code %>
+        <% else %>
+<%= code.call %>
+        <% end %>
+    <% end %>
+
+    <% if is_boolean %>
+    return true;
+    <% end %>
+}
+<% end %>
+
 <%= code_after.join("\n") %>
 
