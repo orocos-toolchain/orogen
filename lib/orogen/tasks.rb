@@ -842,9 +842,10 @@ module Orocos
 
                 @base_methods = Array.new
                 @user_methods = Array.new
-
                 @base_members = Array.new
                 @user_members = Array.new
+                @base_header_code = Array.new
+                @base_implementation_code = Array.new
 	    end
 
             # Returns the task context models that are in this model's ancestry
@@ -1736,6 +1737,34 @@ module Orocos
 
 		self
 	    end
+
+            def self.validate_code_object(string, block)
+                if string && block
+                    raise ArgumentError, "you can provide either a string or a block, not both"
+                end
+                if string
+                    lambda { string.to_str }
+                else
+                    block
+                end
+            end
+
+            attr_reader :base_header_code
+            attr_reader :base_implementation_code
+
+            # Add some code that needs to be added to the toplevel scope in
+            # TaskBase.hpp
+            def add_base_header_code(string, include_before = true, &block)
+                code = TaskContext.validate_code_object(string, block)
+                @base_header_code << [include_before, code]
+            end
+
+            # Add some code that needs to be added to the toplevel scope in
+            # TaskBase.hpp
+            def add_base_implementation_code(string, include_before = true, &block)
+                code = TaskContext.validate_code_object(string, block)
+                @base_implementation_code << [include_before, code]
+            end
 
             # Helper method for in_base_hook and in_user_hook
             def in_hook(set, hook, string, &block) # :nodoc:

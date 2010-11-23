@@ -24,6 +24,13 @@
 <% end %>
 <% if component.typekit %>#include "<%= component.typekit.name %>/Types.hpp"<% end %>
 
+<% code_before, code_after =
+    task.base_header_code.partition(&:first)
+   code_before.map! { |_, c| c.call }
+   code_after.map! { |_, c| c.call }
+%>
+
+<%= code_before.join("\n") %>
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
@@ -79,6 +86,8 @@ namespace <%= component.name %> {
         <% end %>
     };
 }
+
+<%= code_after.join("\n") %>
 
 #endif
 

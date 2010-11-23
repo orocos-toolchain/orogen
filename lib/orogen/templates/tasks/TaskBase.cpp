@@ -4,6 +4,14 @@
 
 using namespace <%= component.name %>;
 
+<% code_before, code_after =
+    task.base_implementation_code.partition(&:first)
+   code_before.map! { |_, c| c.call }
+   code_after.map! { |_, c| c.call }
+%>
+
+<%= code_before.join("\n") %>
+
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
     : ::<%= task.superclass.name %>(name)
@@ -117,4 +125,6 @@ void <%= task.basename %>Base::error()
 void <%= task.basename %>Base::exception()
 { return exception(EXCEPTION); }
 <% end %>
+
+<%= code_after.join("\n") %>
 
