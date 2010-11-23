@@ -1768,9 +1768,8 @@ module Orocos
 
             # Helper method for in_base_hook and in_user_hook
             def in_hook(set, hook, string, &block) # :nodoc:
-                if string && block
-                    raise ArgumentError, "in #in_hook: you can provide either a string or a block, not both"
-                elsif !set.has_key?(hook)
+                code = TaskContext.validate_code_object(string, block)
+                if !set.has_key?(hook)
                     raise ArgumentError, "unknown hook '#{hook}', must be one of #{@additional_base_hook_code.keys.join(", ")}"
                 end
                 set[hook] << (string || block)
@@ -1797,10 +1796,9 @@ module Orocos
                     def #{name}(code = nil, &block)
                         if !code && !block
                             return @#{name}
-                        elsif code && block
-                            raise ArgumentError, "can only provide either a string or a block"
                         end
-                        @#{name} = code || block
+                        code = TaskContext.validate_code_object(code, block)
+                        @#{name} = code
                         self
                     end
                     EOD
@@ -1809,11 +1807,7 @@ module Orocos
                         class_eval <<-EOD
                         def generate_#{name}
                             if @#{name}
-                                if @#{name}.respond_to?(:call)
-                                    @#{name}.call
-                                else
-                                    @#{name}.to_str
-                                end
+                                @#{name}.call
                             end
                         end
                         EOD
