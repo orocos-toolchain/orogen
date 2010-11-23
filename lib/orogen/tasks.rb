@@ -1857,6 +1857,7 @@ module Orocos
 
                 code_snippet 'initializer'
                 code_snippet 'constructor'
+                code_snippet 'destructor'
 
                 def generate_declaration
                     if type

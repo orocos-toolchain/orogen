@@ -36,6 +36,14 @@ using namespace <%= component.name %>;
     <% end %>
 }
 
+<%= task.basename %>Base::~<%= task.basename %>Base()
+{
+<%= task.self_base_members.
+    sort_by { |m| [m.kind, m.name] }.
+    map { |m| m.with_indent(4, :destructor) }.
+    compact.join("\n") %>
+}
+
 <%= task.self_base_methods.
         sort_by { |m| [m.name] }.
         map { |m| m.with_indent(0, :definition) }.
