@@ -1875,7 +1875,7 @@ module Orocos
             #
             # This is mainly meant for plugins
             #
-            # See also #in_base_hook and #in_user_hook to add code to the hooks
+            # See also #in_base_hook to add code to the hooks
             class GeneratedMethod < GeneratedObject
                 attr_accessor :in_base
 
@@ -1931,9 +1931,22 @@ module Orocos
 
             # Define a new method on the Base class of this task
             #
-            # Note that you do not have to do this explicitely if #add_method is
-            # called: #add_method will add a pure virtual method to the base
+            # +return_type+ is a string representing the C++ return type for
+            # this method, +name+ the method name and +signature+ the arguments
+            # as they would be written in C++, without the parenthesis.
+            #
+            # For instance
+            #   add_base_method("bool", "isCompleted", "int arg")
+            #
+            # Generates the method
+            #   bool isCompleted(int arg);
+            #
+            # Note that you do not have to do this explicitely if #add_user_method is
+            # called: #add_user_method will add a pure virtual method to the base
             # class
+            #
+            # It returns an instance of GeneratedMethod that can be used to
+            # setup the method further
             def add_base_method(return_type, name, signature)
                 m = add_method("base_methods", return_type, name, signature)
                 m.in_base = true
@@ -1951,6 +1964,9 @@ module Orocos
             # It will also add a pure-virtual method with the same signature on
             # the Base class, to ensure that the user does define the method on
             # its side.
+            #
+            # It returns an instance of GeneratedMethod that can be used to
+            # setup the method further
             def add_user_method(return_type, name, signature)
                 if !has_base_method?(name)
                     # Add a pure virtual method to remind the user that he
