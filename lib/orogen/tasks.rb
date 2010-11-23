@@ -345,6 +345,11 @@ module Orocos
             # much longer than the period of the connection's end (for
             # instance).
             def needs_reliable_connection; @needs_reliable_connection = true; self end
+
+            def register_for_generation
+                super
+                task.in_base_hook('start', "_#{name}.clear();")
+            end
         end
         
         module DynamicPort
