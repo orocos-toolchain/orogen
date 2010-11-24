@@ -15,7 +15,7 @@ module Orocos
                     impl    = []
                     headers = []
 
-                    typesets.registered_types.each do |type|
+                    code_snippets = typesets.registered_types.map do |type|
                         if type.contains_opaques?
                             needs_copy =
                                 if type.opaque?
@@ -25,12 +25,12 @@ module Orocos
 
                             intermediate = typekit.intermediate_type_for(type)
                             code  = Generation.render_template "typekit", "typelib", "OpaqueType.cpp", binding
-                            impl << typekit.save_automatic("transports", "typelib", "#{type.method_name}.cpp", code)
                         else
                             code  = Generation.render_template "typekit", "typelib", "Type.cpp", binding
-                            impl << typekit.save_automatic("transports", "typelib", "#{type.method_name}.cpp", code)
                         end
+                        [type, code]
                     end
+                    impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "typelib")
 
                     code = Generation.render_template "typekit", "typelib", "TypelibMarshallerBase.hpp", binding
                     headers << typekit.save_automatic("transports", "typelib", "TypelibMarshallerBase.hpp", code)
