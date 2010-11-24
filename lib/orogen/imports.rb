@@ -89,7 +89,7 @@ module Orocos
                 pkg_transport_name('corba')
             end
             def include_dirs
-                pkg.include_dirs
+                pkg.include_dirs.to_set
             end
             # Returns the full path to the types/ subdir in the include
             # directory
@@ -121,7 +121,7 @@ module Orocos
 
             def pkg_name; end
             def pkg_transport_name(transport_name); end
-            def include_dirs; [] end
+            def include_dirs; Set.new end
             def types_dir; nil end
             def virtual?; true end
         end
@@ -169,15 +169,25 @@ module Orocos
             def load_typekit(name)
                 main_project.load_typekit(name)
             end
-
             def using_task_library(name)
-                load_task_library(name)
+                main_project.using_task_library(name)
             end
 
             def task_context(name, &block) # :nodoc:
                 task = super
                 task.external_definition = true
                 task
+            end
+
+            def find_task_context(name)
+                begin
+                    super
+                rescue ArgumentError
+                    if main_project
+                        main_project.find_task_context(name)
+                    else raise
+                    end
+                end
             end
 
 	    def find_type(type)
