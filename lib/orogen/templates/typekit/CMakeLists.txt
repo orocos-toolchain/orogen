@@ -7,7 +7,7 @@
 project("<%= typekit.name %>-typekit")
 cmake_minimum_required(VERSION 2.6)
 
-SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/config")
+SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= typekit.orocos_target %>")
