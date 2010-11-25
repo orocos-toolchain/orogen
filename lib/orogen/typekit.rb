@@ -1146,7 +1146,7 @@ module Orocos
                     if type < Typelib::ArrayType
                         [intermediate_cxxname_for(type.deference), "[#{type.length}]"]
                     elsif type < Typelib::ContainerType
-                        ["#{type.cxx_namespace}#{type.container_kind.gsub(/.*\//, '')}<#{intermediate_cxxname_for(type.deference)}>"]
+                        ["#{type.cxx_namespace}#{type.container_kind.gsub(/.*\//, '')}< #{intermediate_cxxname_for(type.deference)}>"]
                     else
                         ["#{type.cxx_name}_m"]
                     end
