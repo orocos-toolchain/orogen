@@ -262,7 +262,7 @@ struct #{basename}_m
 
         def self.to_m_type(typekit)
             deference_name = typekit.intermediate_cxxname_for(deference)
-            "typedef #{deference_name[0]} orogen_typekits_mtype_#{method_name(true)}#{deference_name[1]}"
+            "typedef #{deference_name[0]} orogen_typekits_mtype_#{method_name(true)}#{deference_name[1]};"
         end
 
         def self.code_copy(typekit, result, indent, dest, src, method)
