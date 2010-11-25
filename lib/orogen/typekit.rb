@@ -8,6 +8,10 @@ require 'nokogiri'
 module Typelib
     class Type
         def self.normalize_typename(name)
+            # Remove all trailing array modifiers first
+            if name =~ /(.*)(\[\d+\]+)$/
+                name, array_modifiers = $1, $2
+            end
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
             template_arguments.map! do |arg|
                 arg =
@@ -18,9 +22,9 @@ module Typelib
             end
 
             if !template_arguments.empty?
-                "#{name}<#{template_arguments.join(",")}>"
+                "#{name}<#{template_arguments.join(",")}>#{array_modifiers}"
             else
-                name
+                "#{name}#{array_modifiers}"
             end
         end
 
