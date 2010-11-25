@@ -111,7 +111,7 @@ module Typelib
 
         def self.to_m_type(typekit)
             target_cxxname = typekit.intermediate_cxxname_for(deference)
-            "struct __gccxml_workaround_#{method_name(true)} { #{container_cxx_kind}< #{target_cxxname} > instanciate; };\n"  +
+            "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname} > instanciate;\n};\n"  +
             "typedef #{container_cxx_kind}< #{target_cxxname} > orogen_typekits_mtype_#{method_name(true)};"
         end
 
@@ -207,7 +207,7 @@ struct #{basename}_m
                     else
                         [field_type.cxx_name]
                     end
-                result << "   #{field_cxxname[0]} #{field_name} #{field_cxxname[1]};"
+                result << "   #{field_cxxname[0]} #{field_name} #{field_cxxname[1]};\n"
             end
             result << "};"
         end
