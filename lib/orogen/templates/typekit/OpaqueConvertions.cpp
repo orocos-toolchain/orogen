@@ -46,14 +46,14 @@ type_sets.types.
     find_all { |t| t.contains_opaques? && !t.opaque? }.
     each do |type|
         m_type = intermediate_type_for(type) %>
-void orogen_typekits::toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value)
+void orogen_typekits::toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value<%= ", int length" if type < Typelib::ArrayType %>)
 {
 <%=
         result = ""
         type.to_intermediate(typekit, result, "    ")
         result %>
 }
-void orogen_typekits::fromIntermediate(<%= type.ref_type %> value, <%= m_type.arg_type %> intermediate)
+void orogen_typekits::fromIntermediate(<%= type.ref_type %> value<%= ", int length" if type < Typelib::ArrayType %>, <%= m_type.arg_type %> intermediate)
 {
 <%=
         result = ""
