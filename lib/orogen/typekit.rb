@@ -609,19 +609,21 @@ module Orocos
                     begin
                         registry.build(type_name)
                     rescue Typelib::NotFound
-                        if type_name =~ /^([^<]+)<(.*)>$/
-                            container_name = $1
-                            element_name   = $2
-                            element_type   = find_type(element_name)
-                            if !element_type
-                                raise ArgumentError, "the type #{element_name.inspect} is not defined"
-                            end
+                        if type_name =~ /(.*)\[(\d+)\]$/
+                            base_type, array_size = $1, $2
+                            find_type(base_type)
+                            return registry.build(type_name)
+                        end
 
+                        container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
+                        if template_arguments.size == 1
+                            element_type = find_type(template_arguments[0])
                             if component
                                 component.registry.define_container(container_name,
-                                                component.registry.build(element_name))
+                                                component.find_type(element_type.name))
                             end
                             registry.define_container(container_name, element_type)
+
                         elsif component && type = component.registry.build(type_name)
                             while type.respond_to?(:deference)
                                 type = type.deference
