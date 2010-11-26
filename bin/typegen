@@ -67,11 +67,13 @@ if remaining.size < 2
     exit(1)
 end
 
+typekit.name      = remaining.shift
+if !typekit.automatic_dir
+    typekit.automatic_dir = typekit.name
+end
 Orocos::Generation.generation_directory = Dir.pwd
 Orocos::Generation.relative_generation_directory = Pathname.new(Dir.pwd).relative_path_from(Pathname.new(typekit.automatic_dir))
-
 Orocos::Generation.command_line_options = original_options
-typekit.name      = remaining.shift
 transports.each do |transport_name|
     typekit.enable_plugin(transport_name)
 end
