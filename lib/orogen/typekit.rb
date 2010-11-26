@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'typelib'
 require 'tempfile'
 require 'find'
@@ -1390,6 +1391,11 @@ module Orocos
                         FileUtils.rm_rf fake_install_dir
                     end
                     FileUtils.ln_sf automatic_dir, fake_install_dir
+                end
+
+                if standalone?
+                    fake_typekit_dir = File.join(automatic_dir, "typekit")
+                    FileUtils.ln_sf automatic_dir, fake_typekit_dir
                 end
 
                 # Load any queued file. This must be done before the call
