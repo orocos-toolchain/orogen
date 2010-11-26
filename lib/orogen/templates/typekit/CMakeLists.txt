@@ -45,6 +45,15 @@ ADD_CUSTOM_TARGET(regen
 # END if typekit.standalone?
 ##
 
+set(ROS_ROOT $ENV{ROS_ROOT})
+if ( ROS_ROOT )
+    if ( NOT ROSPACK_EXE )
+        include(${ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+        rosbuild_init()
+    endif( NOT ROSPACK_EXE )
+    set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos/types)
+endif( ROS_ROOT ) 
+
 execute_process(COMMAND cmake -E create_symlink
     ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
 

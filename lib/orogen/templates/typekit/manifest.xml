@@ -8,7 +8,6 @@
   <license></license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/<%=typekit.name %>-typekit</url>
-  <depend package="typelib"/>
-  <depend package="rtt_2.0"/>
+  <depend package="rtt"/>
 
 </package>

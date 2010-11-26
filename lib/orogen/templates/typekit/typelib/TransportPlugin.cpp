@@ -9,6 +9,9 @@
 #include <utilmm/configfile/pkgconfig.hh>
 #include <rtt/Logger.hpp>
 using namespace RTT;
+#ifdef HAS_ROSLIB
+#include <ros/package.h>
+#endif
 
 #define TYPEKIT_PACKAGE_NAME_aux0(target) #target
 #define TYPEKIT_PACKAGE_NAME_aux(target) "<%= typekit.name %>-typekit-" TYPEKIT_PACKAGE_NAME_aux0(target)
@@ -17,6 +20,21 @@ using namespace RTT;
 orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::<%= typekit.name %>TypelibTransportPlugin()
     : m_registry(0)
 {
+#ifdef HAS_ROSLIB
+    using namespace ros::package;
+    try {
+        bool all_good = true, found = false;
+        std::string ppath = getPath( "<%= typekit.name %>" );
+        if ( !ppath.empty() ) {
+            std::string tkpath = ppath + "/typekit" + "/<%= typekit.name %>.tlb";
+            m_registry = Typelib::PluginManager::load("tlb", tkpath);
+            return;
+        } else
+            log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+    } catch(...) {
+        log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+    }
+#endif
     try {
         m_registry = Typelib::PluginManager::load("tlb", TYPEKIT_REGISTRY);
     }

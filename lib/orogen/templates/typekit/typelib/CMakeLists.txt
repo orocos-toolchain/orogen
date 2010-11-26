@@ -21,6 +21,15 @@ target_link_libraries(${libname_typelib}
 target_link_libraries(${libname_typelib}
     LINK_INTERFACE_LIBRARIES)
 
+# rospack support
+if ( ROS_ROOT )
+        rosbuild_find_ros_package( roslib )
+        include_directories( ${roslib_PACKAGE_PATH}/include )
+        find_library(ROS_LIB roslib ${roslib_PACKAGE_PATH}/lib )
+        TARGET_LINK_LIBRARIES( ${libname} ${ROS_LIB} )
+        ADD_DEFINITIONS( -DHAS_ROSLIB )
+endif( ROS_ROOT )
+
 SET(PKG_CONFIG_FILE_TYPELIB ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-typelib-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-typelib.pc.in ${PKG_CONFIG_FILE_TYPELIB} @ONLY)
 
