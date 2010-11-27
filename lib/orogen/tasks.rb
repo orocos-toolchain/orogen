@@ -877,6 +877,8 @@ module Orocos
 	    def pretty_print(pp)
 		pp.text "------- #{name} ------"
                 pp.breakable
+                pp.text "subclass of #{superclass.name} (the superclass elements are displayed below)"
+                pp.breakable
 
                 ports = each_port.to_a + each_dynamic_port.to_a
                 pretty_print_interface(pp, "Ports", ports)
