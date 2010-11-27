@@ -864,6 +864,7 @@ module Orocos
                 else
                     pp.text name
                     pp.nest(2) do
+                        set = set.to_a.sort_by(&:name)
                         set.each do |element|
                             pp.breakable
                             element.pretty_print(pp)
