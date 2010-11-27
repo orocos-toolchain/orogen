@@ -115,7 +115,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         # Check the resulting file
         in_prefix do
             system(File.join("bin", "data"))
-            assert_equal "2 4 6 8 10 ", File.read('data_trigger.txt')
+            assert_equal "U 2 4 6 8 10 ", File.read('data_trigger.txt')
         end
     end
 
@@ -170,7 +170,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
 
         in_prefix do
             system(File.join("bin", "cross_deployment"))
-            expected = "[1 2] [3 4] [5 6] [7 8] [9 10] [11 12] [13 14] [15 16] [17 18] "
+            expected = "[U] [1 2] [3 4] [5 6] [7 8] [9 10] [11 12] [13 14] [15 16] "
             assert_equal expected,
                 File.read('cross_dependencies.txt')[0, expected.length]
         end
