@@ -78,6 +78,9 @@ module Orocos
                 @has_opaques
             end
 
+            # Simply ignore, we load the whole typekit anyway
+            def opaque_type(*args); end
+
             def pkg_name
                 pkg.name
             end
