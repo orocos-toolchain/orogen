@@ -20,10 +20,10 @@ using namespace <%= component.name %>;
 <% else %>
     : ::<%= task.superclass.name %>(name, state)
 <% end %>
-    , <%= task.self_base_members.
+    <%= task.self_base_members.
             sort_by { |m| [m.kind, m.name] }.
-            map { |m| m.with_indent(4, :initializer).strip }.
-            compact.join("\n    , ") %> 
+            map { |m| ", " + m.with_indent(4, :initializer).strip }.
+            compact.join("\n    ") %> 
 {
 <%= task.self_base_members.
     sort_by { |m| [m.kind, m.name] }.
