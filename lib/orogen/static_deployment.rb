@@ -389,7 +389,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 pp.text "#{name}[#{context.name}]"
                 pp.nest(2) do
                     pp.breakable
-                    pp.text "activity: #{@activity_type || 'sequential'}, prio=#{@priority}"
+                    pp.text "activity: #{@activity_type.name}, prio=#{@priority}"
                     pp.breakable
                     pp.text "scheduler: #{@realtime ? 'realtime' : 'non realtime'}"
                 end
