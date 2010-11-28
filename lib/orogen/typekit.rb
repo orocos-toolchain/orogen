@@ -364,6 +364,50 @@ end
 
 module Orocos
     module Generation
+        # Common implementation of opaque-related methods. It gets included in
+        # Project and Typekit
+        module OpaqueHandling
+            def opaque_specification(type_def)
+                type = find_type(type_def)
+                raise "#{type} is unknown" unless type
+                raise "#{type} is not opaque" unless type.opaque?
+                opaques.find { |opaque_def| opaque_def.type == type }
+            end
+
+            def intermediate_type_for(type_def)
+                type = find_type(type_def)
+                if type.opaque?
+                    find_type(opaque_specification(type_def).intermediate)
+                elsif type.contains_opaques?
+                    if type < Typelib::ArrayType
+                        find_type("#{intermediate_type_for(type.deference).name}[#{type.length}]")
+                    elsif type < Typelib::ContainerType
+                        find_type("#{type.container_kind}<#{intermediate_type_for(type.deference).name}>")
+                    else
+                        find_type("#{type.cxx_name}_m")
+                    end
+                else type
+                end
+            end
+
+            def intermediate_type?(type)
+                type = find_type(type.name)
+                opaques.find { |spec| find_type(spec.intermediate) == type }
+            end
+
+            def m_type?(type)
+                typename = type.name
+                if type.name =~ /_m$/
+                    return true
+                end
+
+                begin
+                    type.dependencies.any? { |t| m_type?(t) }
+                rescue Typelib::NotFound
+                end
+            end
+        end
+
         class << self
             attr_accessor :typekit_slice
         end
@@ -1138,12 +1182,7 @@ module Orocos
                 result.to_a.sort_by { |dep| dep.var_name }
             end
 
-            def opaque_specification(type_def)
-                type = find_type(type_def)
-                raise "#{type} is unknown" unless type
-                raise "#{type} is not opaque" unless type.opaque?
-                opaques.find { |opaque_def| opaque_def.type == type }
-            end
+            include OpaqueHandling
 
             def intermediate_cxxname_for(type_def)
                 type = find_type(type_def)
@@ -1160,37 +1199,6 @@ module Orocos
                 end
             end
 
-            def intermediate_type_for(type_def)
-                type = find_type(type_def)
-                if type.opaque?
-                    find_type(opaque_specification(type_def).intermediate)
-                elsif type.contains_opaques?
-                    if type < Typelib::ArrayType
-                        find_type("#{intermediate_type_for(type.deference).name}[#{type.length}]")
-                    elsif type < Typelib::ContainerType
-                        find_type("#{type.container_kind}<#{intermediate_type_for(type.deference).name}>")
-                    else
-                        find_type("#{type.cxx_name}_m")
-                    end
-                else type
-                end
-            end
-
-            def intermediate_type?(type)
-                opaques.find { |spec| find_type(spec.intermediate) == find_type(type.name) }
-            end
-
-            def m_type?(type)
-                typename = type.name
-                if type.name =~ /_m$/
-                    return true
-                end
-
-                begin
-                    type.dependencies.any? { |t| m_type?(t) }
-                rescue Typelib::NotFound
-                end
-            end
 
             def m_types_code
                 @m_types_code
