@@ -100,6 +100,23 @@ module Orocos
                 File.join(pkg.includedir, name, 'types')
             end
 
+            def self_types
+                typelist.map { |name| registry.get(name) }
+            end
+
+            def intermediate_type_for(*args)
+                main_project.intermediate_type_for(*args)
+            end
+
+            def intermediate_type?(*args)
+                main_project.intermediate_type?(*args)
+            end
+
+            def m_type?(*args)
+                main_project.m_type?(*args)
+            end
+
+
             def using_library(*args); end
             def using_typekit(*args); end
 
