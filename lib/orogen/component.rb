@@ -44,11 +44,11 @@ module Orocos
             end
         end
 
-        # This is the root class for all oroGen features: one Component instance
+        # This is the root class for all oroGen features: one Project instance
         # represents one oroGen project specification.
         #
         # Toplevel statements in the .orogen files are instance methods on a
-        # Component instance. For instance, the
+        # Project instance. For instance, the
         #   
         #   task_context "Name" do
         #      ...
@@ -56,8 +56,8 @@ module Orocos
         #
         # call is actually a call to #task_context.
         #
-        # An existing orogen file can be loaded with Component.load
-	class Component
+        # An existing orogen file can be loaded with Project.load
+	class Project
             # A set of TaskContext instances listing all the tasks whose
             # definition is available in this project. This includes the task
             # definitions imported from other task libraries.
@@ -89,7 +89,7 @@ module Orocos
 
             # :method: version
             #
-	    # The version number of this component. Defaults to "0.0"
+	    # The version number of this project. Defaults to "0.0"
 
             # :method: version 'new_version'
             #
@@ -141,17 +141,17 @@ module Orocos
                 end
             end
 
-            # Create a new Component object by loading the given orogen
+            # Create a new Project object by loading the given orogen
             # specification file
             def self.load(file, verbose = true)
-                component = new
-                component.load(file, verbose)
-                component
+                project = new
+                project.load(file, verbose)
+                project
             end
 
             @@standard_tasks = nil
 
-            # The set of standard components defined by RTT and OCL. They are
+            # The set of standard project defined by RTT and OCL. They are
             # defined as orogen-specification in the <tt>rtt.orogen</tt> and
             # <tt>ocl.orogen</tt>, present in orogen source code.
             def self.standard_tasks
@@ -160,9 +160,9 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        component = ImportedProject.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
-                        component.orogen_project = false
-                        @@standard_tasks.concat component.tasks
+                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        project.orogen_project = false
+                        @@standard_tasks.concat project.tasks
                     end
                 end
 
@@ -176,7 +176,7 @@ module Orocos
             attr_predicate :orogen_project, true
 
 	    def initialize
-		@tasks = Component.standard_tasks.dup
+		@tasks = Project.standard_tasks.dup
                 @orogen_project = true
                 @self_tasks = []
 
@@ -196,12 +196,12 @@ module Orocos
                 @opaques = Array.new
 
 		# Load orocos-specific types which cannot be used in the
-		# component-defined typekit but can be used literally in argument
+		# project-defined typekit but can be used literally in argument
 		# lists or property types
 		@registry = Typelib::Registry.new
                 @opaque_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(registry)
-                Component.using_rtt_typekit(self)
+                Project.using_rtt_typekit(self)
 	    end
 
             def self.using_rtt_typekit(obj)
@@ -254,30 +254,30 @@ module Orocos
             # be a TaskContext instance, in which case it is returned, or a
             # task context name, in which case the corresponding TaskContext
             # object is searched in the set of known ones (i.e. the ones
-            # defined in this component or in the task libraries loaded
+            # defined in this project or in the task libraries loaded
             # by #using_task_library).
             #
             # Raises ArgumentError if no such task context exists
             #
-            # If the task context is defined in this component, the leading
-            # namespace can be omitted. For example, in a component defined by
+            # If the task context is defined in this project, the leading
+            # namespace can be omitted. For example, in a project defined by
             #
-            #   name 'myComponent'
+            #   name 'myProject'
             #   task_context 'TC' do
             #   end
             #
             # the following two statements are equivalent
             #   find_task_context('TC')
-            #   find_task_context('myComponent::TC')
+            #   find_task_context('myProject::TC')
             #
             # This is not true for imported task contexts. For instance, for
-            #   name 'otherComponent'
-            #   using_task_library 'myComponent'
+            #   name 'otherProject'
+            #   using_task_library 'myProject'
             #
             # the following statement will return nil:
             #   find_task_context('TC')
             # while this one works as expected:
-            #   find_task_context('myComponent::TC')
+            #   find_task_context('myProject::TC')
             def find_task_context(obj)
                 task_model =
                     if obj.respond_to?(:to_str)
@@ -320,7 +320,7 @@ module Orocos
             # The deployment modes that are required for this generation
             attr_reader :deployers
 
-	    # The set of typekits that are to be used in this component. This is
+	    # The set of typekits that are to be used in this project. This is
             # a set of ImportedTypekit instances.
 	    attr_reader :used_typekits
 
@@ -343,9 +343,9 @@ module Orocos
                 end
             end
 
-            # Import an orogen-generated typekit to be used by this component.
+            # Import an orogen-generated typekit to be used by this project.
             # The typekit is searched by name through the pkg-config tool. It
-            # means that, if PREFIX is the installation prefix where the component
+            # means that, if PREFIX is the installation prefix where the project
             # is installed, then
             #
             #   PREFIX/lib/pkgconfig
@@ -375,7 +375,7 @@ module Orocos
 
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
-            def rtt_registry; Component.rtt_registry end
+            def rtt_registry; Project.rtt_registry end
 
             # Returns the typekit object that defines this type
             def imported_typekit_for(typename)
@@ -411,7 +411,7 @@ module Orocos
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
-            # type must have been defined either by the component's own typekit
+            # type must have been defined either by the project's own typekit
             # or by the ones imported by #using_typekit
 	    def find_type(typename)
 		if typename
@@ -444,24 +444,25 @@ module Orocos
 		end
 	    end
 
-            # Generate the component's source files
+            # Generate the project's source files
 	    def generate
 		unless name
-		    raise ArgumentError, "you must set a name for this component"
+		    raise ArgumentError, "you must set a name for this project"
 		end
 
                 if name !~ /^[a-z][a-z0-9\_]+$/
                     raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
                 end
                 if !deffile
-                    raise ArgumentError, "there is no orogen file for this component, cannot generate"
+                    raise ArgumentError, "there is no orogen file for this project, cannot generate"
                 end
                 if !File.file?(deffile)
-                    Orocos::Generation.warn "#{deffile} does not exist, assuming that we are generating a stub component"
+                    Orocos::Generation.warn "#{deffile} does not exist, assuming that we are generating a stub project"
                 end
 
 		# For consistency in templates
-		component = self
+		project = self
+                component = self # backward compatibility reasons
 
                 # First, generate a to-be-installed version of the orogen file.
                 # We do that to add command-line options like corba
@@ -484,16 +485,16 @@ module Orocos
                 #
 		# We have first to remove the way orogen was doing it before,
 		# and then let typekit and task library do what they have to do
-                fake_install_dir = File.join(component.base_dir, AUTOMATIC_AREA_NAME, component.name)
+                fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
                 if File.symlink?(fake_install_dir)
                     FileUtils.rm_f fake_install_dir
-                    Dir.glob(File.join(component.base_dir, AUTOMATIC_AREA_NAME, "tasks", "*")).each do |path|
+                    Dir.glob(File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks", "*")).each do |path|
                         FileUtils.rm_f path if File.symlink?(path)
                     end
                 end
 
                 # This piece of code is a header-only definition that is generic
-                # and should be usable in any orogen component
+                # and should be usable in any orogen project
                 #
                 # (I know, this is ugly)
                 # typelib_marshaller = Generation.render_template "typekit/TypelibMarshaller.hpp", binding
@@ -509,7 +510,7 @@ module Orocos
                     state_types = Generation.render_template(
                         "tasks", "TaskStates.hpp", binding)
                     header = Generation.save_automatic(
-                        "#{component.name}TaskStates.hpp", state_types)
+                        "#{project.name}TaskStates.hpp", state_types)
                     typekit(true).load(header)
                 end
 
@@ -546,9 +547,10 @@ module Orocos
 
             CMAKE_GENERATED_CONFIG = %w{Base.cmake TaskLib.cmake}
 
-            # Generate the CMake build system for this component
+            # Generate the CMake build system for this project
 	    def generate_build_system # :nodoc:
-		component = self
+		project = self
+                component = self # backward compatibility reasons
 
 		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
                 target_dir = Generation::AUTOMATIC_AREA_NAME
@@ -635,7 +637,7 @@ module Orocos
 	    #   name(new_name) => self
             #   name => current_name
 	    #
-	    # Sets the component name for this generation
+	    # Sets the project name for this generation
 	    dsl_attribute :name do |new|
                 if !new.respond_to?(:to_str)
                     raise ArgumentError, 'name should be a string'
@@ -659,9 +661,9 @@ module Orocos
             # call-seq:
             #   using_library 'name' => self
             #
-            # Make the component build-depend on the pkg-config package +name+.
+            # Make the project build-depend on the pkg-config package +name+.
             # This is done through the use of the pkg-config tool, so you need
-            # the external dependencies of your component to provide the
+            # the external dependencies of your project to provide the
             # necessary files (and those files to be in a directory listed in
             # the +PKG_CONFIG_PATH+ environment variable).
             #
@@ -691,12 +693,12 @@ module Orocos
             end
 
 	    # call-seq:
-	    #   component.typekit do
+	    #   project.typekit do
 	    #      ... typekit setup ...
 	    #   end => typekit
-	    #   component.typekit => current typekit or nil
+	    #   project.typekit => current typekit or nil
 	    #
-            # The first form associates a type typekit for component, as a
+            # The first form associates a type typekit for project, as a
             # Typekit intance. The given block can set up this Typekit instance
             # by calling any instance method defined on it.
 	    #
@@ -779,14 +781,14 @@ module Orocos
             end
 
             # Creates a new task context class of this name. The generated
-            # class is defined in the component's namespace. Therefore
+            # class is defined in the project's namespace. Therefore
             #
-            #   name "test_component"
+            #   name "test_project"
             #   task_context "SpecificTask" do
             #     .. task context specification ..
             #   end
             #
-            # defines a <tt>test_component::SpecificTask</tt> class.
+            # defines a <tt>test_project::SpecificTask</tt> class.
             #
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
@@ -909,14 +911,14 @@ module Orocos
                 false
             end
 
-            # Declares that this component depends on task contexts defined by
-            # the given orogen-generated component. After this call, the
+            # Declares that this project depends on task contexts defined by
+            # the given orogen-generated project. After this call, the
             # definitions of the tasks in the task library are available as
             # 'name::task_context_name'
             #
-            # As for #using_library, the component is searched by name by the
+            # As for #using_library, the project is searched by name by the
             # pkg-config tool. It means that, if PREFIX is the installation
-            # prefix where the component is installed, then
+            # prefix where the project is installed, then
             #
             #   PREFIX/lib/pkgconfig
             #
@@ -933,7 +935,7 @@ module Orocos
                     self.typekit.include_dirs |= tasklib.include_dirs.to_set
                 end
 
-                # Now import the typekits the component also imports, and the
+                # Now import the typekits the project also imports, and the
                 # tasklib's own typekit if there is one
                 if has_typekit?(tasklib.name)
                     using_typekit tasklib.name
@@ -983,7 +985,7 @@ module Orocos
                 # if deployer.install?
                 #     begin
                 #         pkg = Utilrb::PkgConfig.new("orogen-#{name}")
-                #         if pkg.project_name != component.name
+                #         if pkg.project_name != project.name
                 #             raise ArgumentError, "#{name} is a deployment already used in #{pkg.project_name}"
                 #         end
                 #     rescue Utilrb::PkgConfig::NotFound
@@ -1015,7 +1017,7 @@ module Orocos
             end
 
             # This is for the sake of DSL handling
-            def component; self end
+            def project; self end
 
             # Displays the content of this oroGen project in a nice form
             def pretty_print(pp) # :nodoc:
@@ -1071,7 +1073,7 @@ module Orocos
             end
 	end
 
-	Project = Component
+        Component = Project
     end
 end
 
