@@ -189,6 +189,15 @@ module Orocos
             def load_typekit(name)
                 main_project.load_typekit(name)
             end
+
+            def using_typekit(name)
+                result = super
+                if main_project
+                    main_project.using_typekit(name)
+                end
+                result
+            end
+
             def using_task_library(name)
                 main_project.using_task_library(name)
             end
