@@ -955,6 +955,12 @@ module Orocos
 		deployment
             end
 
+            # True if there is a deployment with the given name in this oroGen
+            # project
+            def has_deployment?(name)
+                deployers.any? { |d| d.name == name }
+            end
+
             # call-seq:
             #   deployment(name[, options]) do
             #       specification
@@ -972,6 +978,10 @@ module Orocos
                 # If we have a typekit, resolve all pending loads
                 if typekit
                     typekit.perform_pending_loads
+                end
+
+                if has_deployment?(name)
+                    raise ArgumentError, "there is already a deployment named '#{name}' in this oroGen project"
                 end
 
                 deployer = StaticDeployment.new(self, name, &block)
