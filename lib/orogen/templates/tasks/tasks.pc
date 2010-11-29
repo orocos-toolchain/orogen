@@ -29,5 +29,8 @@ Libs: <%= libs.to_a.join(" ") %> -L${libdir} -l<%= component.name %>-tasks-<%= c
   cflags = component.tasklib_used_task_libraries.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
   cflags |= component.used_typekits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
 %>
+<% if component.extended_state_support? %>
+<%   cflags << "-I${includedir}/#{component.name}/types" %>
+<% end %>
 Cflags: -I${includedir} <%= cflags.to_a.sort.join(" ") %>
 

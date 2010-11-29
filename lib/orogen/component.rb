@@ -444,6 +444,10 @@ module Orocos
 		end
 	    end
 
+            def extended_state_support?
+                self_tasks.any?(&:extended_state_support?)
+            end
+
             # Generate the project's source files
 	    def generate
 		unless name
