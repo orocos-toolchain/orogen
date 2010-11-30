@@ -28,6 +28,9 @@ parser = OptionParser.new do |opt|
     opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         no_transports = true
     end
+    opt.on('--parallel-build=NUMBER', Integer, "optimize generated code for parallel builds") do |parallel_level|
+        Orocos::Generation.typekit_slice_minimum = parallel_level
+    end
     opt.on('--typekit-slice=NUMBER', Integer) do |slice_size|
         Orocos::Generation.typekit_slice = slice_size
     end

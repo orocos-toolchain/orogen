@@ -410,10 +410,12 @@ module Orocos
 
         class << self
             attr_accessor :typekit_slice
+            attr_accessor :typekit_slice_minimum
         end
         # The default value of 2 has been benchmarked with GCC 4.4.5. Big
         # transition from 1 to 2, but no big improvement afterwards.
         @typekit_slice = 2
+        @typekit_slice_minimum = 1
 
         # Data structure that represents the definition for an opaque type
         #
@@ -1364,13 +1366,21 @@ module Orocos
             end
 
             def render_typeinfo_snippets(code_snippets, *place)
+                return [] if code_snippets.empty?
+
                 impl = []
                 place = File.join(*place)
                 code_snippets.each do |code|
                     code[0] = code[0].name_as_word
                 end
                 code_snippets = code_snippets.sort_by { |code| code[0] }
-                code_snippets.each_slice(Orocos::Generation.typekit_slice) do |code|
+
+                slice_size = Orocos::Generation.typekit_slice
+                while slice_size > 1 && code_snippets.size / slice_size < Orocos::Generation.typekit_slice_minimum
+                    slice_size -= 1
+                end
+
+                code_snippets.each_slice(slice_size) do |code|
                     file_name = code.map(&:first).join("_")
                     code = code.map(&:last).join("\n")
                     impl << save_automatic(place, "#{file_name}.cpp", code)
