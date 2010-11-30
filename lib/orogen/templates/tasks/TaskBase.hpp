@@ -34,6 +34,12 @@
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
+    /** The oroGen-generated part of <%= task.name %>
+     *
+     * It is used by oroGen and its plugins to define the task interfaces and set
+     * up the component. Never edit yourself, as its content would be
+     * overwritten at the next code generation.
+     */
     class <%= task.basename %>Base : public ::<%= task.superclass.name %>
         <% task.implemented_classes.each do |class_name, _| %>
         , public <%= class_name %>
