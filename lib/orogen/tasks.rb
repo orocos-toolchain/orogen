@@ -35,6 +35,12 @@ module Orocos
             # the +type+ attribute
             def type_name; type.name end
 
+            # The type object that will actually be used in Ruby scripts
+            # 
+            # If the type is an opaque, it is the corresponding intermediate
+            # type. Otherwise, #type is returned
+            attr_reader :typelib_type
+
             def used_types; [type] end
 
 	    # The property's default value
@@ -59,6 +65,7 @@ module Orocos
                 type = task.component.find_interface_type(type)
                 Orocos.validate_toplevel_type(type)
 
+                @typelib_type = task.project.intermediate_type_for(type)
 		@task, @name, @type, @default_value = task, name, type, default_value
 	    end
 
