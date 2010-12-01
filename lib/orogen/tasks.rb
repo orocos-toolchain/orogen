@@ -864,7 +864,7 @@ module Orocos
                 else
                     pp.text name
                     pp.nest(2) do
-                        set = set.to_a.sort_by(&:name)
+                        set = set.to_a.sort_by { |p| p.name.to_s }
                         set.each do |element|
                             pp.breakable
                             element.pretty_print(pp)
@@ -880,8 +880,8 @@ module Orocos
                 pp.text "subclass of #{superclass.name} (the superclass elements are displayed below)"
                 pp.breakable
 
-                ports = each_port.to_a + each_dynamic_port.to_a
-                pretty_print_interface(pp, "Ports", ports)
+                pretty_print_interface(pp, "Ports", each_port.to_a)
+                pretty_print_interface(pp, "Dynamic Ports", each_dynamic_port.to_a)
                 pretty_print_interface(pp, "Properties", each_property.to_a)
                 pretty_print_interface(pp, "Attributes", each_attribute.to_a)
                 pretty_print_interface(pp, "Operations", each_operation.to_a)
