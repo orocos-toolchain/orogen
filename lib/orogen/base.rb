@@ -1,3 +1,4 @@
+require 'utilrb/module/include'
 require 'utilrb/logger'
 require 'fileutils'
 require 'erb'
@@ -8,6 +9,49 @@ require 'set'
 require 'find'
 
 class Module
+    def enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
+	class_eval <<-EOD
+	def all_#{attribute_name}; each_#{each_name}.to_a end
+	def self_#{attribute_name}; @#{attribute_name} end
+	def each_#{each_name}(&block)
+	    if block_given?
+		if superclass
+		    superclass.each_#{each_name}(&block)
+		end
+		@#{attribute_name}.each(&block)
+	    else
+		enum_for(:each_#{each_name})
+	    end
+	end
+	EOD
+    end
+
+    def enumerate_inherited_map(each_name, attribute_name = each_name) # :nodoc:
+	class_eval <<-EOD
+	def all_#{attribute_name}; each_#{each_name}.to_a end
+	def self_#{attribute_name}; @#{attribute_name}.values end
+	def has_#{attribute_name}?(name); !!find_#{each_name}(name) end
+
+	def find_#{each_name}(name)
+	    if v = @#{attribute_name}[name]
+		v
+	    elsif superclass
+		superclass.find_#{each_name}(name)
+	    end
+	end
+	def each_#{each_name}(&block)
+	    if block_given?
+		if superclass
+		    superclass.each_#{each_name}(&block)
+		end
+		@#{attribute_name}.each_value(&block)
+	    else
+		enum_for(:each_#{each_name})
+	    end
+	end
+	EOD
+    end
+
     # call-seq:
     #   dsl_attribute(name)
     #   dsl_attribute(name) { |value| ... }
@@ -74,9 +118,9 @@ end
 
 
 module Orocos
+    OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
     module Generation
         class InternalError < RuntimeError; end
-        OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
 
         class ConfigError < Exception; end
 	AUTOMATIC_AREA_NAME = '.orogen'

@@ -160,9 +160,9 @@ module Orocos
                 else
                     @@standard_tasks = []
                     ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, File.dirname(__FILE__)))
+                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, OROGEN_LIB_DIR))
                         project.orogen_project = false
-                        @@standard_tasks.concat project.tasks
+                        @@standard_tasks.concat project.tasks.values
                     end
                 end
 
@@ -180,7 +180,10 @@ module Orocos
             end
 
 	    def initialize
-		@tasks = Project.standard_tasks.dup
+                @tasks = Hash.new
+		Project.standard_tasks.each do |t|
+                    @tasks[t.name] = t
+                end
                 @orogen_project = true
                 @self_tasks = []
 
@@ -209,8 +212,8 @@ module Orocos
 	    end
 
             def self.using_rtt_typekit(obj)
-                rtt_tlb = File.expand_path('orocos.tlb', File.dirname(__FILE__))
-                rtt_typelist = File.expand_path('orocos.typelist', File.dirname(__FILE__))
+                rtt_tlb = File.expand_path('orocos.tlb', Orocos::OROGEN_LIB_DIR)
+                rtt_typelist = File.expand_path('orocos.typelist', Orocos::OROGEN_LIB_DIR)
                 typekit = RTTTypekit.from_raw_data(
                     nil, 'rtt', nil,
                     File.read(rtt_tlb),
@@ -285,8 +288,8 @@ module Orocos
             def find_task_context(obj)
                 task_model =
                     if obj.respond_to?(:to_str)
-                        klass = tasks.find { |t| t.name == obj.to_str }
-                        klass || tasks.find { |t| t.name == "#{name}::#{obj}" }
+                        klass = tasks[obj.to_str]
+                        klass || tasks["#{name}::#{obj}"]
                     else
                         obj
                     end
@@ -300,9 +303,7 @@ module Orocos
             # Returns true if there is a registered task context with the given
             # name, and false otherwise
             def has_task_context?(name)
-                name = name.to_str
-                klass = tasks.find { |t| t.name == name }
-                klass || tasks.find { |t| t.name == "#{self.name}::#{name}" }
+                tasks.has_key?(name.to_str) || tasks.has_key?("#{self.name}::#{name}")
             end
 
             # Returns true if there is, in the type registry, a namespace with
@@ -829,9 +830,9 @@ module Orocos
 
 		new_task = TaskContext.new(self, "#{self.name}::#{name}")
 		new_task.instance_eval(&block) if block_given?
-		tasks << new_task
+		tasks[new_task.name] = new_task
                 self_tasks << new_task
-		tasks.last
+		new_task
             end
 
             # Loads the oroGen project +name+
@@ -842,6 +843,7 @@ module Orocos
                 if lib = loaded_orogen_projects[name]
                     return lib
                 end
+
                 pkg, description = orogen_project_description(name)
 
                 if File.file?(description)
@@ -852,6 +854,22 @@ module Orocos
                 end
 
                 register_loaded_project(name, lib)
+            end
+
+            # Finds the specification for the deployment +name+
+            def load_orogen_deployment(name)
+                begin
+                    pkg = Utilrb::PkgConfig.new("orogen-#{name}")
+                rescue Utilrb::PkgConfig::NotFound
+                    raise ArgumentError, "there is no deployment called '#{name}'"
+                end
+
+                tasklib = load_orogen_project(pkg.project_name)
+                deployment = tasklib.deployers.find { |d| d.name == name }
+                if !deployment
+                    raise InternalError, "cannot find the deployment called #{name} in #{tasklib}. Candidates were #{tasklib.deployers.map(&:name).join(", ")}"
+                end
+                deployment
             end
             
             # Called to store a loaded project for reuse later
@@ -937,7 +955,9 @@ module Orocos
 		end
 
                 tasklib = load_task_library(name)
-                tasks.concat tasklib.self_tasks
+                tasklib.self_tasks.each do |t|
+                    tasks[t.name] = t
+                end
                 used_task_libraries << tasklib
                 if self.typekit
                     self.typekit.include_dirs |= tasklib.include_dirs.to_set
