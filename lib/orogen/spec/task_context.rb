@@ -754,6 +754,16 @@ module Orocos
                 self_input_ports + self_output_ports
             end
 
+            # Enumerates both the input and output ports
+            def each_port(&block)
+                if block_given?
+                    return enum_for(:each_port, &block)
+                end
+
+                each_input_port(&block)
+                each_output_port(&block)
+            end
+
             # Finds a port with the given name, and optionally type
             #
             # Returns nil if there are none
