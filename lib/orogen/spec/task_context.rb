@@ -580,7 +580,7 @@ module Orocos
             ##
             # :method: each_input_port
             # :call-seq:
-            #   each_port { |port| }
+            #   each_input_port { |port| }
             #
             # Yields all static input ports that are defined on this task context.
 
