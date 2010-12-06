@@ -217,6 +217,11 @@ module Orocos
                 pp.breakable
                 pp.text "subclass of #{superclass.name} (the superclass elements are displayed below)"
                 pp.breakable
+                triggers = all_event_ports
+                if !triggers.empty?
+                    pp.text "Triggered on input: #{triggers.map(&:name).join(", ")}"
+                    pp.breakable
+                end
 
                 pretty_print_interface(pp, "Ports", each_port.to_a)
                 pretty_print_interface(pp, "Dynamic Ports", each_dynamic_port.to_a)
