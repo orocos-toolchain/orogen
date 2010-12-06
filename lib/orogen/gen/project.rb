@@ -186,6 +186,8 @@ module Orocos
                 end
                 @orogen_project = true
                 @self_tasks = []
+                @known_typekits = Hash.new
+                @known_projects = Hash.new
 
                 @name    = nil
 		@version = "0.0"
@@ -243,6 +245,10 @@ module Orocos
             # the project, and can be nil. +description+ is either the path to
             # the oroGen description file, or its content.
             def orogen_project_description(name)
+                if description = @known_projects[name]
+                    return description
+                end
+
                 pkg = begin
                           begin
                               Utilrb::PkgConfig.new "orogen-project-#{name}"
@@ -254,7 +260,7 @@ module Orocos
                           raise ConfigError, "no task library named '#{name}' is available"
                       end
 
-                return pkg, pkg.deffile
+                @known_projects[name] = [pkg, pkg.deffile]
             end
 
             # Find the TaskContext object described by +obj+. +obj+ can either
@@ -890,6 +896,10 @@ module Orocos
             
             # Returns the description information for the given typekit
             def orogen_typekit_description(name)
+                if description = @known_typekits[name]
+                    return description
+                end
+
                 pkg = begin
                           Utilrb::PkgConfig.new("#{name}-typekit-#{orocos_target}")
                       rescue Utilrb::PkgConfig::NotFound => e
@@ -899,7 +909,7 @@ module Orocos
                 registry = File.read(pkg.type_registry)
                 typelist = File.join(File.dirname(pkg.type_registry), "#{name}.typelist")
                 typelist = File.read(typelist)
-                return pkg, registry, typelist
+                @known_typekits[name] = [pkg, registry, typelist]
             end
 
             # Returns the ImportedTypekit object that is representing an installed
