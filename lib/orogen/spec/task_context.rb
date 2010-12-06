@@ -761,7 +761,7 @@ module Orocos
 
             # Enumerates both the input and output ports
             def each_port(&block)
-                if block_given?
+                if !block_given?
                     return enum_for(:each_port, &block)
                 end
 
