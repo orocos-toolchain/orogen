@@ -873,7 +873,6 @@ module Orocos
                             obj = find_input_port(n)
                             if !obj
                                 if has_output_port?(n)
-
                                     raise ArgumentError, "#{name} is an output port of #{self.name}, only input ports can be used in #port_driven"
                                 else
                                     raise ArgumentError, "#{name} is not a port of #{self.name}"
@@ -883,8 +882,8 @@ module Orocos
                         end
                     end
 
-                relevant_ports.each do |name, port|
-                    @event_ports[name] = port
+                relevant_ports.each do |port|
+                    @event_ports[port.name] = port
                 end
             end
 
