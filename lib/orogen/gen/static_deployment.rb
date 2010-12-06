@@ -274,7 +274,7 @@ module Orocos
             # one of the other triggering methods if you want a different
             # activity type.
             def periodic(value)
-                activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                activity_type 'Periodic', 'RTT::Activity', 'rtt/Activity.hpp'
                 activity_setup do
                    result = <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
@@ -294,7 +294,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # Marks this task as being explicitely triggered (the default). To
             # make it periodic, call #period with the required period
 	    def triggered
-                activity_type 'Activity', 'RTT::Activity', 'rtt/Activity.hpp'
+                activity_type 'Triggered', 'RTT::Activity', 'rtt/Activity.hpp'
                 activity_setup do
                    result = <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
