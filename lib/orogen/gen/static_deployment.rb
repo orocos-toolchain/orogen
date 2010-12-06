@@ -95,8 +95,10 @@ module Orocos
         class TaskDeployment
             # The task name as specified by the user
             attr_reader :name
-            # The TaskContext used to define this task
-            attr_reader :context
+            # The TaskContext model used to define this task
+            attr_reader :task_model
+            # Backward compatibility only
+            def context; task_model end
 
             # The deployed properties, as PropertyDeployment instances
             attr_reader :properties
@@ -171,21 +173,21 @@ module Orocos
                 end
             end
 
-            def initialize(name, context)
+            def initialize(name, task_model)
                 @name     = name
-                @context  = context
+                @task_model  = task_model
 		@realtime = false
 		@priority = :lowest
                 @max_overruns = 5
-                if context.default_activity
-                    send(*context.default_activity)
-                    @explicit_activity = context.required_activity?
+                if task_model.default_activity
+                    send(*task_model.default_activity)
+                    @explicit_activity = task_model.required_activity?
                 end
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
                     :operations => OperationDeployment }.each do |collection_name, klass|
-                        deployed_objects = context.send("all_#{collection_name}").map do |obj|
+                        deployed_objects = task_model.send("all_#{collection_name}").map do |obj|
                             klass.new(self, obj)
                         end
                         instance_variable_set "@#{collection_name}", deployed_objects
@@ -209,16 +211,18 @@ module Orocos
             # See also #highest_priority and #lowest_priority
 	    dsl_attribute(:priority) { |value| Integer(value) }
 
-            # The Component object this task is part of
-            def component; context.component end
+            # The Project object this task is part of
+            def project; task_model.project end
+            # Bacwkard compatibility only
+            def component; project end
 
             ActivityDefinition = Struct.new :name, :class_name, :header
 
             # The subclass of ActivityInterface which should be used to run this task
             dsl_attribute :activity_type do |*type|
                 if @explicit_activity
-                    if context.required_activity?
-                        raise ArgumentError, "the #{context.name} task context requires #{@activity_type.name} as an activity, you cannot change it"
+                    if task_model.required_activity?
+                        raise ArgumentError, "the #{task_model.name} task context requires #{@activity_type.name} as an activity, you cannot change it"
                     else
                         raise ArgumentError, "you already explicitely set the activity of #{name}"
                     end
@@ -386,7 +390,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    end
 
             def pretty_print(pp) # :nodoc:
-                pp.text "#{name}[#{context.name}]"
+                pp.text "#{name}[#{task_model.name}]"
                 pp.nest(2) do
                     pp.breakable
                     pp.text "activity: #{@activity_type.name}, prio=#{@priority}"
@@ -473,7 +477,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # deployment (i.e. the tasks that are deployed in it)
             def used_typekits
                 task_typekits = task_activities.map do |deployed_task|
-                    deployed_task.context.used_typekits.
+                    deployed_task.task_model.used_typekits.
                         map(&:name)
                 end.flatten.to_set
 
@@ -701,7 +705,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             def used_task_libraries
                 task_models = Set.new
                 task_activities.each do |task|
-                    task_models |= task.context.ancestors.to_set
+                    task_models |= task.task_model.ancestors.to_set
                 end
                 task_models.delete_if do |task|
                     !task.project.orogen_project?
