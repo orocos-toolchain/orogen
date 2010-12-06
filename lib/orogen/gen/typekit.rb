@@ -116,8 +116,8 @@ module Typelib
 
         def self.to_m_type(typekit)
             target_cxxname = typekit.intermediate_cxxname_for(deference)
-            "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname} > instanciate;\n};\n"  +
-            "typedef #{container_cxx_kind}< #{target_cxxname} > orogen_typekits_mtype_#{method_name(true)};"
+            "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > instanciate;\n};\n"  +
+            "typedef #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > orogen_typekits_mtype_#{method_name(true)};"
         end
 
         def self.container_cxx_kind
@@ -1596,6 +1596,10 @@ module Orocos
                 Generation.cleanup_dir(automatic_dir)
                 Generation.touch File.join(automatic_dir, 'stamp')
 	    end
+
+            def cmake_relative_path(file)
+                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(automatic_dir))}"
+            end
 	end
     end
 end

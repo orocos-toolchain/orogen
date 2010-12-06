@@ -85,7 +85,7 @@ set(libname <%= typekit.name %>-typekit-${OROCOS_TARGET})
 add_library(${libname} SHARED
     <%= relatives = []
         implementation_files.each do |file| 
-	    relatives << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+	    relatives << typekit.cmake_relative_path(file)
         end
         relatives.sort.join("\n    ") %>
     ${TYPEKIT_ADDITIONAL_SOURCES}
@@ -108,7 +108,7 @@ install(FILES
 install(FILES
     <%= relatives = []
         public_header_files.each do |file|
-	    relatives << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+	    relatives << typekit.cmake_relative_path(file)
 	end
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
@@ -135,11 +135,11 @@ add_custom_command(
     OUTPUT "${TK_STAMP}"
     DEPENDS <%= loads = []
         typekit.loads.each do |file| 
-	    loads << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+	    loads << typekit.cmake_relative_path(file)
         end
         loads.join(" ") %> <%= extloads = []
         typekit.external_loads.each do |file| 
-	    extloads << '${CMAKE_CURRENT_SOURCE_DIR}/' + Pathname.new(file).relative_path_from(Pathname.new(typekit.automatic_dir))
+	    extloads << typekit.cmake_relative_path(file)
         end
         extloads.join(" ") %>
     COMMENT "Typekit input changed. Run make regen in your build directory first"
