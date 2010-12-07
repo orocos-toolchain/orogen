@@ -846,19 +846,6 @@ module Orocos
                 !find_dynamic_output_ports(name, type).empty?
             end
 
-            # Default input port that triggers writing on outputs.
-            #
-            # See #updates_on
-            attr_reader :default_update_trigger
-
-            # Declares that all input ports for which no triggering mechanism is
-            # specified, either by using #triggered_on or by explicitely calling
-            # #triggered_on_update are actually triggered by the given input
-            # port
-            def updates_on(name)
-                @default_update_trigger = port(name.to_str)
-            end
-
             # A set of ports that will trigger this task when they get updated.
             enumerate_inherited_map 'event_port', 'event_ports'
 
