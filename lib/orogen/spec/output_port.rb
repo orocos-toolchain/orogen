@@ -9,6 +9,7 @@ module Orocos
                 @burst_size   = 0
                 @burst_period = 0
                 @port_triggers = Set.new
+                @triggered_on_update = nil
             end
 
             attr_reader :burst_size
@@ -56,15 +57,11 @@ module Orocos
 
             # The set of input ports that will cause a write on this output
             def port_triggers
-                if @port_triggers.empty?
-                    if !@triggered_on_update && (default = task.default_update_trigger)
-                        [default.name].to_set
-                    else
-                        @port_triggers
-                    end
-                else
-                    @port_triggers
+                if @triggered_once_per_update
+                    return []
                 end
+
+                @port_triggers
             end
 
             # call-seq:
@@ -77,13 +74,21 @@ module Orocos
             # You may want to call #triggered_on_update if the port will be
             # written for each call to updateHook too.
             def triggered_on(*input_ports)
-                @port_triggers |= input_ports.to_set.map { |name| task.port(name) }
+                input_ports = input_ports.to_set.map do |name|
+                    if !(p = task.find_input_port(name))
+                        raise ArgumentError, "#{name} is not an input port of #{self}"
+                    end
+                    p
+                end
+
+                @port_triggers |= input_ports
                 self
             end
 
-            # call-seq:
-            #   triggered_on_update
-            #
+            # Used to write the triggered_on_update flag directly. This should
+            # not be used in normal situations
+            attr_writer :triggered_on_update
+
             # Declares that this port will be written for each call of the
             # updateHook(). It is the default if #triggered_on has not been
             # called.
@@ -92,16 +97,36 @@ module Orocos
                 self
             end
 
+            # Declares that at most one sample will be written per call to
+            # updateHook, regardless of the actual amount of samples that are
+            # waiting to be read by the task
+            def triggered_once_per_update
+                @triggered_once_per_update = true
+                self
+            end
+
             # True if the port will be written for the calls to updateHook()
             # that are triggered by the activity.
             #
             # See #triggered_on_update and #triggered_on
             def triggered_on_update?
-                if !port_triggers.empty?
-                    !!@triggered_on_update
+                if @triggered_once_per_update then true
+                elsif port_triggers.empty?
+                    # One can set triggered_on_update to false explicitely to
+                    # override the default
+                    @triggered_on_update != false
                 else
-                    true
+                    @triggered_on_update
                 end
+            end
+
+            # If true, this port will be written at most once per call to
+            # updateHook, regardless of the actual amount of samples that are
+            # waiting to be read by the task
+            #
+            # The port period and burst are still used
+            def triggered_once_per_update?
+                !!@triggered_once_per_update
             end
         end
     end
