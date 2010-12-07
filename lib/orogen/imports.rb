@@ -163,6 +163,10 @@ module Orocos
                 @tasklib_pkg ||= Utilrb::PkgConfig.new("#{name}-tasks-#{Orocos::Generation.orocos_target}")
             end
 
+            def imported?
+                true
+            end
+
             # Import in the +base+ component the task library whose orogen
             # specification is included in +file+
             def self.load(main_project, pkg, file)

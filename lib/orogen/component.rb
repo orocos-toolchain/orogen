@@ -175,6 +175,10 @@ module Orocos
             # True if this class represents an oroGen project, false otherwise
             attr_predicate :orogen_project, true
 
+            def imported?
+                false
+            end
+
 	    def initialize
 		@tasks = Project.standard_tasks.dup
                 @orogen_project = true
