@@ -370,7 +370,8 @@ module Orocos
                             "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.typename}"
                     end
                 else
-                    output_port 'state', '/int'
+                    output_port('state', '/int').
+                        triggered_once_per_update
                 end
 
                 # Force typekit generation. The typekit code will take care of
