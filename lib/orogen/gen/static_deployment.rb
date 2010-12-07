@@ -115,8 +115,8 @@ module Orocos
             # Overrides the default expected trigger latency for this particular
             # task
             #
-            # See expected_trigger_latency
-            attr_accessor :expected_trigger_latency
+            # See worstcase_trigger_latency
+            attr_accessor :worstcase_trigger_latency
 
             # Default minimal latency value used for realtime scheduling
             #
@@ -124,16 +124,16 @@ module Orocos
             DEFAULT_RT_MINIMAL_TRIGGER_LATENCY = 0.001
             # Default expected latency value used for realtime scheduling
             #
-            # See expected_trigger_latency
-            DEFAULT_RT_EXPECTED_TRIGGER_LATENCY = 0.005
+            # See worstcase_trigger_latency
+            DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY = 0.005
             # Default minimal latency value used for non-realtime scheduling
             #
             # See minimal_trigger_latency
             DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY = 0.005
             # Default expected latency value used for non-realtime scheduling
             #
-            # See expected_trigger_latency
-            DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY = 0.020
+            # See worstcase_trigger_latency
+            DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY = 0.020
 
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
@@ -160,17 +160,21 @@ module Orocos
             # scheduler and priority. All tasks will return a value (even
             # non-periodic ones).
             #
-            # Default values are set in the DEFAULT_RT_EXPECTED_TRIGGER_LATENCY
-            # and DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY constants. They can be
-            # overriden by setting the expected_trigger_latency property
-            def expected_trigger_latency
-                if @expected_trigger_latency
-                    @expected_trigger_latency
-                elsif @realtime
-                    DEFAULT_RT_EXPECTED_TRIGGER_LATENCY
-                else
-                    DEFAULT_NONRT_EXPECTED_TRIGGER_LATENCY
-                end
+            # Default values are set in the DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY
+            # and DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY constants. They can be
+            # overriden by setting the worstcase_trigger_latency property
+            def worstcase_trigger_latency
+                computation_time = task_model.worstcase_processing_time || 0
+
+                trigger_latency =
+                    if @worstcase_trigger_latency
+                        @worstcase_trigger_latency
+                    elsif @realtime
+                        DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY
+                    else
+                        DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY
+                    end
+                [computation_time, trigger_latency].max
             end
 
             def initialize(name, task_model)

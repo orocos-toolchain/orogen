@@ -89,6 +89,22 @@ module Orocos
             end
 
             ##
+            # :method: worstcase_update_time
+            # :call-seq:
+            #   worstcase_update_time => value
+            #   worstcase_update_time value
+            #
+            # Sets or gets the worst-case computation time (i.e. time spent in
+            # 'update') for this component. This should usually not be set in
+            # the oroGen file, but in the supervision/deployment code, since the
+            # actual computation time will depend on the system.
+            #
+            # The time is given in seconds
+            dsl_attribute :worstcase_processing_time do |value|
+                Float(value)
+            end
+
+            ##
             # :method: required_activity?
             #
             # True if the current value of default_activity is actually
