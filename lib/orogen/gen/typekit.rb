@@ -1249,7 +1249,7 @@ module Orocos
                         begin
                             self.perform_pending_loads
                         rescue Exception => e
-                            raise InternalError, "cannot load the definition of opaque m-types: #{e.message}", e.backtrace
+                            raise InternalError, "cannot load the definition of opaque m-types: #{e.message}\nThe faulty code is\n\n#{marshalling_code}", e.backtrace
                         end
                     end
                 end
