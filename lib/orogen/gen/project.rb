@@ -214,13 +214,15 @@ module Orocos
 	    end
 
             def self.using_rtt_typekit(obj)
-                rtt_tlb = File.expand_path('orocos.tlb', Orocos::OROGEN_LIB_DIR)
-                rtt_typelist = File.expand_path('orocos.typelist', Orocos::OROGEN_LIB_DIR)
-                typekit = RTTTypekit.from_raw_data(
-                    nil, 'rtt', nil,
-                    File.read(rtt_tlb),
-                    File.read(rtt_typelist))
-                obj.using_typekit(typekit)
+                if !@rtt_typekit
+                    rtt_tlb = File.expand_path('orocos.tlb', Orocos::OROGEN_LIB_DIR)
+                    rtt_typelist = File.expand_path('orocos.typelist', Orocos::OROGEN_LIB_DIR)
+                    @rtt_typekit = RTTTypekit.from_raw_data(
+                        nil, 'rtt', nil,
+                        File.read(rtt_tlb),
+                        File.read(rtt_typelist))
+                end
+                obj.using_typekit(@rtt_typekit)
             end
 
             # Returns the TaskContext object for the default task contexts
