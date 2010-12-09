@@ -1192,9 +1192,11 @@ module Orocos
                     [find_type(opaque_specification(type_def).intermediate).cxx_name]
                 else
                     if type < Typelib::ArrayType
-                        [intermediate_cxxname_for(type.deference), "[#{type.length}]"]
+                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
+                        [intermediate_cxxname[0], "#{intermediate_cxxname[1]}[#{type.length}]"]
                     elsif type < Typelib::ContainerType
-                        ["#{type.cxx_namespace}#{type.container_kind.gsub(/.*\//, '')}< #{intermediate_cxxname_for(type.deference)}>"]
+                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
+                        ["#{type.container_cxx_kind}< #{intermediate_cxxname[0]} >"]
                     else
                         ["#{type.cxx_name}_m"]
                     end
