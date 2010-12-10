@@ -44,6 +44,9 @@ module Orocos
                 project
             end
 
+            def to_s; "#<#<Orocos::Generation::TaskContext>: #{name}>" end
+            def inspect; to_s end
+
 	    # The task name
 	    attr_reader :name
             # The subclass of TaskContext which should be used to define this
@@ -54,7 +57,6 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
-            # def to_s; "#<#<Orocos::Generation::TaskContext>: #{name}>" end
             # Call to declare that this task model is not meant to run in
             # practice
             def abstract; @abstract = true; end
