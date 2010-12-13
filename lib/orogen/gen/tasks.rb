@@ -8,6 +8,8 @@ module Orocos
     end
 
     module Generation
+        # Module that is used to add code generation functionality to
+        # Spec::Property
         module PropertyGeneration
             def used_types; [type] end
 
@@ -25,6 +27,8 @@ module Orocos
             end
         end
 
+        # Module that is used to add code generation functionality to
+        # Spec::Attribute
         module AttributeGeneration
             def used_types; [type] end
 
@@ -42,8 +46,7 @@ module Orocos
             end
         end
 
-        # We can't use a class here, as Ruby does not accept multiple
-        # inheritance
+        # Module that is used to add code generation functionality to Spec::Port
         module PortGeneration
             def used_types
                 if type then [type]
@@ -77,18 +80,24 @@ module Orocos
             end
         end
 
+        # Module that is used to add code generation functionality to
+        # Spec::OutputPort
         module OutputPortGeneration
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::OutputPort" end
         end
 
+        # Module that is used to add code generation functionality to
+        # Spec::InputPort
         module InputPortGeneration
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::InputPort" end
         end
 
+        # Module that is used to add code generation functionality to
+        # Spec::Operation
         module OperationGeneration
             def initialize(task, name)
 		@method_name = self.name.dup
@@ -187,8 +196,8 @@ module Orocos
             end
         end
 
-        # Specialization of Orocos::Spec::TaskContext for code generationThis is
-        # usually created using Project#task_context.
+        # Module that is used to add code generation functionality to
+        # Spec::TaskContext
         #
         # In the generated code, two classes are actually generated:
         # * the auto-generated code is in <tt>.orogen/tasks/[name]Base.cpp</tt>
@@ -461,6 +470,14 @@ module Orocos
 		self
 	    end
 
+            # Internal helper that validates +string+, +block+ as a single code
+            # object
+            #
+            # The returned object responds to #call, where #call returns the code string
+            # If block is given instead of a string, that block will be called
+            # and should return the code as a string
+            #
+            # If both are given, an ArgumentError exception is raised.
             def self.validate_code_object(string, block)
                 if string && block
                     raise ArgumentError, "you can provide either a string or a block, not both"
@@ -472,7 +489,24 @@ module Orocos
                 end
             end
 
+            # The code snippets that have been declared for the toplevel scope
+            # of TaskBase.hpp.
+            #
+            # It is an array of [include_before, code_snippet] pairs, where
+            # +include_before+ is true if the code should be added before the
+            # Task class definition and false if it should be added after.
+            #
+            # See #add_base_header_code
             attr_reader :base_header_code
+
+            # The code snippets that have been declared for the toplevel scope
+            # of TaskBase.cpp.
+            #
+            # It is an array of [include_before, code_snippet] pairs, where
+            # +include_before+ is true if the code should be added before the
+            # Task class definition and false if it should be added after.
+            #
+            # See #add_base_implementation_code
             attr_reader :base_implementation_code
 
             # Add some code that needs to be added to the toplevel scope in
