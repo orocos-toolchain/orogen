@@ -286,6 +286,15 @@ module Orocos
                         @input_ports[p.name] = p
                     end
                 end
+                other_model.each_dynamic_port do |p|
+                    existing = each_dynamic_port.find do |self_p|
+                        p.name == self_p.name
+                    end
+                    if existing && existing.type != p.type
+                        raise ArgumentError, "cannot merge as the dynamic port #{self_port.name} has different type"
+                    end
+                    self.dynamic_ports << p.dup
+                end
             end
 
             # If true, the task context will start in the PreOperational state,
