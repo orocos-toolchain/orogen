@@ -490,7 +490,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 task_typekits.sort.map do |used_name|
                     this_tk = project.find_typekit(used_name)
                     if !this_tk
-                        raise InternalError, "imported typekit is not present in this component's used_typekits set"
+                        raise InternalError, "#{used_name} is a typekit that is listed by one of the tasks of the #{name} deployment, but the oroGen project #{project.name} does not list it"
                     end
                     this_tk
                 end
