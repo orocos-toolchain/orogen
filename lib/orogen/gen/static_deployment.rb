@@ -182,7 +182,7 @@ module Orocos
                 @task_model  = task_model
 		@realtime = false
 		@priority = :lowest
-                @max_overruns = 5
+                @max_overruns = -1
                 if task_model.default_activity
                     send(*task_model.default_activity)
                     @explicit_activity = task_model.required_activity?
