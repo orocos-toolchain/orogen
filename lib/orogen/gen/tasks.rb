@@ -274,7 +274,7 @@ module Orocos
                     begin
                         require 'orocos'
                         @orocos_rb = true
-                    rescue LoadError
+                    rescue Exception
                         @orocos_rb = false
                     end
                 end
