@@ -231,6 +231,12 @@ module Orocos
                 find_task_context "RTT::TaskContext"
             end
 
+            # Returns the typekit object that corresponds to +typekit_name+, or
+            # nil if there is none
+            def find_typekit(typekit_name)
+                project.used_typekits.find { |tk| tk.name == typekit_name }
+            end
+
             # The set of typekits that are already loaded on this oroGen project
             attr_reader :loaded_typekits
 

@@ -212,6 +212,10 @@ module Orocos
                 task
             end
 
+            def find_typekit(name)
+                main_project.find_typekit(name)
+            end
+
             def find_task_context(name)
                 begin
                     super

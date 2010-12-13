@@ -486,7 +486,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end.flatten.to_set
 
                 task_typekits.sort.map do |used_name|
-                    this_tk = component.used_typekits.find { |tk| tk.name == used_name }
+                    this_tk = project.find_typekit(used_name)
                     if !this_tk
                         raise InternalError, "imported typekit is not present in this component's used_typekits set"
                     end
