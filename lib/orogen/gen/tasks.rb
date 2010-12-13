@@ -256,6 +256,7 @@ module Orocos
                     @base_hook_code[hook_name] = Array.new
                 end
 
+                @generation_handlers = Array.new
                 @base_methods = Array.new
                 @user_methods = Array.new
                 @base_members = Array.new
@@ -444,6 +445,13 @@ module Orocos
                 self_properties.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
+                generation_handlers.each do |h|
+                    if h.arity == 1
+                        h.call(self)
+                    else
+                        h.call
+                    end
+                end
 
 		# Make this task be available in templates as 'task'
 		task = self
@@ -508,6 +516,18 @@ module Orocos
             #
             # See #add_base_implementation_code
             attr_reader :base_implementation_code
+
+            # The set of generation handlers. See #add_generation_handler
+            attr_reader :generation_handlers
+
+            # Registers a method that should be called at generation time
+            #
+            # The provided block will be called at the beginning of the
+            # generation process. If the block expects an argument, it will be
+            # given the task object
+            def add_generation_handler(&block)
+                generation_handlers << handler
+            end
 
             # Add some code that needs to be added to the toplevel scope in
             # TaskBase.hpp
