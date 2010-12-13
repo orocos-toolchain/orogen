@@ -424,7 +424,8 @@ module Orocos
                 if superclass.name == "RTT::TaskContext"
                     hidden_operation("getModelName", "    return \"#{name}\";").
                         returns("std::string").
-                        doc("returns the oroGen model name for this task")
+                        doc("returns the oroGen model name for this task").
+                        runs_in_caller_thread
                 else
                     add_base_method("std::string", "getModelName", "").
                         body("    return \"#{name}\";")
