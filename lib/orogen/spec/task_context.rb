@@ -807,6 +807,20 @@ module Orocos
                 !!find_port(name, type)
             end
 
+            # Returns true if this task interface has a port named 'name'. If a
+            # type is given, the corresponding port will be matched against that
+            # type as well
+            def has_input_port?(name)
+                !!find_input_port(name)
+            end
+
+            # Returns true if this task interface has a port named 'name'. If a
+            # type is given, the corresponding port will be matched against that
+            # type as well
+            def has_output_port?(name)
+                !!find_output_port(name)
+            end
+
             # call-seq:
             #   dynamic_input_port name_regex, typename
             #
