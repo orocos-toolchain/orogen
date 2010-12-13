@@ -7,7 +7,7 @@ module Orocos
 	    attr_reader :task
 	    # The port name
 	    attr_reader :name
-	    # The port type
+	    # The port type. It can be nil for dynamic ports
 	    attr_reader :type
             # The port type name
             def type_name; type.name end
@@ -37,18 +37,25 @@ module Orocos
                 pp.text "[#{self.kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
             end
 
+            # True if this is a dynamic port model, false otherwise
+            def dynamic?; false end
+
 	    def initialize(task, name, type)
                 if !name.kind_of?(Regexp)
                     name = name.to_s
                     if name !~ /^\w+$/
                         raise ArgumentError, "port names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                     end
+                elsif !type && !dynamic?
+                    raise ArgumentError, "only dynamic ports are allowed to have no type"
                 end
 
-                type = task.component.find_interface_type(type)
-                Orocos.validate_toplevel_type(type)
-                if type.name == "/std/vector<double>"
-                    Orocos::Generation.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
+                if type
+                    type = task.component.find_interface_type(type)
+                    Orocos.validate_toplevel_type(type)
+                    if type.name == "/std/vector<double>"
+                        Orocos::Generation.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
+                    end
                 end
 		@task, @name, @type = task, name, type
 	    end

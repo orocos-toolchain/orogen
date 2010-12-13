@@ -6,8 +6,11 @@ module Orocos
                 m.instance_variable_set :@name, name
                 m
             end
+
+            def dynamic?; true end
+
             def pretty_print(pp)
-                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{type_name}"
+                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{if type then type.name else "any type" end}"
             end
         end
 

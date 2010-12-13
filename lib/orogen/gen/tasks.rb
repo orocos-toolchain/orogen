@@ -45,7 +45,11 @@ module Orocos
         # We can't use a class here, as Ruby does not accept multiple
         # inheritance
         module PortGeneration
-            def used_types; [type] end
+            def used_types
+                if type then [type]
+                else []
+                end
+            end
 
             def register_for_generation
                 add =

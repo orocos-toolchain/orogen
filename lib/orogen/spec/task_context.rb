@@ -844,7 +844,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || p.type == type) && p.name === name }
+                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if there is an input port definition that match the
@@ -861,7 +861,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || p.type == type) && p.name === name }
+                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if an output port of the given name and type could be
