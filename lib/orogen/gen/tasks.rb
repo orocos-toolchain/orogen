@@ -526,7 +526,7 @@ module Orocos
             # generation process. If the block expects an argument, it will be
             # given the task object
             def add_generation_handler(&block)
-                generation_handlers << handler
+                generation_handlers << block
             end
 
             # Add some code that needs to be added to the toplevel scope in
