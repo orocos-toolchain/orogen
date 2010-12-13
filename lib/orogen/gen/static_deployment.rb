@@ -441,8 +441,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
         class StaticDeployment
 	    # The deployment name
 	    attr_reader :name
-            # The underlying Component object
-            attr_reader :component
+            # The underlying Project object
+            attr_reader :project
+            # Backward compatibility only
+            def component; project end
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
@@ -452,15 +454,15 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    def install?; !!@install end
 
             # True if we are generating for Linux
-            def linux?;     component.linux? end
+            def linux?;     project.linux? end
             # True if we are generating for Xenomai
-            def xenomai?;   component.xenomai? end
+            def xenomai?;   project.xenomai? end
 
-            def initialize(component, name, &block)
+            def initialize(project, name, &block)
 		@name		 = name
 		@install	 = true
                 @task_activities = Array.new
-                @component       = component
+                @project       = project
                 @file_reporters  = Hash.new
                 @loggers	 = Hash.new
                 @connections     = Array.new
@@ -539,7 +541,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # +name+ is used in the task browser, and will be the global task's
             # name on the CORBA name server.
             def task(name, klass)
-                begin task_context = component.find_task_context(klass)
+                begin task_context = project.find_task_context(klass)
                 rescue ArgumentError
                     raise ConfigError, "#{klass} is not a known task context model"
                 end
@@ -646,8 +648,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 file_name ||= name + '.log'
                 file_name = file_name.to_str
 
-                if !component.used_task_libraries.find { |t| t.name == "logger" }
-                    component.using_task_library "logger"
+                if !project.used_task_libraries.find { |t| t.name == "logger" }
+                    project.using_task_library "logger"
                 end
 
                 logger_for(loggers, file_name) do
@@ -715,7 +717,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     !task.project.orogen_project?
                 end
 
-                dependencies = component.used_task_libraries.find_all do |tasklib|
+                dependencies = project.used_task_libraries.find_all do |tasklib|
                     current_size = task_models.size
                     tasklib_tasks = tasklib.self_tasks
                     task_models.delete_if do |task|
@@ -724,7 +726,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     current_size != task_models.size
                 end
 
-                if !task_models.all? { |t| component.self_tasks.include?(t) }
+                if !task_models.all? { |t| project.self_tasks.include?(t) }
                     raise ArgumentError, "cannot find an imported task library which defines #{task_models.map(&:name).join(", ")}"
                 end
                 dependencies
@@ -780,7 +782,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 
                 # Task files could be using headers from external libraries, so add the relevant
                 # directory in our include path
-                component.tasklib_dependencies.
+                project.tasklib_dependencies.
                     find_all { |builddep| builddep.in_context?('core', 'include') }.
                     each do |builddep|
                         builddep = BuildDependency.new(builddep.var_name, builddep.pkg_name)
