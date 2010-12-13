@@ -22,7 +22,14 @@ using namespace <%= component.name %>;
 <% end %>
     <%= task.self_base_members.
             sort_by { |m| [m.kind, m.name] }.
-            map { |m| ", " + m.with_indent(4, :initializer).strip }.
+            map { |m| 
+		ret = m.with_indent(4, :initializer)
+		if(ret)
+		    ", " + ret.strip
+          	else
+		      nil
+		end
+	    }.
             compact.join("\n    ") %> 
 {
 <%= task.self_base_members.
