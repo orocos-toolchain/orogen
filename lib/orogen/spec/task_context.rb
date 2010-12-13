@@ -895,6 +895,7 @@ module Orocos
                     end
 
                 relevant_ports.each do |port|
+                    port.trigger_port = true
                     @event_ports[port.name] = port
                 end
             end

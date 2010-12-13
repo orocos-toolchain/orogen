@@ -9,6 +9,31 @@ module Orocos
                 @required_connection_type = :data
             end
 
+            attr_predicate :trigger_port?, true
+
+            # If called, this port will be registered on the task as a trigger
+            # port,
+            #
+            # i.e. the following
+            #
+            #   task_context "Name" do
+            #     input_port("port", "int").
+            #       trigger_port
+            #   end
+            #
+            # is equivalent to
+            #
+            #   task_context "Name" do
+            #     input_port("port", "int")
+            #     port_driven 'port'
+            #   end
+            #
+            # The difference with port_driven is that it works on dynamic ports
+            # as well
+            def task_trigger
+                task.port_driven(name)
+            end
+
             # True if connections to this port must use a buffered.
             # In general, it means that the task's code check the return value
             # of read(), as in
