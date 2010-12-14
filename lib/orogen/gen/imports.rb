@@ -194,12 +194,34 @@ module Orocos
                 main_project.load_typekit(name)
             end
 
+            def find_type(*args)
+                if main_project
+                    main_project.find_type(*args)
+                else super
+                end
+            end
+
+            def registry
+                if main_project
+                    main_project.registry
+                else super
+                end
+            end
+
+            def opaque_specification(*args)
+                if main_project
+                    main_project.opaque_specification(*args)
+                else
+                    super
+                end
+            end
+
             def using_typekit(name)
-                result = super
                 if main_project
                     main_project.using_typekit(name)
+                else
+                    super
                 end
-                result
             end
 
             def using_task_library(name)
