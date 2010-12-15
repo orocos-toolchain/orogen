@@ -407,7 +407,7 @@ module Orocos
             # Returns true if +typename+ has been defined by a typekit imported
             # by using_typekit
             def imported_type?(typename)
-                imported_typekits_for(typename).empty?
+                !imported_typekits_for(typename).empty?
             end
 
             # Returns the type object for +typename+, validating that we can use
