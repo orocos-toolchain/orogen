@@ -93,7 +93,7 @@ module Orocos
             # reference qualifiers in +name+.
             def find_interface_type(qualified_type)
                 type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
-		type      = task.component.find_interface_type(type_name)
+		type      = task.project.find_interface_type(type_name)
                 Orocos.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end

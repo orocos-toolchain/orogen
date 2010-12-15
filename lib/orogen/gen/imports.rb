@@ -194,6 +194,13 @@ module Orocos
                 main_project.load_typekit(name)
             end
 
+	    def find_interface_type(*args)
+                if main_project
+                    main_project.find_interface_type(*args)
+                else super
+                end
+	    end
+
             def find_type(*args)
                 if main_project
                     main_project.find_type(*args)
@@ -271,6 +278,20 @@ module Orocos
             # Simply ignore type export directives
             def export_types(*args); self end
             def type_export_policy(*args); self end
+
+	    def used_typekits
+		if main_project
+		    main_project.used_typekits
+		else super
+		end
+	    end
+
+	    def interface_type?(name)
+		if main_project
+		    main_project.used_typekits
+		else super
+		end
+	    end
 
             def import_types_from(name, *args)
                 if main_project && main_project.has_typekit?(name)

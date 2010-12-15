@@ -397,17 +397,17 @@ module Orocos
             def rtt_registry; Project.rtt_registry end
 
             # Returns the typekit object that defines this type
-            def imported_typekit_for(typename)
+            def imported_typekits_for(typename)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
-                return used_typekits.find { |tk| tk.includes?(typename) }
+                return used_typekits.find_all { |tk| tk.includes?(typename) }
             end
 
             # Returns true if +typename+ has been defined by a typekit imported
             # by using_typekit
             def imported_type?(typename)
-                !!imported_typekit_for(typename)
+                imported_typekits_for(typename).empty?
             end
 
             # Returns the type object for +typename+, validating that we can use
@@ -418,12 +418,14 @@ module Orocos
                 if type < Typelib::ArrayType
                     raise ConfigError, "static arrays are not valid interface types. Use an array in a structure or a std::vector"
                 end
-                tk   = imported_typekit_for(type.name)
-                if tk
-                    Orocos::Generation.debug "#{type.name} is exported by #{tk.name}"
+
+                typekits   = imported_typekits_for(type.name)
+                if !typekits.empty?
+                    Orocos::Generation.debug "#{type.name} is exported by #{typekits.map(&:name).join(", ")}"
                 end
-                if tk && !tk.interface_type?(type.name)
-                    raise ConfigError, "#{type.name}, defined in the #{tk.name} typekit, is not exported by it"
+
+                if !typekits.empty? && !typekits.any? { |tk| tk.interface_type?(type.name) }
+                    raise ConfigError, "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
                 end
                 type
             end

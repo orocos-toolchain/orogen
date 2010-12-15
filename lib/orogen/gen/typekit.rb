@@ -633,17 +633,17 @@ module Orocos
             end
 
             # Returns the typekit object that defines this type
-            def imported_typekit_for(typename)
+            def imported_typekits_for(typename)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
-                return imported_typekits.find { |tk| tk.includes?(typename) }
+                return imported_typekits.find_all { |tk| tk.includes?(typename) }
             end
 
             # Returns true if +typename+ has been defined by a typekit imported
             # by using_typekit
             def imported_type?(typename)
-                !!imported_typekit_for(typename)
+                imported_typekits_for(typename).empty?
             end
 
             # Returns the Typelib::Type subclass that represents the type whose
