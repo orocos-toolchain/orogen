@@ -372,8 +372,8 @@ module Orocos
             # must be listed in the PKG_CONFIG_PATH environment variable.
 	    def using_typekit(typekit)
                 if typekit.respond_to?(:to_str)
-                    if used_typekits.any? { |tk| tk.name == typekit }
-                        return
+                    if tk = used_typekits.find { |tk| tk.name == typekit }
+                        return tk
                     end
                     typekit = load_typekit(typekit)
                 end
