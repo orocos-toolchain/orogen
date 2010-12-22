@@ -26,7 +26,7 @@ if ( ROS_ROOT )
         rosbuild_find_ros_package( roslib )
         include_directories( ${roslib_PACKAGE_PATH}/include )
         find_library(ROS_LIB roslib ${roslib_PACKAGE_PATH}/lib )
-        TARGET_LINK_LIBRARIES( ${libname} ${ROS_LIB} )
+        TARGET_LINK_LIBRARIES( ${libname_typelib} ${ROS_LIB} )
         ADD_DEFINITIONS( -DHAS_ROSLIB )
 endif( ROS_ROOT )
 
