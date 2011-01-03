@@ -8,6 +8,17 @@ module Orocos
         def self.extended_states_enabled?; @extended_states end
         @extended_states = false
 
+        class << self
+            attr_reader :default_type_export_policy
+            def default_type_export_policy=(value)
+                if ![:all, :used].include?(value)
+                    raise ArgumentError, "the default type export policy must be either 'all' or 'used', got '#{value}'"
+                end
+                @default_type_export_policy = value
+            end
+        end
+        @default_type_export_policy = :used
+
         # Saved set of command line options
         class << self
             attr_accessor :command_line_options
@@ -739,7 +750,7 @@ module Orocos
                     typekit.name     = name
                     typekit.version  = version
                     typekit.base_dir = base_dir
-                    typekit.type_export_policy :used
+                    typekit.type_export_policy Orocos::Generation.default_type_export_policy
                     if base_dir
                         typekit.user_dir      = File.join(base_dir, 'typekit')
                         typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
