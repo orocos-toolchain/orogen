@@ -5,6 +5,7 @@
 
 <% typekit.imported_typekits.each do |tk| %>
 <% next if tk.virtual? %>
+<% next if !tk.has_opaques? %>
 #include <<%= tk.name %>/typekit/OpaqueConvertions.hpp>
 <% end %>
 
