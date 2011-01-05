@@ -369,12 +369,15 @@ module Orocos
             # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
                 name = Generation.verify_valid_identifier(name)
-		type = project.find_interface_type(type)
                 check_uniqueness(name)
 
+                begin
+                    type = project.find_interface_type(type)
+                rescue Typelib::NotFound
+                    raise ConfigError, "type #{type} is not declared"
+                end
+
 		@properties[name] = Property.new(self, name, type, default_value)
-            rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared"
 	    end
 
             # Asks orogen to implement the extended state support interface in
