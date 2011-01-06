@@ -17,7 +17,7 @@ module Orocos
                 @default_type_export_policy = value
             end
         end
-        @default_type_export_policy = :used
+        @default_type_export_policy = :all
 
         # Saved set of command line options
         class << self
