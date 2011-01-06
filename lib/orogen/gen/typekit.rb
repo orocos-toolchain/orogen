@@ -1213,7 +1213,10 @@ module Orocos
                 # instanciated
                 self_opaques.each do |opaque_def|
                     begin
-                        find_type(opaque_def.intermediate)
+                        t = find_type(opaque_def.intermediate)
+                        if t.contains_opaques?
+                            raise ConfigError, "the type #{opaque_def.intermediate} is used as an intermediate type for #{opaque_def.type.name}, but it is an opaque or contains opaques"
+                        end
                     rescue Typelib::NotFound
                         raise ConfigError, "type #{opaque_def.intermediate}, used as intermediate for opaque #{opaque_def.type.name}, does not exist", opaque_def.caller
                     end
