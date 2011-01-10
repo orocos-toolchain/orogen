@@ -1400,6 +1400,14 @@ module Orocos
                 impl
             end
 
+            # Makes sure that a set of type objects comes from the same registry
+            #
+            # In order to use ValueSet, we must make sure that all type objects
+            # come from the same registry. This method takes a ValueSet of types
+            # and converts all of them to the type coming from +registry+
+            def map_typeset_to_registry(registry, types)
+                types.map { |t| registry.get(t.name) }.to_value_set
+            end
 
 	    def generate
 		typekit = self
@@ -1477,7 +1485,7 @@ module Orocos
                 # unnecessarily (the original sets are hashes, and therefore don't
                 # have a stable order).
                 converted_types = generated_types.
-                    sort_by { |type| type.name }.uniq
+                    sort_by { |type| type.name }
 
                 # We need a special case for arrays. The issue is the following:
                 # for arrays, the convertion functions take pointers as input.
@@ -1496,38 +1504,35 @@ module Orocos
 
                 # If the selected type export policy is used, check if it makes
                 # sense. If it does not, switch back to 'all'
-                if type_export_policy == :used && (!component || component.self_tasks.empty?)
+                if type_export_policy == :used && (!project || project.self_tasks.empty?)
                     type_export_policy :all
                 end
 
+                # Get the types that should be registered in the RTT type
+                # system. Note that we must map these types to +registry+ as
+                # +registry+ has been recomputed (i.e. it changes between the
+                # specification time and the generation time)
+                #
+                # Only +generated_types+ does not need to be mapped as it has
+                # just been computed
                 registered_types =
                     if type_export_policy == :all
                         generated_types.dup
                     elsif type_export_policy == :used
-                        used_types = component.self_tasks.map(&:interface_types).
-                            map(&:to_value_set).
-                            inject(&:|).
-                            map do |t|
-                                begin registry.get(t.name)
-                                rescue Typelib::NotFound
-                                end
-                            end.compact
-
-                        (used_types.to_value_set & generated_types.to_value_set)
+                        used_types = project.self_tasks.inject(ValueSet.new) do |resut, task|
+                            result | map_typeset_to_registry(registry, task.interface_types)
+                        end
+                        (used_types & generated_types)
                     elsif type_export_policy == :selected
-                        selected_types.dup
+                        map_typeset_to_registry(registry, selected_types)
                     end
 
                 if !selected_types.empty?
-                    registered_types |= selected_types
+                    registered_types |= map_typeset_to_registry(registry, selected_types)
                 end
 
-                interface_types = registered_types.
-                    find_all { |t| !(t < Typelib::ArrayType) }.
-                    to_value_set
-
                 # Save all the types that this specific typekit handles
-                registered_typenames = registered_types.map(&:name)
+                registered_typenames = registered_types.map(&:name).to_set
                 typelist_txt = []
                 generated_types.each do |type|
                     typename = type.name
@@ -1537,15 +1542,16 @@ module Orocos
                     typelist_txt.join("\n")
 
                 registered_types = registered_types.
-                    find_all { |type| !typekit.m_type?(type) }.
-                    sort_by { |type| type.name }.uniq
+                    sort_by { |t| t.name }
+                interface_types = registered_types.
+                    find_all { |t| !(t < Typelib::ArrayType) }
 
                 type_sets = TypeSets.new
                 type_sets.types            = generated_types
                 type_sets.converted_types  = converted_types
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
-                type_sets.interface_types  = registered_types.find_all { |t| !(t < Typelib::ArrayType) }.to_value_set
+                type_sets.interface_types  = interface_types
                 type_sets.minimal_registry = minimal_registry
                 type_sets.opaque_types     = self_opaques
 
