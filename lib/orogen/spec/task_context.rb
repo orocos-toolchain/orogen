@@ -90,6 +90,12 @@ module Orocos
                     ancestor_names.include?(name)
             end
 
+            # A documentation string for this task context. It is used by
+            # display tools and documentation generation.
+            dsl_attribute 'doc' do |str|
+                str.to_str
+            end
+
             ##
             # :method: worstcase_update_time
             # :call-seq:
