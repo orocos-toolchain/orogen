@@ -689,7 +689,15 @@ module Orocos
                         end
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
-                    find_type(type.name)
+                    if registry.include?(type.name)
+                        registry.get(type.name)
+                    else
+                        type_def = type.registry.minimal(type.name)
+                        registry.merge(type_def)
+                        if project
+                            project.registry.merge(type_def)
+                        end
+                    end
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
