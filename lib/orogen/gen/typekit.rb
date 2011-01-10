@@ -1523,7 +1523,7 @@ module Orocos
                     if type_export_policy == :all
                         generated_types.dup
                     elsif type_export_policy == :used
-                        used_types = project.self_tasks.inject(ValueSet.new) do |resut, task|
+                        used_types = project.self_tasks.inject(ValueSet.new) do |result, task|
                             result | map_typeset_to_registry(registry, task.interface_types)
                         end
                         (used_types & generated_types)
