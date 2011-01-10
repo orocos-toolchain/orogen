@@ -488,7 +488,7 @@ module Orocos
             @plugins = Hash.new
 
             def standalone?
-                !component
+                !project
             end
             
             # Register a new plugin class. The plugin name is taken from
@@ -497,9 +497,13 @@ module Orocos
                 plugins[klass.name] = klass
             end
 
-            # The component this typekit is part of. It may be nil if the
+            # The Project instance this typekit is part of. It may be nil if the
             # Typekit is generated standalone (as, for instance, in typegen)
-	    attr_reader :component
+	    attr_reader :project
+
+            # For backward compatibility only. Replaced by #project
+            def component; project end
+
             # The set of headers loaded by #load, as an array of absolute paths
             attr_reader :loads
 
@@ -574,7 +578,7 @@ module Orocos
                     raise ArgumentError, "invalid type export policy #{new_policy.inspect}, allowed are: :#{TYPE_EXPORT_POLICIES.join(", :")}"
                 end
 
-                if new_policy == :used && !component
+                if new_policy == :used && !project
                     raise ArgumentError, "cannot use a 'used' policy on a standalone typekit"
                 end
 
@@ -668,18 +672,18 @@ module Orocos
                         container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
                         if template_arguments.size == 1
                             element_type = find_type(template_arguments[0])
-                            if component
-                                component.registry.define_container(container_name,
-                                                component.find_type(element_type.name))
+                            if project
+                                project.registry.define_container(container_name,
+                                                project.find_type(element_type.name))
                             end
                             registry.define_container(container_name, element_type)
 
-                        elsif component && type = component.registry.build(type_name)
+                        elsif project && type = project.registry.build(type_name)
                             while type.respond_to?(:deference)
                                 type = type.deference
                             end
 
-                            type_def = component.registry.minimal(type.name)
+                            type_def = project.registry.minimal(type.name)
                             registry.merge(type_def)
                             registry.build(type_name)
                         end
@@ -714,8 +718,8 @@ module Orocos
 	    # pkg-config file
 	    attr_reader :loaded_files_dirs
 
-	    def initialize(component = nil)
-		@component = component
+	    def initialize(project = nil)
+		@project = project
 
                 @include_dirs = Set.new
 
@@ -747,7 +751,7 @@ module Orocos
                 type_export_policy :all
                 @selected_types = ValueSet.new
                 @excluded_types = ValueSet.new
-                Component.using_rtt_typekit(self)
+                Project.using_rtt_typekit(self)
 	    end
 
             # The set of code generation plugins
@@ -888,8 +892,8 @@ module Orocos
                 opaque_def = Typelib::Registry.from_xml(typedef)
                 opaque_registry.merge opaque_def
                 registry.merge opaque_def
-                if component
-                    component.registry.merge opaque_def
+                if project
+                    project.registry.merge opaque_def
                 end
 
                 opaque_type = find_type(base_type)
@@ -1043,8 +1047,8 @@ module Orocos
                         do_import(file_registry, io.path, 'c', options)
                         filter_unsupported_types(file_registry)
                         registry.merge(file_registry)
-                        if component
-                            component.registry.merge(file_registry)
+                        if project
+                            project.registry.merge(file_registry)
                         end
                     rescue Exception => e
                         raise ArgumentError, "cannot load one of the header files #{pending_loads.join(", ")}: #{e.message}", e.backtrace
@@ -1589,7 +1593,7 @@ module Orocos
                     FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
                     Dir.glob File.join(Generation.template_path('config'), '*') do |path|
                         basename    = File.basename(path)
-                        if !Component::CMAKE_GENERATED_CONFIG.include?(basename)
+                        if !Project::CMAKE_GENERATED_CONFIG.include?(basename)
                             save_automatic 'config', basename, File.read(path)
                         end
                     end
