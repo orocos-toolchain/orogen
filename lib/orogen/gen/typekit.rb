@@ -1383,7 +1383,11 @@ module Orocos
                 impl = []
                 place = File.join(*place)
                 code_snippets.each do |code|
-                    code[0] = code[0].name_as_word
+                    if code[0].respond_to?(:name_as_word)
+                        code[0] = code[0].name_as_word
+                    else
+                        code[0] = code[0].to_str
+                    end
                 end
                 code_snippets = code_snippets.sort_by { |code| code[0] }
 

@@ -31,9 +31,15 @@ module Orocos
                     c = Generation.render_template "typekit", "type_info", "Info.cpp", binding
                     [type, c]
                 end
-                code_snippets += arrays.find_all { |t| !t.contains_opaques? }.map do |type|
+
+                # For arrays, we must define one type info object per element
+                # type, not per type
+                arrays_of = arrays.inject(Hash.new) do |h, t|
+                    h[t.deference] = t; h
+                end
+                code_snippets += arrays_of.values.find_all { |t| !t.contains_opaques? }.map do |type|
                     c = Generation.render_template "typekit", "type_info", "ArrayInfo.cpp", binding
-                    [type, c]
+                    [type.deference.name_as_word + "[]", c]
                 end
 
                 code_snippets += typesets.registered_types.find_all { |t| t.contains_opaques? }.map do |type|
