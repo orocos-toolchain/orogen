@@ -6,7 +6,7 @@
 #include "transports/typelib/TypelibMarshallerBase.hpp"
 
 namespace orogen_typekits {
-    <% typesets.registered_types.each do |type| %>
+    <% typesets.interface_types.each do |type| %>
     /** Creates and returns a TypeInfo object for <%= type.cxx_name %> */
     orogen_transports::TypelibMarshallerBase* <%= type.method_name %>_TypelibMarshaller(Typelib::Registry const& registry);
     <% end %>

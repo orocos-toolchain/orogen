@@ -6,7 +6,7 @@
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
 
 namespace orogen_typekits {
-    <% typesets.registered_types.each do |type| %>
+    <% typesets.interface_types.each do |type| %>
     RTT::corba::CorbaTypeTransporter*  <%= type.method_name %>_CorbaTransport();
     <% end %>
 }

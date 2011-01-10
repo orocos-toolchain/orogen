@@ -468,6 +468,11 @@ module Orocos
             attr_accessor :array_types
             # The types that will end up being registered in the type system
             attr_accessor :registered_types
+            # The types that can be used on task interfaces. They are different
+            # from +registered_types+ as XML marshalling (for instance) need all
+            # types to be registered, even the ones that can't be used in the
+            # interfaces
+            attr_accessor :interface_types
             #
             attr_accessor :minimal_registry
             #
@@ -1510,10 +1515,11 @@ module Orocos
 
                 if !selected_types.empty?
                     registered_types |= selected_types
-                # Array types cannot be directly used in interfaces
-                registered_types.delete_if do |t|
-                    t < Typelib::ArrayType
                 end
+
+                interface_types = registered_types.
+                    find_all { |t| !(t < Typelib::ArrayType) }.
+                    to_value_set
 
                 # Save all the types that this specific typekit handles
                 registered_typenames = registered_types.map(&:name)
@@ -1534,6 +1540,7 @@ module Orocos
                 type_sets.converted_types  = converted_types
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
+                type_sets.interface_types  = registered_types.find_all { |t| !(t < Typelib::ArrayType) }.to_value_set
                 type_sets.minimal_registry = minimal_registry
                 type_sets.opaque_types     = self_opaques
 

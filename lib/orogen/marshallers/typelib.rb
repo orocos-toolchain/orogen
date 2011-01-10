@@ -15,7 +15,7 @@ module Orocos
                     impl    = []
                     headers = []
 
-                    code_snippets = typesets.registered_types.map do |type|
+                    code_snippets = typesets.interface_types.map do |type|
                         if type.contains_opaques?
                             needs_copy =
                                 if type.opaque?

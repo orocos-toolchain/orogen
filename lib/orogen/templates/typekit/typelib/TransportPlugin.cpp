@@ -53,7 +53,7 @@ bool orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::registerTranspo
         return false;
 
     <% first_type = true;
-       typesets.registered_types.each do |type| %>
+       typesets.interface_types.each do |type| %>
     <%= 'else ' unless first_type %>if ("<%= type.name %>" == type_name)
     {
         try {

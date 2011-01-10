@@ -28,7 +28,7 @@
 
 <%= typekit.m_types_code %>
 
-<% registered_types.each do |type| %>
+<% interface_types.each do |type| %>
 #ifdef CORELIB_DATASOURCE_HPP
     extern template class RTT::internal::DataSource< <%= type.cxx_name %> >;
     extern template class RTT::internal::AssignableDataSource< <%= type.cxx_name %> >;

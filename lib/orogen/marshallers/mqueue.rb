@@ -38,7 +38,7 @@ module Orocos
             headers, impl = [], []
 
             mqueue_registered_types =
-                typesets.registered_types.find_all do |type|
+                typesets.interface_types.find_all do |type|
                     if !type.mqueue_compatible?
                         STDERR.puts "WARN: #{type.name} cannot be marshalled in the MQueue transport"
                         false
