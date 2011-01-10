@@ -1418,7 +1418,7 @@ module Orocos
             # come from the same registry. This method takes a ValueSet of types
             # and converts all of them to the type coming from +registry+
             def map_typeset_to_registry(registry, types)
-                types.map { |t| registry.get(t.name) }.to_value_set
+                types.map { |t| find_type(t) }.to_value_set
             end
 
 	    def generate
