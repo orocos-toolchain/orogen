@@ -140,6 +140,7 @@ module Typelib
             collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
+	    result << "#{indent}#{dest}.clear();\n"
             if (container_kind == "vector")
                 result << "#{indent}#{dest}.reserve(#{src}.size());\n"
             end
