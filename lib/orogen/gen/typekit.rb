@@ -689,7 +689,7 @@ module Orocos
                         end
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
-                    type
+                    find_type(type.name)
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
