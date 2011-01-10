@@ -54,6 +54,8 @@ module Orocos
                 typekit
             end
 
+            def export_types(*args); end
+
             def has_opaques?
                 registry.any? { |t| includes?(t) && t.contains_opaques? }
             end

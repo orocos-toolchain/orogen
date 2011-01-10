@@ -579,11 +579,8 @@ module Orocos
             # instead of exporting everything. This is meant to reduce the
             # typekit's code size and compilation times tremendously.
             #
-            # EXPERIMENTAL
-            #
             # See also #type_export_policy
             def export_types(*selection)
-                type_export_policy :selected
                 @selected_types |= selection.map { |name| find_type(name) }.to_value_set
             rescue Typelib::NotFound => e
                 raise ConfigError, e.message, e.backtrace
@@ -1511,6 +1508,8 @@ module Orocos
                         selected_types.dup
                     end
 
+                if !selected_types.empty?
+                    registered_types |= selected_types
                 # Array types cannot be directly used in interfaces
                 registered_types.delete_if do |t|
                     t < Typelib::ArrayType
