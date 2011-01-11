@@ -1555,6 +1555,9 @@ module Orocos
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
+                registered_types.delete_if do |t|
+                    t.contains_opaques? && t < Typelib::ArrayType
+                end
                 interface_types = registered_types.
                     find_all { |t| !(t < Typelib::ArrayType) }
 
