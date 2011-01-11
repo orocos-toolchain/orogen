@@ -1338,7 +1338,7 @@ module Orocos
             # +value+.
             def code_toIntermediate(intermediate_type, needs_copy, indent)
                 if intermediate_type < Typelib::ArrayType
-                    "#{indent}std::vector<#{intermediate_type.deference.cxx_name}> intermediate;\n" +
+                    "#{indent}std::vector< #{intermediate_type.deference.cxx_name} > intermediate;\n" +
                     "#{indent}intermediate.resize(length);\n" +
                     "#{indent}orogen_typekits::toIntermediate(&intermediate[0], value, length);\n"
                 elsif needs_copy
