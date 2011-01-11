@@ -293,13 +293,12 @@ module Orocos
                     end
                 end
                 other_model.each_dynamic_port do |p|
-                    existing = each_dynamic_port.find do |self_p|
+                    existing = each_dynamic_port.find_all do |self_p|
                         p.name == self_p.name
                     end
-                    if existing && existing.type != p.type
-                        raise ArgumentError, "cannot merge as the dynamic port #{self_port.name} has different type"
+                    if !existing.any? { |self_p| self_p.type == p.type }
+                        self.dynamic_ports << p.dup
                     end
-                    self.dynamic_ports << p.dup
                 end
             end
 
