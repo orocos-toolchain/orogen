@@ -30,6 +30,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
 
     RTT::base::DataSourceBase::shared_ptr getDataSource(Handle* handle)
     {
+        ensureOrocosSamplePresent(handle);
         return new RTT::internal::ReferenceDataSource< opaque_t >(*reinterpret_cast< opaque_t* >(handle->orocos_sample));
     }
 
@@ -38,13 +39,18 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
     void deleteTypelibSample(MarshallingHandle* data)
     { delete reinterpret_cast<intermediate_t*>(data->typelib_sample); }
 
-    void refreshOrocosSample(MarshallingHandle* handle)
+    void ensureOrocosSamplePresent(MarshallingHandle* handle)
     {
         if (!handle->orocos_sample)
         {
             handle->orocos_sample = reinterpret_cast<uint8_t*>(new opaque_t);
             handle->owns_orocos  = true;
         }
+    }
+
+    void refreshOrocosSample(MarshallingHandle* handle)
+    {
+        ensureOrocosSamplePresent(handle);
 
         opaque_t& opaque_sample =
             *reinterpret_cast<opaque_t*>(handle->orocos_sample);
@@ -58,7 +64,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         <% end %>
     }
 
-    void setTypelibSample(MarshallingHandle* handle, uint8_t* typelib_data)
+    void setTypelibSample(MarshallingHandle* handle, uint8_t* typelib_data, bool refresh_orocos = true)
     {
         <% if needs_copy %>
         if (handle->owns_typelib)
@@ -81,11 +87,13 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         intermediate_sample = new_value;
         <% end %>
 
-        refreshOrocosSample(handle);
+        if (refresh_orocos)
+            refreshOrocosSample(handle);
     }
 
     void refreshTypelibSample(MarshallingHandle* handle)
     {
+        ensureOrocosSamplePresent(handle);
         opaque_t& opaque_sample =
             *reinterpret_cast<opaque_t*>(handle->orocos_sample);
 
@@ -109,6 +117,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         RTT::internal::DataSource<opaque_t>& source = dynamic_cast<RTT::internal::DataSource<opaque_t>&>(source_base);
         if (source.evaluate())
         {
+            ensureOrocosSamplePresent(handle);
             opaque_t& opaque_sample =
                 *reinterpret_cast<opaque_t*>(handle->orocos_sample);
             opaque_sample = source.value();
@@ -131,6 +140,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
             handle->owns_typelib = true;
         }
         TypelibMarshallerBase::unmarshal(buffer, handle);
+        refreshOrocosSample(handle);
     }
 };
 }

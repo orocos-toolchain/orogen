@@ -46,6 +46,6 @@ void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* hand
     Typelib::load(handle->typelib_sample, *type_def, buffer, layout);
     refreshOrocosSample(handle);
 }
-void TypelibMarshallerBase::setTypelibSample(Handle* data, Typelib::Value typelib_data)
-{ return setTypelibSample(data, reinterpret_cast<uint8_t*>(typelib_data.getData())); }
+void TypelibMarshallerBase::setTypelibSample(Handle* data, Typelib::Value typelib_data, bool refresh_orocos)
+{ return setTypelibSample(data, reinterpret_cast<uint8_t*>(typelib_data.getData()), refresh_orocos); }
 

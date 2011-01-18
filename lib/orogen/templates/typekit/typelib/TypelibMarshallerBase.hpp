@@ -42,7 +42,7 @@ namespace orogen_transports
 
         /** \overload
          */
-        void setTypelibSample(Handle* data, Typelib::Value typelib_data);
+        void setTypelibSample(Handle* data, Typelib::Value typelib_data, bool refresh_orocos = true);
 
         /** Updates the sample handler by using a data sample that Typelib
          * understands. +typelib_data+ must be pointing to an object whose type
@@ -54,7 +54,7 @@ namespace orogen_transports
          * The ownership of \c typelib_data is retained by the caller. I.e. it
          * has to delete it.
          */
-        virtual void setTypelibSample(Handle* data, uint8_t* typelib_data) = 0;
+        virtual void setTypelibSample(Handle* data, uint8_t* typelib_data, bool refresh_orocos = true) = 0;
 
         /** Updates the value of data->orocos_sample based on the data in
          * data->typelib_sample

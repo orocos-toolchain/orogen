@@ -85,7 +85,7 @@ namespace orogen_transports
             data->reset();
         }
 
-        void setTypelibSample(Handle* handle, uint8_t* data)
+        void setTypelibSample(Handle* handle, uint8_t* data, bool refresh_orocos = true)
         {
             handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
             handle->owns_orocos = handle->owns_typelib = false;
