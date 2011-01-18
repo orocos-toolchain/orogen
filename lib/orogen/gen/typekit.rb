@@ -73,8 +73,12 @@ module Typelib
             base.gsub(/[<>\[\], ]/, '_')
         end
 
-	def self.contains_int64?; false end
-        def self.contains_opaques?; opaque? end
+	def self.contains_int64?
+            dependencies.any? { |t| t.contains_opaques? }
+        end
+        def self.contains_opaques?
+            contains?(Typelib::OpaqueType)
+        end
 
         @@index_var_stack = Array.new
         def self.index_var_stack; @@index_var_stack end
@@ -89,6 +93,10 @@ module Typelib
     end
 
     class NumericType
+	def self.contains_int64?
+            t.integer? && t.size == 8
+        end
+
 	def self.cxx_name
 	    if integer?
 		if name == "/bool"
@@ -105,15 +113,10 @@ module Typelib
 	    end
 	end
 
-	def self.contains_int64?; size == 8 && integer?  end
-
         def self.inlines_code?; superclass.eql?(NumericType) end
     end
 
     class ContainerType
-	def self.contains_int64?; deference.contains_int64?  end
-        def self.contains_opaques?; deference.contains_opaques? end
-
         def self.to_m_type(typekit)
             target_cxxname = typekit.intermediate_cxxname_for(deference)
             "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > instanciate;\n};\n"  +
@@ -198,9 +201,6 @@ module Typelib
     end
 
     class CompoundType
-	def self.contains_int64?; enum_for(:each_field).any? { |_, type| type.contains_int64? } end
-	def self.contains_opaques?; enum_for(:each_field).any? { |_, type| type.contains_opaques? } end
-
         def self.to_m_type(typekit)
             result = <<-EOCODE
 struct #{basename}_m
@@ -260,9 +260,6 @@ struct #{basename}_m
     end
 
     class ArrayType
-	def self.contains_int64?; deference.contains_int64?  end
-        def self.contains_opaques?; deference.contains_opaques? end
-
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
 
