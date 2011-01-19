@@ -80,7 +80,7 @@ module Orocos
             end
 
             def to_code(varname)
-                str = "ConnPolicy #{varname};\n"
+                str = "RTT::ConnPolicy #{varname};\n"
                 str << "#{varname}.type      = RTT::ConnPolicy::#{type.to_s.upcase};\n"
                 str << "#{varname}.lock_policy = RTT::ConnPolicy::#{lock_policy.to_s.upcase};\n"
                 str << "#{varname}.init      = false;\n"

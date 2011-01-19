@@ -77,7 +77,6 @@ void sigint_quit_orb(int)
 }
 <% end %>
 
-using namespace RTT;
 int ORO_main(int argc, char* argv[])
 {
    <% if deployer.loglevel %>
@@ -148,13 +147,13 @@ int ORO_main(int argc, char* argv[])
         if task.context.needs_configuration? %>
     if (!task_<%= task.name %>.configure())
     {
-        log(Error) << "cannot configure <%= task.name %>" << endlog();
+        RTT::log(RTT::Error) << "cannot configure <%= task.name %>" << RTT::endlog();
         return -1;
     }
         <% end %>
     if (!task_<%= task.name %>.start())
     {
-        log(Error) << "cannot start <%= task.name %>" << endlog();
+        RTT::log(RTT::Error) << "cannot start <%= task.name %>" << RTT::endlog();
         return -1;
     }
     <% end %>
@@ -172,9 +171,9 @@ int ORO_main(int argc, char* argv[])
         <% else %>
         {
             <%= policy.to_code("policy") %>
-            base::OutputPortInterface* src = dynamic_cast<base::OutputPortInterface*>(
+            RTT::base::OutputPortInterface* src = dynamic_cast<RTT::base::OutputPortInterface*>(
                     task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
-            base::InputPortInterface* dst = dynamic_cast<base::InputPortInterface*>(
+            RTT::base::InputPortInterface* dst = dynamic_cast<RTT::base::InputPortInterface*>(
                     task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
             src->createConnection(*dst, policy);
         }
