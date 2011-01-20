@@ -1477,6 +1477,7 @@ module Orocos
 		minimal_registry = normalize_registry
                 generated_types = self_types.to_value_set
 
+                self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
                 opaque_types = self_opaques.map { |opdef| opdef.type }
                 opaque_intermediates = self_opaques.map do |opdef|
                     find_type(opdef.intermediate)
@@ -1560,7 +1561,7 @@ module Orocos
                     typelist_txt << "#{typename} #{registered_typenames.include?(typename) ? '1' : '0'}"
                 end
                 save_automatic "#{name}.typelist",
-                    typelist_txt.join("\n")
+                    typelist_txt.sort.join("\n")
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
