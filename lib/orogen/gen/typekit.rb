@@ -369,7 +369,11 @@ module Orocos
                 type = find_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-                opaques.find { |opaque_def| opaque_def.type == type }
+                if result = opaques.find { |opaque_def| opaque_def.type == type }
+		    result
+		else
+		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
+		end
             end
 
             def intermediate_type_for(type_def)
