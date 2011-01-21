@@ -1587,6 +1587,8 @@ module Orocos
                 # installed in TYPEKIT_NAME/ directly instead of
                 # TYPEKIT_NAME/typekit
 		save_automatic("Types.hpp", type_header)
+                boost_serialization = Generation.render_template "typekit/BoostSerialization.hpp", binding
+                public_header_files << save_automatic("type_info", "BoostSerialization.hpp", boost_serialization)
                 tk_hpp = Generation.render_template "typekit/Plugin.hpp", binding
 		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding

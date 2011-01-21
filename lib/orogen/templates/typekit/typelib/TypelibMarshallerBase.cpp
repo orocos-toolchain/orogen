@@ -41,6 +41,13 @@ void TypelibMarshallerBase::marshal(std::ostream& stream, Handle* handle)
 { Typelib::dump(handle->typelib_sample, stream, layout); }
 void TypelibMarshallerBase::marshal(std::vector<uint8_t>& buffer, Handle* handle)
 { Typelib::dump(handle->typelib_sample, buffer, layout); }
+int TypelibMarshallerBase::marshal(void* buffer, int buffer_size, Handle* handle)
+{ return Typelib::dump(handle->typelib_sample, static_cast<uint8_t*>(buffer), buffer_size, layout); }
+void TypelibMarshallerBase::unmarshal(void const* buffer, int buffer_size, Handle* handle)
+{
+    Typelib::load(handle->typelib_sample, *type_def, static_cast<uint8_t const*>(buffer), buffer_size, layout);
+    refreshOrocosSample(handle);
+}
 void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* handle)
 {
     Typelib::load(handle->typelib_sample, *type_def, buffer, layout);

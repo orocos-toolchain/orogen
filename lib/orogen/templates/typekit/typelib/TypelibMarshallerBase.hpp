@@ -4,8 +4,6 @@
 #define OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 
 #include <rtt/types/TypeTransporter.hpp>
-#include <rtt/base/PortInterface.hpp>
-#include <rtt/FlowStatus.hpp>
 #include <typelib/value_ops.hh>
 
 namespace orogen_transports
@@ -55,6 +53,18 @@ namespace orogen_transports
          * has to delete it.
          */
         virtual void setTypelibSample(Handle* data, uint8_t* typelib_data, bool refresh_orocos = true) = 0;
+
+        /** Updates the sample handler by using a data sample that Typelib
+         * understands. +typelib_data+ must be pointing to an object whose type
+         * is the one returned by getMarshallingType.
+         *
+         * The handle will then point directly to the given data sample, i.e.
+         * calls to \c read might modify that sample directly.
+         *
+         * The ownership of \c typelib_data is retained by the caller. I.e. it
+         * has to delete it.
+         */
+        virtual void setOrocosSample(Handle* data, void* sample, bool refresh_typelib = true) = 0;
 
         /** Updates the value of data->orocos_sample based on the data in
          * data->typelib_sample
@@ -132,9 +142,15 @@ namespace orogen_transports
         /** Marshals the given sample into a memory buffer
          */
         void marshal(std::vector<uint8_t>& buffer, Handle* sample);
+        /** Marshals the given sample into a memory buffer
+         */
+        int marshal(void* buffer, int buffer_size, Handle* sample);
         /** Update the sample in +sample+ from the marshalled data in +buffer+
          */
         virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample);
+        /** Update the sample in +sample+ from the marshalled data in +buffer+
+         */
+        virtual void unmarshal(void const* buffer, int buffer_size, Handle* sample);
 
         virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
         { return NULL; }

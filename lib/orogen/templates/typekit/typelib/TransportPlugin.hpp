@@ -19,10 +19,13 @@ namespace orogen_typekits {
 
     public:
         <%= typekit.name %>TypelibTransportPlugin();
+        ~<%= typekit.name %>TypelibTransportPlugin();
         virtual bool registerTransport(std::string type_name, RTT::types::TypeInfo* ti);
         virtual std::string getTransportName() const;
         virtual std::string getTypekitName() const;
         virtual std::string getName() const;
+
+        static std::string getTlbPath();
     };
 
     extern <%= typekit.name %>TypelibTransportPlugin <%= typekit.name %>TypelibTransport;

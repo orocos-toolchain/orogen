@@ -13,9 +13,11 @@ set(MQueue_FILES "")
 set(libname_mqueue <%= typekit.name %>-transport-mqueue-${OROCOS_TARGET})
 add_library(${libname_mqueue} SHARED
     <%= impl.join("\n    ") %>
+    MQTypelibMarshaller.cpp
     ${MQueue_FILES})
 target_link_libraries(${libname_mqueue}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
+    <%= typekit.name %>-transport-typelib-${OROCOS_TARGET}
     ${OROCOS-RTT_MQUEUE_LIBRARIES})
 
 <%= typekit_deps = typekit.plugin('mqueue').dependencies(typekit);

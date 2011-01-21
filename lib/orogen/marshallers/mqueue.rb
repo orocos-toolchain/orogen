@@ -36,15 +36,6 @@ module Orocos
 
         def generate(typekit, typesets)
             headers, impl = [], []
-
-            mqueue_registered_types =
-                typesets.interface_types.find_all do |type|
-                    if !type.mqueue_compatible?
-                        STDERR.puts "WARN: #{type.name} cannot be marshalled in the MQueue transport"
-                        false
-                    else true
-                    end
-                end
             
             code  = Generation.render_template "typekit", "mqueue", "TransportPlugin.hpp", binding
             headers << typekit.save_automatic("transports", "mqueue",
@@ -53,14 +44,25 @@ module Orocos
             impl << typekit.save_automatic("transports", "mqueue",
                     "TransportPlugin.cpp", code)
 
-            code_snippets = mqueue_registered_types.map do |type|
+            code_snippets = typesets.interface_types.map do |type|
                 code  = Generation.render_template "typekit", "mqueue", "Type.cpp", binding
                 [type, code]
             end
             impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "mqueue")
 
+            code  = Generation.render_template "typekit", "mqueue", "MQTypelibMarshaller.hpp", binding
+            typekit.save_automatic("transports", "mqueue", "MQTypelibMarshaller.hpp", code)
+            code  = Generation.render_template "typekit", "mqueue", "MQTypelibMarshaller.cpp", binding
+            typekit.save_automatic("transports", "mqueue", "MQTypelibMarshaller.cpp", code)
             code  = Generation.render_template "typekit", "mqueue", "Registration.hpp", binding
             typekit.save_automatic("transports", "mqueue", "Registration.hpp", code)
+
+            impl = impl.map do |path|
+                typekit.cmake_relative_path(path, "transports", "mqueue")
+            end
+            headers = headers.map do |path|
+                typekit.cmake_relative_path(path, "transports", "mqueue")
+            end
 
             pkg_config = Generation.render_template 'typekit', "mqueue", "transport-mqueue.pc", binding
             typekit.save_automatic("transports", "mqueue", "#{typekit.name}-transport-mqueue.pc.in", pkg_config)

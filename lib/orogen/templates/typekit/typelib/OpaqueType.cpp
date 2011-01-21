@@ -48,6 +48,15 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         }
     }
 
+    void ensureTypelibSamplePresent(MarshallingHandle* handle)
+    {
+        if (!handle->typelib_sample)
+        {
+            handle->typelib_sample = reinterpret_cast<uint8_t*>(new intermediate_t);
+            handle->owns_typelib  = true;
+        }
+    }
+
     void refreshOrocosSample(MarshallingHandle* handle)
     {
         ensureOrocosSamplePresent(handle);
@@ -91,6 +100,17 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
             refreshOrocosSample(handle);
     }
 
+    void setOrocosSample(MarshallingHandle* handle, void* data, bool refresh_typelib = true)
+    {
+        if (handle->owns_orocos)
+            deleteOrocosSample(handle);
+        handle->orocos_sample = reinterpret_cast<uint8_t*>(data);
+        handle->owns_orocos = false;
+
+        if (refresh_typelib)
+            refreshTypelibSample(handle);
+    }
+
     void refreshTypelibSample(MarshallingHandle* handle)
     {
         ensureOrocosSamplePresent(handle);
@@ -98,6 +118,7 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
             *reinterpret_cast<opaque_t*>(handle->orocos_sample);
 
         <% if needs_copy %>
+        ensureTypelibSamplePresent(handle);
         intermediate_t& intermediate_sample =
             *reinterpret_cast<intermediate_t*>(handle->typelib_sample);
         orogen_typekits::toIntermediate(intermediate_sample, opaque_sample);
@@ -132,13 +153,16 @@ struct TypelibMarshaller< <%= type.cxx_name %> > : public orogen_transports::Typ
         dynamic_cast<RTT::internal::AssignableDataSource<opaque_t>&>(source).set(data);
     }
 
+    void unmarshal(void const* buffer, int size, Handle* handle)
+    {
+        ensureTypelibSamplePresent(handle);
+        TypelibMarshallerBase::unmarshal(buffer, size, handle);
+        refreshOrocosSample(handle);
+    }
+
     void unmarshal(std::vector<uint8_t>& buffer, Handle* handle)
     {
-        if (!handle->typelib_sample)
-        {
-            handle->typelib_sample = reinterpret_cast<uint8_t*>(new intermediate_t);
-            handle->owns_typelib = true;
-        }
+        ensureTypelibSamplePresent(handle);
         TypelibMarshallerBase::unmarshal(buffer, handle);
         refreshOrocosSample(handle);
     }

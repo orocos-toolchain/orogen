@@ -1,6 +1,7 @@
 /* Generated from orogen/templates/typekit/type_info/Info.cpp */
 
 #include <<%= typekit.name %>/Types.hpp>
+#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
 #include <<%= type.info_type_header %>>
 
 namespace orogen_typekits {

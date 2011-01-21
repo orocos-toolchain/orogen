@@ -5,7 +5,6 @@
 
 #include "TypelibMarshallerBase.hpp"
 #include <rtt/internal/DataSources.hpp>
-#include <rtt/Port.hpp>
 
 struct orogen_transports::TypelibMarshallerBase::Handle
 {
@@ -86,6 +85,12 @@ namespace orogen_transports
         }
 
         void setTypelibSample(Handle* handle, uint8_t* data, bool refresh_orocos = true)
+        {
+            handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
+            handle->owns_orocos = handle->owns_typelib = false;
+        }
+
+        void setOrocosSample(Handle* handle, void* data, bool refresh_typelib = true)
         {
             handle->orocos_sample = handle->typelib_sample = reinterpret_cast<uint8_t*>(data);
             handle->owns_orocos = handle->owns_typelib = false;
