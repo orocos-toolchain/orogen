@@ -207,7 +207,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_nothing_raised { task.port_driven 'r' }
         assert_raises(ArgumentError) { task.port_driven 'r1' }
         assert_raises(ArgumentError) { task.port_driven 'w' }
-        assert_equal([read], task.event_ports)
+        assert_equal([read], task.all_event_ports)
 
         create_wc("tasks/port_driven")
 	compile_wc(component)
@@ -225,7 +225,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
         deployment = component.static_deployment
         activity = deployment.task "task", "task"
         activity_def = activity.activity_type
-        assert_equal("Activity", activity_def.name)
+        assert_equal("RTT::Activity", activity_def.class_name)
         assert_equal(10, activity.period)
 
         create_wc("tasks/default_activity")
@@ -245,13 +245,13 @@ class TC_GenerationTasks < Test::Unit::TestCase
         task.dynamic_input_port(/r$/, "/int")
         task.dynamic_output_port(/w$/, "/double")
 
-        assert task.dynamic_input_port?("hgkur", "/int")
-        assert !task.dynamic_input_port?("hgkur", "/double")
-        assert !task.dynamic_input_port?("hgkuw", "/int")
+        assert task.has_dynamic_input_port?("hgkur", "/int")
+        assert !task.has_dynamic_input_port?("hgkur", "/double")
+        assert !task.has_dynamic_input_port?("hgkuw", "/int")
 
-        assert task.dynamic_output_port?("hgkuw", "/double")
-        assert !task.dynamic_output_port?("hgkur", "/double")
-        assert !task.dynamic_output_port?("hgkuw", "/int")
+        assert task.has_dynamic_output_port?("hgkuw", "/double")
+        assert !task.has_dynamic_output_port?("hgkur", "/double")
+        assert !task.has_dynamic_output_port?("hgkuw", "/int")
 
         create_wc("tasks/dynamic_ports")
 	compile_wc(component)
