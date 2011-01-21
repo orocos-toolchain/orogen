@@ -1572,7 +1572,7 @@ module Orocos
                     find_all { |t| !(t < Typelib::ArrayType) }
 
                 type_sets = TypeSets.new
-                type_sets.types            = generated_types
+                type_sets.types            = generated_types.sort_by { |t| t.name }
                 type_sets.converted_types  = converted_types
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
