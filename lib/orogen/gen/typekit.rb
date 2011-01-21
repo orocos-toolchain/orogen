@@ -1644,8 +1644,8 @@ module Orocos
                 Generation.touch File.join(automatic_dir, 'stamp')
 	    end
 
-            def cmake_relative_path(file)
-                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(automatic_dir))}"
+            def cmake_relative_path(file, *subdir)
+                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
             end
 	end
     end

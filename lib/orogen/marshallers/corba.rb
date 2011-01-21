@@ -62,6 +62,13 @@ module Orocos
             code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
             typekit.save_automatic("transports", "corba", "Registration.hpp", code)
 
+            impl = impl.map do |path|
+                typekit.cmake_relative_path(path, "transports", "corba")
+            end
+            headers = headers.map do |path|
+                typekit.cmake_relative_path(path, "transports", "corba")
+            end
+
             pkg_config = Generation.render_template "typekit", "corba", "transport-corba.pc", binding
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
             code = Generation.render_template "typekit", "corba", "CMakeLists.txt", binding
