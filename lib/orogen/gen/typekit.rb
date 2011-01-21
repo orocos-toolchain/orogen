@@ -1384,12 +1384,12 @@ module Orocos
                 path
             end
 
-            def transport_plugin_name(transport_name)
+            def transport_plugin_name(transport_name, typekit_name = self.name)
                 plg = plugin(transport_name)
                 if plg.respond_to?(:plugin_name)
-                    plg.plugin_name(self.name)
+                    plg.plugin_name(typekit_name)
                 else
-                    "orogen_typekits::#{name}#{transport_name.capitalize}TransportPlugin"
+                    "orogen_typekits::#{typekit_name}#{transport_name.capitalize}TransportPlugin"
                 end
             end
 

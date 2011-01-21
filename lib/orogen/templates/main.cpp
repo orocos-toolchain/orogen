@@ -103,7 +103,7 @@ int ORO_main(int argc, char* argv[])
    <% next if tk.virtual? %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
        <% deployer.transports.each do |transport_name| %>
-   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %><%= transport_name.capitalize %>TransportPlugin );
+   RTT::types::TypekitRepository::Import( new <%= typekit.transport_plugin_name(transport_name, tk.name) %> );
        <% end %>
    <% end %>
 
