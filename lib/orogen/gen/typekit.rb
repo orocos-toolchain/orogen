@@ -766,6 +766,19 @@ module Orocos
             # The set of code generation plugins
             attr_reader :plugins
 
+            def self.transport_plugin_name(transport_name, typekit_name)
+                plugins.each_value do |plg|
+                    if plg.name == transport_name
+                        if plg.respond_to?(:plugin_name)
+                            return plg.plugin_name(typekit_name)
+                        else
+                            return "orogen_typekits::#{typekit_name}#{transport_name.capitalize}TransportPlugin"
+                        end
+                    end
+                end
+                raise ArgumentError, "invalid transport name #{transport_name}"
+            end
+
             # Add a generation plugin to the generation stage
             def enable_plugin(name)
                 if plugins.any? { |plg| plg.name == name }
@@ -1384,13 +1397,8 @@ module Orocos
                 path
             end
 
-            def transport_plugin_name(transport_name, typekit_name = self.name)
-                plg = plugin(transport_name)
-                if plg.respond_to?(:plugin_name)
-                    plg.plugin_name(typekit_name)
-                else
-                    "orogen_typekits::#{typekit_name}#{transport_name.capitalize}TransportPlugin"
-                end
+            def transport_plugin_name(transport_name)
+                self.class.transport_plugin_name(transport_name, self.name)
             end
 
             def render_typeinfo_snippets(code_snippets, *place)
