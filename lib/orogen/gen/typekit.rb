@@ -701,6 +701,13 @@ module Orocos
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
+
+            rescue Typelib::NotFound => e
+                if !pending_loads.empty?
+                    perform_pending_loads
+                    retry
+                end
+                raise e.class, e.message, e.backtrace
 	    end
 
             # The target operating system for orocos. Uses the OROCOS_TARGET
