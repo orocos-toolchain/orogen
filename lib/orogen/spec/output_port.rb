@@ -87,17 +87,29 @@ module Orocos
 
             def self.validate_max_sizes_spec(resolved_type, values)
                 values =
-                    if values.size == 1
-                        values[0].to_hash
-                    elsif values.size == 2
-                        values[1].to_hash.merge('' => values[0])
+                    if values.respond_to?(:to_ary)
+                        # values is either [spec] or [vector_size, spec]
+                        # This is used by dsl_attribute implementations of
+                        # max_sizes
+
+                        if values.size == 1
+                            values[0].to_hash
+                        elsif values.size == 2
+                            values[1].to_hash.merge('' => values[0])
+                        end
+                    elsif values.respond_to?(:to_hash)
+                        # Direct call
+                        values.to_hash
+                    else
+                        raise ArgumentError, "expected a one or two element array or a hash, got #{values.inspect}"
                     end
 
                 values.each do |name, value|
-                    resolve_max_size_path(resolved_type, name)
+                    if resolved_type
+                        resolve_max_size_path(resolved_type, name)
+                    end
                     value.to_int
                 end
-                puts values.inspect
                 values
             end
 

@@ -677,7 +677,7 @@ module Orocos
                                 project.registry.define_container(container_name,
                                                 project.find_type(element_type.name))
                             end
-                            registry.define_container(container_name, element_type)
+                            return registry.define_container(container_name, element_type)
 
                         elsif project && type = project.registry.build(type_name)
                             while type.respond_to?(:deference)
@@ -686,29 +686,21 @@ module Orocos
 
                             type_def = project.registry.minimal(type.name)
                             registry.merge(type_def)
-                            registry.build(type_name)
+                            return registry.build(type_name)
                         end
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
-                    if registry.include?(type.name)
-                        registry.get(type.name)
-                    else
+                    if !registry.include?(type.name)
                         type_def = type.registry.minimal(type.name)
                         registry.merge(type_def)
                         if project
                             project.registry.merge(type_def)
                         end
                     end
+                    return registry.get(type.name)
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
-
-            rescue Typelib::NotFound => e
-                if !pending_loads.empty?
-                    perform_pending_loads
-                    retry
-                end
-                raise e.class, e.message, e.backtrace
 	    end
 
             # The target operating system for orocos. Uses the OROCOS_TARGET
