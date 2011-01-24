@@ -557,8 +557,6 @@ module Orocos
             #   type_export_policy new_policy => new_policy
             #   type_export_policy => current_policy
             #
-            # EXPERIMENTAL
-            #
             # Change or read the current type export policy. This policy drives
             # what types orogen will import in the RTT type system.
             #
