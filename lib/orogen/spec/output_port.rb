@@ -65,8 +65,7 @@ module Orocos
             end
 
             def resolve_max_size_path(type, name)
-                resolved_type = task.project.intermediate_type_for(type)
-                resolved_type = name.split('.').inject(resolved_type) do |resolved_type, element|
+                resolved_type = name.split('.').inject(type) do |resolved_type, element|
                     match_deference = element.match(/(\[\])*$/)
 
                     if !match_deference.pre_match.empty?
@@ -85,19 +84,36 @@ module Orocos
                 resolved_type
             end
 
+            def validate_max_sizes_spec(resolved_type, values)
+                value =
+                    if values.size == 1
+                        values[0].to_hash
+                    elsif values.size == 2
+                        values[1].to_hash.merge('' => values[0])
+                    end
+
+                value.each do |name, value|
+                    resolve_max_size_path(resolved_type, name)
+                    value.to_int
+                end
+                value
+            end
+
             ##
             # :method: max_sizes
             #
             # :call-seq:
-            #   max_sizes('name.to.field' => value, 'name.other' => value) => self
-            #   max_sizes(vector_size, 'name.to.field' => value, ...) => self
+            #   max_sizes('name.to[].field' => value, 'name.other' => value) => self
+            #   max_sizes(10, 'name.to[].field' => value, 'name.other' => value) => self
             #   max_sizes => current size specification
             #
             # Sets the maximum allowed size for the variable-size containers in
-            # +type+. If the type is a compound, the mapping is given as
-            # path.to.field => size. If it is a container, the size of the
-            # container itself is given as first argument, and the sizes for the
-            # contained values as a second map argument.
+            # +type+. The mapping is given as path.to.field => size, where [] is
+            # used to get elements of an array or variable-size container.
+            #
+            # If the port type is a container itself, the second form is used,
+            # where the first argument is the container size and the rest
+            # specifies its element sizes (and must start with [])
             #
             # For instance, with the types
             #
@@ -112,28 +128,24 @@ module Orocos
             #
             # Then sizes on a port of type B would be given with
             #
-            #   port.max_sizes('field' => 10, 'field.values' => 20)
+            #   port.max_sizes('field' => 10, 'field[].values' => 20)
             #
             # while the sizes on a port of type std::vector<A> would be given
             # with
             #
-            #   port.max_sizes(10, 'values' => 20)
+            #   port.max_sizes(10, '[].values' => 20)
             #
-            dsl_attribute :max_sizes do |*value|
-                as_hash =
-                    if value.size == 2
-                        value[1].to_hash.merge('' => value[0].to_int)
-                    else
-                        value[0].to_hash
-                    end
-
+            # Finally, on a port of type std::vector<std::vector<A>>, one would
+            # use
+            #
+            #   port.max_sizes(10, '[]' => 20, '[][].values' => 30)
+            #
+            dsl_attribute :max_sizes do |*values|
                 # Validate that all values are integers and all names map to
                 # known types
-                as_hash.each do |name, value|
-                    resolve_max_size_path(type, name)
-                    value.to_int
-                end
-                as_hash
+                resolved_type = task.project.intermediate_type_for(type)
+                values = validate_max_sizes_spec(resolved_type, values)
+                (max_sizes || Hash.new).merge(values)
             end
 
             def initialize_max_size_sample(path, sample, max_sizes)
@@ -200,8 +212,6 @@ module Orocos
             # method will return nil unless the 'max_sizes' map specifies their
             # size
             def compute_max_marshalling_size(type, max_sizes)
-                resolved_type = task.project.intermediate_type_for(type)
-
                 sample = resolved_type.new
 
                 path = []
@@ -210,8 +220,15 @@ module Orocos
                 end
             end
 
+            # Returns the maximum marshalled size of a sample from this port, as
+            # marshalled by typelib
+            #
+            # If the type contains variable-size containers, the result is
+            # dependent on the values given to #max_sizes. If not enough is
+            # known, this method will return nil.
             def max_marshalling_size
-                compute_max_marshalling_size(type, max_sizes)
+                resolved_type = task.project.intermediate_type_for(type)
+                compute_max_marshalling_size(resolved_type, max_sizes)
             end
 
             # call-seq:
