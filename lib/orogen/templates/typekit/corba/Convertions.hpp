@@ -6,6 +6,7 @@
 #include "Types.hpp"
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 #include <boost/cstdint.hpp>
+#include <string>
 
 namespace orogen_typekits {
     /** Converted types: */
