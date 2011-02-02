@@ -1,5 +1,5 @@
-#include "transports/typelib/TypelibMarshallerBase.hpp"
-#include "transports/mqueue/MQTypelibMarshaller.hpp"
+#include "TypelibMarshallerBase.hpp"
+#include "MQTypelibMarshaller.hpp"
 
 using namespace orogen_transports;
 

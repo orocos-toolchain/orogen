@@ -14,7 +14,7 @@ if (OrocosRTT_MQUEUE_FOUND)
     include_directories(${OrocosRTT_MQUEUE_INCLUDE_DIRS})
     link_directories(${OrocosRTT_MQUEUE_LIBRARY_DIRS})
     add_definitions(${OrocosRTT_MQUEUE_CFLAGS})
-    set(mqsupport_sources MQTypelibMarshaller.hpp)
+    set(mqsupport_sources MQTypelibMarshaller.cpp)
 else()
     message(STATUS "MQ transport not found, MQ typelib marshaller disabled")
 endif()
@@ -38,7 +38,8 @@ endif()
 install(TARGETS rtt-typelib
     LIBRARY DESTINATION lib)
 install(FILES TypelibMarshallerBase.hpp TypelibMarshaller.hpp
-    MQTypelibMarshaller.hpp
+    TypelibMarshallerHandle.hpp
+    MQTypelibMarshaller.hpp OpaqueTypelibMarshaller.hpp
     DESTINATION include/rtt/typelib)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/rtt-typelib.pc.in

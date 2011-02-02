@@ -1,6 +1,7 @@
-/* Generated from orogen/lib/orogen/templates/typekit/typelib/TypelibMarshallerBase.cpp */
+#include "TypelibMarshallerBase.hpp"
+#include "TypelibMarshallerHandle.hpp"
 
-#include "TypelibMarshaller.hpp"
+#include <rtt/types/TypeInfoRepository.hpp>
 
 using namespace orogen_transports;
 
@@ -30,19 +31,6 @@ uint8_t* TypelibMarshallerBase::getTypelibSample(Handle* handle)
 {
     return handle->typelib_sample;
 }
-uint8_t* TypelibMarshallerBase::releaseOrocosSample(Handle* handle)
-{
-    uint8_t* sample = handle->orocos_sample;
-    handle->orocos_sample = 0;
-    handle->owns_orocos = false;
-    if (handle->typelib_sample == sample)
-    {
-        handle->typelib_sample = 0;
-        handle->owns_typelib = false;
-    }
-    return sample;
-}
-
 char const* TypelibMarshallerBase::getMarshallingType() const
 { return m_typename_typelib.c_str(); }
 size_t TypelibMarshallerBase::getMarshallingSize(Handle const* handle) const
@@ -67,4 +55,28 @@ void TypelibMarshallerBase::unmarshal(std::vector<uint8_t>& buffer, Handle* hand
 }
 void TypelibMarshallerBase::setTypelibSample(Handle* data, Typelib::Value typelib_data, bool refresh_orocos)
 { return setTypelibSample(data, reinterpret_cast<uint8_t*>(typelib_data.getData()), refresh_orocos); }
+
+void* orogen_transports::getOpaqueValue(std::string const& expected_type, Typelib::Value value)
+{
+    RTT::types::TypeInfoRepository::shared_ptr type_registry =
+        RTT::types::TypeInfoRepository::Instance();
+    RTT::types::TypeInfo* ti = type_registry->type(expected_type);
+    if (!ti)
+        throw std::runtime_error("type " + expected_type + " is not registered in the RTT type system");
+
+    if (!ti->hasProtocol(orogen_transports::TYPELIB_MARSHALLER_ID))
+        throw std::runtime_error("type " + expected_type + " is registered in the RTT type system, but does not have a typelib transport");
+
+    orogen_transports::TypelibMarshallerBase* typelib_marshaller =
+        dynamic_cast<orogen_transports::TypelibMarshallerBase*>(ti->getProtocol(orogen_transports::TYPELIB_MARSHALLER_ID));
+    if (!typelib_marshaller)
+        throw std::runtime_error("the transport object registered as typelib transport for type " + expected_type + " is not a TypelibMarshallerBase");
+
+    orogen_transports::TypelibMarshallerBase::Handle* handle =
+        typelib_marshaller->createHandle();
+    typelib_marshaller->setTypelibSample(handle, reinterpret_cast<uint8_t*>(value.getData()), true);
+    void* opaque_sample = typelib_marshaller->releaseOrocosSample(handle);
+    typelib_marshaller->deleteHandle(handle);
+    return opaque_sample;
+}
 
