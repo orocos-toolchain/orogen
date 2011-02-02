@@ -30,6 +30,18 @@ uint8_t* TypelibMarshallerBase::getTypelibSample(Handle* handle)
 {
     return handle->typelib_sample;
 }
+uint8_t* TypelibMarshallerBase::releaseOrocosSample(Handle* handle)
+{
+    uint8_t* sample = handle->orocos_sample;
+    handle->orocos_sample = 0;
+    handle->owns_orocos = false;
+    if (handle->typelib_sample == sample)
+    {
+        handle->typelib_sample = 0;
+        handle->owns_typelib = false;
+    }
+    return sample;
+}
 
 char const* TypelibMarshallerBase::getMarshallingType() const
 { return m_typename_typelib.c_str(); }

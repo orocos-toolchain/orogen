@@ -50,10 +50,6 @@ module Orocos
             end
             impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "mqueue")
 
-            code  = Generation.render_template "typekit", "mqueue", "MQTypelibMarshaller.hpp", binding
-            typekit.save_automatic("transports", "mqueue", "MQTypelibMarshaller.hpp", code)
-            code  = Generation.render_template "typekit", "mqueue", "MQTypelibMarshaller.cpp", binding
-            typekit.save_automatic("transports", "mqueue", "MQTypelibMarshaller.cpp", code)
             code  = Generation.render_template "typekit", "mqueue", "Registration.hpp", binding
             typekit.save_automatic("transports", "mqueue", "Registration.hpp", code)
 

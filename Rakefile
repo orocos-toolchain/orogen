@@ -1,7 +1,20 @@
 require './lib/orogen/version'
+require 'shellwords'
 
-task :setup do
+task :setup, :cmake_args do |t, args|
+    args.with_defaults(:cmake_args => "")
     begin
+        cmake_args = Shellwords.split(args[:cmake_args])
+        FileUtils.mkdir_p File.join('rtt-typelib', 'build')
+        Dir.chdir(File.join('rtt-typelib', 'build')) do
+            if !system('cmake', '..', *cmake_args)
+                raise "cannot configure the rtt-typelib's build system"
+            end
+            if !system('make', 'install')
+                raise "cannot build or install the rtt-typelib support library"
+            end
+        end
+
         require 'typelib'
         require 'orogen'
         STDERR.puts "oroGen is ready to use"

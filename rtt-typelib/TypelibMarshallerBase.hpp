@@ -81,6 +81,11 @@ namespace orogen_transports
          */
         uint8_t* getTypelibSample(Handle* sample);
 
+        /** Returns a type-pruned pointer to the C++ object, and passes
+         * ownership along
+         */
+        uint8_t* releaseOrocosSample(Handle* sample);
+
         /** Creates a sample handler, which is an opaque type used to
          * read/write/marshal data. Unlike createHandle(), the handle returned
          * by this method already contains a preallocated data sample. It can

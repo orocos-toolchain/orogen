@@ -8,7 +8,7 @@
 #include <rtt/transports/mqueue/MQTemplateProtocol.hpp>
 <% else %>
 #include "transports/typelib/Registration.hpp"
-#include "transports/mqueue/MQTypelibMarshaller.hpp"
+#include <rtt/typelib/MQTypelibMarshaller.hpp>
 <% end %>
 
 namespace Typelib

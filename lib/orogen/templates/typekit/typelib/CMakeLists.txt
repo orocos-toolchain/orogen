@@ -4,16 +4,20 @@ pkg_check_modules(TYPELIB REQUIRED typelib)
 include_directories(${TYPELIB_INCLUDE_DIRS})
 link_directories(${TYPELIB_LIBRARY_DIRS})
 
+pkg_check_modules(RTT_Typelib REQUIRED rtt-typelib)
+include_directories(${RTT_Typelib_INCLUDE_DIRS})
+link_directories(${RTT_Typelib_LIBRARY_DIRS})
+
 set(TYPEKIT_REGISTRY ${CMAKE_INSTALL_PREFIX}/share/orogen/<%= typekit.name %>.tlb)
 add_definitions(-DTYPEKIT_REGISTRY="${TYPEKIT_REGISTRY}")
 set(libname_typelib <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname_typelib} SHARED
-    <%= impl.join("\n    ") %>
-    TypelibMarshallerBase.cpp)
+    <%= impl.join("\n    ") %>)
 
 target_link_libraries(${libname_typelib}
     ${TYPELIB_LIBRARIES}
     ${OrocosRTT_LIBRARIES}
+    ${RTT_Typelib_LIBRARIES}
     <% if !typekit.opaques.empty? %>
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     <% end %>)

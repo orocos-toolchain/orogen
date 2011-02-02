@@ -4,7 +4,7 @@
 
 #include "Registration.hpp"
 #include "TransportPlugin.hpp"
-#include "TypelibMarshallerBase.hpp"
+#include <rtt/typelib/TypelibMarshallerBase.hpp>
 
 #include <rtt/types/TypekitPlugin.hpp>
 #include <rtt/Logger.hpp>

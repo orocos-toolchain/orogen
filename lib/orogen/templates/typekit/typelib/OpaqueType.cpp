@@ -2,7 +2,7 @@
 
 #include "OpaqueConvertions.hpp"
 #include "Types.hpp"
-#include "transports/typelib/TypelibMarshaller.hpp"
+#include <rtt/typelib/TypelibMarshaller.hpp>
 #include "transports/typelib/Registration.hpp"
 
 typedef orogen_transports::TypelibMarshallerBase::Handle MarshallingHandle;
