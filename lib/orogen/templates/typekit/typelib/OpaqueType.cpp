@@ -7,6 +7,6 @@
 
 orogen_transports::TypelibMarshallerBase* orogen_typekits::<%= type.method_name %>_TypelibMarshaller(Typelib::Registry const& registry)
 {
-    return new orogen_transports::OpaqueTypelibMarshaller< <%= intermediate.cxx_name %>, <%= type.cxx_name %>, <%= needs_copy %> >("<%= intermediate.cxx_name %>", "<%= type.name %>", registry);
+    return new orogen_transports::OpaqueTypelibMarshaller< <%= intermediate.cxx_name %>, <%= type.cxx_name %>, <%= needs_copy %> >("<%= intermediate.name %>", "<%= type.name %>", registry);
 }
 
