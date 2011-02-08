@@ -270,6 +270,12 @@ module Orocos
             # triggering methods otherwise.
             attr_reader :period
 
+            # Returns true if +port+ is a trigger for this task
+            def trigger_port?(port)
+                port.trigger_port? &&
+                    activity_type.name != 'Periodic'
+            end
+
 	    # call-seq:
 	    #	periodic(period_in_seconds) -> self
             #
