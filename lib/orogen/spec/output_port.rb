@@ -120,7 +120,6 @@ module Orocos
                 end
 
                 path = path.dup
-                puts "#{path.join(".")} #{sample}"
 
                 if sample.kind_of?(Typelib::ContainerType)
                     max_size = max_sizes[path.join(".")]
