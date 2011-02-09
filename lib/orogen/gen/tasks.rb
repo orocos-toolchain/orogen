@@ -64,8 +64,9 @@ module Orocos
                 constructor = []
                 constructor << "ports()->#{add}(_#{name})"
                 if doc
-                    constructor << ".doc(\"#{doc}\")"
+                    constructor << "  .doc(\"#{doc}\")"
                 end
+                constructor.last << ';'
 
                 kind =
                     case self
@@ -76,7 +77,7 @@ module Orocos
                 task.add_base_member(kind, "_#{name}",
                     "#{orocos_class}< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\")").
-                    constructor(constructor.join("\n") + ";")
+                    constructor(constructor.join("\n"))
             end
         end
 
@@ -86,6 +87,16 @@ module Orocos
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::OutputPort" end
+
+            def register_for_generation
+                super
+
+                setup = []
+                setup << "_#{name}.keepLastWrittenValue(false);"
+                setup << "_#{name}.keepNextWrittenValue(true);"
+                task.add_base_construction("output_port", "_#{name}",
+                        setup.join("\n"))
+            end
         end
 
         # Module that is used to add code generation functionality to
