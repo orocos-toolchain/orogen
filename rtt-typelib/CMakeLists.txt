@@ -3,12 +3,12 @@ project(rtt_typelib)
 
 include(FindPkgConfig)
 
-pkg_check_modules(OrocosRTT REQUIRED orocos-rtt-${OROCOS_TARGET})
+pkg_check_modules(OrocosRTT REQUIRED orocos-rtt-$ENV{OROCOS_TARGET})
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 add_definitions(${OrocosRTT_CFLAGS})
 
-pkg_check_modules(OrocosRTT_MQUEUE orocos-rtt-mqueue-${OROCOS_TARGET})
+pkg_check_modules(OrocosRTT_MQUEUE orocos-rtt-mqueue-$ENV{OROCOS_TARGET})
 if (OrocosRTT_MQUEUE_FOUND)
     message(STATUS "MQ transport found, MQ typelib marshaller enabled")
     include_directories(${OrocosRTT_MQUEUE_INCLUDE_DIRS})
