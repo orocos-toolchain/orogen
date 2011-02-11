@@ -21,6 +21,7 @@
 // typekits *and* it is a standard header. Ideally, we would actually check if
 // some of the types need std::vector.
 #include <vector>
+#include <boost/cstdint.hpp>
 
 <%= typekit.m_types_code %>
 

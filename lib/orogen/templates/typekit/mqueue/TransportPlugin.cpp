@@ -43,8 +43,14 @@ bool orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::registerTranspor
         return false;
 
     <% first_type = true;
-       typesets.interface_types.each do |type| %>
-    <%= 'else ' unless first_type %>if ("<%= type.name %>" == type_name)
+       typesets.interface_types.each do |type|
+           names = [type.name]
+           if aliases = typesets.aliases[type]
+               names.concat(aliases)
+           end
+           if_cond = names.map { |n| "\"#{n}\" == type_name" }.join(" || ")
+        %>
+    <%= 'else ' unless first_type %>if (<%= if_cond %>)
     {
         ti->addProtocol(ORO_MQUEUE_PROTOCOL_ID,
             <%= type.method_name %>_MQueueTransport(*m_registry));

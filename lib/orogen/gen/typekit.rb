@@ -479,6 +479,7 @@ module Orocos
             attr_accessor :minimal_registry
             #
             attr_accessor :opaque_types
+            attr_accessor :aliases
         end
 
         # Support for typekit generation in oroGen
@@ -1126,11 +1127,25 @@ module Orocos
 		raise NotImplementedError
 	    end
 
-            def normalize_registry
+            BASE_TYPES = ['int', 'unsigned int', 'double', 'float', 'bool', 'char']
+            BASE_TYPES_RTT_NAMES = {
+                'unsigned int' => 'uint' }
+            BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib}
+
+            def normalize_registry(with_base_types = false)
                 base = self.registry
                 result = Typelib::Registry.new
                 self_types.each do |type|
                     result.merge(base.minimal(type.name))
+                end
+                if with_base_types
+                    standard_types = Typelib::Registry.new
+                    Typelib::Registry.add_standard_cxx_types(standard_types)
+                    base.merge(standard_types)
+
+                    BASE_TYPES.each do |typename|
+                        result.merge(base.minimal(typename))
+                    end
                 end
                 @registry = result
             end
@@ -1462,6 +1477,15 @@ module Orocos
                     FileUtils.ln_sf automatic_dir, fake_typekit_dir
                 end
 
+                # Small hack to workaround the current structure w.r.t. our
+                # usage of the main RTT typekit
+                #
+                # We need to generate the typelib / mqueue transports (not
+                # CORBA) for the base types *if and only if* we are NOT
+                # standalone (we are using oroGen and not typegen) *and* the
+                # oroGen project does not import any other typekit
+                generate_transports_for_base_types = (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
+
                 # Load any queued file. This must be done before the call
                 # to local_headers below, as the new files will get
                 # registered only after the call
@@ -1479,7 +1503,7 @@ module Orocos
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-		minimal_registry = normalize_registry
+		minimal_registry = normalize_registry(generate_transports_for_base_types)
                 generated_types = self_types.to_value_set
 
                 self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
@@ -1584,6 +1608,7 @@ module Orocos
                 type_sets.interface_types  = interface_types
                 type_sets.minimal_registry = minimal_registry
                 type_sets.opaque_types     = self_opaques
+                type_sets.aliases          = Hash.new
 
                 public_header_files, implementation_files = [], []
 
@@ -1621,8 +1646,25 @@ module Orocos
                     end
                 end
 
+                if generate_transports_for_base_types
+                    base_type_aliases = Hash.new
+                    base_types = BASE_TYPES.map do |typename|
+                        type = minimal_registry.get(typename)
+                        base_type_aliases[type] = [BASE_TYPES_RTT_NAMES[typename] || typename]
+                        type
+                    end.to_value_set
+                end
+
                 each_plugin do |plg|
-                    headers, impl = plg.generate(self, type_sets)
+                    plg_typesets = type_sets.dup
+                    if generate_transports_for_base_types && BASE_TYPES_NEEDED_TRANSPORTS.include?(plg.name)
+                        plg_typesets.interface_types = (plg_typesets.interface_types.to_value_set | base_types).
+                            sort_by { |t| t.name }
+
+                        plg_typesets.aliases = plg_typesets.aliases.merge(base_type_aliases)
+                    end
+
+                    headers, impl = plg.generate(self, plg_typesets)
                     public_header_files.concat(headers)
                     implementation_files.concat(impl)
                 end
