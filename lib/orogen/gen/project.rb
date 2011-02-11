@@ -174,14 +174,14 @@ module Orocos
                 # Cannot completely validate the spec, since we may not yet have
                 # the m-types. Do what we can, we'll do full blown validation
                 # later
-                sizes = Orocos::Spec::OutputPort.validate_max_sizes_spec(nil, values)
+                sizes = Orocos::Spec::Port.validate_max_sizes_spec(nil, values)
                 @max_sizes[type.name].merge!(sizes, &block)
             end
 
             def validate_max_sizes_spec
                 max_sizes.dup.each do |type, sizes|
                     type = intermediate_type_for(type)
-                    sizes = Orocos::Spec::OutputPort.validate_max_sizes_spec(type, sizes)
+                    sizes = Orocos::Spec::Port.validate_max_sizes_spec(type, sizes)
                     max_sizes[type.name].merge!(sizes)
                 end
             end
