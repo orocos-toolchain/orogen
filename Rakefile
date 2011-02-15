@@ -23,10 +23,14 @@ task :setup, :cmake_args do |t, args|
         require 'typelib'
         require 'orogen'
         STDERR.puts "oroGen is ready to use"
-    rescue LoadError => e
-        STDERR.puts "cannot load oroGen: #{e.message}"
+    rescue Exception => e
+        STDERR.puts "cannot load oroGen"
         STDERR.puts "  did you install Typelib's Ruby bindings and update the RUBYLIB environment variable accordingly ?"
         STDERR.puts "  did you add #{File.expand_path("lib", File.dirname(__FILE__))} to RUBYLIB ?"
+        STDERR.puts "the error is: #{e.message}"
+        e.backtrace.each do |line|
+            STDERR.puts "  #{line}"
+        end
         exit(1)
     end
 end
