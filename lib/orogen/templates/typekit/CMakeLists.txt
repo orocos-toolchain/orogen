@@ -11,6 +11,11 @@ SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= typekit.orocos_target %>")
+# By default, install libs in /target/ subdir in order to allow
+# multi-target installs.
+if ( NOT OROCOS_SUFFIX )
+    set (OROCOS_SUFFIX "/${OROCOS_TARGET}")
+endif()
 
 # Enable -Wall for compilers that know it
 include(CheckCXXCompilerFlag)
@@ -51,7 +56,7 @@ if ( ROS_ROOT )
         include(${ROS_ROOT}/core/rosbuild/rosbuild.cmake)
         rosbuild_init()
     endif( NOT ROSPACK_EXE )
-    set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos/types)
+    set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos${OROCOS_SUFFIX}/types)
 endif( ROS_ROOT ) 
 
 execute_process(COMMAND cmake -E create_symlink
