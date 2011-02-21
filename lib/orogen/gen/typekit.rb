@@ -729,6 +729,7 @@ module Orocos
 		@project = project
 
                 @include_dirs = Set.new
+                @include_dirs << "/usr/include" << "/usr/local/include"
 
                 @plugins = []
                 plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
