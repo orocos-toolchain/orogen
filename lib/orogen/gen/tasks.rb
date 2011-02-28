@@ -447,6 +447,11 @@ module Orocos
                         returns("std::string").
                         doc("returns the oroGen model name for this task").
                         runs_in_caller_thread
+
+                    hidden_operation("__orogen_getPID", "    return getpid();").
+                        returns("int").
+                        doc("returns the PID for this task").
+                        runs_in_caller_thread
                 else
                     add_base_method("std::string", "getModelName", "").
                         body("    return \"#{name}\";")
