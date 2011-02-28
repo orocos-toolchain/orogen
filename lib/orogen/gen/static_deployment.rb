@@ -97,7 +97,7 @@ module Orocos
             attr_reader :name
             # The TaskContext model used to define this task
             attr_reader :task_model
-            # Backward compatibility only
+            # Backward compatibility only. Use #task_model instead.
             def context; task_model end
 
             # The deployed properties, as PropertyDeployment instances
@@ -217,7 +217,7 @@ module Orocos
 
             # The Project object this task is part of
             def project; task_model.project end
-            # Bacwkard compatibility only
+            # Backward compatibility only. Use #project instead
             def component; project end
 
             ActivityDefinition = Struct.new :name, :class_name, :header
