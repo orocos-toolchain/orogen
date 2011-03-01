@@ -448,10 +448,10 @@ module Orocos
                         doc("returns the oroGen model name for this task").
                         runs_in_caller_thread
 
-                    hidden_operation("__orogen_getPID", "    return getpid();").
+                    add_base_implementation_code("#ifdef HAS_GETTID\n#include <sys/syscall.h>\n#endif")
+                    hidden_operation("__orogen_getTID", "    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
                         returns("int").
-                        doc("returns the PID for this task").
-                        runs_in_caller_thread
+                        doc("returns the PID for this task")
                 else
                     add_base_method("std::string", "getModelName", "").
                         body("    return \"#{name}\";")

@@ -25,6 +25,13 @@ if (CXX_SUPPORTS_WALL)
     add_definitions (" -Wall")
 endif (CXX_SUPPORTS_WALL)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    message(STATUS "running on Linux, implementing the __orogen_getTID() operation on all tasks")
+    add_definitions(-DHAS_GETTID)
+else()
+    message(STATUS "NOT running on Linux (cmake reports ${CMAKE_SYSTEM_NAME}). The __orogen_getTID() operation will be a dummy")
+endif()
+
 # Define the necessary RPath information for all binaries. That can be stripped
 # later
 option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
