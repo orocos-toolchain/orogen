@@ -553,7 +553,7 @@ module Orocos
             end
 
             # Add some code that needs to be added to the toplevel scope in
-            # TaskBase.hpp
+            # TaskBase.cpp
             def add_base_implementation_code(string, include_before = true, &block)
                 code = TaskContextGeneration.validate_code_object(string, block)
                 @base_implementation_code << [include_before, code]
