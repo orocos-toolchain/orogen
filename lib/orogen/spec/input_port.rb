@@ -63,9 +63,19 @@ module Orocos
             # instance).
             def needs_reliable_connection; @needs_reliable_connection = true; self end
 
+            # In oroGen, input ports are cleared in the startHook()
+            #
+            # Calling #do_not_clean disables this behaviour for this particular
+            # port
+            def do_not_clean
+                @do_not_clean = true
+            end
+
             def register_for_generation
                 super
-                task.in_base_hook('start', "_#{name}.clear();")
+                if !@do_not_clean
+                    task.in_base_hook('start', "_#{name}.clear();")
+                end
             end
         end
     end
