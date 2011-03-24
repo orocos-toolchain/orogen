@@ -97,10 +97,10 @@ module Orocos
             end
 
             ##
-            # :method: worstcase_update_time
+            # :method: worstcase_processing_time
             # :call-seq:
-            #   worstcase_update_time => value
-            #   worstcase_update_time value
+            #   worstcase_processing_time => value
+            #   worstcase_processing_time value
             #
             # Sets or gets the worst-case computation time (i.e. time spent in
             # 'update') for this component. This should usually not be set in
