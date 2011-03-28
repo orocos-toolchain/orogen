@@ -8,7 +8,7 @@
 #include <<%= tk.name %>/transports/corba/<%= tk.name %>Types.idl>
 <% end %>
 
-<%= typesets.minimal_registry.export 'idl',
+<%= idl_registry.export 'idl',
 	:namespace_prefix => 'orogen',
     :namespace_suffix => 'Corba',
     :opaque_as_any => true,
