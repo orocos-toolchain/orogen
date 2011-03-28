@@ -70,13 +70,6 @@ module Orocos
             def do_not_clean
                 @do_not_clean = true
             end
-
-            def register_for_generation
-                super
-                if !@do_not_clean
-                    task.in_base_hook('start', "_#{name}.clear();")
-                end
-            end
         end
     end
 end

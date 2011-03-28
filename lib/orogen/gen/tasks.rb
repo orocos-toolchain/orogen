@@ -105,6 +105,13 @@ module Orocos
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::InputPort" end
+
+            def register_for_generation
+                super
+                if !@do_not_clean
+                    task.in_base_hook('start', "_#{name}.clear();")
+                end
+            end
         end
 
         # Module that is used to add code generation functionality to
