@@ -1323,6 +1323,10 @@ module Orocos
                         begin
                             self.perform_pending_loads
                         rescue Exception => e
+                            marshalling_code = marshalling_code.split("\n").
+                                each_with_index.map do |l, i|
+                                    "#{i} #{l}"
+                                end.join("\n")
                             raise InternalError, "cannot load the definition of opaque m-types: #{e.message}\nThe faulty code is\n\n#{marshalling_code}", e.backtrace
                         end
                     end
