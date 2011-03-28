@@ -9,10 +9,17 @@ require 'nokogiri'
 module Typelib
     class Type
         def self.normalize_typename(name)
+            "/" + Typelib.split_typename(name).map do |part|
+                normalize_typename_part(part)
+            end.join("/")
+        end
+
+        def self.normalize_typename_part(name)
             # Remove all trailing array modifiers first
             if name =~ /(.*)(\[\d+\]+)$/
                 name, array_modifiers = $1, $2
             end
+
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
             template_arguments.map! do |arg|
                 arg =
@@ -30,13 +37,28 @@ module Typelib
         end
 
         def self.normalize_cxxname(name)
+            if name =~ /::/
+                raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
+            end
+
+            converted = Typelib.split_typename(name).map do |p|
+                normalize_cxxname_part(p)
+            end
+            if converted.size == 1
+                converted.first
+            else
+                "::" + converted.join("::")
+            end
+        end
+
+        def self.normalize_cxxname_part(name)
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
 
-            if name =~ /^::(\w+)$/
+            name = name.gsub('/', '::')
+            if name =~ /^::(.*)/
                 name = $1
-            elsif name =~ /::/ && name !~ /^::/
-                name = "::#{name}"
             end
+
             if !template_arguments.empty?
                 template_arguments.map! do |arg|
                     if arg !~ /^\d+$/
@@ -50,11 +72,11 @@ module Typelib
             end
         end
 
-        def self.cxx_name(fullname = true)
-            normalize_cxxname(full_name('::', fullname))
+        def self.cxx_name
+            normalize_cxxname(name)
         end
         def self.cxx_basename
-            normalize_cxxname(basename('::'))
+            normalize_cxxname(basename)
         end
         def self.cxx_namespace
             namespace('::')
@@ -117,25 +139,22 @@ module Typelib
     end
 
     class ContainerType
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             target_cxxname = typekit.intermediate_cxxname_for(deference)
             "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > instanciate;\n};\n"  +
             "typedef #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > orogen_typekits_mtype_#{method_name(true)};"
         end
 
         def self.container_cxx_kind
-            container_kind.
-                gsub('/', '::').
-                gsub(/^::/, '')
+            normalize_cxxname(container_kind)
         end
 
 
         def self.cxx_name
-            kind = container_cxx_kind
             if name =~ /</
-                normalize_cxxname(kind + "< " + deference.cxx_name + " >")
+                normalize_cxxname(container_kind) + "< " + deference.cxx_name + " >"
             else
-                normalize_cxxname(kind)
+                normalize_cxxname(container_kind)
             end
         end
 
@@ -201,9 +220,9 @@ module Typelib
     end
 
     class CompoundType
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             result = <<-EOCODE
-struct #{basename}_m
+struct #{target_basename}
 {
             EOCODE
             each_field do |field_name, field_type|
@@ -263,9 +282,9 @@ struct #{basename}_m
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
 
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             deference_name = typekit.intermediate_cxxname_for(deference)
-            "typedef #{deference_name[0]} orogen_typekits_mtype_#{method_name(true)}#{deference_name[1]};"
+            "typedef #{deference_name[0]} orogen_typekits_mtype_#{target_basename}#{deference_name[1]};"
         end
 
         def self.code_copy(typekit, result, indent, dest, src, method)
@@ -376,20 +395,29 @@ module Orocos
 		end
             end
 
-            def intermediate_type_for(type_def)
+            def intermediate_type_name_for(type_def)
                 type = find_type(type_def)
                 if type.opaque?
-                    find_type(opaque_specification(type_def).intermediate)
+                    opaque_specification(type_def).intermediate
                 elsif type.contains_opaques?
                     if type < Typelib::ArrayType
-                        find_type("#{intermediate_type_for(type.deference).name}[#{type.length}]")
+                        "#{intermediate_type_name_for(type.deference)}[#{type.length}]"
                     elsif type < Typelib::ContainerType
-                        find_type("#{type.container_kind}<#{intermediate_type_for(type.deference).name}>")
+                        "#{type.container_kind}<#{intermediate_type_name_for(type.deference)}>"
                     else
-                        find_type("#{type.cxx_name}_m")
+                        path = Typelib.split_typename(type.name)
+                        path.map! do |p|
+                            p.gsub(/[<>\[\], \/]/, '_')
+                        end
+                        path.join("/") + "_m"
                     end
-                else type
+                else type.name
                 end
+            end
+
+            def intermediate_type_for(type_def)
+                typename = intermediate_type_name_for(type_def)
+                return find_type(typename)
             end
 
             def intermediate_type?(type)
@@ -1237,18 +1265,12 @@ module Orocos
 
             def intermediate_cxxname_for(type_def)
                 type = find_type(type_def)
-                if type.opaque?
-                    [find_type(opaque_specification(type_def).intermediate).cxx_name]
+                if type < Typelib::ArrayType
+                    prefix, suffix = intermediate_cxxname_for(type.deference)
+                    [prefix, "#{suffix}[#{type.length}]"]
                 else
-                    if type < Typelib::ArrayType
-                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
-                        [intermediate_cxxname[0], "#{intermediate_cxxname[1]}[#{type.length}]"]
-                    elsif type < Typelib::ContainerType
-                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
-                        ["#{type.container_cxx_kind}< #{intermediate_cxxname[0]} >"]
-                    else
-                        ["#{type.cxx_name}_m"]
-                    end
+                    name = intermediate_type_name_for(type)
+                    [name.gsub('/', '::')]
                 end
             end
 
