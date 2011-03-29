@@ -958,7 +958,7 @@ module Orocos
             # True if there are some opaques in this typekit. The result of this
             # method is only valid during generation. Don't use it in general.
             def has_opaques?
-                !self_opaques.empty? || m_types_code
+                self_types.any? { |t| t.contains_opaques? }
             end
 
             # True if some opaques require to generate templates
