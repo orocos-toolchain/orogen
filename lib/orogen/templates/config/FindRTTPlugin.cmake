@@ -36,14 +36,14 @@ FOREACH(COMPONENT ${RTTPlugin_FIND_COMPONENTS})
         find_library(RTT_PLUGIN_${COMPONENT}_LIBRARY
             NAMES ${PLUGIN_NAME}
             PATHS ${OROCOS_ROOT_DIR}/lib
-            PATH_SUFFIXES orocos/plugins orocos/plugins/${OROCOS_TARGET}
+            PATH_SUFFIXES orocos/plugins orocos/plugins/${OROCOS_TARGET} orocos/${OROCOS_TARGET}/plugins
                 orocos/types orocos/types/${OROCOS_TARGET}  NO_DEFAULT_PATH)
     else()
         # Use default CMake search process
         find_library(RTT_PLUGIN_${COMPONENT}_LIBRARY
             NAMES ${PLUGIN_NAME}
             PATHS ${OROCOS_INSTALL}/lib
-            PATH_SUFFIXES orocos/types orocos/types/${OROCOS_TARGET}
+            PATH_SUFFIXES orocos/types orocos/types/${OROCOS_TARGET} orocos/${OROCOS_TARGET}/types
                 orocos/plugins orocos/plugins/${OROCOS_TARGET})
     endif()
 
