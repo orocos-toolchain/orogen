@@ -83,7 +83,12 @@ parser = OptionParser.new do |opt|
 end
 
 original_options = ARGV.dup
-files = parser.parse! ARGV
+begin
+    files = parser.parse(ARGV)
+rescue OptionParser::ParseError => e
+    puts e.message
+    exit(1)
+end
 if !no_transports && transports.empty?
     transports = DEFAULT_TRANSPORTS.dup.to_set
 end

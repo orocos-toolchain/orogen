@@ -38,6 +38,9 @@ this installation of typegen knows the following transports: #{available_transpo
     end
 
     opt.on('--no-transports=NAME1,NAME2', String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transports|
+        if !transports
+            raise OptionParser::MissingArgument
+        end
         transports.split(',').each do |name|
             transports.delete(name)
         end
@@ -61,7 +64,13 @@ this installation of typegen knows the following transports: #{available_transpo
 end
 
 original_options = ARGV.dup
-remaining = parser.parse(ARGV)
+begin
+    remaining = parser.parse(ARGV)
+rescue OptionParser::ParseError => e
+    puts e.message
+    exit(1)
+end
+
 if remaining.size < 2
     puts parser
     exit(1)
