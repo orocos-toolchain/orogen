@@ -10,7 +10,7 @@ DEFAULT_TRANSPORTS = %w{corba typelib}
 
 verbosity = 0
 extended_states = true
-component = Orocos::Generation::Component.new
+component = Orocos::Generation::Project.new
 
 transports = []
 no_transports = false

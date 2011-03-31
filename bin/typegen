@@ -9,7 +9,7 @@ Typelib.load_type_plugins = false
 DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
 
 typekit = Orocos::Generation::Typekit.new
-typekit_loader = Orocos::Generation::Component.new
+typekit_loader = Orocos::Generation::Project.new
 
 transports = DEFAULT_TRANSPORTS.dup.to_set
 
