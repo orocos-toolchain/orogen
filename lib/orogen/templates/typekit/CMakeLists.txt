@@ -47,10 +47,10 @@ ADD_CUSTOM_TARGET(regen
 
 set(ROS_ROOT $ENV{ROS_ROOT})
 if ( ROS_ROOT )
-    if ( NOT ROSPACK_EXE )
+    if ( NOT ROSBUILD_init_called )
         include(${ROS_ROOT}/core/rosbuild/rosbuild.cmake)
         rosbuild_init()
-    endif( NOT ROSPACK_EXE )
+    endif( NOT ROSBUILD_init_called )
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos/types)
 endif( ROS_ROOT ) 
 
