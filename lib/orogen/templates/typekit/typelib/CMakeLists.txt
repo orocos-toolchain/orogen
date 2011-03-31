@@ -5,7 +5,7 @@ include_directories(${TYPELIB_INCLUDE_DIRS})
 link_directories(${TYPELIB_LIBRARY_DIRS})
 
 set(TYPEKIT_REGISTRY ${CMAKE_INSTALL_PREFIX}/share/orogen/<%= typekit.name %>.tlb)
-add_definitions(-DTYPEKIT_REGISTRY="${TYPEKIT_REGISTRY}")
+add_definitions(-DTYPEKIT_REGISTRY='"${TYPEKIT_REGISTRY}"')
 set(libname_typelib <%= typekit.name %>-transport-typelib-${OROCOS_TARGET})
 add_library(${libname_typelib} SHARED
     <%= impl.join("\n    ") %>
