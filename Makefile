@@ -1,4 +1,5 @@
 ifdef ROS_ROOT
+export MALLOC_CHECK_=0
 default: install
 include $(shell rosstack find orocos_toolchain_ros)/env.mk
 install: 
