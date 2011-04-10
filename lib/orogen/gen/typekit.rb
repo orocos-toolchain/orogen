@@ -41,13 +41,20 @@ module Typelib
                 raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
             end
 
+            if name =~ /(.*)((?:\[\d+\])+)$/
+                name = $1
+                suffix = $2
+            else
+                suffix = ''
+            end
+
             converted = Typelib.split_typename(name).map do |p|
                 normalize_cxxname_part(p)
             end
             if converted.size == 1
-                converted.first
+                "#{converted.first}#{suffix}"
             else
-                "::" + converted.join("::")
+                "::" + converted.join("::") + suffix
             end
         end
 
