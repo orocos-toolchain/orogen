@@ -41,6 +41,7 @@ module Orocos
             opaques.each do |t|
                 idl_registry.remove(t)
             end
+            idl_registry.clear_aliases
             
             idl = Orocos::Generation.render_template "typekit", "corba", "Types.idl", binding
             idl_file = typekit.save_automatic("transports", "corba",
