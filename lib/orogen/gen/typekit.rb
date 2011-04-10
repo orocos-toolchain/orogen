@@ -236,6 +236,8 @@ struct #{target_basename}
                 field_cxxname =
                     if field_type.contains_opaques?
                         typekit.intermediate_cxxname_for(field_type.name)
+                    elsif field_type <= ArrayType
+                        [field_type.deference.cxx_name, "[#{field_type.length}]"]
                     else
                         [field_type.cxx_name]
                     end
