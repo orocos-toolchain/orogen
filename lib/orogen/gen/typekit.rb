@@ -119,6 +119,10 @@ module Typelib
         end
 
         def self.inlines_code?; false end
+
+        def self.code_assign(result, indent, dest, src)
+            result << "#{indent}#{dest} = #{src};\n"
+        end
     end
 
     class NumericType
@@ -277,12 +281,16 @@ struct #{target_basename}
 
         def self.to_intermediate(typekit, result, indent)
             code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate", false) do |field_name, field_type|
-                !field_type.contains_opaques?
+                if !field_type.contains_opaques?
+                    field_type.code_assign([], indent + "    ", "intermediate.#{field_name}", "value.#{field_name}").join
+                end
             end
         end
         def self.from_intermediate(typekit, result, indent)
             code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate", false) do |field_name, field_type|
-                !field_type.contains_opaques?
+                if !field_type.contains_opaques?
+                    field_type.code_assign([], indent + "    ", "value.#{field_name}", "intermediate.#{field_name}").join
+                end
             end
         end
     end
@@ -296,6 +304,18 @@ struct #{target_basename}
             "typedef #{deference_name[0]} orogen_typekits_mtype_#{target_basename}#{deference_name[1]};"
         end
 
+        def self.code_assign(result, indent, dest, src)
+            element_type = deference
+            allocate_index do |i|
+                result << <<-EOT
+#{indent}for(int #{i} = 0; #{i} < #{length}; ++#{i})
+#{indent}{
+                EOT
+                deference.code_assign(result, "#{indent}  ", "#{dest}[#{i}]", "#{src}[#{i}]")
+                result << "#{indent}}"
+            end
+        end
+
         def self.code_copy(typekit, result, indent, dest, src, method)
             element_type = registry.build(deference.name)
 
@@ -305,7 +325,7 @@ struct #{target_basename}
 #{indent}{
                 EOT
 
-                if string = yield(element_type, "#{dest}[#{i}]", "#{src}[#{i}]")
+                if string = yield(element_type, indent, "#{dest}[#{i}]", "#{src}[#{i}]")
                     if !string.respond_to?(:to_str)
                         result << "#{indent}  #{dest}[#{i}] = #{src}[#{i}];\n"
                     else
@@ -331,14 +351,18 @@ struct #{target_basename}
         end
 
         def self.to_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate") do |type, _|
-                !type.contains_opaques?
+            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate") do |type, indent, dest, src|
+                if !type.contains_opaques?
+                    type.code_assign([], indent, dest, src).join
+                end
             end
         end
 
         def self.from_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate") do |type, _|
-                !type.contains_opaques?
+            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate") do |type, indent, dest, src|
+                if !type.contains_opaques?
+                    type.code_assign([], indent, dest, src).join
+                end
             end
         end
     end
