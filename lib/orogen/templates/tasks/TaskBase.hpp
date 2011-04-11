@@ -14,6 +14,9 @@
 #include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
 <% end %>
 
+<% if !task.servicediscovery_domain.nil? %>
+#include <service-discovery/ServiceDiscovery.h>
+<% end %>
 
 <% task.used_typekits.each do |tk| %>
   <% next if tk.virtual? %>
@@ -46,6 +49,10 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
+
+<% if !task.servicediscovery_domain.nil? %>
+        rock::communication::ServiceDiscovery* _service_discovery;
+<% end %>
 
 <%= task.self_base_methods.
     sort_by(&:name).

@@ -2,6 +2,10 @@
 
 #include "tasks/<%= task.basename %>Base.hpp"
 
+<% if !task.servicediscovery_domain.nil? %>
+#include <rtt/transports/corba/TaskContextServer.hpp>
+<% end %>
+
 using namespace <%= component.name %>;
 
 <% code_before, code_after =
@@ -150,6 +154,13 @@ void <%= task.basename %>Base::exception()
     <% if is_boolean %>
     if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
         return false;
+    <% end %>
+
+    <% if !task.servicediscovery_domain.nil? and hook_name == "start" %>
+    rock::communication::ServiceConfiguration service_conf(this->getName(), "<%= task.servicediscovery_domain %>");
+    service_conf.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(this));
+    _service_discovery = new rock::communication::ServiceDiscovery();
+    _service_discovery->start(service_conf);
     <% end %>
 
     <% snippets.each do |code| %>
