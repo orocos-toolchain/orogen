@@ -5,6 +5,8 @@
 
 #include <string>
 #include <boost/cstdint.hpp>
+#include <boost/program_options/variables_map.hpp>
+
 #include <<%= task.superclass.header_file %>>
 <% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Port.hpp><% end %>
@@ -49,7 +51,7 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
-
+        boost::program_options::variables_map _args;
 <% if !task.servicediscovery_domain.nil? %>
         rock::communication::ServiceDiscovery* _service_discovery;
 <% end %>
@@ -74,7 +76,7 @@ namespace <%= component.name %> {
         };
         <% end %>
         
-	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
+	<%= task.basename %>Base(std::string const& name, const boost::program_options::variables_map& args<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
         ~<%= task.basename %>Base();
 
         bool start();

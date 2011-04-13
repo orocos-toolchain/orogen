@@ -16,7 +16,7 @@ namespace <%= component.name %> {
     compact.join("\n") %>
 
     public:
-        <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
+        <%= task.basename %>(std::string const& name = "<%= task.name %>", const boost::program_options::variables_map& args = boost::program_options::variables_map()<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
 
 	~<%= task.basename %>();
 

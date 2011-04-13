@@ -16,13 +16,13 @@ using namespace <%= component.name %>;
 
 <%= code_before.join("\n") %>
 
-<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
+<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name, const boost::program_options::variables_map& args<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
-    : ::<%= task.superclass.name %>(name)
+    : ::<%= task.superclass.name %>(name), _args(args)
 <% elsif task.needs_configuration? %>
-    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational)
+    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational), _args(args)
 <% else %>
-    : ::<%= task.superclass.name %>(name, state)
+    : ::<%= task.superclass.name %>(name, state), _args(args)
 <% end %>
     <%= task.self_base_members.
             sort_by { |m| [m.kind, m.name] }.
@@ -157,7 +157,14 @@ void <%= task.basename %>Base::exception()
     <% end %>
 
     <% if !task.servicediscovery_domain.nil? and hook_name == "start" %>
-    rock::communication::ServiceConfiguration service_conf(this->getName(), "<%= task.servicediscovery_domain %>");
+    std::string defaultdomain;
+
+    if(_args.count("sd-domain"))
+        defaultdomain = _args["sd-domain"].as<std::string>();
+    else
+        defaultdomain = "<%= task.servicediscovery_domain %>";
+
+    rock::communication::ServiceConfiguration service_conf(this->getName(), defaultdomain);
     service_conf.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(this));
     _service_discovery = new rock::communication::ServiceDiscovery();
     _service_discovery->start(service_conf);

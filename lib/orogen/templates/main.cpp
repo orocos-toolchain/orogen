@@ -1,5 +1,8 @@
 #include <rtt/os/main.h>
 
+#include <boost/program_options.hpp>
+#include <iostream>
+
 #include <rtt/typekit/RealTimeTypekit.hpp>
 <% deployer.rtt_transports.each do |transport_name| %>
 #include <rtt/transports/<%= transport_name %>/TransportPlugin.hpp>
@@ -47,6 +50,9 @@
 
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
+
+namespace po = boost::program_options;
+
 class Deinitializer
 {
     friend Deinitializer& operator << (Deinitializer&, RTT::base::ActivityInterface&);
@@ -79,6 +85,25 @@ void sigint_quit_orb(int)
 
 int ORO_main(int argc, char* argv[])
 {
+   po::options_description desc("Options");
+
+   desc.add_options()
+        ("help", "show all available options supported by this deployment")
+   <% if needs_service_discovery_support? %>
+        ("sd-domain", po::value<std::string>(), "set service discovery domain")
+   <% end %>
+   ;
+
+   po::variables_map vm;
+   po::store(po::parse_command_line(argc, argv, desc), vm);
+   po::notify(vm);
+
+   if(vm.count("help")) {
+       std::cout << desc << std::endl;
+       return 0;
+   }
+
+
    <% if deployer.loglevel %>
    if ( log().getLogLevel() < Logger::<%= deployer.loglevel %> ) {
        log().setLogLevel( Logger::<%= deployer.loglevel %> );
@@ -112,7 +137,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
+    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>", vm);
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
