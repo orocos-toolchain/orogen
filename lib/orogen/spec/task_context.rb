@@ -205,7 +205,13 @@ module Orocos
 
                 @fixed_initial_state = false
                 @needs_configuration = false
+
                 @servicediscovery_domain = nil
+                
+                if project.has_library?("service-discovery")
+                    activate_service_discovery("_domain.tcp")
+                end
+                
                 super if defined? super
 	    end
 
