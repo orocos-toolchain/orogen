@@ -16,13 +16,13 @@ using namespace <%= component.name %>;
 
 <%= code_before.join("\n") %>
 
-<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name, const boost::program_options::variables_map& args<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
+<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
     : ::<%= task.superclass.name %>(name), _args(args)
 <% elsif task.needs_configuration? %>
-    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational), _args(args)
+    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational)
 <% else %>
-    : ::<%= task.superclass.name %>(name, state), _args(args)
+    : ::<%= task.superclass.name %>(name, state)
 <% end %>
     <%= task.self_base_members.
             sort_by { |m| [m.kind, m.name] }.

@@ -143,7 +143,8 @@ int ORO_main(int argc, char* argv[])
         prefix = vm["prefix"].as<std::string>();
 
 <% task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>", vm);
+    <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>");
+    task_<%= task.name%>.setArguments(vm);
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|

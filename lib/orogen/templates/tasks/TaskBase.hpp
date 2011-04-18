@@ -76,10 +76,12 @@ namespace <%= component.name %> {
         };
         <% end %>
         
-	<%= task.basename %>Base(std::string const& name, const boost::program_options::variables_map& args<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
+	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
         ~<%= task.basename %>Base();
 
         bool start();
+
+        void setArguments(const boost::program_options::variables_map& args) { _args = args; }
 
         <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
         // Reimplement TaskCore base methods to export the states to the outside

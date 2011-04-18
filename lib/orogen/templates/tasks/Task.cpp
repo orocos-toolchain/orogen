@@ -4,8 +4,8 @@
 
 using namespace <%= task.component.name %>;
 
-<%= task.basename %>::<%= task.basename %>(std::string const& name, const boost::program_options::variables_map& args<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
-    : <%= task.basename %>Base(name, args<%= ", initial_state" unless task.fixed_initial_state? %>)
+<%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
+    : <%= task.basename %>Base(name<%= ", initial_state" unless task.fixed_initial_state? %>)
 {
 }
 
