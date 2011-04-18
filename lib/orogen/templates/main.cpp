@@ -89,6 +89,7 @@ int ORO_main(int argc, char* argv[])
 
    desc.add_options()
         ("help", "show all available options supported by this deployment")
+        ("prefix", po::value<std::string>(), "Sets a prefix for all TaskContext names")
    <% if needs_service_discovery_support? %>
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
    <% end %>
@@ -136,8 +137,13 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::ApplicationServer::InitOrb(argc, argv);
 <% end %>
 
+    std::string prefix = "";
+
+    if( vm.count("prefix")) 
+        prefix = vm["prefix"].as<std::string>();
+
 <% task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>", vm);
+    <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>", vm);
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
