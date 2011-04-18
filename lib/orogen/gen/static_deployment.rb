@@ -291,7 +291,8 @@ module Orocos
     #{rtt_scheduler},
     #{rtt_priority},
     #{period},
-    task_#{name}.engine());
+    task_#{name}.engine(),
+    "#{name}");
 RTT::os::Thread* thread_#{name} =
     dynamic_cast<RTT::os::Thread*>(activity_#{name}->thread());
 thread_#{name}->setMaxOverrun(#{max_overruns});
@@ -311,7 +312,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
     #{rtt_scheduler},
     #{rtt_priority},
     0,
-    task_#{name}.engine());
+    task_#{name}.engine(),
+    "#{name}");
                    EOD
                 end
                 @period = 0
@@ -344,7 +346,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
             #{rtt_scheduler},
             #{rtt_priority},
-            task_#{name}.engine());
+            task_#{name}.engine(),
+            "#{name}");
                     EOD
                 end
             end
