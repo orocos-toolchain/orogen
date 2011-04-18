@@ -2,7 +2,7 @@
 
 #include "tasks/<%= task.basename %>Base.hpp"
 
-<% if !task.servicediscovery_domain.nil? %>
+<% if !task.servicediscovery.nil? %>
 #include <rtt/transports/corba/TaskContextServer.hpp>
 <% end %>
 
@@ -156,19 +156,17 @@ void <%= task.basename %>Base::exception()
         return false;
     <% end %>
 
-    <% if !task.servicediscovery_domain.nil? and hook_name == "start" %>
-    std::string defaultdomain;
+    <% if !task.servicediscovery.nil? and hook_name == "start" %>
 
-    if(_args.count("sd-domain"))
-        defaultdomain = _args["sd-domain"].as<std::string>();
-    else
-        defaultdomain = "<%= task.servicediscovery_domain %>";
+    if(_args.count("sd-domain")) {
+        std::string domain = _args["sd-domain"].as<std::string>();
+        servicediscovery::ServiceConfiguration service_conf(this->getName(), domain);
+        service_conf.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(this));
+        _service_discovery = new servicediscovery::ServiceDiscovery();
+        _service_discovery->start(service_conf);
+    }
 
-    rock::communication::ServiceConfiguration service_conf(this->getName(), defaultdomain);
-    service_conf.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(this));
-    _service_discovery = new rock::communication::ServiceDiscovery();
-    _service_discovery->start(service_conf);
-    <% end %>
+   <% end %>
 
     <% snippets.each do |code| %>
         <% if code.respond_to?(:to_str) %>

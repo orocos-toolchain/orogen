@@ -57,7 +57,7 @@ module Orocos
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
             # servicde discovery support
-            attr_reader :servicediscovery_domain
+            attr_reader :servicediscovery
 
             # Call to declare that this task model is not meant to run in
             # practice
@@ -206,10 +206,11 @@ module Orocos
                 @fixed_initial_state = false
                 @needs_configuration = false
 
-                @servicediscovery_domain = nil
-                
-                if project.has_library?("service-discovery")
-                    activate_service_discovery("_domain.tcp")
+                @servicediscovery = nil
+
+                if project.has_library?("service_discovery")
+                    project.using_library("service_discovery")
+                    @servicediscovery = true
                 end
                 
                 super if defined? super
@@ -591,24 +592,7 @@ module Orocos
 		@operations[name] = Operation.new(self, name)
 	    end
 
-            # Activate service discovery support provided by dfki.communication
-            #
-            # Verifies automatically that service discovery library is installed
-            # on the system and inform template generation mechanism to 
-            # add all specific service discovery code (option parsing, instances
-            # to this orogen module.
-            def activate_service_discovery(default_domain)
-                puts "Service Discovery for task '#{@name}' activated"
-                
-                project.using_library "service-discovery"
-                
-                if default_domain.nil? or default_domain.empty?
-                   raise ArgumentError, "default domain must be configured. No empty string is allowed" 
-                end
-
-                @servicediscovery_domain = default_domain
-            end
-
+           
             # Defines an operation whose implementation is in the Base class
             # (i.e. "hidden" from the user)
             def hidden_operation(name, body)

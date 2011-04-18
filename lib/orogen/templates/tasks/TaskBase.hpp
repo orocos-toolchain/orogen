@@ -16,8 +16,8 @@
 #include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
 <% end %>
 
-<% if !task.servicediscovery_domain.nil? %>
-#include <service-discovery/ServiceDiscovery.h>
+<% if !task.servicediscovery.nil? %>
+#include <service_discovery/service_discovery.h>
 <% end %>
 
 <% task.used_typekits.each do |tk| %>
@@ -52,8 +52,8 @@ namespace <%= component.name %> {
     {
     protected:
         boost::program_options::variables_map _args;
-<% if !task.servicediscovery_domain.nil? %>
-        rock::communication::ServiceDiscovery* _service_discovery;
+<% if !task.servicediscovery.nil? %>
+        servicediscovery::ServiceDiscovery* _service_discovery;
 <% end %>
 
 <%= task.self_base_methods.
