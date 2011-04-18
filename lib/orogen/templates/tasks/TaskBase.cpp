@@ -18,7 +18,7 @@ using namespace <%= component.name %>;
 
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
-    : ::<%= task.superclass.name %>(name), _args(args)
+    : ::<%= task.superclass.name %>(name)
 <% elsif task.needs_configuration? %>
     : ::<%= task.superclass.name %>(name, TaskCore::PreOperational)
 <% else %>
