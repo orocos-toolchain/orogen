@@ -176,11 +176,15 @@ module Orocos
 		# This type is mapped into the root namespace
 		"orogen::Corba::#{typedef_name}_"
 	    else
-	    	"#{deference.corba_namespace}::#{typedef_name}_"
+	    	"#{corba_namespace}::#{typedef_name}_"
 	    end
         end
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end
+
+        def corba_namespace
+            deference.corba_namespace
+        end
 
         def to_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
