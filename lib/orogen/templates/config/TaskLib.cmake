@@ -35,10 +35,6 @@ list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES
     <%= component.name %>-typekit-${OROCOS_TARGET})
 <% end %>
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(${Boost_INCLUDE_DIRS})
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${Boost_LIBRARIES})
-
 <%= dependencies = component.tasklib_dependencies
     Generation.cmake_pkgconfig_require(dependencies) %>
 <% dependencies.each do |dep_def|

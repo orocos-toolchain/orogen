@@ -56,8 +56,6 @@ module Orocos
             attr_reader :implemented_classes
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
-            # servicde discovery support
-            attr_reader :servicediscovery
 
             # Call to declare that this task model is not meant to run in
             # practice
@@ -206,13 +204,6 @@ module Orocos
                 @fixed_initial_state = false
                 @needs_configuration = false
 
-                @servicediscovery = nil
-
-                if project.has_library?("service_discovery")
-                    project.using_library("service_discovery")
-                    @servicediscovery = true
-                end
-                
                 super if defined? super
 	    end
 
@@ -592,7 +583,6 @@ module Orocos
 		@operations[name] = Operation.new(self, name)
 	    end
 
-           
             # Defines an operation whose implementation is in the Base class
             # (i.e. "hidden" from the user)
             def hidden_operation(name, body)

@@ -557,16 +557,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 task_activities << deployment
                 deployment
             end
-            
-            
-            # True if this deployment contains a task that needs service discovery support
-            def needs_service_discovery_support?
-                task_activities.each do |deploy|
-                    return true if !deploy.task_model.servicediscovery.nil? 
-                end
-
-                return false
-            end
 
             # True if this deployment should export its tasks through CORBA.
             #

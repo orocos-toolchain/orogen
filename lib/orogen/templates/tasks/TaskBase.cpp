@@ -2,14 +2,10 @@
 
 #include "tasks/<%= task.basename %>Base.hpp"
 
-<% if !task.servicediscovery.nil? %>
-#include <rtt/transports/corba/TaskContextServer.hpp>
-<% end %>
-
 using namespace <%= component.name %>;
 
 <% code_before, code_after =
-    task.base_implementation_code.partition(&:first)
+   task.base_implementation_code.partition(&:first)
    code_before.map! { |_, c| c.call }
    code_after.map! { |_, c| c.call }
 %>
@@ -155,18 +151,6 @@ void <%= task.basename %>Base::exception()
     if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
         return false;
     <% end %>
-
-    <% if !task.servicediscovery.nil? and hook_name == "start" %>
-
-    if(_args.count("sd-domain")) {
-        std::string domain = _args["sd-domain"].as<std::string>();
-        servicediscovery::ServiceConfiguration service_conf(this->getName(), domain);
-        service_conf.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(this));
-        _service_discovery = new servicediscovery::ServiceDiscovery();
-        _service_discovery->start(service_conf);
-    }
-
-   <% end %>
 
     <% snippets.each do |code| %>
         <% if code.respond_to?(:to_str) %>

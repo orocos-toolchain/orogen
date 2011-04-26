@@ -5,8 +5,6 @@
 
 #include <string>
 #include <boost/cstdint.hpp>
-#include <boost/program_options/variables_map.hpp>
-
 #include <<%= task.superclass.header_file %>>
 <% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
 <% unless task.self_ports.empty? %>#include <rtt/Port.hpp><% end %>
@@ -16,9 +14,6 @@
 #include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
 <% end %>
 
-<% if !task.servicediscovery.nil? %>
-#include <service_discovery/service_discovery.h>
-<% end %>
 
 <% task.used_typekits.each do |tk| %>
   <% next if tk.virtual? %>
@@ -51,10 +46,6 @@ namespace <%= component.name %> {
         <% end %>
     {
     protected:
-        boost::program_options::variables_map _args;
-<% if !task.servicediscovery.nil? %>
-        servicediscovery::ServiceDiscovery* _service_discovery;
-<% end %>
 
 <%= task.self_base_methods.
     sort_by(&:name).
@@ -80,8 +71,6 @@ namespace <%= component.name %> {
         ~<%= task.basename %>Base();
 
         bool start();
-
-        void setArguments(const boost::program_options::variables_map& args) { _args = args; }
 
         <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
         // Reimplement TaskCore base methods to export the states to the outside

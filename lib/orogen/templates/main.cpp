@@ -3,6 +3,10 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+#include <service_discovery/service_discovery.h>
+#endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
+
 #include <rtt/typekit/RealTimeTypekit.hpp>
 <% deployer.rtt_transports.each do |transport_name| %>
 #include <rtt/transports/<%= transport_name %>/TransportPlugin.hpp>
@@ -90,9 +94,9 @@ int ORO_main(int argc, char* argv[])
    desc.add_options()
         ("help", "show all available options supported by this deployment")
         ("prefix", po::value<std::string>(), "Sets a prefix for all TaskContext names")
-   <% if needs_service_discovery_support? %>
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
-   <% end %>
+#endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
    ;
 
    po::variables_map vm;
@@ -144,7 +148,6 @@ int ORO_main(int argc, char* argv[])
 
 <% task_activities.each do |task| %>
     <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>");
-    task_<%= task.name%>.setArguments(vm);
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
@@ -159,6 +162,17 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::TaskContextServer::Create( &task_<%= task.name%> );
     <% end %>
 <% end %>
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+    if( vm.count("sd-domain") ) {
+<% task_activities.each do |task| %>
+    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>("<%= task.name %>", vm["sd-domain"].as<std::string>());
+    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
+    servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
+<% end %>
+    }
+#endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 
 <% if !deployer.loggers.empty?
         deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
