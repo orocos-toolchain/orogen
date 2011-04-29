@@ -1,10 +1,11 @@
 # Generated from orogen/lib/orogen/templates/typekit/mqueue/CMakeLists.txt
 
-find_package(Orocos-RTT)
+# OrocosRTT_PREFIX has been set by the pkg-config find modules:
+find_package(Orocos-RTT REQUIRED rtt-transport-mqueue HINTS ${OrocosRTT_PREFIX}/lib/cmake/orocos-rtt)
 
 # Set up generation of IDL files for MQueue support
 IF (NOT OROCOS-RTT_MQUEUE_FOUND)
-    MESSAGE(FATAL_ERROR "could not find development files for Orocos/MQueue")
+    MESSAGE(FATAL_ERROR "could not find development files for Orocos/MQueue. Please compile the RTT with MQueue support.")
 ENDIF(NOT OROCOS-RTT_MQUEUE_FOUND)
 
 set(MQueue_FILES "")
