@@ -15,46 +15,61 @@
 <% end %>
 
 <% needed_types.each do |type|
+    target_typename = typekit.intermediate_type_name_for(type)
     current_def = begin
-                      registry.get("#{type.full_name}_m")
+                      typekit.find_type(target_typename)
                   rescue Typelib::NotFound
                   end
 
     if !generate_all_marshalling_types && current_def
-        # Check that the current definition matches what we want
-        if !(current_def < Typelib::CompoundType) || current_def.fields.size != type.fields.size
-            raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
-        else
-            type_fields    = type.fields.dup
-            current_fields = current_def.fields.dup
+        expected_type = type
+        while current_def.respond_to?(:deference)
+            current_def = current_def.deference
+            if !expected_type.respond_to?(:deference)
+                raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+            end
+            expected_type = expected_type.deference
+        end
 
-            while !type_fields.empty?
-                expected = type_fields.first
-                current  = current_fields.first
+        if current_def < Typelib::CompoundType
+            if expected_type.opaque?
+                # nothing to do
+            elsif !(expected_type < Typelib::CompoundType)
+                raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+            elsif current_def.fields.size != expected_type.fields.size
+                raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+            else
+                type_fields    = expected_type.fields.dup
+                current_fields = current_def.fields.dup
 
-                if expected[0] != current[0] ||
-                    !expected[1].opaque? && expected[1] != current[1]
-                    raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
-                elsif expected[1].opaque?
-                    if typekit.intermediate_type_for(field_type) != current[1]
-                        raise "#{type.full_name}_m is already defined, but does not match the expected definition. Did you define it yourself ?"
+                while !type_fields.empty?
+                    expected = type_fields.first
+                    current  = current_fields.first
+
+                    if expected[0] != current[0] ||
+                        !expected[1].opaque? && expected[1] != current[1]
+                        raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                    elsif expected[1].opaque?
+                        if typekit.intermediate_type_for(expected[1]) != current[1]
+                            raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                        end
                     end
-                end
 
-                type_fields.pop
-                current_fields.pop
+                    type_fields.pop
+                    current_fields.pop
+                end
             end
         end
         next
     end %>
 
-    <%=
-    code = Generation.adapt_namespace('/', type.namespace)
-    namespace = type.namespace
-    did_something = true
-    code %>
-    <%= type.to_m_type(typekit) %>
-    <%= Generation.adapt_namespace(namespace, '/') %>
+    <% target_namespace = Typelib.namespace(target_typename)
+       target_basename  = Typelib.basename(target_typename)
+        target_basename.gsub!('/', '::')
+    did_something = true %>
+    <%= Generation.adapt_namespace('/', target_namespace) %>
+    <%= type.to_m_type(target_basename, typekit) %>
+    <%= Generation.adapt_namespace(target_namespace, '/') %>
 <% end %>
 
 <% if !did_something

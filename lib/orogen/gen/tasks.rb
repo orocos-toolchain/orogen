@@ -64,8 +64,9 @@ module Orocos
                 constructor = []
                 constructor << "ports()->#{add}(_#{name})"
                 if doc
-                    constructor << ".doc(\"#{doc}\")"
+                    constructor << "  .doc(\"#{doc}\")"
                 end
+                constructor.last << ';'
 
                 kind =
                     case self
@@ -76,7 +77,7 @@ module Orocos
                 task.add_base_member(kind, "_#{name}",
                     "#{orocos_class}< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\")").
-                    constructor(constructor.join("\n") + ";")
+                    constructor(constructor.join("\n"))
             end
         end
 
@@ -86,6 +87,16 @@ module Orocos
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::OutputPort" end
+
+            def register_for_generation
+                super
+
+                setup = []
+                setup << "_#{name}.keepLastWrittenValue(false);"
+                setup << "_#{name}.keepNextWrittenValue(true);"
+                task.add_base_construction("output_port", "_#{name}",
+                        setup.join("\n"))
+            end
         end
 
         # Module that is used to add code generation functionality to
@@ -94,6 +105,13 @@ module Orocos
             # Returns the name of the Orocos class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::InputPort" end
+
+            def register_for_generation
+                super
+                if !@do_not_clean
+                    task.in_base_hook('start', "_#{name}.clear();")
+                end
+            end
         end
 
         # Module that is used to add code generation functionality to
@@ -436,6 +454,11 @@ module Orocos
                         returns("std::string").
                         doc("returns the oroGen model name for this task").
                         runs_in_caller_thread
+
+                    add_base_implementation_code("#ifdef HAS_GETTID\n#include <sys/syscall.h>\n#endif")
+                    hidden_operation("__orogen_getTID", "    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
+                        returns("int").
+                        doc("returns the PID for this task")
                 else
                     add_base_method("std::string", "getModelName", "").
                         body("    return \"#{name}\";")
@@ -537,7 +560,7 @@ module Orocos
             end
 
             # Add some code that needs to be added to the toplevel scope in
-            # TaskBase.hpp
+            # TaskBase.cpp
             def add_base_implementation_code(string, include_before = true, &block)
                 code = TaskContextGeneration.validate_code_object(string, block)
                 @base_implementation_code << [include_before, code]

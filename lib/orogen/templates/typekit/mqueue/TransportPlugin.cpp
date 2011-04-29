@@ -8,14 +8,52 @@
 #include <rtt/types/TypekitPlugin.hpp>
 using namespace RTT;
 
+#include "transports/typelib/TransportPlugin.hpp"
+#include <typelib/pluginmanager.hh>
+#include <typelib/registry.hh>
+#include <rtt/Logger.hpp>
+
+orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::<%= typekit.name %>MQueueTransportPlugin()
+    : m_registry(0)
+{
+    std::string path = <%= typekit.name %>TypelibTransportPlugin::getTlbPath();
+    try
+    {
+        m_registry = Typelib::PluginManager::load("tlb", path);
+    }
+    catch(std::exception const& e) {
+        log(Error) << "cannot load the typekit's Typelib registry from" << endlog();
+        log(Error) << "  " << path << endlog();
+#ifndef HAS_ROSLIB
+        log(Error) << "remember to do 'make install' before you use the oroGen-generated libraries ?" << endlog();
+#endif
+        log(Error) << endlog();
+        log(Error) << "the MQueue transport will not be available for types defined in this typekit" << endlog();
+    }
+}
+
+orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::~<%= typekit.name %>MQueueTransportPlugin()
+{
+    delete m_registry;
+}
+
 bool orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
 {
+    if (!m_registry)
+        return false;
+
     <% first_type = true;
-       mqueue_registered_types.each do |type| %>
-    <%= 'else ' unless first_type %>if ("<%= type.name %>" == type_name)
+       typesets.interface_types.each do |type|
+           names = [type.name]
+           if aliases = typesets.aliases[type]
+               names.concat(aliases)
+           end
+           if_cond = names.map { |n| "\"#{n}\" == type_name" }.join(" || ")
+        %>
+    <%= 'else ' unless first_type %>if (<%= if_cond %>)
     {
         ti->addProtocol(ORO_MQUEUE_PROTOCOL_ID,
-            <%= type.method_name %>_MQueueTransport());
+            <%= type.method_name %>_MQueueTransport(*m_registry));
         return true;
     }
     <% first_type = false

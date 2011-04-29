@@ -10,7 +10,7 @@ DEFAULT_TRANSPORTS = %w{corba typelib}
 
 verbosity = 0
 extended_states = true
-component = Orocos::Generation::Component.new
+component = Orocos::Generation::Project.new
 
 transports = []
 no_transports = false
@@ -83,7 +83,12 @@ parser = OptionParser.new do |opt|
 end
 
 original_options = ARGV.dup
-files = parser.parse! ARGV
+begin
+    files = parser.parse(ARGV)
+rescue OptionParser::ParseError => e
+    puts e.message
+    exit(1)
+end
 if !no_transports && transports.empty?
     transports = DEFAULT_TRANSPORTS.dup.to_set
 end

@@ -32,13 +32,6 @@ module Orocos
                     end
                     impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "typelib")
 
-                    code = Generation.render_template "typekit", "typelib", "TypelibMarshallerBase.hpp", binding
-                    headers << typekit.save_automatic("transports", "typelib", "TypelibMarshallerBase.hpp", code)
-                    code = Generation.render_template "typekit", "typelib", "TypelibMarshallerBase.cpp", binding
-                    impl << typekit.save_automatic("transports", "typelib", "TypelibMarshallerBase.cpp", code)
-                    code = Generation.render_template "typekit", "typelib", "TypelibMarshaller.hpp", binding
-                    headers << typekit.save_automatic("transports", "typelib", "TypelibMarshaller.hpp", code)
-
                     code = Generation.render_template "typekit", "typelib", "Registration.hpp", binding
                     headers << typekit.save_automatic("transports", "typelib", "Registration.hpp", code)
                     code = Generation.render_template "typekit", "typelib", "TransportPlugin.hpp", binding

@@ -1,4 +1,4 @@
-#! /usr/bin/ruby
+#! /usr/bin/env ruby
 require 'orogen'
 require 'optparse'
 require 'pathname'
@@ -9,7 +9,7 @@ Typelib.load_type_plugins = false
 DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
 
 typekit = Orocos::Generation::Typekit.new
-typekit_loader = Orocos::Generation::Component.new
+typekit_loader = Orocos::Generation::Project.new
 
 transports = DEFAULT_TRANSPORTS.dup.to_set
 
@@ -62,7 +62,13 @@ this installation of typegen knows the following transports: #{available_transpo
 end
 
 original_options = ARGV.dup
-remaining = parser.parse(ARGV)
+begin
+    remaining = parser.parse(ARGV)
+rescue OptionParser::ParseError => e
+    puts e.message
+    exit(1)
+end
+
 if remaining.size < 2
     puts parser
     exit(1)

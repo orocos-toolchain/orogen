@@ -33,6 +33,15 @@ module Orocos
 
         def generate(typekit, typesets)
             headers, impl = [], []
+
+            idl_registry = typesets.minimal_registry.dup
+            opaques = idl_registry.each.find_all do |t|
+                t.contains_opaques?
+            end
+            opaques.each do |t|
+                idl_registry.remove(t)
+            end
+            idl_registry.clear_aliases
             
             idl = Orocos::Generation.render_template "typekit", "corba", "Types.idl", binding
             idl_file = typekit.save_automatic("transports", "corba",
@@ -61,6 +70,13 @@ module Orocos
 
             code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
             typekit.save_automatic("transports", "corba", "Registration.hpp", code)
+
+            impl = impl.map do |path|
+                typekit.cmake_relative_path(path, "transports", "corba")
+            end
+            headers = headers.map do |path|
+                typekit.cmake_relative_path(path, "transports", "corba")
+            end
 
             pkg_config = Generation.render_template "typekit", "corba", "transport-corba.pc", binding
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
@@ -160,11 +176,15 @@ module Orocos
 		# This type is mapped into the root namespace
 		"orogen::Corba::#{typedef_name}_"
 	    else
-	    	"#{deference.corba_namespace}::#{typedef_name}_"
+	    	"#{corba_namespace}::#{typedef_name}_"
 	    end
         end
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end
+
+        def corba_namespace
+            deference.corba_namespace
+        end
 
         def to_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name

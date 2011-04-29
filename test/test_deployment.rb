@@ -75,7 +75,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         context.default_activity :periodic, 0.1
         deployment = component.deployment "test"
         task       = deployment.task "my_name", "task"
-        assert_equal("Activity", task.activity_type.name)
+        assert_equal("RTT::Activity", task.activity_type.class_name)
         assert_equal(0.1, task.period)
     end
     def test_can_change_default_activity
@@ -86,7 +86,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         deployment = component.deployment "test"
         task       = deployment.task "my_name", "task"
         task.triggered
-        assert_equal("Activity", task.activity_type.name)
+        assert_equal("RTT::Activity", task.activity_type.class_name)
         assert_equal(0, task.period)
     end
     def test_cannot_change_required_activity

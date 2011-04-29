@@ -2,6 +2,10 @@
 
 find_package(Orocos-RTT)
 
+pkg_check_modules(RTT_Typelib REQUIRED rtt-typelib)
+include_directories(${RTT_Typelib_INCLUDE_DIRS})
+link_directories(${RTT_Typelib_LIBRARY_DIRS})
+
 # Set up generation of IDL files for MQueue support
 IF (NOT OROCOS-RTT_MQUEUE_FOUND)
     MESSAGE(FATAL_ERROR "could not find development files for Orocos/MQueue")
@@ -16,7 +20,9 @@ add_library(${libname_mqueue} SHARED
     ${MQueue_FILES})
 target_link_libraries(${libname_mqueue}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
-    ${OROCOS-RTT_MQUEUE_LIBRARIES})
+    <%= typekit.name %>-transport-typelib-${OROCOS_TARGET}
+    ${OROCOS-RTT_MQUEUE_LIBRARIES}
+    ${RTT_Typelib_LIBRARIES})
 
 <%= typekit_deps = typekit.plugin('mqueue').dependencies(typekit);
     Generation.cmake_pkgconfig_link('mqueue', '${libname_mqueue}', typekit_deps) %>

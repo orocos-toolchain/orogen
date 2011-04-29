@@ -9,10 +9,17 @@ require 'nokogiri'
 module Typelib
     class Type
         def self.normalize_typename(name)
+            "/" + Typelib.split_typename(name).map do |part|
+                normalize_typename_part(part)
+            end.join("/")
+        end
+
+        def self.normalize_typename_part(name)
             # Remove all trailing array modifiers first
             if name =~ /(.*)(\[\d+\]+)$/
                 name, array_modifiers = $1, $2
             end
+
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
             template_arguments.map! do |arg|
                 arg =
@@ -30,13 +37,35 @@ module Typelib
         end
 
         def self.normalize_cxxname(name)
+            if name =~ /::/
+                raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
+            end
+
+            if name =~ /(.*)((?:\[\d+\])+)$/
+                name = $1
+                suffix = $2
+            else
+                suffix = ''
+            end
+
+            converted = Typelib.split_typename(name).map do |p|
+                normalize_cxxname_part(p)
+            end
+            if converted.size == 1
+                "#{converted.first}#{suffix}"
+            else
+                "::" + converted.join("::") + suffix
+            end
+        end
+
+        def self.normalize_cxxname_part(name)
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
 
-            if name =~ /^::(\w+)$/
+            name = name.gsub('/', '::')
+            if name =~ /^::(.*)/
                 name = $1
-            elsif name =~ /::/ && name !~ /^::/
-                name = "::#{name}"
             end
+
             if !template_arguments.empty?
                 template_arguments.map! do |arg|
                     if arg !~ /^\d+$/
@@ -50,11 +79,11 @@ module Typelib
             end
         end
 
-        def self.cxx_name(fullname = true)
-            normalize_cxxname(full_name('::', fullname))
+        def self.cxx_name
+            normalize_cxxname(name)
         end
         def self.cxx_basename
-            normalize_cxxname(basename('::'))
+            normalize_cxxname(basename)
         end
         def self.cxx_namespace
             namespace('::')
@@ -90,6 +119,10 @@ module Typelib
         end
 
         def self.inlines_code?; false end
+
+        def self.code_assign(result, indent, dest, src)
+            result << "#{indent}#{dest} = #{src};\n"
+        end
     end
 
     class NumericType
@@ -117,25 +150,22 @@ module Typelib
     end
 
     class ContainerType
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             target_cxxname = typekit.intermediate_cxxname_for(deference)
             "struct __gccxml_workaround_#{method_name(true)} {\n  #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > instanciate;\n};\n"  +
             "typedef #{container_cxx_kind}< #{target_cxxname[0]}#{target_cxxname[1]} > orogen_typekits_mtype_#{method_name(true)};"
         end
 
         def self.container_cxx_kind
-            container_kind.
-                gsub('/', '::').
-                gsub(/^::/, '')
+            normalize_cxxname(container_kind)
         end
 
 
         def self.cxx_name
-            kind = container_cxx_kind
             if name =~ /</
-                normalize_cxxname(kind + "< " + deference.cxx_name + " >")
+                normalize_cxxname(container_kind) + "< " + deference.cxx_name + " >"
             else
-                normalize_cxxname(kind)
+                normalize_cxxname(container_kind)
             end
         end
 
@@ -201,15 +231,17 @@ module Typelib
     end
 
     class CompoundType
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             result = <<-EOCODE
-struct #{basename}_m
+struct #{target_basename}
 {
             EOCODE
             each_field do |field_name, field_type|
                 field_cxxname =
                     if field_type.contains_opaques?
                         typekit.intermediate_cxxname_for(field_type.name)
+                    elsif field_type <= ArrayType
+                        [field_type.deference.cxx_name, "[#{field_type.length}]"]
                     else
                         [field_type.cxx_name]
                     end
@@ -249,12 +281,16 @@ struct #{basename}_m
 
         def self.to_intermediate(typekit, result, indent)
             code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate", false) do |field_name, field_type|
-                !field_type.contains_opaques?
+                if !field_type.contains_opaques?
+                    field_type.code_assign([], indent + "    ", "intermediate.#{field_name}", "value.#{field_name}").join
+                end
             end
         end
         def self.from_intermediate(typekit, result, indent)
             code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate", false) do |field_name, field_type|
-                !field_type.contains_opaques?
+                if !field_type.contains_opaques?
+                    field_type.code_assign([], indent + "    ", "value.#{field_name}", "intermediate.#{field_name}").join
+                end
             end
         end
     end
@@ -263,9 +299,21 @@ struct #{basename}_m
         def self.arg_type; "#{deference.cxx_name} const*" end
         def self.ref_type; "#{deference.cxx_name}*" end
 
-        def self.to_m_type(typekit)
+        def self.to_m_type(target_basename, typekit)
             deference_name = typekit.intermediate_cxxname_for(deference)
-            "typedef #{deference_name[0]} orogen_typekits_mtype_#{method_name(true)}#{deference_name[1]};"
+            "typedef #{deference_name[0]} orogen_typekits_mtype_#{target_basename}#{deference_name[1]};"
+        end
+
+        def self.code_assign(result, indent, dest, src)
+            element_type = deference
+            allocate_index do |i|
+                result << <<-EOT
+#{indent}for(int #{i} = 0; #{i} < #{length}; ++#{i})
+#{indent}{
+                EOT
+                deference.code_assign(result, "#{indent}  ", "#{dest}[#{i}]", "#{src}[#{i}]")
+                result << "#{indent}}"
+            end
         end
 
         def self.code_copy(typekit, result, indent, dest, src, method)
@@ -277,7 +325,7 @@ struct #{basename}_m
 #{indent}{
                 EOT
 
-                if string = yield(element_type, "#{dest}[#{i}]", "#{src}[#{i}]")
+                if string = yield(element_type, indent, "#{dest}[#{i}]", "#{src}[#{i}]")
                     if !string.respond_to?(:to_str)
                         result << "#{indent}  #{dest}[#{i}] = #{src}[#{i}];\n"
                     else
@@ -303,14 +351,18 @@ struct #{basename}_m
         end
 
         def self.to_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate") do |type, _|
-                !type.contains_opaques?
+            code_copy(typekit, result, indent, "intermediate", "value", "toIntermediate") do |type, indent, dest, src|
+                if !type.contains_opaques?
+                    type.code_assign([], indent, dest, src).join
+                end
             end
         end
 
         def self.from_intermediate(typekit, result, indent)
-            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate") do |type, _|
-                !type.contains_opaques?
+            code_copy(typekit, result, indent, "value", "intermediate", "fromIntermediate") do |type, indent, dest, src|
+                if !type.contains_opaques?
+                    type.code_assign([], indent, dest, src).join
+                end
             end
         end
     end
@@ -369,23 +421,36 @@ module Orocos
                 type = find_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-                opaques.find { |opaque_def| opaque_def.type == type }
+                if result = opaques.find { |opaque_def| opaque_def.type == type }
+		    result
+		else
+		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
+		end
+            end
+
+            def intermediate_type_name_for(type_def)
+                type = find_type(type_def)
+                if type.opaque?
+                    opaque_specification(type_def).intermediate
+                elsif type.contains_opaques?
+                    if type < Typelib::ArrayType
+                        "#{intermediate_type_name_for(type.deference)}[#{type.length}]"
+                    elsif type < Typelib::ContainerType
+                        "#{type.container_kind}<#{intermediate_type_name_for(type.deference)}>"
+                    else
+                        path = Typelib.split_typename(type.name)
+                        path.map! do |p|
+                            p.gsub(/[<>\[\], \/]/, '_')
+                        end
+                        path.join("/") + "_m"
+                    end
+                else type.name
+                end
             end
 
             def intermediate_type_for(type_def)
-                type = find_type(type_def)
-                if type.opaque?
-                    find_type(opaque_specification(type_def).intermediate)
-                elsif type.contains_opaques?
-                    if type < Typelib::ArrayType
-                        find_type("#{intermediate_type_for(type.deference).name}[#{type.length}]")
-                    elsif type < Typelib::ContainerType
-                        find_type("#{type.container_kind}<#{intermediate_type_for(type.deference).name}>")
-                    else
-                        find_type("#{type.cxx_name}_m")
-                    end
-                else type
-                end
+                typename = intermediate_type_name_for(type_def)
+                return find_type(typename)
             end
 
             def intermediate_type?(type)
@@ -475,6 +540,7 @@ module Orocos
             attr_accessor :minimal_registry
             #
             attr_accessor :opaque_types
+            attr_accessor :aliases
         end
 
         # Support for typekit generation in oroGen
@@ -552,8 +618,6 @@ module Orocos
             # call-seq:
             #   type_export_policy new_policy => new_policy
             #   type_export_policy => current_policy
-            #
-            # EXPERIMENTAL
             #
             # Change or read the current type export policy. This policy drives
             # what types orogen will import in the RTT type system.
@@ -673,7 +737,7 @@ module Orocos
                                 project.registry.define_container(container_name,
                                                 project.find_type(element_type.name))
                             end
-                            registry.define_container(container_name, element_type)
+                            return registry.define_container(container_name, element_type)
 
                         elsif project && type = project.registry.build(type_name)
                             while type.respond_to?(:deference)
@@ -682,19 +746,18 @@ module Orocos
 
                             type_def = project.registry.minimal(type.name)
                             registry.merge(type_def)
-                            registry.build(type_name)
+                            return registry.build(type_name)
                         end
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
-                    if registry.include?(type.name)
-                        registry.get(type.name)
-                    else
+                    if !registry.include?(type.name)
                         type_def = type.registry.minimal(type.name)
                         registry.merge(type_def)
                         if project
                             project.registry.merge(type_def)
                         end
                     end
+                    return registry.get(type.name)
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
@@ -727,6 +790,7 @@ module Orocos
 		@project = project
 
                 @include_dirs = Set.new
+                @include_dirs << "/usr/include" << "/usr/local/include"
 
                 @plugins = []
                 plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
@@ -761,6 +825,19 @@ module Orocos
 
             # The set of code generation plugins
             attr_reader :plugins
+
+            def self.transport_plugin_name(transport_name, typekit_name)
+                plugins.each_value do |plg|
+                    if plg.name == transport_name
+                        if plg.respond_to?(:plugin_name)
+                            return plg.plugin_name(typekit_name)
+                        else
+                            return "orogen_typekits::#{typekit_name}#{transport_name.capitalize}TransportPlugin"
+                        end
+                    end
+                end
+                raise ArgumentError, "invalid transport name #{transport_name}"
+            end
 
             # Add a generation plugin to the generation stage
             def enable_plugin(name)
@@ -914,7 +991,7 @@ module Orocos
             # True if there are some opaques in this typekit. The result of this
             # method is only valid during generation. Don't use it in general.
             def has_opaques?
-                !self_opaques.empty? || m_types_code
+                self_types.any? { |t| t.contains_opaques? }
             end
 
             # True if some opaques require to generate templates
@@ -949,6 +1026,13 @@ module Orocos
 	    def load(file, add = true, user_options = Hash.new)
                 if !user_options.respond_to?(:to_hash) 
                     raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
+                end
+
+                if match = /(\w+)\/Types.hpp$/.match(file)
+                    project_name = match[1]
+                    if project.has_typekit?(project_name) || project.name == project_name
+                        raise ArgumentError, "cannot use a header called #{file} as it clashes with the Types.hpp header generated by orogen for the #{project_name} project"
+                    end
                 end
 
                 this_options = [add, user_options]
@@ -1105,11 +1189,25 @@ module Orocos
 		raise NotImplementedError
 	    end
 
-            def normalize_registry
+            BASE_TYPES = ['int', 'unsigned int', 'double', 'float', 'bool', 'char']
+            BASE_TYPES_RTT_NAMES = {
+                'unsigned int' => 'uint' }
+            BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib}
+
+            def normalize_registry(with_base_types = false)
                 base = self.registry
                 result = Typelib::Registry.new
                 self_types.each do |type|
                     result.merge(base.minimal(type.name))
+                end
+                if with_base_types
+                    standard_types = Typelib::Registry.new
+                    Typelib::Registry.add_standard_cxx_types(standard_types)
+                    base.merge(standard_types)
+
+                    BASE_TYPES.each do |typename|
+                        result.merge(base.minimal(typename))
+                    end
                 end
                 @registry = result
             end
@@ -1200,18 +1298,12 @@ module Orocos
 
             def intermediate_cxxname_for(type_def)
                 type = find_type(type_def)
-                if type.opaque?
-                    [find_type(opaque_specification(type_def).intermediate).cxx_name]
+                if type < Typelib::ArrayType
+                    prefix, suffix = intermediate_cxxname_for(type.deference)
+                    [prefix, "#{suffix}[#{type.length}]"]
                 else
-                    if type < Typelib::ArrayType
-                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
-                        [intermediate_cxxname[0], "#{intermediate_cxxname[1]}[#{type.length}]"]
-                    elsif type < Typelib::ContainerType
-                        intermediate_cxxname = intermediate_cxxname_for(type.deference)
-                        ["#{type.container_cxx_kind}< #{intermediate_cxxname[0]} >"]
-                    else
-                        ["#{type.cxx_name}_m"]
-                    end
+                    name = intermediate_type_name_for(type)
+                    [name.gsub('/', '::')]
                 end
             end
 
@@ -1264,6 +1356,10 @@ module Orocos
                         begin
                             self.perform_pending_loads
                         rescue Exception => e
+                            marshalling_code = marshalling_code.split("\n").
+                                each_with_index.map do |l, i|
+                                    "#{i} #{l}"
+                                end.join("\n")
                             raise InternalError, "cannot load the definition of opaque m-types: #{e.message}\nThe faulty code is\n\n#{marshalling_code}", e.backtrace
                         end
                     end
@@ -1374,12 +1470,7 @@ module Orocos
             end
 
             def transport_plugin_name(transport_name)
-                plg = plugin(transport_name)
-                if plg.respond_to?(:plugin_name)
-                    plg.plugin_name(self.name)
-                else
-                    "orogen_typekits::#{name}#{transport_name.capitalize}TransportPlugin"
-                end
+                self.class.transport_plugin_name(transport_name, self.name)
             end
 
             def render_typeinfo_snippets(code_snippets, *place)
@@ -1442,9 +1533,18 @@ module Orocos
 
                 if standalone?
                     fake_typekit_dir = File.join(automatic_dir, "typekit")
-                    FileUtils.rm fake_typekit_dir, { :force => true }
+                    FileUtils.rm_f fake_typekit_dir, { :force => true }
                     FileUtils.ln_sf automatic_dir, fake_typekit_dir
                 end
+
+                # Small hack to workaround the current structure w.r.t. our
+                # usage of the main RTT typekit
+                #
+                # We need to generate the typelib / mqueue transports (not
+                # CORBA) for the base types *if and only if* we are NOT
+                # standalone (we are using oroGen and not typegen) *and* the
+                # oroGen project does not import any other typekit
+                generate_transports_for_base_types = (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
 
                 # Load any queued file. This must be done before the call
                 # to local_headers below, as the new files will get
@@ -1463,9 +1563,10 @@ module Orocos
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-		minimal_registry = normalize_registry
+		minimal_registry = normalize_registry(generate_transports_for_base_types)
                 generated_types = self_types.to_value_set
 
+                self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
                 opaque_types = self_opaques.map { |opdef| opdef.type }
                 opaque_intermediates = self_opaques.map do |opdef|
                     find_type(opdef.intermediate)
@@ -1549,7 +1650,7 @@ module Orocos
                     typelist_txt << "#{typename} #{registered_typenames.include?(typename) ? '1' : '0'}"
                 end
                 save_automatic "#{name}.typelist",
-                    typelist_txt.join("\n")
+                    typelist_txt.sort.join("\n")
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
@@ -1560,13 +1661,14 @@ module Orocos
                     find_all { |t| !(t < Typelib::ArrayType) }
 
                 type_sets = TypeSets.new
-                type_sets.types            = generated_types
+                type_sets.types            = generated_types.sort_by { |t| t.name }
                 type_sets.converted_types  = converted_types
                 type_sets.array_types      = array_types
                 type_sets.registered_types = registered_types
                 type_sets.interface_types  = interface_types
                 type_sets.minimal_registry = minimal_registry
                 type_sets.opaque_types     = self_opaques
+                type_sets.aliases          = Hash.new
 
                 public_header_files, implementation_files = [], []
 
@@ -1575,6 +1677,8 @@ module Orocos
                 # installed in TYPEKIT_NAME/ directly instead of
                 # TYPEKIT_NAME/typekit
 		save_automatic("Types.hpp", type_header)
+                boost_serialization = Generation.render_template "typekit/BoostSerialization.hpp", binding
+                public_header_files << save_automatic("type_info", "BoostSerialization.hpp", boost_serialization)
                 tk_hpp = Generation.render_template "typekit/Plugin.hpp", binding
 		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding
@@ -1602,8 +1706,25 @@ module Orocos
                     end
                 end
 
+                if generate_transports_for_base_types
+                    base_type_aliases = Hash.new
+                    base_types = BASE_TYPES.map do |typename|
+                        type = minimal_registry.get(typename)
+                        base_type_aliases[type] = [BASE_TYPES_RTT_NAMES[typename] || typename]
+                        type
+                    end.to_value_set
+                end
+
                 each_plugin do |plg|
-                    headers, impl = plg.generate(self, type_sets)
+                    plg_typesets = type_sets.dup
+                    if generate_transports_for_base_types && BASE_TYPES_NEEDED_TRANSPORTS.include?(plg.name)
+                        plg_typesets.interface_types = (plg_typesets.interface_types.to_value_set | base_types).
+                            sort_by { |t| t.name }
+
+                        plg_typesets.aliases = plg_typesets.aliases.merge(base_type_aliases)
+                    end
+
+                    headers, impl = plg.generate(self, plg_typesets)
                     public_header_files.concat(headers)
                     implementation_files.concat(impl)
                 end
@@ -1632,8 +1753,8 @@ module Orocos
                 Generation.touch File.join(automatic_dir, 'stamp')
 	    end
 
-            def cmake_relative_path(file)
-                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(automatic_dir))}"
+            def cmake_relative_path(file, *subdir)
+                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
             end
 	end
     end

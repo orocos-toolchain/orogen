@@ -22,13 +22,13 @@
 // some of the types need std::vector.
 #include <vector>
 #include <boost/cstdint.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/array.hpp>
-#include <boost/serialization/vector.hpp>
 
 <%= typekit.m_types_code %>
 
 <% interface_types.each do |type| %>
+#ifdef ORO_CHANNEL_ELEMENT_HPP
+    extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;
+#endif
 #ifdef CORELIB_DATASOURCE_HPP
     extern template class RTT::internal::DataSource< <%= type.cxx_name %> >;
     extern template class RTT::internal::AssignableDataSource< <%= type.cxx_name %> >;
@@ -50,28 +50,6 @@
 #ifdef ORO_CORELIB_ATTRIBUTE_HPP
     extern template class RTT::Attribute< <%= type.cxx_name %> >;
 #endif
-<% end %>
-
-<% boost_serialize_types = converted_types.
-    find_all do |t|
-        t.boost_serialization_compatible? &&
-            t.respond_to?(:to_boost_serialization)
-    end %>
-<% if !boost_serialize_types.empty? %>
-namespace boost
-{
-    namespace serialization
-    {
-<%    boost_serialize_types.each do |type| %>
-        template<typename Archive>
-        void serialize(Archive& a, <%= type.cxx_name %>& b, unsigned int version)
-        {
-            using boost::serialization::make_nvp;
-            <%= type.to_boost_serialization %>
-        }
-<%    end %>
-    }
-}
 <% end %>
 
 #endif

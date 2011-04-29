@@ -1,6 +1,7 @@
 /* Generated from orogen/templates/typekit/type_info/Info.cpp */
 
 #include <<%= typekit.name %>/Types.hpp>
+#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
 #include <<%= type.info_type_header %>>
 <% if type.full_name == "/std/string" %>
 #include <rtt/typekit/StdStringTypeInfo.hpp>

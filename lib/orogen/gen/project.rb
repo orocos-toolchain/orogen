@@ -160,6 +160,32 @@ module Orocos
                 project
             end
 
+            # Adds some max size specification for a given type
+            #
+            # See OutputPort#max_sizes for a complete description of this functionality.
+            # The sizes specified through this global method are applied on every port
+            # of the provided type
+            def max_sizes(typename = nil, *values, &block)
+                if !typename && values.empty?
+                    return @max_sizes
+                end
+
+                type  = find_type(typename)
+                # Cannot completely validate the spec, since we may not yet have
+                # the m-types. Do what we can, we'll do full blown validation
+                # later
+                sizes = Orocos::Spec::Port.validate_max_sizes_spec(nil, values)
+                @max_sizes[type.name].merge!(sizes, &block)
+            end
+
+            def validate_max_sizes_spec
+                max_sizes.dup.each do |type, sizes|
+                    type = intermediate_type_for(type)
+                    sizes = Orocos::Spec::Port.validate_max_sizes_spec(type, sizes)
+                    max_sizes[type.name].merge!(sizes)
+                end
+            end
+
             @@standard_tasks = nil
 
             # The set of standard project defined by RTT and OCL. They are
@@ -222,6 +248,8 @@ module Orocos
                 @opaque_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(registry)
                 Project.using_rtt_typekit(self)
+
+                @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
 	    end
 
             def self.using_rtt_typekit(obj)
@@ -386,12 +414,18 @@ module Orocos
                     if tk = used_typekits.find { |tk| tk.name == typekit }
                         return tk
                     end
-                    typekit = load_typekit(typekit)
+                    project = using_project(typekit)
+                    typekit = project.typekit
                 end
 
 		used_typekits << typekit
                 if ours = self.typekit
                     ours.using_typekit(typekit)
+                end
+                if typekit.respond_to?(:project)
+                    max_sizes.merge!(typekit.project.max_sizes) do |typename, a, b|
+                        a.merge(b)
+                    end
                 end
                 registry.merge(typekit.registry)
                 opaque_registry.merge(typekit.opaque_registry)
@@ -469,11 +503,18 @@ module Orocos
                         if type && found_type != type
                             raise ArgumentError, "type definition mismatch between #{type} and #{found_type}"
                         end
-                        found_type
+                        return found_type
                     else
 			raise ArgumentError, "expected a type name or a type object, got #{typename}"
 		    end
 		end
+
+            rescue Typelib::NotFound => e
+                if typekit && !typekit.pending_loads.empty?
+                    typekit.perform_pending_loads
+                    retry
+                end
+                raise e.class, e.message, e.backtrace
 	    end
 
             def extended_state_support?
@@ -553,6 +594,7 @@ module Orocos
 		if typekit
 		    typekit.generate
 		end
+                validate_max_sizes_spec
 
                 pc = Generation.render_template "project.pc", binding
                 Generation.save_automatic "orogen-project-#{name}.pc.in", pc
@@ -726,6 +768,16 @@ module Orocos
                 self
             rescue Utilrb::PkgConfig::NotFound => e
                 raise ConfigError, "no library named '#{name}' is available", e.backtrace
+            end
+
+            def import_typekit(name)
+                if tk = loaded_typekits[name]
+                    return tk
+                end
+
+                pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
+                loaded_typekits[name] = ImportedTypekit.
+                    from_raw_data(self, name, pkg, registry_xml, typelist_txt)
             end
 
 	    # call-seq:
@@ -907,9 +959,9 @@ module Orocos
             # Loads the task library +name+
             #
             # The returned value is an instance of ImportedProject
-            def load_task_library(name)
+            def load_task_library(name, validate)
                 tasklib = load_orogen_project(name)
-                if tasklib.self_tasks.empty?
+                if validate && tasklib.self_tasks.empty?
                     raise ConfigError, "#{name} is an oroGen project, but it defines no task library"
                 end
                 tasklib
@@ -968,6 +1020,10 @@ module Orocos
                 false
             end
 
+            def using_project(name)
+                using_task_library(name, false)
+            end
+
             # Declares that this project depends on task contexts defined by
             # the given orogen-generated project. After this call, the
             # definitions of the tasks in the task library are available as
@@ -980,18 +1036,22 @@ module Orocos
             #   PREFIX/lib/pkgconfig
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
-            def using_task_library(name)
+            def using_task_library(name, validate = true)
 		if tasklib = used_task_libraries.find { |lib| lib.name == name }
 		    return tasklib
 		end
 
-                tasklib = load_task_library(name)
+                tasklib = load_task_library(name, validate)
                 tasklib.self_tasks.each do |t|
                     tasks[t.name] = t
                 end
                 used_task_libraries << tasklib
                 if self.typekit
                     self.typekit.include_dirs |= tasklib.include_dirs.to_set
+                end
+
+                max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|
+                    a.merge(b)
                 end
 
                 # Now import the typekits the project also imports, and the
