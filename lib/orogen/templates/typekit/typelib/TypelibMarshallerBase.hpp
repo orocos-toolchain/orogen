@@ -136,8 +136,8 @@ namespace orogen_transports
          */
         virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample);
 
-        virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
-        { return NULL; }
+        virtual RTT::base::ChannelElementBase::shared_ptr createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
+        { return RTT::base::ChannelElementBase::shared_ptr(); }
     };
 }
 
