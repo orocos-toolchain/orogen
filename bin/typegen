@@ -37,17 +37,15 @@ this installation of typegen knows the following transports: #{available_transpo
         end
     end
 
-    opt.on('--no-transports=NAME1,NAME2', String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transports|
-        if !transports
-            raise OptionParser::MissingArgument
-        end
-        transports.split(',').each do |name|
+    opt.on('-n NAME1,NAME1', '--notransports=NAME1,NAME2', String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |notransports|
+        notransports.split(',').each do |name|
             transports.delete(name)
         end
     end
 
-    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to enable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transports|
-        transports.split(',').each do |name|
+    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to enable only (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |onlytransports|
+        transports.clear
+        onlytransports.split(',').each do |name|
             transports << name
         end
     end
