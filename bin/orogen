@@ -14,6 +14,7 @@ component = Orocos::Generation::Project.new
 
 transports = []
 no_transports = false
+explicit_typekit_slice = false
 
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
@@ -30,8 +31,12 @@ parser = OptionParser.new do |opt|
     end
     opt.on('--parallel-build=NUMBER', Integer, "optimize generated code for parallel builds") do |parallel_level|
         Orocos::Generation.typekit_slice_minimum = parallel_level
+	if !explicit_typekit_slice && parallel_level > 2
+	    Orocos::Generation.typekit_slice = 1
+	end
     end
     opt.on('--typekit-slice=NUMBER', Integer) do |slice_size|
+	explicit_typekit_slice = true
         Orocos::Generation.typekit_slice = slice_size
     end
 
