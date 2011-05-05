@@ -441,24 +441,25 @@ module Orocos
         end
 
         def self.load_plugins
+	    original_load_path = $LOAD_PATH.dup
             each_orogen_plugin_dir do |dir|
-                begin
-                    # Add the plugin dir to the
-                    if !$LOAD_PATH.include?(dir)
-                        added_dir = true
-                        $LOAD_PATH << dir
-                    end
-                    Dir.glob(File.join(dir, '*.rb')).each do |file|
-                        logger.info "loading plugin #{file}"
-                        require file
-                    end
-                ensure
-                    # Now that we loaded the plugin, remove the added path from $LOAD_PATH
-                    if added_dir
-                        $LOAD_PATH.pop
-                    end
-                end
+		$LOAD_PATH << dir
+	    end
+            each_orogen_plugin_dir do |dir|
+	        Dir.glob(File.join(dir, '*.rb')).each do |file|
+	            logger.info "loading plugin #{file}"
+		    begin
+	                require file
+		    rescue Exception => e
+		        logger.warn "could not load plugin #{file}: #{e.message}"
+		    end
+	        end
             end
+	ensure
+	    if original_load_path
+		$LOAD_PATH.clear
+	        $LOAD_PATH.concat(original_load_path)
+	    end
         end
     end
 
