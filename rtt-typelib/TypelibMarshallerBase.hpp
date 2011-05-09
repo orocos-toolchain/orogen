@@ -158,7 +158,7 @@ namespace orogen_transports
          */
         virtual void unmarshal(void const* buffer, int buffer_size, Handle* sample);
 
-        virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
+        virtual boost::intrusive_ptr<RTT::base::ChannelElementBase> createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
         { return NULL; }
     };
 
