@@ -12,6 +12,7 @@ task :setup, :cmake_args do |t, args|
         FileUtils.mkdir_p File.join('rtt-typelib', 'build')
         Dir.chdir(File.join('rtt-typelib', 'build')) do
             puts "running cmake with #{cmake_args.join(" ")}"
+	    FileUtils.rm_f 'CMakeCache.txt'
             if !system('cmake', '..', *cmake_args)
                 raise "cannot configure the rtt-typelib's build system"
             end
