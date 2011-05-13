@@ -242,6 +242,14 @@ module Orocos
             # task context must be a subclass of FileDescriptorActivity::Provider
             def fd_driven
                 activity_type 'FileDescriptorActivity', 'RTT::extras::FileDescriptorActivity', 'rtt/extras/FileDescriptorActivity.hpp'
+                activity_xml do
+                    result = <<-EOD
+<struct name="#{name}" type="FileDescriptorActivity">
+    <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
+    <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
+</struct>
+                    EOD
+                end
                 self
             end
 
@@ -250,6 +258,14 @@ module Orocos
             # IRQActivity::Provider
             def irq_driven
                 activity_type 'IRQActivity', 'RTT::extras::IRQActivity', 'rtt/extras/IRQActivity.hpp'
+                activity_xml do
+                    result = <<-EOD
+<struct name="#{name}" type="IRQActivity">
+    <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
+    <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
+</struct>
+                    EOD
+                end
                 self
             end
 
@@ -261,6 +277,9 @@ module Orocos
                     result = <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
                     EOD
+                end
+                activity_xml do
+                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
                 end
                 self
             end
@@ -298,6 +317,16 @@ RTT::os::Thread* thread_#{name} =
 thread_#{name}->setMaxOverrun(#{max_overruns});
                    EOD
                 end
+                activity_xml do
+                    result = <<-EOD
+<struct name="#{name}" type="Activity">
+    <simple name="Period" type="double"><value>#{period}</value></simple>
+    <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
+    <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
+</struct>
+                    EOD
+                end
+
                 @period = Float(value)
                 self
             end
@@ -316,6 +345,15 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
     "#{name}");
                    EOD
                 end
+                activity_xml do
+                    result = <<-EOD
+<struct name="#{name}" type="Activity">
+    <simple name="Period" type="double"><value>0</value></simple>
+    <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
+    <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
+</struct>
+                    EOD
+                end
                 @period = 0
                 self
             end
@@ -331,11 +369,21 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
                     EOD
                 end
+                activity_xml do
+                    result = <<-EOD
+<struct name="#{name}" type="SequentialActivity" />
+                    EOD
+                end
+
                 self
             end
 
             def activity_setup(&block)
                 @activity_setup = block
+            end
+
+            def activity_xml(&block)
+                @activity_xml = block
             end
 
             def generate_activity_setup
@@ -350,6 +398,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             "#{name}");
                     EOD
                 end
+            end
+
+            def to_deployer_xml
+                @activity_xml.call
             end
 
             # Call to make the deployer start this task when the component is
@@ -447,7 +499,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
         # deployment is the part in which the TaskContext classes are
         # instanciated and associated with specific Activity classes.
         #
-        class StaticDeployment
+        class Deployment
 	    # The deployment name
 	    attr_reader :name
             # The underlying Project object
@@ -467,7 +519,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # True if we are generating for Xenomai
             def xenomai?;   project.xenomai? end
 
-            def initialize(project, name, &block)
+            def initialize(project, name)
 		@name		 = name
 		@install	 = true
                 @task_activities = Array.new
@@ -802,6 +854,28 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 result.to_a.sort_by { |dep| dep.var_name }
             end
 
+            def to_deployer_xml
+                result = []
+                result << <<-EOHEADER
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "cpf.dtd">
+<properties>
+                EOHEADER
+                used_typekits.each do |tk|
+                    next if tk.virtual?
+                    result << "<simple name=\"Import\" type=\"string\"><value>#{tk.name}</value></simple>"
+                end
+                used_task_libraries.each do |pkg|
+                    result << "<simple name=\"Import\" type=\"string\"><value>#{pkg.name}</value></simple>"
+                end
+
+                task_activities.each do |task|
+                    result << task.to_deployer_xml
+                end
+                result << "</properties>"
+                result.join("\n")
+            end
+
             # Displays this deployment's definition nicely
             def pretty_print(pp) # :nodoc:
                 pp.text "------- #{name} ------"
@@ -829,6 +903,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
             end
         end
+
+        StaticDeployment = Deployment
     end
 end
 
