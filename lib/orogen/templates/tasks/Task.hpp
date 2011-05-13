@@ -17,6 +17,7 @@ namespace <%= component.name %> {
 
     public:
         <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
+        <%= task.basename %>(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
 
 	~<%= task.basename %>();
 

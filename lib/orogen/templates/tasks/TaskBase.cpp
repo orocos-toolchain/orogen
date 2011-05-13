@@ -12,6 +12,18 @@ using namespace <%= component.name %>;
 
 <%= code_before.join("\n") %>
 
+<% initializer_list = task.self_base_members.
+        sort_by { |m| [m.kind, m.name] }.
+        map { |m| 
+            ret = m.with_indent(4, :initializer)
+            if(ret)
+                ", " + ret.strip
+            else
+                  nil
+            end
+        }.
+        compact.join("\n    ") %> 
+
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
     : ::<%= task.superclass.name %>(name)
@@ -20,17 +32,33 @@ using namespace <%= component.name %>;
 <% else %>
     : ::<%= task.superclass.name %>(name, state)
 <% end %>
-    <%= task.self_base_members.
-            sort_by { |m| [m.kind, m.name] }.
-            map { |m| 
-		ret = m.with_indent(4, :initializer)
-		if(ret)
-		    ", " + ret.strip
-          	else
-		      nil
-		end
-	    }.
-            compact.join("\n    ") %> 
+<%= initializer_list %>
+{
+    setupComponentInterface();
+}
+
+<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
+<% if task.superclass.fixed_initial_state? %>
+    : ::<%= task.superclass.name %>(name, engine)
+<% elsif task.needs_configuration? %>
+    : ::<%= task.superclass.name %>(name, engine, TaskCore::PreOperational)
+<% else %>
+    : ::<%= task.superclass.name %>(name, engine, state)
+<% end %>
+<%= initializer_list %>
+{
+    setupComponentInterface();
+}
+
+<%= task.basename %>Base::~<%= task.basename %>Base()
+{
+<%= task.self_base_members.
+    sort_by { |m| [m.kind, m.name] }.
+    map { |m| m.with_indent(4, :destructor) }.
+    compact.join("\n") %>
+}
+
+void <%= task.basename %>Base::setupComponentInterface()
 {
 <%= task.self_base_members.
     sort_by { |m| [m.kind, m.name] }.
@@ -41,14 +69,6 @@ using namespace <%= component.name %>;
     _state.keepLastWrittenValue(true);
     _state.write(getTaskState());
     <% end %>
-}
-
-<%= task.basename %>Base::~<%= task.basename %>Base()
-{
-<%= task.self_base_members.
-    sort_by { |m| [m.kind, m.name] }.
-    map { |m| m.with_indent(4, :destructor) }.
-    compact.join("\n") %>
 }
 
 <%= task.self_base_methods.

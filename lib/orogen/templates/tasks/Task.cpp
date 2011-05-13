@@ -9,6 +9,11 @@ using namespace <%= task.component.name %>;
 {
 }
 
+<%= task.basename %>::<%= task.basename %>(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
+    : <%= task.basename %>Base(name, engine<%= ", initial_state" unless task.fixed_initial_state? %>)
+{
+}
+
 <%= task.basename %>::~<%= task.basename %>()
 {
 }
