@@ -139,26 +139,6 @@ int ORO_main(int argc, char* argv[])
 
    Deinitializer deinit;
 
-    // Start some activities
-<% task_activities.each do |task| %>
-    deinit << *activity_<%= task.name%>;
-
-    <% if task.start?
-        if task.context.needs_configuration? %>
-    if (!task_<%= task.name %>.configure())
-    {
-        RTT::log(RTT::Error) << "cannot configure <%= task.name %>" << RTT::endlog();
-        return -1;
-    }
-        <% end %>
-    if (!task_<%= task.name %>.start())
-    {
-        RTT::log(RTT::Error) << "cannot start <%= task.name %>" << RTT::endlog();
-        return -1;
-    }
-    <% end %>
-<% end %>
-
 <% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
     task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
 <% end %>
@@ -179,6 +159,26 @@ int ORO_main(int argc, char* argv[])
         }
         <% end %>
     <% end %>
+
+    // Start some activities
+<% task_activities.each do |task| %>
+    deinit << *activity_<%= task.name%>;
+
+    <% if task.start?
+        if task.context.needs_configuration? %>
+    if (!task_<%= task.name %>.configure())
+    {
+        RTT::log(RTT::Error) << "cannot configure <%= task.name %>" << RTT::endlog();
+        return -1;
+    }
+        <% end %>
+    if (!task_<%= task.name %>.start())
+    {
+        RTT::log(RTT::Error) << "cannot start <%= task.name %>" << RTT::endlog();
+        return -1;
+    }
+    <% end %>
+<% end %>
 
 <% if deployer.corba_enabled? %>
     struct sigaction sigint_handler;
