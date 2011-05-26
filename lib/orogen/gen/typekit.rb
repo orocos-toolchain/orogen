@@ -1533,7 +1533,7 @@ module Orocos
 
                 if standalone?
                     fake_typekit_dir = File.join(automatic_dir, "typekit")
-                    FileUtils.rm_f fake_typekit_dir, { :force => true }
+                    FileUtils.rm_f fake_typekit_dir
                     FileUtils.ln_sf automatic_dir, fake_typekit_dir
                 end
 
