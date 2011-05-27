@@ -9,6 +9,12 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/deque.hpp>
+#include <boost/serialization/utility.hpp>
 <% boost_serialize_types = converted_types.
     find_all do |t|
         t.boost_serialization_compatible? &&
