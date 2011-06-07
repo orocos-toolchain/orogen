@@ -166,7 +166,7 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>("<%= task.name %>", vm["sd-domain"].as<std::string>());
+    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(prefix + "<%= task.name %>", vm["sd-domain"].as<std::string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
     servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
