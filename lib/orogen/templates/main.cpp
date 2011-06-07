@@ -63,6 +63,13 @@ class Deinitializer
 
     std::vector<RTT::base::ActivityInterface*> m_activities;
 
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+    friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
+
+    std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
+#endif
+
+
 public:
     ~Deinitializer()
     {
@@ -71,6 +78,15 @@ public:
         {
             (*it)->stop();
         }
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+        for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+                sit != m_service_discoveries.end(); ++sit)
+        {
+            (*sit)->stop();
+            delete *sit;
+        }
+#endif 
     }
 };
 
@@ -79,6 +95,14 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
     deinit.m_activities.push_back(&activity);
     return deinit;
 }
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
+{
+    deinit.m_service_discoveries.push_back(&service_discovery);
+    return deinit;
+}
+#endif 
 
 <% if deployer.corba_enabled? %>
 void sigint_quit_orb(int)
@@ -163,12 +187,15 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
+   Deinitializer deinit;
+
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
     servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(prefix + "<%= task.name %>", vm["sd-domain"].as<std::string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
     servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
 <% end %>
     }
@@ -183,7 +210,6 @@ int ORO_main(int argc, char* argv[])
         <% end %>
 <% end %>
 
-   Deinitializer deinit;
 
     // Start some activities
 <% task_activities.each do |task| %>
