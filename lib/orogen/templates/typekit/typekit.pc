@@ -13,9 +13,7 @@ type_registry=${prefix}/share/orogen/<%= typekit.name %>.tlb
 
 Name: <%= typekit.name %>Typekit
 Version: <%= typekit.version %>
-<% unless typekit.internal_dependencies.empty? %>
-Requires: <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
-<% end %>
+Requires: <%= (typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s } + typekit.linked_used_libraries.map(&:name)).join(", ") %>
 Description: <%= typekit.name %> types support for the Orocos type system
 Libs: -L${libdir} -l@libname@
 Cflags: -I${includedir} -I${includedir}/<%= typekit.name %>/types <%= typekit.loaded_files_dirs.map { |s| "-I#{s}" }.join(" ") %> @PKG_CFLAGS@

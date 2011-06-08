@@ -833,6 +833,14 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     end
                 end
 
+                project.used_libraries.each do |pkg|
+                    result << BuildDependency.new(
+                        "#{pkg.name}",
+                        "#{pkg.name}").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                end
+
                 used_task_libraries.each do |pkg|
                     result << BuildDependency.new(
                         "#{pkg.name}_TASKLIB",
