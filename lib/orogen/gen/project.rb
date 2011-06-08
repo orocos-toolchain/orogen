@@ -763,7 +763,7 @@ module Orocos
                 end
 
                 if self.typekit
-                    self.typekit.using_library(pkg, options[:typekit])
+                    self.typekit.using_library(pkg, :link => options[:typekit])
                 end
                 self
             rescue Utilrb::PkgConfig::NotFound => e
@@ -818,7 +818,7 @@ module Orocos
                         flatten.to_set
 
                     used_libraries.each do |tk|
-                        typekit.using_library(tk, typekit_libraries.include?(tk))
+                        typekit.using_library(tk, :link => typekit_libraries.include?(tk))
                     end
 
                     # Initialize the typekit's imported_types registry

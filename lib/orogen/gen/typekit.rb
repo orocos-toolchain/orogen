@@ -692,10 +692,11 @@ module Orocos
                 self.imported_typekits << typekit
             end
 
-            def using_library(library, link = true)
+            def using_library(library, options = Hash.new)
+                options = Kernel.validate_options options, :link => true
                 self.used_libraries << library
                 self.include_dirs |= library.include_dirs.to_set
-                if link
+                if options[:link]
                     self.linked_used_libraries << library
                 end
             end
