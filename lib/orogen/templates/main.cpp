@@ -1,5 +1,12 @@
 #include <rtt/os/main.h>
 
+#include <boost/program_options.hpp>
+#include <iostream>
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+#include <service_discovery/service_discovery.h>
+#endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
+
 #include <rtt/typekit/RealTimeTypekit.hpp>
 <% deployer.rtt_transports.each do |transport_name| %>
 #include <rtt/transports/<%= transport_name %>/TransportPlugin.hpp>
@@ -47,11 +54,21 @@
 
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
+
+namespace po = boost::program_options;
+
 class Deinitializer
 {
     friend Deinitializer& operator << (Deinitializer&, RTT::base::ActivityInterface&);
 
     std::vector<RTT::base::ActivityInterface*> m_activities;
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+    friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
+
+    std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
+#endif
+
 
 public:
     ~Deinitializer()
@@ -61,6 +78,15 @@ public:
         {
             (*it)->stop();
         }
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+        for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+                sit != m_service_discoveries.end(); ++sit)
+        {
+            (*sit)->stop();
+            delete *sit;
+        }
+#endif 
     }
 };
 
@@ -69,6 +95,14 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
     deinit.m_activities.push_back(&activity);
     return deinit;
 }
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
+{
+    deinit.m_service_discoveries.push_back(&service_discovery);
+    return deinit;
+}
+#endif 
 
 <% if deployer.corba_enabled? %>
 void sigint_quit_orb(int)
@@ -79,6 +113,26 @@ void sigint_quit_orb(int)
 
 int ORO_main(int argc, char* argv[])
 {
+   po::options_description desc("Options");
+
+   desc.add_options()
+        ("help", "show all available options supported by this deployment")
+        ("prefix", po::value<std::string>(), "Sets a prefix for all TaskContext names")
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+        ("sd-domain", po::value<std::string>(), "set service discovery domain")
+#endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
+   ;
+
+   po::variables_map vm;
+   po::store(po::parse_command_line(argc, argv, desc), vm);
+   po::notify(vm);
+
+   if(vm.count("help")) {
+       std::cout << desc << std::endl;
+       return 0;
+   }
+
+
    <% if deployer.loglevel %>
    if ( log().getLogLevel() < Logger::<%= deployer.loglevel %> ) {
        log().setLogLevel( Logger::<%= deployer.loglevel %> );
@@ -111,8 +165,13 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::ApplicationServer::InitOrb(argc, argv);
 <% end %>
 
+    std::string prefix = "";
+
+    if( vm.count("prefix")) 
+        prefix = vm["prefix"].as<std::string>();
+
 <% task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>("<%= task.name %>");
+    <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>");
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
@@ -128,6 +187,20 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
+   Deinitializer deinit;
+
+#ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
+    if( vm.count("sd-domain") ) {
+<% task_activities.each do |task| %>
+    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(prefix + "<%= task.name %>", vm["sd-domain"].as<std::string>());
+    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
+    servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    deinit << *sd_<%= task.name%>;
+    sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
+<% end %>
+    }
+#endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
+
 <% if !deployer.loggers.empty?
         deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
             logger.config.each do |type, reported_activity, args| %>
@@ -137,7 +210,6 @@ int ORO_main(int argc, char* argv[])
         <% end %>
 <% end %>
 
-   Deinitializer deinit;
 
 <% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
     task_<%= a.name %>.connectPeers(&task_<%= b.name %>);

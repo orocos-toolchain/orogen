@@ -5,7 +5,7 @@
 using namespace <%= component.name %>;
 
 <% code_before, code_after =
-    task.base_implementation_code.partition(&:first)
+   task.base_implementation_code.partition(&:first)
    code_before.map! { |_, c| c.call }
    code_after.map! { |_, c| c.call }
 %>
