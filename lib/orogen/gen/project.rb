@@ -755,15 +755,17 @@ module Orocos
             #   using_library 'name', :typekit => false
             #
             def using_library(name, options = Hash.new)
-                options = Kernel.validate_options options, :typekit => true
+                options = Kernel.validate_options options, :typekit => true, :typekit_link => false
                 pkg = Utilrb::PkgConfig.new(name)
                 used_libraries << pkg
-                if options[:typekit]
-                    typekit_libraries << pkg
+
+                do_typekit = options[:typekit] || options[:typekit_link]
+                if do_typekit
+                    typekit_libraries << [pkg, options[:typekit_link]]
                 end
 
-                if self.typekit
-                    self.typekit.using_library(pkg, :link => options[:typekit])
+                if self.typekit && do_typekit
+                    self.typekit.using_library(pkg, :link => options[:typekit_link])
                 end
                 self
             rescue Utilrb::PkgConfig::NotFound => e
@@ -817,8 +819,8 @@ module Orocos
                         used_task_libraries.map { |pkg| pkg.include_dirs }.
                         flatten.to_set
 
-                    used_libraries.each do |tk|
-                        typekit.using_library(tk, :link => typekit_libraries.include?(tk))
+                    typekit_libraries.each do |tk, do_link|
+                        typekit.using_library(tk, :link => do_link)
                     end
 
                     # Initialize the typekit's imported_types registry
