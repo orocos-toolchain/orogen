@@ -80,7 +80,7 @@ module Orocos
             end
 
             def to_code(varname)
-                str = "ConnPolicy #{varname};\n"
+                str = "RTT::ConnPolicy #{varname};\n"
                 str << "#{varname}.type      = RTT::ConnPolicy::#{type.to_s.upcase};\n"
                 str << "#{varname}.lock_policy = RTT::ConnPolicy::#{lock_policy.to_s.upcase};\n"
                 str << "#{varname}.init      = false;\n"
@@ -97,7 +97,7 @@ module Orocos
             attr_reader :name
             # The TaskContext model used to define this task
             attr_reader :task_model
-            # Backward compatibility only
+            # Backward compatibility only. Use #task_model instead.
             def context; task_model end
 
             # The deployed properties, as PropertyDeployment instances
@@ -217,7 +217,7 @@ module Orocos
 
             # The Project object this task is part of
             def project; task_model.project end
-            # Bacwkard compatibility only
+            # Backward compatibility only. Use #project instead
             def component; project end
 
             ActivityDefinition = Struct.new :name, :class_name, :header
@@ -270,6 +270,12 @@ module Orocos
             # triggering methods otherwise.
             attr_reader :period
 
+            # Returns true if +port+ is a trigger for this task
+            def trigger_port?(port)
+                port.trigger_port? &&
+                    activity_type.name != 'Periodic'
+            end
+
 	    # call-seq:
 	    #	periodic(period_in_seconds) -> self
             #
@@ -285,7 +291,8 @@ module Orocos
     #{rtt_scheduler},
     #{rtt_priority},
     #{period},
-    task_#{name}.engine());
+    task_#{name}.engine(),
+    "#{name}");
 RTT::os::Thread* thread_#{name} =
     dynamic_cast<RTT::os::Thread*>(activity_#{name}->thread());
 thread_#{name}->setMaxOverrun(#{max_overruns});
@@ -305,7 +312,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
     #{rtt_scheduler},
     #{rtt_priority},
     0,
-    task_#{name}.engine());
+    task_#{name}.engine(),
+    "#{name}");
                    EOD
                 end
                 @period = 0
@@ -338,7 +346,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
             #{rtt_scheduler},
             #{rtt_priority},
-            task_#{name}.engine());
+            task_#{name}.engine(),
+            "#{name}");
                     EOD
                 end
             end

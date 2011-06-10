@@ -5,9 +5,12 @@
 
 #include <rtt/types/TypeMarshaller.hpp>
 
+namespace Typelib {
+    class Registry;
+}
 namespace orogen_typekits {
-    <% mqueue_registered_types.each do |type| %>
-    RTT::types::TypeMarshaller*  <%= type.method_name %>_MQueueTransport();
+    <% typesets.interface_types.each do |type| %>
+    RTT::types::TypeMarshaller*  <%= type.method_name %>_MQueueTransport(Typelib::Registry const& registry);
     <% end %>
 }
 

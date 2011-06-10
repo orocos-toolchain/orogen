@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/type_info/ArrayInfo.cpp */
 
 #include <<%= typekit.name %>/Types.hpp>
+#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
 #include <rtt/internal/carray.hpp>
 #include <<%= type.info_type_header %>>
 

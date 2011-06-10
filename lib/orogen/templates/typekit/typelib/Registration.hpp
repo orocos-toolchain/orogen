@@ -3,7 +3,13 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_REGISTRATION_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_REGISTRATION_HPP
 
-#include "transports/typelib/TypelibMarshallerBase.hpp"
+namespace Typelib {
+    class Registry;
+}
+
+namespace orogen_transports {
+    class TypelibMarshallerBase;
+}
 
 namespace orogen_typekits {
     <% typesets.interface_types.each do |type| %>

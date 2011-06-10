@@ -4,13 +4,12 @@
 #define OROGEN_TYPELIB_MARSHALLER_BASE_HPP
 
 #include <rtt/types/TypeTransporter.hpp>
-#include <rtt/base/PortInterface.hpp>
-#include <rtt/FlowStatus.hpp>
 #include <typelib/value_ops.hh>
 
 namespace orogen_transports
 {
     static const int TYPELIB_MARSHALLER_ID = 42;
+
     class TypelibMarshallerBase : public RTT::types::TypeTransporter
     {
         bool m_plain;
@@ -56,6 +55,18 @@ namespace orogen_transports
          */
         virtual void setTypelibSample(Handle* data, uint8_t* typelib_data, bool refresh_orocos = true) = 0;
 
+        /** Updates the sample handler by using a data sample that Typelib
+         * understands. +typelib_data+ must be pointing to an object whose type
+         * is the one returned by getMarshallingType.
+         *
+         * The handle will then point directly to the given data sample, i.e.
+         * calls to \c read might modify that sample directly.
+         *
+         * The ownership of \c typelib_data is retained by the caller. I.e. it
+         * has to delete it.
+         */
+        virtual void setOrocosSample(Handle* data, void* sample, bool refresh_typelib = true) = 0;
+
         /** Updates the value of data->orocos_sample based on the data in
          * data->typelib_sample
          */
@@ -70,6 +81,11 @@ namespace orogen_transports
          * This object is of the type returned by getMarshallingType
          */
         uint8_t* getTypelibSample(Handle* sample);
+
+        /** Returns a type-pruned pointer to the C++ object, and passes
+         * ownership along
+         */
+        virtual uint8_t* releaseOrocosSample(Handle* sample) = 0;
 
         /** Creates a sample handler, which is an opaque type used to
          * read/write/marshal data. Unlike createHandle(), the handle returned
@@ -132,13 +148,33 @@ namespace orogen_transports
         /** Marshals the given sample into a memory buffer
          */
         void marshal(std::vector<uint8_t>& buffer, Handle* sample);
+        /** Marshals the given sample into a memory buffer
+         */
+        int marshal(void* buffer, int buffer_size, Handle* sample);
         /** Update the sample in +sample+ from the marshalled data in +buffer+
          */
         virtual void unmarshal(std::vector<uint8_t>& buffer, Handle* sample);
+        /** Update the sample in +sample+ from the marshalled data in +buffer+
+         */
+        virtual void unmarshal(void const* buffer, int buffer_size, Handle* sample);
 
-        virtual RTT::base::ChannelElementBase* createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
-        { return NULL; }
+        virtual RTT::base::ChannelElementBase::shared_ptr createStream(RTT::base::PortInterface* port, const RTT::ConnPolicy& policy, bool is_sender) const
+        { return RTT::base::ChannelElementBase::shared_ptr(); }
     };
+
+    /** Given a typelib value, returns the corresponding opaque value
+     *
+     * The caller is the owner of the memory. He is responsible to cast it to
+     * the right type, and delete it. The string is the type name of the opaque
+     * value.
+     *
+     * Note that for values that are typelib-compatible, a copy of the input is
+     * returned so that the ownership constraint outlined above is met.
+     *
+     * It relies on using the RTT type system to find the right
+     * TypelibMarshallerBase object.
+     */
+    void* getOpaqueValue(std::string const& expected_type, Typelib::Value value);
 }
 
 #endif

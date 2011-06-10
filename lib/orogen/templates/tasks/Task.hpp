@@ -18,6 +18,8 @@ namespace <%= component.name %> {
     public:
         <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
 
+	~<%= task.basename %>();
+
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
          * component will stay in PreOperational. Otherwise, it goes into

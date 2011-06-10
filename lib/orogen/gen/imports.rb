@@ -171,8 +171,8 @@ module Orocos
 
             # Import in the +base+ component the task library whose orogen
             # specification is included in +file+
-            def self.load(main_project, pkg, file)
-                new(main_project, pkg).load(file)
+            def self.load(main_project, pkg, file, verbose = true)
+                new(main_project, pkg).load(file, verbose)
             end
 
             def initialize(main_project, pkg = nil)
@@ -192,8 +192,17 @@ module Orocos
             def load_task_library(name)
                 main_project.load_task_library(name)
             end
-            def load_typekit(name)
-                main_project.load_typekit(name)
+
+            def eval(*args, &block)
+                result = super
+                validate_max_sizes_spec
+                result
+            end
+
+            def load(*args, &block)
+                result = super
+                validate_max_sizes_spec
+                result
             end
 
 	    def find_interface_type(*args)
@@ -299,17 +308,30 @@ module Orocos
                 if main_project && main_project.has_typekit?(name)
                     using_typekit name
                 else
-                    using_typekit self.name
+                    typekit
                 end
             end
 
             def typekit(create = nil, &block) # :nodoc:
-                if @typekit.nil?
-                    @typekit =
+                if @typekit.nil? && @has_typekit.nil?
+                    @has_typekit =
                         if main_project && main_project.has_typekit?(name)
-                            using_typekit(name)
-                        else nil
+                            true
+                        elsif !name
+                            # This is a workaround about the fucked up reloading
+                            # of orogen files. The issue at hand is that
+                            # #typekit is called here and there in Project,
+                            # while name is not set. if has_typekit was set to
+                            # false, the typekit would never be loaded again
+                            nil
+                        else
+                            false
                         end
+
+                    if @has_typekit
+                        @typekit = main_project.import_typekit(name)
+                        main_project.using_typekit(@typekit)
+                    end
                 end
                 @typekit
             end

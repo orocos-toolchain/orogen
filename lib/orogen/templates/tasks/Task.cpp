@@ -9,6 +9,10 @@ using namespace <%= task.component.name %>;
 {
 }
 
+<%= task.basename %>::~<%= task.basename %>()
+{
+}
+
 <%= task.self_user_methods.sort_by(&:name).
     map { |m| m.with_indent(0, :definition) }.
     compact.join("\n") %>
