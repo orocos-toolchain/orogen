@@ -14,6 +14,7 @@
 
     <depend package="rtt" />
     <depend package="typelib" />
+    <depend package="rtt_typelib" />
     <rosdep name="nokogiri" />
     <rosdep name="hoe" />
     <!--
