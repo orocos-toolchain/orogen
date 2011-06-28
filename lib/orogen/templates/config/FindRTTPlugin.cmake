@@ -17,7 +17,7 @@
 
 include(LibFindMacros)
 
-find_package(Orocos-RTT REQUIRED ${RTT_HINTS})
+find_package(OROCOS-RTT REQUIRED ${RTT_HINTS})
 
 FOREACH(COMPONENT ${RTTPlugin_FIND_COMPONENTS})
     # We search for both 'given name' and 'given name + -target'

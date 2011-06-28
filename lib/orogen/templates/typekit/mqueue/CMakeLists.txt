@@ -1,7 +1,7 @@
 # Generated from orogen/lib/orogen/templates/typekit/mqueue/CMakeLists.txt
 
 # OrocosRTT_PREFIX has been set by the pkg-config find modules:
-find_package(Orocos-RTT REQUIRED rtt-transport-mqueue HINTS ${OrocosRTT_PREFIX}/lib/cmake/orocos-rtt)
+find_package(OROCOS-RTT REQUIRED rtt-transport-mqueue HINTS ${OrocosRTT_PREFIX}/lib/cmake/orocos-rtt)
 
 pkg_check_modules(RTT_Typelib REQUIRED rtt_typelib-${OROCOS_TARGET})
 include_directories(${RTT_Typelib_INCLUDE_DIRS})
