@@ -6,6 +6,20 @@ include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
 
+# Link directories need to be set before(!) providing the target
+pkg_check_modules(service_discovery service_discovery)
+if(service_discovery_FOUND)
+    add_definitions(-DOROGEN_SERVICE_DISCOVERY_ACTIVATED)
+    message(STATUS "ServiceDiscovery library found: activating service discovery functionality for tasks")
+    include_directories(${service_discovery_INCLUDE_DIRS})
+    add_definitions(${service_discovery_CFLAGS_OTHER})
+    link_directories(${service_discovery_LIBRARY_DIRS})
+endif()
+
+find_package(Boost REQUIRED COMPONENTS program_options)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if component.typekit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
@@ -14,19 +28,11 @@ target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-<%= t
 <% end %>
 <% end %>
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(<%= deployer.name %> ${Boost_LIBRARIES})
-
-pkg_check_modules(service_discovery service_discovery)
 if(service_discovery_FOUND)
-    add_definitions(-DOROGEN_SERVICE_DISCOVERY_ACTIVATED)
-    message(STATUS "ServiceDiscovery library found: activating service discovery functionality for tasks")
-    include_directories(${service_discovery_INCLUDE_DIRS})
-    add_definitions(${service_discovery_CFLAGS_OTHER})
-    link_directories(${service_discovery_LIBRARY_DIRS})
     target_link_libraries(<%= deployer.name %> ${service_discovery_LIBRARIES})
 endif()
+
+target_link_libraries(<%= deployer.name %> ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)
