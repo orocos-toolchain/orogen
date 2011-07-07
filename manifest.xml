@@ -14,6 +14,7 @@
 
     <depend package="rtt" />
     <depend package="typelib" />
+    <depend package="tools/service_discovery" optional="1" />
     <rosdep name="nokogiri" />
     <rosdep name="hoe" />
     <!--
