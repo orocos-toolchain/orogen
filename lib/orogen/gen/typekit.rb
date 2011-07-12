@@ -1209,7 +1209,7 @@ module Orocos
                         result.merge(base.minimal(typename))
                     end
                 end
-                @registry = result
+                result
             end
 
             def imported_array_of?(type)
@@ -1222,7 +1222,7 @@ module Orocos
 
             # List of typekits that this typekit depends on
             def used_typekits
-                normalize_registry
+                @registry = normalize_registry
                 result = Set.new
 
                 # We depend on the typekits that define types that are used in
@@ -1563,7 +1563,8 @@ module Orocos
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-		minimal_registry = normalize_registry(generate_transports_for_base_types)
+                @registry = normalize_registry(generate_transports_for_base_types)
+		minimal_registry = @registry.dup
                 generated_types = self_types.to_value_set
 
                 self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
