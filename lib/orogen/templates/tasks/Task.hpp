@@ -63,7 +63,7 @@ namespace <%= component.name %> {
          * RunTimeError state, at each activity step. See the discussion in
          * updateHook() about triggering options.
          *
-         * Call recovered() to go back in the Runtime state.
+         * Call recover() to go back in the Runtime state.
          */
         // void errorHook();
 

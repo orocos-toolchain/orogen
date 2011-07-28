@@ -70,6 +70,17 @@ module Orocos
             def do_not_clean
                 @do_not_clean = true
             end
+
+            # If true, this port accepts to have multiple active connections at the same time
+            def multiplexes?
+                !!@multiplexes
+            end
+
+            # Declares that this port accepts multiple active connections
+            def multiplexes
+                @multiplexes = true
+                self
+            end
         end
     end
 end
