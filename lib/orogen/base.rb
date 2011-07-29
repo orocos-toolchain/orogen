@@ -403,6 +403,7 @@ module Orocos
                 end
                 if s.in_context?(context, 'link')
                     result << "foreach(#{s.var_name}_lib ${#{s.var_name}_LIBRARIES})"
+                    result << "  set(_#{s.var_name}_lib NOTFOUND)"
                     result << "  find_library(_#{s.var_name}_lib NAMES ${#{s.var_name}_lib} HINTS ${#{s.var_name}_LIBRARY_DIRS})"
                     result << "  list(APPEND _#{s.var_name}_LIBRARIES ${_#{s.var_name}_lib})"
                     result << "endforeach()"
