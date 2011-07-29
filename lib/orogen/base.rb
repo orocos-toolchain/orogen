@@ -402,7 +402,11 @@ module Orocos
                     result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
                 end
                 if s.in_context?(context, 'link')
-                    result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
+                    result << "foreach(#{s.var_name}_lib ${#{s.var_name}_LIBRARIES})"
+                    result << "  find_library(_#{s.var_name}_lib NAMES ${#{s.var_name}_lib} HINTS ${#{s.var_name}_LIBRARY_DIRS})"
+                    result << "  list(APPEND _#{s.var_name}_LIBRARIES ${_#{s.var_name}_lib})"
+                    result << "endforeach()"
+                    result << "set(#{s.var_name}_LIBRARIES ${_#{s.var_name}_LIBRARIES})"
                 end
                 result
             end.join("\n")
