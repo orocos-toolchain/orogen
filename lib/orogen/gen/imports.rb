@@ -13,11 +13,7 @@ module Orocos
             attr_reader :opaques
             attr_reader :opaque_registry
 
-            def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
-                typekit_registry = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(typekit_registry)
-                typekit_registry.merge_xml(registry_xml)
-
+            def self.parse_typelist(typelist_txt)
                 raw_typelist = typelist_txt.split("\n").map(&:strip)
                 typekit_typelist, typekit_interface_typelist = [], []
                 raw_typelist.each do |decl|
@@ -28,7 +24,15 @@ module Orocos
                         typekit_interface_typelist << type
                     end
                 end
+                return typekit_typelist, typekit_interface_typelist
+            end
 
+            def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
+                typekit_registry = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(typekit_registry)
+                typekit_registry.merge_xml(registry_xml)
+
+                typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
                 typekit = self.new(main, name,
                               pkg, typekit_registry,
                               typekit_typelist,
