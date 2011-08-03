@@ -9,32 +9,10 @@ module Orocos
             :sequential   => 'SequentialActivity'
         }
 
-        # Representation of TaskContext classes. This is usually created using
-        # Component#task_context.
+        # Model of a task context, i.e. a component interface
         #
-        # In the generated code, two classes are actually generated:
-        # * the auto-generated code is in <tt>.orogen/tasks/[name]Base.cpp</tt>
-        #   and <tt>.orogen/tasks/[name]Base.hpp</tt>. These files define the
-        #   various attributes related to the task context (i.e. port and
-        #   attribute objects) in an <tt>[project.name]::[name]Base</tt> class.
-        # * the user-visible code is in <tt>tasks/[name].cpp</tt> and
-        #   <tt>tasks/[name].hpp</tt>. These files are the ones that define the
-        #   <tt>[project.name]::[name]</tt> class, which is a direct subclass
-        #   of the <tt>[project.name]::[name]Base</tt> class.
-        #
-        # By default, the +Base+ class derives from the
-        # <tt>RTT::TaskContext</tt> class.  This can be changed by using the
-        # #subclasses method.
-        #
-        # For all task context objects (ports, properties, ...) there is one
-        # attribute, of the right RTT class, added to the generated TaskContext
-        # subclass. The attribute name is always the _[object name], so for
-        # instance the presence of the following statement
-        #   output_port('time', 'double')
-        #
-        # will cause a <tt>OutputPort<double></tt> attribute named
-        # <tt>_time</tt> to be added to the generated class (more specifically,
-        # to the +Base+ subclass).
+        # The corresponding code generation support is done in
+        # Orocos::Generation::TaskContextGeneration
 	class TaskContext
 	    # The oroGen project this task is part of
 	    attr_reader :project
