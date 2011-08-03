@@ -17,6 +17,14 @@ module Orocos
 	    # The oroGen project this task is part of
 	    attr_reader :project
 
+            ## :method: doc
+            # :call-seq:
+            #   doc => string
+            #   doc "documentation string"
+            #   
+            # Gets or sets the documentation string for this task context
+            dsl_attribute :doc
+
             # for backward compatibility reasons
             def component # :nodoc:
                 project
