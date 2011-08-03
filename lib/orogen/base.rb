@@ -396,21 +396,10 @@ module Orocos
 
         def self.cmake_pkgconfig_require(depspec, context = 'core')
             depspec.inject([]) do |result, s|
-                result << "pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
+                result << "orogen_pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
                 if s.in_context?(context, 'include')
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
                     result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
-                end
-                if s.in_context?(context, 'link')
-                    result << "foreach(#{s.var_name}_lib ${#{s.var_name}_LIBRARIES})"
-                    result << "  set(_#{s.var_name}_lib NOTFOUND)"
-                    result << "  find_library(_#{s.var_name}_lib NAMES ${#{s.var_name}_lib} HINTS ${#{s.var_name}_LIBRARY_DIRS})"
-                    result << "  if (NOT _#{s.var_name}_lib)"
-                    result << "    set(_#{s.var_name}_lib ${#{s.var_name}_lib})"
-                    result << "  endif()"
-                    result << "  list(APPEND _#{s.var_name}_LIBRARIES ${_#{s.var_name}_lib})"
-                    result << "endforeach()"
-                    result << "set(#{s.var_name}_LIBRARIES ${_#{s.var_name}_LIBRARIES})"
                 end
                 result
             end.join("\n")

@@ -1,3 +1,18 @@
+macro(orogen_pkg_check_modules VARNAME)
+    if (NOT ${VARNAME}_FOUND)
+        pkg_check_modules(${VARNAME} ${ARGN})
+        foreach(${VARNAME}_lib ${${VARNAME}_LIBRARIES})
+          set(_${VARNAME}_lib NOTFOUND)
+          find_library(_${VARNAME}_lib NAMES ${${VARNAME}_lib} HINTS ${${VARNAME}_LIBRARY_DIRS})
+          if (NOT _${VARNAME}_lib)
+            set(_${VARNAME}_lib ${${VARNAME}_lib})
+          endif()
+          list(APPEND _${VARNAME}_LIBRARIES ${_${VARNAME}_lib})
+        endforeach()
+        set(${VARNAME}_LIBRARIES ${_${VARNAME}_LIBRARIES} CACHE INTERNAL "")
+    endif()
+endmacro()
+
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
