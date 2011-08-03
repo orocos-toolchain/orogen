@@ -579,6 +579,41 @@ module Orocos
             end
 
             ##
+            # :method: each_dynamic_input_port
+            # :call-seq:
+            #   each_dynamic_port(only_self = false) { |port| }
+            #
+            # Yields all dynamic input ports that are defined on this task context.
+            def each_dynamic_input_port(only_self = false)
+                each_dynamic_port do |port|
+                    if port.kind_of?(InputPort)
+                        yield(port)
+                    end
+                end
+            end
+
+            ##
+            # :method: each_dynamic_output_port
+            # :call-seq:
+            #   each_dynamic_output_port(only_self = false) { |port| }
+            #
+            # Yields all dynamic output ports that are defined on this task context.
+            def each_dynamic_output_port(only_self = false)
+                each_dynamic_port do |port|
+                    if port.kind_of?(OutputPort)
+                        yield(port)
+                    end
+                end
+            end
+
+            ##
+            # :method: each_dynamic_port
+            # :call-seq:
+            #   each_dynamic_port(only_self = false) { |port| }
+            #
+            # Yields all dynamic ports that are defined on this task context.
+
+            ##
             # :method: each_dynamic_port
             # :call-seq:
             #   each_dynamic_port(only_self = false) { |port| }
