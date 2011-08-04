@@ -225,6 +225,12 @@ module Orocos
 	    def pretty_print(pp)
 		pp.text "------- #{name} ------"
                 pp.breakable
+                if doc
+                    pp.text doc.to_s
+                else
+                    pp.text "no documentation defined for this task context model"
+                end
+                pp.breakable
                 pp.text "subclass of #{superclass.name} (the superclass elements are displayed below)"
                 pp.breakable
                 triggers = all_event_ports
