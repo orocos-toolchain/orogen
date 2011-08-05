@@ -366,7 +366,14 @@ struct AStruct {
         task.property('enum', '/TestEnum', :VALUE0)
         task.property('enum1', '/TestEnum', 'VALUE0')
 
-        assert_raises(ArgumentError) { task.property('str', '/AStruct', "3") }
+        assert_raises(ArgumentError) { task.property('struct', '/AStruct', "3") }
+        assert_raises(ArgumentError) { task.property('struct', '/AStruct', :bla => 3) }
+
+        assert_raises(ArgumentError) { task.property('bool', '/int', "VALUE10") }
+
+        assert_raises(ArgumentError) { task.property('bool', '/bool', "VALUE10") }
+        task.property('bool', '/bool', true)
+        task.property('bool1', '/bool', false)
     end
 end
 

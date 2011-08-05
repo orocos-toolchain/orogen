@@ -375,19 +375,15 @@ module Orocos
                 end
 
                 if default_value
-                    if type <= Typelib::NumericType
-                        if !default_value.kind_of?(Numeric)
-                            raise ArgumentError, "#{default_value} is not an acceptable value for #{type.name}"
-                        end
-                    elsif type <= Typelib::EnumType
-                        # Validate the value
-                        type.value_of(default_value.to_s)
-                    elsif type.name == "/std/string"
-                        if !default_value.respond_to?(:to_str)
-                            raise ArgumentError, "#{default_value.inspect} is not an acceptable value for #{type.name}"
-                        end
-                    else
-                        raise ArgumentError, "cannot specify a default value for type #{type.name}. Default values are only supported for simple types (numbers, strings and enums)"
+                    accepted = [Numeric, Symbol, String, TrueClass, FalseClass].
+                        any? { |klass| default_value.kind_of?(klass) }
+                    if !accepted
+                        raise ArgumentError, "property default values can be specified only for simple types (numeric, string and boolean)"
+                    end
+                    begin
+                        Typelib.from_ruby(default_value, type)
+                    rescue TypeError => e
+                        raise ArgumentError, e.message, e.backtrace
                     end
                 end
 
