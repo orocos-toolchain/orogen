@@ -374,6 +374,23 @@ module Orocos
                     raise ConfigError, "type #{type} is not declared"
                 end
 
+                if default_value
+                    if type <= Typelib::NumericType
+                        if !default_value.kind_of?(Numeric)
+                            raise ArgumentError, "#{default_value} is not an acceptable value for #{type.name}"
+                        end
+                    elsif type <= Typelib::EnumType
+                        # Validate the value
+                        type.value_of(default_value.to_s)
+                    elsif type.name == "/std/string"
+                        if !default_value.respond_to?(:to_str)
+                            raise ArgumentError, "#{default_value.inspect} is not an acceptable value for #{type.name}"
+                        end
+                    else
+                        raise ArgumentError, "cannot specify a default value for type #{type.name}. Default values are only supported for simple types (numbers, strings and enums)"
+                    end
+                end
+
 		@properties[name] = Property.new(self, name, type, default_value)
 	    end
 

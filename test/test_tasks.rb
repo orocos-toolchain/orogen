@@ -333,5 +333,40 @@ class TC_GenerationTasks < Test::Unit::TestCase
         assert_equal parent_values['Parent_STATE1'], child_values['Child_STATE1']
         assert_equal parent_values['Parent_STATE2'], child_values['Child_STATE2']
     end
+
+    def test_default_values
+        project = Project.new
+        project.name "test"
+        task = project.task_context "Test"
+        Tempfile.open("orogen_test_default_values") do |io|
+            io.puts <<-EOCODE
+enum TestEnum {
+    VALUE0 = 0,
+    VALUE1 = 1
+};
+
+struct AStruct {
+    int bla;
+};
+            EOCODE
+            io.flush
+            project.import_types_from io.path
+            project.typekit.perform_pending_loads
+        end
+
+        assert_raises(ArgumentError) { task.property('str', '/std/string', 3) }
+        task.property('str', '/std/string', "3")
+        
+        assert_raises(ArgumentError) { task.property('num', '/double', "3") }
+        task.property('num', '/double', 3)
+        
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', "3") }
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', 3) }
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', "VALUE10") }
+        task.property('enum', '/TestEnum', :VALUE0)
+        task.property('enum1', '/TestEnum', 'VALUE0')
+
+        assert_raises(ArgumentError) { task.property('str', '/AStruct', "3") }
+    end
 end
 
