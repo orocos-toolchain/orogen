@@ -147,23 +147,6 @@ module Orocos
 		arglist.join(", ")
 	    end
 
-            # Returns the C++ signature for this operation. Used in code
-            # generation only.
-	    def signature(with_names = true)
-		result = return_type.last.dup
-                if with_names
-                    result << " " <<
-                        if block_given? then yield
-                        else method_name
-                        end
-                end
-		result << "(" << argument_signature(with_names) << ")"
-	    end
-
-            def pretty_print(pp)
-                pp.text signature(true)
-            end
-
             attr_accessor :body
 
 	    # call-seq:
@@ -208,7 +191,7 @@ module Orocos
                     initializer("_#{name}(\"#{name}\", &#{task.basename}Base::#{method_name}, this, #{thread_flag})").
                     constructor("#{constructor};")
 
-                m = task.send(add, return_type.last, method_name, argument_signature).
+                m = task.send(add, return_type[1], method_name, argument_signature).
                     doc("Handler for the #{method_name} operation").
                     body(body)
             end

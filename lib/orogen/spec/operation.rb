@@ -50,9 +50,10 @@ module Orocos
 
 		@task = task
 		@name = name
-                @return_type = [nil, 'void']
+                @return_type = [nil, 'void', ""]
 		@arguments = []
                 @in_caller_thread = false
+                @doc = ""
 
                 super if defined? super
 	    end
@@ -134,10 +135,12 @@ module Orocos
             # type must be defined in the component, either because it is part
             # of its own typekit or because it has been imported by a
             # Component#load_typekit call.
-	    def returns(type)
+	    def returns(type, doc = "")
                 @return_type =
-                    if type then find_interface_type(type)
-                    else [nil, 'void']
+                    if type
+                        type, qualified_type = find_interface_type(type)
+                        [type, qualified_type, doc]
+                    else [nil, 'void', doc]
                     end
 
 		self
@@ -148,22 +151,33 @@ module Orocos
                 !!@return_type.first
             end
 
-            def pretty_print(pp)
-                returns = @return_type[1]
-                args = []
-                arg_docs = []
-
-                arguments.map do |name, type, doc, qualified_type|
-                    args << "#{qualified_type} #{name}"
-                    arg_docs << [name, doc]
+            # Returns the C++ signature for this operation. Used in code
+            # generation only.
+	    def signature(with_names = true)
+		result = return_type[1].dup
+                if with_names
+                    result << " " <<
+                        if block_given? then yield
+                        else method_name
+                        end
                 end
+		result << "(" << argument_signature(with_names) << ")"
+	    end
 
-                pp.text "#{returns} #{name}(#{args.join(", ")})"
+            def pretty_print(pp)
+                pp.text signature(true)
                 pp.nest(2) do
-                    pp.breakable
-                    pp.text self.doc
-                    arg_docs.each do |arg_name, arg_doc|
-                        pp.text "#{arg_name}: #{arg_doc}"
+                    if !self.doc.empty?
+                        pp.breakable
+                        pp.text self.doc
+                    end
+                    if !self.return_type[2].empty?
+                        pp.breakable
+                        pp.text "Returns: #{self.return_type[2]}"
+                    end
+                    arguments.map do |name, type, doc, qualified_type|
+                        pp.breakable
+                        pp.text "#{name}: #{doc}"
                     end
                 end
             end
