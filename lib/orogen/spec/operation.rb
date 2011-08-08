@@ -148,6 +148,26 @@ module Orocos
                 !!@return_type.first
             end
 
+            def pretty_print(pp)
+                returns = @return_type[1]
+                args = []
+                arg_docs = []
+
+                arguments.map do |name, type, doc, qualified_type|
+                    args << "#{qualified_type} #{name}"
+                    arg_docs << [name, doc]
+                end
+
+                pp.text "#{returns} #{name}(#{args.join(", ")})"
+                pp.nest(2) do
+                    pp.breakable
+                    pp.text self.doc
+                    arg_docs.each do |arg_name, arg_doc|
+                        pp.text "#{arg_name}: #{arg_doc}"
+                    end
+                end
+            end
+
             attr_predicate :hidden?, true
 	end
     end
