@@ -10,6 +10,9 @@ using namespace RTT;
 
 bool orogen_typekits::<%= typekit.name %>CorbaTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
 {
+    if(ti->hasProtocol(ORO_CORBA_PROTOCOL_ID))
+	return true;
+
     <% first_type = true;
        typesets.interface_types.each do |type|
            names = [type.name]
