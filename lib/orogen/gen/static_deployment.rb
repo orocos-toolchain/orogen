@@ -509,6 +509,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
+						#Array for additional Loaded Types
+
 	    # Do not install that deployment
 	    def do_not_install; @install = false end
 	    # True if this deployment should be installed
@@ -533,12 +535,18 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @browse          = nil
                 @loglevel        = nil
                 @transports      = Array.new
+                @manually_loaded_types = Set.new
             end
 
             KNOWN_LOG_LEVELS = {
                 :info => 'Info',
                 :debug => 'Debug'
             }
+
+            #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
+            def load_type(typename)
+                @manually_loaded_types << typename
+            end
 
             # Returns the set of typekits required by this particular
             # deployment (i.e. the tasks that are deployed in it)
@@ -547,6 +555,12 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     deployed_task.task_model.used_typekits.
                         map(&:name)
                 end.flatten.to_set
+               
+                @manually_loaded_types.each do |type|
+                    tk = project.imported_typekits_for(type).map(&:name)[0]
+                    raise "Could not find Type \"#{type}\" in Registry, do you loaded/imported the Type?" if tk == nil
+                    task_typekits << tk
+                end
 
                 task_typekits.sort.map do |used_name|
                     this_tk = project.find_typekit(used_name)
