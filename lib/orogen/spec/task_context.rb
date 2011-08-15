@@ -948,6 +948,7 @@ module Orocos
             # new data is available on one of the given ports (or all already
             # defined ports if no names are given).
             def port_driven(*names)
+                default_activity 'triggered'
                 names = names.map { |n| n.to_s }
                 relevant_ports =
                     if names.empty? then all_input_ports

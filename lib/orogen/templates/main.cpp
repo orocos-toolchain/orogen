@@ -122,6 +122,10 @@ int ORO_main(int argc, char* argv[])
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
    ;
+<% task_activities.each do |task| %>
+    desc.add_options()
+        ("<%= task.name %>", po::value<std::string>(), "rename the task called '" "<%= task.name %>");
+<% end %>
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -170,8 +174,16 @@ int ORO_main(int argc, char* argv[])
     if( vm.count("prefix")) 
         prefix = vm["prefix"].as<std::string>();
 
+    std::string task_name;
+
 <% task_activities.each do |task| %>
-    <%= task.context.class_name %> task_<%= task.name%>(prefix + "<%= task.name %>");
+    task_name = "<%= task.name %>";
+    if (vm.count(task_name))
+        task_name = vm[task_name].as<std::string>();
+    else
+        task_name = prefix + task_name;
+    
+    <%= task.context.class_name %> task_<%= task.name%>(task_name);
     <%= task.generate_activity_setup %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|

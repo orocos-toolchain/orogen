@@ -6,7 +6,15 @@ module Orocos
     module Generation
         def self.extended_states=(value);  @extended_states = value end
         def self.extended_states_enabled?; @extended_states end
-        @extended_states = false
+        @extended_states = true
+
+        def self.define_default_deployments=(value);  @define_default_deployments = value end
+        def self.define_default_deployments_enabled?; @define_default_deployments end
+        @define_default_deployments = true
+
+        def self.default_deployment_name(task_model_name)
+            "orogen_default_#{task_model_name.gsub(/[^\w]/, '_')}"
+        end
 
         class << self
             attr_reader :default_type_export_policy
@@ -870,6 +878,14 @@ module Orocos
                 end
             end
 
+            attr_writer :define_default_deployments
+
+            def define_default_deployments?
+                if @define_default_deployments.nil? then Generation.define_default_deployments_enabled?
+                else @define_default_deployments
+                end
+            end
+
             # Creates a new task context class of this name. The generated
             # class is defined in the project's namespace. Therefore
             #
@@ -898,6 +914,13 @@ module Orocos
                 if extended_states?
                     task.extended_state_support
                 end
+
+                if task.default_activity
+                    if define_default_deployments?
+                        simple_deployment(Generation.default_deployment_name(task.name), task.name)
+                    end
+                end
+
                 task
 	    end
 
