@@ -127,7 +127,7 @@ module Orocos
             ##
             # :method: default_activity
             # :call-seq:
-            #   default_activity 'avtivity_type', *args
+            #   default_activity 'activity_type', *args
             #
             # The kind of activity that should be used by default. This is the
             # name of the corresponding method on the deployment objects
