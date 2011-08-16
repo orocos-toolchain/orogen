@@ -312,7 +312,7 @@ module Orocos
             # that some task contexts's implementation require the initial
             # state to be either PreOperational or Stopped.
             def needs_configuration
-                if superclass && superclass.fixed_initial_state?
+                if superclass && superclass.fixed_initial_state? && !superclass.needs_configuration?
                     raise ArgumentError, "cannot change the start state of this task context: the superclass #{superclass.name} does not allow it"
                 elsif fixed_initial_state? && !needs_configuration?
                     raise ArgumentError, "cannot change the start state of this task context: #fixed_initial_state has been specified for it"
