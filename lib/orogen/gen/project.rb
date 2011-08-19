@@ -1166,10 +1166,12 @@ module Orocos
                     using_task_library "logger"
                 end
 
+                project = self.project
+
                 result = nil
                 deployment name do
                     result = task name, klass
-                    if has_task_library?('logger')
+                    if project.has_task_library?('logger')
                         add_default_logger
                     end
                 end
