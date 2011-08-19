@@ -1162,6 +1162,10 @@ module Orocos
             #   simple_deployment("task", "Task").
             #       periodic(0.001)
             def simple_deployment(name, klass)
+                if has_task_library?('logger')
+                    using_task_library "logger"
+                end
+
                 result = nil
                 deployment name do
                     result = task name, klass
