@@ -1165,7 +1165,9 @@ module Orocos
                 result = nil
                 deployment name do
                     result = task name, klass
-                    add_default_logger
+                    if has_task_library?('logger')
+                        add_default_logger
+                    end
                 end
                 result
             end
