@@ -57,6 +57,8 @@ module Orocos
             # it, or imported by a Component#using_task_library call.
             def subclasses(task_context)
                 @superclass = project.find_task_context task_context
+                @default_activity = @superclass.default_activity.dup
+                @required_activity = @superclass.required_activity?
                 if !superclass
                     raise ArgumentError, "no such task context #{task_context}"
                 end
