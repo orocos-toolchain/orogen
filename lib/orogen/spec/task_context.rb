@@ -25,6 +25,44 @@ module Orocos
             # Gets or sets the documentation string for this task context
             dsl_attribute :doc
 
+            # Set of extensions registered for this task
+            #
+            # Extensions are named objects of arbitrary type that can be used to
+            # extend the task context model. If they contain a #generate method,
+            # this method is also called to add some code generation elements
+            #
+            # This is an array (not a hash) so that it keeps order
+            attr_reader :extensions
+
+            # True if an extension with the given name has been registered
+            def has_extension?(name); !!find_extension(name) end
+
+            # Registers an extension with the given name. Raises ArgumentError
+            # if there is already one.
+            def register_extension(name, obj)
+                if old = find_extension(name)
+                    raise ArgumentError, "there is already an extension called #{name}: #{old}"
+                else
+                    extensions << [name, obj]
+                end
+            end
+
+            # Returns the extension named +name+, or nil if there is none
+            def find_extension(name)
+                if result = extensions.find { |n, _| n == name }
+                    result[1]
+                end
+            end
+
+            # Returns the extension named +name+, or raises ArgumentError if
+            # none is registered with that name
+            def extension(name)
+                if ext = find_extension(name)
+                    ext
+                else raise ArgumentError, "no extension registered under the name '#{name}'"
+                end
+            end
+
             # for backward compatibility reasons
             def component # :nodoc:
                 project
@@ -170,6 +208,7 @@ module Orocos
 		end
 
                 @project  = project
+
                 if name != "RTT::TaskContext"
                     @superclass = project.default_task_superclass
                 end
@@ -191,6 +230,11 @@ module Orocos
 
                 @fixed_initial_state = false
                 @needs_configuration = false
+
+                ## WARN: this must be kept an array so that the generation order
+                ## WARN: is deterministic
+                @extensions = Array.new
+
 
                 super if defined? super
 	    end

@@ -451,6 +451,12 @@ module Orocos
                 self_properties.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
+                extensions.each do |ext_name, ext|
+                    if ext.respond_to?(:register_for_generation)
+                        ext.register_for_generation(self)
+                    end
+                end
+
                 generation_handlers.each do |h|
                     if h.arity == 1
                         h.call(self)
