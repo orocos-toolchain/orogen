@@ -70,8 +70,8 @@ module Orocos
 
                 kind =
                     case self
-                    when InputPort then "input_port"
-                    else "output_port"
+                    when InputPort then "input_port_declaration"
+                    else "output_port_declaration"
                     end
 
                 task.add_base_member(kind, "_#{name}",
@@ -766,6 +766,10 @@ module Orocos
 
             # Add a code snippet to the generated Base class declaration
             def add_base_member(kind, name, type = nil)
+                if @base_members.any? { |m| m.kind == kind && m.name == name }
+                    raise ArgumentError, "duplicate name #{kind}:#{name} used for base member"
+                end
+
                 m = GeneratedMember.new(self, kind, name, type)
                 @base_members << m
                 m
@@ -773,6 +777,9 @@ module Orocos
 
             # Add a code snippet to the generated user class declaration
             def add_user_member(kind, name, type = nil)
+                if @user_members.any? { |m| m.kind == kind && m.name == name }
+                    raise ArgumentError, "duplicate name #{kind}:#{name} used for base member"
+                end
                 m = GeneratedMember.new(kind, name, type)
                 @user_members << m
                 m

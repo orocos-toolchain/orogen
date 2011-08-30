@@ -10,7 +10,7 @@ using namespace <%= component.name %>;
    code_after.map! { |_, c| c.call }
 %>
 
-<%= code_before.join("\n") %>
+<%= code_before.sort.join("\n") %>
 
 <% initializer_list = task.self_base_members.
         sort_by { |m| [m.kind, m.name] }.

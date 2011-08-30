@@ -15,11 +15,11 @@
 <% end %>
 
 
-<% task.used_typekits.each do |tk| %>
+<% task.used_typekits.sort_by(&:name).each do |tk| %>
   <% next if tk.virtual? %>
 #include <<%= tk.name %>/Types.hpp>
 <% end %>
-<% task.implemented_classes.each do |class_name, include_file| %>
+<% task.implemented_classes.sort.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
 <% if component.typekit %>#include "<%= component.typekit.name %>/Types.hpp"<% end %>
@@ -30,7 +30,7 @@
    code_after.map! { |_, c| c.call }
 %>
 
-<%= code_before.join("\n") %>
+<%= code_before.sort.join("\n") %>
 
 namespace <%= component.name %> {
     class <%= task.basename %>;
@@ -104,7 +104,7 @@ namespace <%= component.name %> {
     };
 }
 
-<%= code_after.join("\n") %>
+<%= code_after.sort.join("\n") %>
 
 #endif
 
