@@ -428,6 +428,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
             end
 
+            # True if this task should be deployed using a realtime scheduler,
+            # and false otherwise
+            def realtime?; @realtime end
+
 	    # Returns the Orocos scheduler constant name for this task's
 	    # scheduler class. Call #realtime and #non_realtime to change the
 	    # task scheduling class

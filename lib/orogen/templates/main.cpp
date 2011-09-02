@@ -36,6 +36,7 @@
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
 #include <rtt/transports/corba/TaskContextServer.hpp>
+#include <rtt/transports/corba/CorbaDispatcher.hpp>
 #include <signal.h>
 <% end %>
 
@@ -196,7 +197,13 @@ int ORO_main(int argc, char* argv[])
 
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( &task_<%= task.name%> );
+    <% if task.realtime? %>
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+    <% else %>
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
     <% end %>
+    <% end %>
+
 <% end %>
 
    Deinitializer deinit;
