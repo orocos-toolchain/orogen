@@ -5,4 +5,4 @@ require 'orogen/base'
 require 'orogen/spec'
 require 'orogen/gen'
 
-Orocos::Generation.load_plugins
+Orocos.load_orogen_plugins

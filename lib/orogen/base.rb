@@ -431,35 +431,59 @@ module Orocos
             end
             name
         end
+    end
 
-        def self.each_orogen_plugin_dir(&block)
-            if dirs = ENV['OROGEN_PLUGIN_PATH']
-                dirs.split(':').each(&block)
-            else
-                [].each(&block)
-            end
+    def self.each_orogen_plugin_dir(&block)
+        if dirs = ENV['OROGEN_PLUGIN_PATH']
+            dirs.split(':').each(&block)
+        else
+            [].each(&block)
+        end
+    end
+
+    def self.load_orogen_plugin(name)
+        original_load_path = $LOAD_PATH.dup
+        each_orogen_plugin_dir do |dir|
+            $LOAD_PATH << dir
         end
 
-        def self.load_plugins
-	    original_load_path = $LOAD_PATH.dup
-            each_orogen_plugin_dir do |dir|
-		$LOAD_PATH << dir
-	    end
-            each_orogen_plugin_dir do |dir|
-	        Dir.glob(File.join(dir, '*.rb')).each do |file|
-	            logger.info "loading plugin #{file}"
-		    begin
-	                require file
-		    rescue Exception => e
-		        logger.warn "could not load plugin #{file}: #{e.message}"
-		    end
-	        end
+        each_orogen_plugin_dir do |dir|
+            path = File.join(dir, "#{name}.rb")
+            if File.file?(path)
+                logger.info "loading plugin #{file}"
+                require path
+                return
             end
-	ensure
-	    if original_load_path
-		$LOAD_PATH.clear
-	        $LOAD_PATH.concat(original_load_path)
-	    end
+        end
+        raise ArgumentError, "cannot load plugin #{name}: not found in #{ENV['OROGEN_PLUGIN_PATH']}"
+
+    ensure
+        if original_load_path
+            $LOAD_PATH.clear
+            $LOAD_PATH.concat(original_load_path)
+        end
+    end
+
+    def self.load_orogen_plugins(*type)
+        original_load_path = $LOAD_PATH.dup
+        each_orogen_plugin_dir do |dir|
+            $LOAD_PATH << dir
+        end
+        type = File.join(*type)
+        each_orogen_plugin_dir do |dir|
+            Dir.glob(File.join(dir, type, '*.rb')).each do |file|
+                logger.info "loading plugin #{file}"
+                begin
+                    require file
+                rescue Exception => e
+                    logger.warn "could not load plugin #{file}: #{e.message}"
+                end
+            end
+        end
+    ensure
+        if original_load_path
+            $LOAD_PATH.clear
+            $LOAD_PATH.concat(original_load_path)
         end
     end
 

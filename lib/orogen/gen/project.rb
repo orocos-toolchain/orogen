@@ -409,6 +409,10 @@ module Orocos
                 end
             end
 
+            def using_plugin(name)
+                Orocos.load_plugin(name)
+            end
+
             # Import an orogen-generated typekit to be used by this project.
             # The typekit is searched by name through the pkg-config tool. It
             # means that, if PREFIX is the installation prefix where the project
