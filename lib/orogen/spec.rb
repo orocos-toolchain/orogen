@@ -1,13 +1,7 @@
 require 'utilrb/logger'
 module Orocos
     module Spec
-	class << self
-	    attr_reader :logger
-	end
-	@logger = Logger.new(STDOUT)
-	logger.level = Logger::WARN
-        logger.formatter = lambda { |severity, time, progname, msg| "#{severity}: #{msg}\n" }
-	extend Logger::Forward
+        extend Logger::Hierarchy
     end
 end
 

@@ -119,20 +119,16 @@ end
 
 module Orocos
     OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
+
+    extend Logger::Root("Orocos", Logger::WARN)
+
     module Generation
         class InternalError < RuntimeError; end
 
         class ConfigError < Exception; end
 	AUTOMATIC_AREA_NAME = '.orogen'
 
-
-	class << self
-	    attr_reader :logger
-	end
-	@logger = Logger.new(STDOUT)
-	logger.level = Logger::WARN
-        logger.formatter = lambda { |severity, time, progname, msg| "#{severity}: #{msg}\n" }
-	extend Logger::Forward
+	extend Logger::Hierarchy
  
 	@templates = Hash.new
 	class << self
