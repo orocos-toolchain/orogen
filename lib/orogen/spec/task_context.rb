@@ -436,6 +436,11 @@ module Orocos
 		@properties[name] = Property.new(self, name, type, default_value)
 	    end
 
+            # True if this task has a property with that name
+            def has_property?(name)
+                !!find_property(name)
+            end
+
             # Asks orogen to implement the extended state support interface in
             # the Base class. This adds:
             #  * a 'state' output port in which the current task's state is written
