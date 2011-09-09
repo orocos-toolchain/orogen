@@ -437,21 +437,26 @@ module Orocos
         end
     end
 
-    def self.load_orogen_plugin(name)
+    def self.load_orogen_plugin(*path)
         original_load_path = $LOAD_PATH.dup
         each_orogen_plugin_dir do |dir|
             $LOAD_PATH << dir
         end
 
+        path = File.join(*path)
+        if File.extname(path) != ".rb"
+            path = "#{path}.rb"
+        end
+
         each_orogen_plugin_dir do |dir|
-            path = File.join(dir, "#{name}.rb")
+            path = File.join(dir, path)
             if File.file?(path)
-                logger.info "loading plugin #{file}"
+                logger.info "loading plugin #{path}"
                 require path
                 return
             end
         end
-        raise ArgumentError, "cannot load plugin #{name}: not found in #{ENV['OROGEN_PLUGIN_PATH']}"
+        raise ArgumentError, "cannot load plugin #{path}: not found in #{ENV['OROGEN_PLUGIN_PATH']}"
 
     ensure
         if original_load_path
