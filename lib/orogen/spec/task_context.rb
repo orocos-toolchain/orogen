@@ -40,7 +40,7 @@ module Orocos
             # Registers an extension with the given name. Raises ArgumentError
             # if there is already one.
             def register_extension(name, obj)
-                if old = find_extension(name)
+                if (old = find_extension(name)) && old != obj
                     raise ArgumentError, "there is already an extension called #{name}: #{old}"
                 else
                     extensions << [name, obj]
