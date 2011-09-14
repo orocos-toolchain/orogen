@@ -290,6 +290,13 @@ module Orocos
                 pretty_print_interface(pp, "Properties", each_property.to_a)
                 pretty_print_interface(pp, "Attributes", each_attribute.to_a)
                 pretty_print_interface(pp, "Operations", each_operation.to_a)
+
+                extensions.each do |name, val|
+                    pp.breakable
+                    pp.text "Extension: #{name}"
+                    pp.breakable
+                    val.pretty_print(pp)
+                end
 	    end
 
 	    # Raises ArgumentError if an object named +name+ is already present
