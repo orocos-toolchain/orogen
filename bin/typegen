@@ -18,7 +18,7 @@ parser = OptionParser.new do |opt|
     available_transports.delete('type_info')
     available_transports = available_transports.sort.join(", ")
     opt.banner = <<-EOF
-usage: typegen [--transports=NAME1,NAME2] [--output output_dir] [--import=LIBRARY,TYPEKIT] name inputs
+usage: typegen [--transports=NAME1,NAME2] [--output=output_dir] [--import=LIBRARY,TYPEKIT] name inputs
 this installation of typegen knows the following transports: #{available_transports}
     EOF
 
@@ -50,7 +50,11 @@ this installation of typegen knows the following transports: #{available_transpo
         end
     end
 
-    opt.on('-o DIR', '--output DIR', String, "the directory to which the generated typekit should be written") do |dir|
+    opt.on('-o DIR', '--output=DIR', String, "the directory to which the generated typekit should be written") do |dir|
+        if dir.empty?
+            STDERR.puts "you must give a non-empty path to the --output option"
+            exit 1
+        end
         typekit.automatic_dir = File.expand_path(dir)
     end
     opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO }
