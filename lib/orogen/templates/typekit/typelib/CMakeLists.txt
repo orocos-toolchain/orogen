@@ -3,11 +3,11 @@
 # This policy indicates that the code below is cmake 2.6 compliant. This is necessary
 # To properly escape the add_definitions arguments.
 cmake_policy(VERSION 2.6)
-pkg_check_modules(TYPELIB REQUIRED typelib)
+orogen_pkg_check_modules(TYPELIB REQUIRED typelib)
 include_directories(${TYPELIB_INCLUDE_DIRS})
 link_directories(${TYPELIB_LIBRARY_DIRS})
 
-pkg_check_modules(RTT_Typelib REQUIRED rtt-typelib)
+orogen_pkg_check_modules(RTT_Typelib REQUIRED rtt-typelib)
 include_directories(${RTT_Typelib_INCLUDE_DIRS})
 link_directories(${RTT_Typelib_LIBRARY_DIRS})
 

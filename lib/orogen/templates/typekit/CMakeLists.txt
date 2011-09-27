@@ -38,7 +38,7 @@ IF ( NOT CMAKE_BUILD_TYPE )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
+orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
 
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']

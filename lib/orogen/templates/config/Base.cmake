@@ -76,7 +76,7 @@ ENDIF ( DOXYGEN_FOUND )
 
 # First, we need the Orocos::RTT, and optionally the CORBA part
 include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
-pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=2.1.0")
+orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=2.1.0")
 
 # Add generic include directories
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)

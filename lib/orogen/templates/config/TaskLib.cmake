@@ -71,7 +71,7 @@ include_directories(${OrocosRTT_INCLUDE_DIRS})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
 
-pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.1.0")
+orogen_pkg_check_modules(OrocosOCL "orocos-ocl-${OROCOS_TARGET}>=2.1.0")
 if (OrocosOCL_FOUND)
     message(STATUS "OCL found, the generated task library will be compatible with the deployer component")
     add_definitions(-DRTT_COMPONENT)

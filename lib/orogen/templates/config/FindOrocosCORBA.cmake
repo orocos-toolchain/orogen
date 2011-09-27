@@ -2,7 +2,7 @@ IF (NOT OrocosRTT_FOUND)
     FIND_PACKAGE(OrocosRTT REQUIRED)
 ENDIF(NOT OrocosRTT_FOUND)
 
-pkg_check_modules(OrocosCORBA "orocos-rtt-corba-${OROCOS_TARGET}>=2.1.0")
+orogen_pkg_check_modules(OrocosCORBA "orocos-rtt-corba-${OROCOS_TARGET}>=2.1.0")
 IF(NOT OrocosCORBA_FOUND)
     IF (OrocosCORBA_FIND_REQUIRED)
 	MESSAGE(FATAL_ERROR "RTT has not been built with CORBA support")

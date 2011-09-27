@@ -7,7 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
 
 # Link directories need to be set before(!) providing the target
-pkg_check_modules(service_discovery service_discovery)
+orogen_pkg_check_modules(service_discovery service_discovery)
 if(service_discovery_FOUND)
     add_definitions(-DOROGEN_SERVICE_DISCOVERY_ACTIVATED)
     message(STATUS "ServiceDiscovery library found: activating service discovery functionality for tasks")
