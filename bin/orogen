@@ -11,6 +11,7 @@ DEFAULT_TRANSPORTS = %w{corba typelib}
 verbosity = 0
 extended_states = true
 component = Orocos::Generation::Project.new
+Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = true
 
 transports = []
 no_transports = false
