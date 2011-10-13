@@ -6,22 +6,31 @@
 #include <rtt/types/TypeInfoRepository.hpp>
 #include <<%= typekit.name %>/OpaqueConvertions.hpp>
 
+<% base_class =
+    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+        "RTT::types::TemplateTypeInfoBase< #{type.cxx_name} >"
+    else
+        "RTT::types::TemplateTypeInfo< #{type.cxx_name} >"
+    end
+%>
+
 namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
-	public RTT::types::TemplateTypeInfo< <%= type.cxx_name %> >
+	public <%= base_class %>
     {
-        typedef RTT::types::TemplateTypeInfo< <%= intermediate_type.cxx_name %> > IntermediateTypeInfo;
+        typedef RTT::types::TemplateTypeInfoBase< <%= intermediate_type.cxx_name %> > IntermediateTypeInfo;
         IntermediateTypeInfo* intermediate_type_info;
 
         typedef <%= type.cxx_name %> T;
 
         <%= type.method_name(true) %>TypeInfo()
-            : RTT::types::TemplateTypeInfo< <%= type.cxx_name %> >("<%= type.full_name %>")
+            : <%= base_class %>("<%= type.full_name %>")
         {
             RTT::types::TypeInfoRepository::shared_ptr ti = RTT::types::TypeInfoRepository::Instance();
             intermediate_type_info = dynamic_cast< IntermediateTypeInfo* >(ti->type("<%= intermediate_type.name %>"));
         }
 
+<% if Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         virtual bool composeTypeImpl(const RTT::PropertyBag& source, RTT::internal::AssignableDataSource<T>::reference_t value) const
         {
             <% if needs_copy %>
@@ -72,6 +81,7 @@ namespace orogen_typekits {
                new IntermediateSource(intermediate);
             return intermediate_type_info->getMember(intermediate_ptr, id);
         }
+<% end %>
     };
 
     RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo()

@@ -2,6 +2,11 @@ module Orocos
     module TypekitMarshallers
     module TypeInfo
         class Plugin
+            class << self
+                attr_predicate :rtt_scripting?, true
+            end
+            @rtt_scripting = true
+
             def initialize
                 Typelib::Type          .extend(TypekitMarshallers::TypeInfo::Type)
                 Typelib::NumericType   .extend(TypekitMarshallers::TypeInfo::NumericType)

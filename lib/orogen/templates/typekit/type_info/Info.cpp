@@ -7,21 +7,22 @@
 #include <rtt/typekit/StdStringTypeInfo.hpp>
 <% end %>
 
+<% base_class =
+    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+        "RTT::types::TemplateTypeInfoBase< #{type.cxx_name} >"
+    elsif type.full_name == "/std/string"
+        "RTT::types::StdStringTypeInfo"
+    else
+	"#{type.info_type}< #{type.cxx_name} >"
+    end
+%>
 
 namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
-    <% if type.full_name == "/std/string" %>
-        public RTT::types::StdStringTypeInfo
-    <% else %>
-	public <%= type.info_type %>< <%= type.cxx_name %> >
-    <% end %>
+        public <%= base_class %>
     {
         <%= type.method_name(true) %>TypeInfo()
-	<% if type.full_name == "/std/string" %>
-	    : RTT::types::StdStringTypeInfo("<%= type.full_name %>") {}
-        <% else %>
-            : <%= type.info_type %>< <%= type.cxx_name %> >("<%= type.full_name %>") {}
-	<% end %>
+            : <%= base_class %>("<%= type.full_name %>") {}
     };
 
     RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo()

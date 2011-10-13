@@ -60,6 +60,10 @@ parser = OptionParser.new do |opt|
         Orocos::Generation.default_type_export_policy = mode.to_sym
     end
 
+    opt.on('--[no-]rtt-scripting', 'when generating the typekit, remove features needed for RTT scripting (speeds up compilation and reduces code size)') do |value|
+        Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = value
+    end
+
     opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO; verbosity = 1 }
     opt.on("-d", "--debug")   { Orocos::Generation.logger.level = Logger::DEBUG; verbosity = 2 }
     opt.on("-h", "--help", "this help message") do
