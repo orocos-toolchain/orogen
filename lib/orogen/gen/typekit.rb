@@ -103,7 +103,7 @@ module Typelib
         end
 
 	def self.contains_int64?
-            dependencies.any? { |t| t.contains_opaques? }
+            dependencies.any? { |t| t.contains_int64? }
         end
         def self.contains_opaques?
             contains?(Typelib::OpaqueType)
@@ -127,7 +127,7 @@ module Typelib
 
     class NumericType
 	def self.contains_int64?
-            t.integer? && t.size == 8
+            integer? && size == 8
         end
 
 	def self.cxx_name
