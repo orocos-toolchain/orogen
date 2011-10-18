@@ -9,7 +9,7 @@
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
-        "RTT::types::TemplateTypeInfoBase< #{type.cxx_name} >"
+        "RTT::types::DataFlowTypeInfo< #{type.cxx_name} >"
     elsif type.full_name == "/std/string"
         "RTT::types::StdStringTypeInfo"
     else

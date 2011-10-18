@@ -8,9 +8,16 @@
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
-        "RTT::types::TemplateTypeInfoBase< #{type.cxx_name} >"
+        "RTT::types::DataFlowTypeInfo< #{type.cxx_name} >"
     else
         "RTT::types::TemplateTypeInfo< #{type.cxx_name} >"
+    end
+
+   intermediate_class =
+    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+        "RTT::types::DataFlowTypeInfo< #{intermediate_type.cxx_name} >"
+    else
+        "RTT::types::TemplateTypeInfo< #{intermediate_type.cxx_name} >"
     end
 %>
 
@@ -18,7 +25,7 @@ namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
 	public <%= base_class %>
     {
-        typedef RTT::types::TemplateTypeInfoBase< <%= intermediate_type.cxx_name %> > IntermediateTypeInfo;
+        typedef <%= intermediate_class %> IntermediateTypeInfo;
         IntermediateTypeInfo* intermediate_type_info;
 
         typedef <%= type.cxx_name %> T;
