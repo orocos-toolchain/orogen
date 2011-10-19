@@ -190,6 +190,12 @@ module Orocos
                 end
                 [type, *args]
             end
+
+            # Declares that this task should be deployed using a default
+            # periodic activity, with the given period
+            def periodic(period)
+                default_activity :periodic, period
+            end
             
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
