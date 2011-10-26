@@ -1015,9 +1015,9 @@ module Orocos
                             obj = find_input_port(n)
                             if !obj
                                 if has_output_port?(n)
-                                    raise ArgumentError, "#{name} is an output port of #{self.name}, only input ports can be used in #port_driven"
+                                    raise ArgumentError, "#{n} is an output port of #{self.name}, only input ports can be used in #port_driven"
                                 else
-                                    raise ArgumentError, "#{name} is not a port of #{self.name}"
+                                    raise ArgumentError, "#{n} is not a port of #{self.name}"
                                 end
                             end
                             obj
