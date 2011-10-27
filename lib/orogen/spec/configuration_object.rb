@@ -44,9 +44,13 @@ module Orocos
 	    end
 
             def pretty_print(pp)
-                pp.text "#{name}:#{type.name}"
+                default = if value = self.default_value
+                              ", default: #{value}"
+                          end
+
+                pp.text "#{name}:#{type.name}#{default}"
                 if doc
-                    pp.text ": #{doc}"
+                    pp.text ", doc: #{doc}"
                 end
             end
 
