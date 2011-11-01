@@ -1035,7 +1035,7 @@ module Orocos
                 pkg = begin
                           Utilrb::PkgConfig.new("#{name}-typekit-#{orocos_target}")
                       rescue Utilrb::PkgConfig::NotFound => e
-                          raise ConfigError, "no typekit named '#{name}' is available"
+                          raise ConfigError, "no typekit named '#{name}' is available (could not load pkg-config info #{name}-typekit-#{orocos_target} in #{ENV['PKG_CONFIG_PATH']})"
                       end
 
                 registry = File.read(pkg.type_registry)
