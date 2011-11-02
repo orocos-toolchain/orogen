@@ -16,7 +16,6 @@
     <depend package="typelib" />
     <depend package="rtt_typelib" />
     <rosdep name="nokogiri" />
-    <rosdep name="hoe" />
     <!--
     <rosdep name="webgen" type="doc" />
     <rosdep name="coderay" type="doc" />
