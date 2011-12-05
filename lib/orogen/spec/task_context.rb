@@ -290,6 +290,12 @@ module Orocos
                     pp.text "Triggered on input: #{triggers.map(&:name).join(", ")}"
                     pp.breakable
                 end
+                if needs_configuration?
+                    pp.text "Needs configuration"
+                else
+                    pp.text "Does NOT need configuration"
+                end
+                pp.breakable
 
                 pretty_print_interface(pp, "Ports", each_port.to_a)
                 pretty_print_interface(pp, "Dynamic Ports", each_dynamic_port.to_a)
