@@ -190,7 +190,10 @@ module Orocos
             end
 
             def include_dirs
-                pkg.include_dirs
+                if pkg
+                    pkg.include_dirs
+                else Set.new
+                end
             end
 
             def load_task_library(name)

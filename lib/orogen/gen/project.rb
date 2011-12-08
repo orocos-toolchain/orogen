@@ -95,6 +95,11 @@ module Orocos
             # this project
 	    attr_reader :registry
 
+            # If true, #find_type will create a new Null type when unknown types
+            # are found. This is used to use orogen specifications before
+            # writing down the components.
+            attr_predicate :define_dummy_types?, true
+
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
@@ -318,6 +323,14 @@ module Orocos
                 @known_projects[name] = [pkg, pkg.deffile]
             end
 
+            # Registers an orogen file so that it can be loaded later
+            # using_task_library and friends. The project name is assumed to be
+            # the file basename
+            def register_orogen_file(path)
+                name = File.basename(path, ".orogen")
+                @known_projects[name] = [nil, path]
+            end
+
             # Find the TaskContext object described by +obj+. +obj+ can either
             # be a TaskContext instance, in which case it is returned, or a
             # task context name, in which case the corresponding TaskContext
@@ -472,6 +485,10 @@ module Orocos
             # RTT's typeinfo system
             def find_interface_type(typename)
                 type = find_type(typename)
+                if type < Typelib::NullType && define_dummy_types?
+                    return type
+                end
+
                 if type < Typelib::ArrayType
                     raise ConfigError, "static arrays are not valid interface types. Use an array in a structure or a std::vector"
                 end
@@ -522,7 +539,11 @@ module Orocos
 		end
 
             rescue Typelib::NotFound => e
-                if typekit && !typekit.pending_loads.empty?
+                if define_dummy_types?
+                    xml = "<typelib><opaque name=\"#{typename}\" size=\"0\"/></typelib>"
+                    registry.merge(Typelib::Registry.from_xml(xml))
+                    return registry.get(typename)
+                elsif typekit && !typekit.pending_loads.empty?
                     typekit.perform_pending_loads
                     retry
                 end
@@ -946,18 +967,21 @@ module Orocos
             # Loads the oroGen project +name+
             #
             # The returned value is an instance of ImportedProject
-            def load_orogen_project(name)
+            def load_orogen_project(name, options = Hash.new)
                 name = name.to_str
                 if lib = loaded_orogen_projects[name]
                     return lib
                 end
+                options = Kernel.validate_options options,
+                    :define_dummy_types => false
 
                 pkg, description = orogen_project_description(name)
 
+                lib = ImportedProject.new(self, pkg)
+                lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
-                    lib = ImportedProject.load(self, pkg, description)
+                    lib.load(description)
                 else
-                    lib = ImportedProject.new(self, pkg)
                     lib.eval(name, description)
                 end
 
@@ -988,9 +1012,15 @@ module Orocos
             # Loads the task library +name+
             #
             # The returned value is an instance of ImportedProject
-            def load_task_library(name, validate)
-                tasklib = load_orogen_project(name)
-                if validate && tasklib.self_tasks.empty?
+            def load_task_library(name, options)
+                if !options.kind_of?(Hash)
+                    options = { :validate => options }
+                end
+                options = Kernel.validate_options options,
+                    :validate => true, :define_dummy_types => false
+
+                tasklib = load_orogen_project(name, :define_dummy_types => options[:define_dummy_types])
+                if options[:validate] && tasklib.self_tasks.empty?
                     raise ConfigError, "#{name} is an oroGen project, but it defines no task library"
                 end
                 tasklib
@@ -1065,12 +1095,24 @@ module Orocos
             #   PREFIX/lib/pkgconfig
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
-            def using_task_library(name, validate = true)
+            def using_task_library(name, options = Hash.new)
+                if !options.kind_of?(Hash)
+                    options = { :validate => options }
+                end
+
+                if File.file?(name)
+                    register_orogen_file(name)
+                    name = File.basename(name, ".orogen")
+                end
+
 		if tasklib = used_task_libraries.find { |lib| lib.name == name }
 		    return tasklib
 		end
 
-                tasklib = load_task_library(name, validate)
+                options = Kernel.validate_options options,
+                    :validate => true, :define_dummy_types => false
+
+                tasklib = load_task_library(name, options)
                 tasklib.self_tasks.each do |t|
                     tasks[t.name] = t
                 end
