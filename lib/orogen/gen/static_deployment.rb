@@ -549,6 +549,9 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 
             #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
             def load_type(typename)
+                if !project.imported_typekits_for(type).map(&:name)[0]
+                    raise ArgumentError, "cannot find a typekit defining #{typename}"
+                end
                 @manually_loaded_types << typename
             end
 
