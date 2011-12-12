@@ -565,17 +565,20 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                
                 @manually_loaded_types.each do |type|
                     tk = project.imported_typekits_for(type).map(&:name)[0]
-                    raise "Could not find Type \"#{type}\" in Registry, do you loaded/imported the Type?" if tk == nil
+                    if !tk
+                        raise InternalError, "could not find manually loaded type \"#{type}\""
+                    end
                     task_typekits << tk
                 end
 
                 task_typekits.sort.map do |used_name|
                     this_tk = project.find_typekit(used_name)
+                    next if this_tk.virtual?
                     if !this_tk
                         raise InternalError, "#{used_name} is a typekit that is listed by one of the tasks of the #{name} deployment, but the oroGen project #{project.name} does not list it"
                     end
                     this_tk
-                end
+                end.compact
             end
 
             # call-seq:
