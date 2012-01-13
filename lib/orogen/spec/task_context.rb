@@ -302,8 +302,10 @@ module Orocos
                 extensions.each do |name, val|
                     pp.breakable
                     pp.text "Extension: #{name}"
-                    pp.breakable
-                    val.pretty_print(pp)
+                    pp.nest(2) do
+                        pp.breakable
+                        val.pretty_print(pp)
+                    end
                 end
 	    end
 
