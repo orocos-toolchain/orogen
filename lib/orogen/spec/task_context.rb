@@ -206,16 +206,18 @@ module Orocos
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
-	    def initialize(project, name)
-                if name == project.name
-                    raise ArgumentError, "tasks and projects must not have the same name"
-                elsif name !~ /^(\w+::)*\w+$/
-		    raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
-		end
+	    def initialize(project, name = nil)
+                if name
+                    if name == project.name
+                        raise ArgumentError, "tasks and projects must not have the same name"
+                    elsif name !~ /^(\w+::)*\w+$/
+                        raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
+                    end
+                end
 
                 @project  = project
 
-                if name != "RTT::TaskContext"
+                if name && name != "RTT::TaskContext"
                     @superclass = project.default_task_superclass
                 end
                 @implemented_classes = []
