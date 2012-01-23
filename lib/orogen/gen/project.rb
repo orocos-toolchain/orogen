@@ -927,7 +927,10 @@ module Orocos
 	    def task_context(name, &block)
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name that the project"
+                elsif name !~ /^(\w+::)*\w+$/
+                    raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
+
                 name = Generation.verify_valid_identifier(name)
 
                 # If we have a typekit, resolve all pending loads
