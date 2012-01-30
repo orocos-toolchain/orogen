@@ -122,11 +122,7 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
-   ;
-<% task_activities.each do |task| %>
-    desc.add_options()
-        ("<%= task.name %>", po::value<std::string>(), "rename the task called '" "<%= task.name %>");
-<% end %>
+        ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -177,10 +173,28 @@ int ORO_main(int argc, char* argv[])
 
     std::string task_name;
 
+    std::map<std::string, std::string> rename_map;
+
+    if ( vm.count("rename") ) {
+
+        const std::vector< std::string>& ren_vec = vm["rename"].as<std::vector <std::string> >();
+
+        for ( int i = 0; i < ren_vec.size(); i++) {
+
+            const std::string& ren_str = ren_vec.at(i);
+
+            int colon_pos = ren_str.find(':');
+            if ( colon_pos == std::string::npos ) continue;
+
+            rename_map.insert( std::pair<std::string, std::string>( 
+                ren_str.substr(0,colon_pos), ren_str.substr(colon_pos+1) ));
+        }
+    }    
+
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
-    if (vm.count(task_name))
-        task_name = vm[task_name].as<std::string>();
+    if (rename_map.count(task_name))
+        task_name = rename_map[task_name];
     else
         task_name = prefix + task_name;
     
