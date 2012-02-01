@@ -47,6 +47,12 @@ module Orocos
                 end
             end
 
+            # Enumerates the extensions registered on this task model, as (name,
+            # extension_object) pairs
+            def each_extension(&block)
+                extensions.each(&block)
+            end
+
             # Returns the extension named +name+, or nil if there is none
             def find_extension(name)
                 if result = extensions.find { |n, _| n == name }
