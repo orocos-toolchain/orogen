@@ -422,6 +422,31 @@ module Orocos
                 end.to_value_set
             end
 
+            # Validate the constructors of the task files
+            # regarding an fixed initial state
+            # This might be the case when needs_configuration has been specified
+            # on a later stage, but still the constructors need to be changed
+            # 
+            def validate_constructors(filename, taskname)
+                if ! fixed_initial_state?
+                    return
+                end
+
+                File.open(filename) do |file|
+                    begin
+                        while true
+                            line = file.readline
+                            if Regexp.new(taskname + "\(.*\)").match(line)
+                                if $1 =~ /TaskCore::TaskState/
+                                    puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                                end
+                            end
+                        end
+                    rescue EOFError
+                    end
+                end
+            end
+
 	    # Generate the code files for this task. This builds to classes:
 	    #
 	    # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
@@ -475,9 +500,12 @@ module Orocos
 
 		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
 		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
-		Generation.save_user "tasks", "#{basename}.cpp", code_cpp
-		Generation.save_user "tasks", "#{basename}.hpp", code_hpp
+		file_cpp = Generation.save_user "tasks", "#{basename}.cpp", code_cpp
+		file_hpp = Generation.save_user "tasks", "#{basename}.hpp", code_hpp
 
+                # Validate constructors of old task files
+                validate_constructors(file_cpp, basename)
+                validate_constructors(file_hpp, basename)
 
                 fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
                 FileUtils.mkdir_p fake_install_dir
