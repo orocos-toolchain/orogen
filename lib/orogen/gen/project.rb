@@ -802,7 +802,11 @@ module Orocos
                 end
                 self
             rescue Utilrb::PkgConfig::NotFound => e
-                raise ConfigError, "no library named '#{name}' is available", e.backtrace
+                if e.name == name 
+                    raise ConfigError, "no library named '#{name}' available", e.backtrace
+                else
+                    raise ConfigError, "a dependency of library '#{name}' is not available: library '#{e.name}' could not be found", e.backtrace
+                end
             end
 
             def import_typekit(name)
