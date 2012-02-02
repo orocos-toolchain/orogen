@@ -179,11 +179,11 @@ int ORO_main(int argc, char* argv[])
 
         const std::vector< std::string>& ren_vec = vm["rename"].as<std::vector <std::string> >();
 
-        for ( int i = 0; i < ren_vec.size(); i++) {
+        for ( unsigned int i = 0; i < ren_vec.size(); i++) {
 
             const std::string& ren_str = ren_vec.at(i);
 
-            int colon_pos = ren_str.find(':');
+            unsigned int colon_pos = ren_str.find(':');
             if ( colon_pos == std::string::npos ) continue;
 
             rename_map.insert( std::pair<std::string, std::string>( 
