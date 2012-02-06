@@ -428,15 +428,15 @@ module Orocos
 		end
             end
 
-            def intermediate_type_name_for(type_def)
-                type = find_type(type_def)
+            def intermediate_type_name_for(type_def, is_normalized = false)
+                type = find_type(type_def, is_normalized)
                 if type.opaque?
                     opaque_specification(type_def).intermediate
                 elsif type.contains_opaques?
                     if type < Typelib::ArrayType
                         "#{intermediate_type_name_for(type.deference)}[#{type.length}]"
                     elsif type < Typelib::ContainerType
-                        "#{type.container_kind}<#{intermediate_type_name_for(type.deference)}>"
+                        "#{type.container_kind}< #{intermediate_type_name_for(type.deference)} >"
                     else
                         path = Typelib.split_typename(type.name)
                         path.map! do |p|
@@ -450,12 +450,12 @@ module Orocos
 
             def intermediate_type_for(type_def)
                 typename = intermediate_type_name_for(type_def)
-                return find_type(typename)
+                return find_type(typename, true)
             end
 
             def intermediate_type?(type)
                 type = find_type(type.name)
-                opaques.find { |spec| find_type(spec.intermediate) == type }
+                opaques.find { |spec| find_type(spec.intermediate, true) == type }
             end
 
             def m_type?(type)
@@ -718,25 +718,28 @@ module Orocos
             # Returns the Typelib::Type subclass that represents the type whose
             # name is given. If the type is a derived type (pointer, array or
             # container), then it will be built on the fly.
-	    def find_type(type)
+	    def find_type(type, is_normalized = false)
                 if type.respond_to?(:to_str)
                     type_name = type.gsub('::', '/')
-                    type_name = Typelib::Type.normalize_typename(type_name)
+                    if !is_normalized
+                        type_name = Typelib::Type.normalize_typename(type_name)
+                        is_normalized = true
+                    end
                     begin
                         registry.build(type_name)
                     rescue Typelib::NotFound
                         if type_name =~ /(.*)\[(\d+)\]$/
                             base_type, array_size = $1, $2
-                            find_type(base_type)
+                            find_type(base_type, true)
                             return registry.build(type_name)
                         end
 
                         container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
                         if template_arguments.size == 1
-                            element_type = find_type(template_arguments[0])
+                            element_type = find_type(template_arguments[0], true)
                             if project
                                 project.registry.define_container(container_name,
-                                                project.find_type(element_type.name))
+                                                project.find_type(element_type.name, true))
                             end
                             return registry.define_container(container_name, element_type)
 
@@ -967,8 +970,11 @@ module Orocos
                 end
 
                 base_type = base_type.to_str
+                base_type = Typelib::Type.normalize_typename(base_type)
                 if intermediate_type.kind_of?(Class) && intermediate_type < Typelib::Type
                     intermediate_type = intermediate_type.name
+                else
+                    intermediate_type = Typelib::Type.normalize_typename(intermediate_type)
                 end
 
                 typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{0}\" /></typelib>"
@@ -979,7 +985,7 @@ module Orocos
                     project.registry.merge opaque_def
                 end
 
-                opaque_type = find_type(base_type)
+                opaque_type = find_type(base_type, true)
                 orogen_def  = OpaqueDefinition.new(opaque_type,
                                                  intermediate_type, options, convert_code_generator) 
                 orogen_def.caller = caller

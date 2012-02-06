@@ -274,11 +274,13 @@ module Orocos
                 end
             end
 
-	    def find_type(type)
+	    def find_type(type, is_normalized = false)
 		if type
 		    if type.respond_to?(:to_str)
                         type = type.gsub('::', '/')
-                        type = Typelib::Type.normalize_typename(type)
+                        if !is_normalized
+                            type = Typelib::Type.normalize_typename(type)
+                        end
                         begin
                             registry.get(type)
                         rescue Typelib::NotFound

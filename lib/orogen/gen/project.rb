@@ -508,16 +508,19 @@ module Orocos
             # Typelib::Type object directly, or a type name. In both cases, the
             # type must have been defined either by the project's own typekit
             # or by the ones imported by #using_typekit
-	    def find_type(typename)
+	    def find_type(typename, is_normalized = false)
 		if typename
 		    if typename.kind_of?(Class) && typename <= Typelib::Type
                         type = typename
                         typename = type.name
+                        is_normalized = true
                     end
 
 		    if typename.respond_to?(:to_str)
                         typename = typename.gsub('::', '/')
-                        typename = Typelib::Type.normalize_typename(typename)
+                        if !is_normalized
+                            typename = Typelib::Type.normalize_typename(typename)
+                        end
                         found_type = begin
                                          registry.build(typename)
                                      rescue Typelib::NotFound
