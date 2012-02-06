@@ -950,7 +950,7 @@ module Orocos
                     task.extended_state_support
                 end
 
-                if !task.abstract? && task.default_activity
+                if !task.abstract?
                     if define_default_deployments?
                         simple_deployment(Generation.default_deployment_name(task.name), task.name)
                     end
