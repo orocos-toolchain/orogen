@@ -175,6 +175,10 @@ namespace orogen_transports
      * TypelibMarshallerBase object.
      */
     void* getOpaqueValue(std::string const& expected_type, Typelib::Value value);
+
+    /** Returns a TypelibMarshallerBase object that can handle the provided type
+     */
+    orogen_transports::TypelibMarshallerBase* getMarshallerFor(std::string const& type);
 }
 
 #endif
