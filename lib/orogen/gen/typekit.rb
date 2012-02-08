@@ -436,13 +436,13 @@ module Orocos
                     if type < Typelib::ArrayType
                         "#{intermediate_type_name_for(type.deference)}[#{type.length}]"
                     elsif type < Typelib::ContainerType
-                        "#{type.container_kind}< #{intermediate_type_name_for(type.deference)} >"
+                        "#{type.container_kind}<#{intermediate_type_name_for(type.deference)}>"
                     else
                         path = Typelib.split_typename(type.name)
                         path.map! do |p|
                             p.gsub(/[<>\[\], \/]/, '_')
                         end
-                        path.join("/") + "_m"
+			"/" + path.join("/") + "_m"
                     end
                 else type.name
                 end
