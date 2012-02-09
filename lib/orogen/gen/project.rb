@@ -791,9 +791,13 @@ module Orocos
             #   using_library 'name', :typekit => false
             #
             def using_library(name, options = Hash.new)
-                options = Kernel.validate_options options, :typekit => true, :typekit_link => true
+                options = Kernel.validate_options options, :typekit => true, :typekit_link => nil
                 pkg = Utilrb::PkgConfig.new(name)
                 used_libraries << pkg
+
+                if options[:typekit_link].nil?
+                    options[:typekit_link] = options[:typekit]
+                end
 
                 do_typekit = options[:typekit] || options[:typekit_link]
                 if do_typekit
