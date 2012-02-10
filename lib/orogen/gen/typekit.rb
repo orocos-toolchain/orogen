@@ -414,6 +414,18 @@ end
 
 module Orocos
     module Generation
+        def self.create_or_update_symlink(source, target)
+            if File.exists?(target)
+                if !File.symlink?(target)
+                    raise ConfigError, "#{target} was expected to be a symbolic link, but is not"
+                end
+                pointed_to = File.readlink(target)
+                return if pointed_to == target
+            end
+            FileUtils.mkdir_p(File.dirname(target))
+            FileUtils.ln_sf(source, target)
+        end
+
         # Common implementation of opaque-related methods. It gets included in
         # Project and Typekit
         module OpaqueHandling
@@ -1526,22 +1538,14 @@ module Orocos
                 fake_install_dir = File.join(automatic_dir, name)
 
                 # Upgrade from directory to symlink
-                if File.symlink?(fake_install_dir)
-                    dest = File.readlink(fake_install_dir)
-                    if dest != automatic_dir
-                        FileUtils.ln_sf automatic_dir, fake_install_dir
-                    end
-                else
-                    if File.exists?(fake_install_dir)
-                        FileUtils.rm_rf fake_install_dir
-                    end
-                    FileUtils.ln_sf automatic_dir, fake_install_dir
+                if !File.symlink?(fake_install_dir)
+                    FileUtils.rm_rf fake_install_dir
                 end
+                Generation.create_or_update_symlink(automatic_dir, fake_install_dir)
 
                 if standalone?
                     fake_typekit_dir = File.join(automatic_dir, "typekit")
-                    FileUtils.rm_f fake_typekit_dir
-                    FileUtils.ln_sf automatic_dir, fake_typekit_dir
+                    Generation.create_or_update_symlink(automatic_dir, fake_typekit_dir)
                 end
 
                 # Small hack to workaround the current structure w.r.t. our
@@ -1560,8 +1564,7 @@ module Orocos
 
                 self.local_headers(false).each do |path, dest_path|
                     dest_path = File.join(automatic_dir, "types", name, dest_path)
-                    FileUtils.mkdir_p File.dirname(dest_path)
-                    FileUtils.ln_sf File.join(base_dir, path), dest_path
+                    Generation.create_or_update_symlink(File.join(base_dir, path), dest_path)
                 end
 
                 # Generate opaque-related stuff first, so that we see them in
@@ -1708,9 +1711,8 @@ module Orocos
                         save_user("Opaques.hpp", user_hh)
                         implementation_files <<
                             save_user("Opaques.cpp", user_cc)
-                        if !File.symlink?(File.join(automatic_dir, "Opaques.hpp"))
-                            FileUtils.ln_sf File.join(user_dir, "Opaques.hpp"), File.join(automatic_dir, "Opaques.hpp")
-                        end
+
+                        Generation.create_or_update_symlink(File.join(user_dir, "Opaques.hpp"), File.join(automatic_dir, "Opaques.hpp"))
                     end
                 end
 
