@@ -26,7 +26,15 @@ module Orocos
                 build_dep.in_context('corba', 'link')
                 result << build_dep
             end
-            result
+	    typekit.used_libraries.each do |pkg|
+		needs_link = typekit.linked_used_libraries.include?(pkg)
+		result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+		    in_context('corba', 'include')
+		if needs_link
+		    result.last.in_context('corba', 'link')
+		end
+	    end
+	    result
         end
 
         def separate_cmake?; true end
