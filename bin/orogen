@@ -176,7 +176,7 @@ rescue Orocos::Generation::ConfigError, ArgumentError => e
     exit 1
 rescue Exception => e
     STDERR.puts "===== Internal error ======="
-    STDERR.puts "Please report the following error to the orogen developpers"
+    STDERR.puts "Please report the following error to the orogen developers"
     raise
 end
 
