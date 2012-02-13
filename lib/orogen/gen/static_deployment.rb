@@ -491,14 +491,15 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                             line = file.readline
                             line_counter += 1
                             if regexp.match(line)
-                                if previous_non_empty_line =~ /.$/
+                                if previous_non_empty_line =~ /\.$/
                                     raise ArgumentError, "stray dot in statement: #{previous_non_empty_line.strip} (line #{previous_non_empty_line_number})"
                                 end
-                            elsif line =~ /[a-zA-Z]+/
+                            end
+
+                            if line =~ /.+/
                                 previous_non_empty_line = line
                                 previous_non_empty_line_number = line_counter
                             end
-
                         end
                     rescue EOFError
                     end
