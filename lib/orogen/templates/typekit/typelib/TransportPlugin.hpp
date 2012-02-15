@@ -3,7 +3,7 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_PLUGIN_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_PLUGIN_HPP
 
-#include <rtt/types/TransportPlugin.hpp>
+#include <rtt/typelib/TypelibTransportPlugin.hpp>
 
 namespace Typelib
 {
@@ -13,19 +13,12 @@ namespace Typelib
 
 namespace orogen_typekits {
     class <%= typekit.name %>TypelibTransportPlugin
-        : public RTT::types::TransportPlugin
+        : public orogen_transports::TypelibTransportPlugin
     {
-        Typelib::Registry* m_registry;
-
     public:
         <%= typekit.name %>TypelibTransportPlugin();
-        ~<%= typekit.name %>TypelibTransportPlugin();
         virtual bool registerTransport(std::string type_name, RTT::types::TypeInfo* ti);
-        virtual std::string getTransportName() const;
-        virtual std::string getTypekitName() const;
-        virtual std::string getName() const;
-
-        static std::string getTlbPath();
+        virtual std::string getTlbPath() const;
     };
 
     extern <%= typekit.name %>TypelibTransportPlugin <%= typekit.name %>TypelibTransport;

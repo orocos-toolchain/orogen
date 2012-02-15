@@ -25,7 +25,7 @@ link_directories(${Typelib_LIBRARY_DIRS})
 add_definitions(${Typelib_CFLAGS})
 
 add_library(rtt-typelib SHARED
-    TypelibMarshallerBase.cpp ${mqsupport_sources})
+    TypelibMarshallerBase.cpp TypelibTransportPlugin.cpp ${mqsupport_sources})
 
 target_link_libraries(rtt-typelib
     ${OrocosRTT_LIBRARIES}
@@ -40,6 +40,7 @@ install(TARGETS rtt-typelib
 install(FILES TypelibMarshallerBase.hpp TypelibMarshaller.hpp
     TypelibMarshallerHandle.hpp
     MQTypelibMarshaller.hpp OpaqueTypelibMarshaller.hpp
+    TypelibTransportPlugin.hpp
     DESTINATION include/rtt/typelib)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/rtt-typelib.pc.in

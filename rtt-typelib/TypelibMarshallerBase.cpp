@@ -12,6 +12,7 @@ TypelibMarshallerBase::TypelibMarshallerBase(bool plain,
         std::string const& orocos_typename,
         Typelib::Registry const& registry)
     : m_plain(plain)
+    , registry(&registry)
     , type_def(registry.get(typelib_typename))
     , m_typename_typelib(typelib_typename)
     , m_typename_orocos(orocos_typename)
@@ -21,6 +22,9 @@ TypelibMarshallerBase::TypelibMarshallerBase(bool plain,
 
     layout    = Typelib::layout_of(*type_def, false, false);
 }
+
+Typelib::Registry const& TypelibMarshallerBase::getRegistry() const
+{ return *registry; }
 
 bool TypelibMarshallerBase::isPlainTypelibType() const
 { return m_plain; }

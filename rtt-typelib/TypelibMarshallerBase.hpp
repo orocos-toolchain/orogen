@@ -13,6 +13,7 @@ namespace orogen_transports
     class TypelibMarshallerBase : public RTT::types::TypeTransporter
     {
         bool m_plain;
+        Typelib::Registry const* registry;
         Typelib::Type const*  type_def;
         Typelib::MemoryLayout layout;
         std::string m_typename_typelib;
@@ -25,6 +26,10 @@ namespace orogen_transports
                 std::string const& typelib_typename,
                 std::string const& orocos_typename,
                 Typelib::Registry const& registry);
+
+        /** Returns the typelib registry that defines this type
+         */
+        Typelib::Registry const& getRegistry() const;
 
         /** Returns true if the underlying orocos type can be manipulated by
          * typelib directly and false otherwise
