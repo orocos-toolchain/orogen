@@ -764,7 +764,7 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_base_method(return_type, name, signature)
+            def add_base_method(return_type, name, signature = "")
                 m = add_method("base_methods", return_type, name, signature)
                 m.in_base = true
                 m
@@ -784,7 +784,7 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_user_method(return_type, name, signature)
+            def add_user_method(return_type, name, signature = "")
                 if !has_base_method?(name)
                     # Add a pure virtual method to remind the user that he
                     # should add it to its implementation
