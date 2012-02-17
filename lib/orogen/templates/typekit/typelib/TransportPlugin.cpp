@@ -65,7 +65,7 @@ bool orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::registerTranspo
         return false;
     
     if(ti->hasProtocol(orogen_transports::TYPELIB_MARSHALLER_ID))
-	return true;
+	return false;
 
     <% first_type = true;
        typesets.interface_types.each do |type|
