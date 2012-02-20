@@ -326,8 +326,8 @@ module Orocos
             # Registers an orogen file so that it can be loaded later
             # using_task_library and friends. The project name is assumed to be
             # the file basename
-            def register_orogen_file(path)
-                name = File.basename(path, ".orogen")
+            def register_orogen_file(path, name = nil)
+                name ||= File.basename(path, ".orogen")
                 @known_projects[name] = [nil, path]
             end
 
@@ -1000,7 +1000,7 @@ module Orocos
                     lib.eval(name, description)
                 end
 
-                register_loaded_project(name, lib)
+                register_loaded_project(lib.name, lib)
             end
 
             # Finds the specification for the deployment +name+
