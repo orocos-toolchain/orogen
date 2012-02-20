@@ -62,7 +62,14 @@ orogen_transports::TypelibMarshallerBase* orogen_transports::getMarshallerFor(st
         RTT::types::TypeInfoRepository::Instance();
     RTT::types::TypeInfo* ti = type_registry->type(type);
     if (!ti)
-        throw std::runtime_error("type " + type + " is not registered in the RTT type system");
+    {
+	// Try harder. Some base types don't have a
+	// typelib-normalized name, so we should look
+	// for the type without the leading slash
+	ti = type_registry->type(type.substr(1));
+	if (!ti)
+	    throw std::runtime_error("type " + type + " is not registered in the RTT type system");
+    }
 
     if (!ti->hasProtocol(orogen_transports::TYPELIB_MARSHALLER_ID))
         throw std::runtime_error("type " + type + " is registered in the RTT type system, but does not have a typelib transport");
