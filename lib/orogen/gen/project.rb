@@ -991,6 +991,7 @@ module Orocos
 
                 pkg, description = orogen_project_description(name)
 
+                Orocos.info "loading oroGen project #{name}"
                 lib = ImportedProject.new(self, pkg)
                 lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
@@ -1020,6 +1021,7 @@ module Orocos
             
             # Called to store a loaded project for reuse later
             def register_loaded_project(name, obj)
+                Orocos.info "registering oroGen project #{name}" 
                 loaded_orogen_projects[name] = obj
             end
 
