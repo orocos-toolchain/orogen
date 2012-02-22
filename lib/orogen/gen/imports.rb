@@ -71,8 +71,8 @@ module Orocos
 
             def initialize(main_project, name, pkg, registry, typelist, interface_typelist)
                 @main_project, @name, @pkg, @registry = main_project, name, pkg, registry
-                @typelist = typelist
-                @interface_typelist = interface_typelist
+                @typelist = typelist.to_set
+                @interface_typelist = interface_typelist.to_set
                 @opaques = Array.new
                 @opaque_registry = Typelib::Registry.new
             end
