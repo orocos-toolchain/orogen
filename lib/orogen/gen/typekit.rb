@@ -106,7 +106,10 @@ module Typelib
             dependencies.any? { |t| t.contains_int64? }
         end
         def self.contains_opaques?
-            contains?(Typelib::OpaqueType)
+            if @contains_opaques.nil?
+                @contains_opaques = contains?(Typelib::OpaqueType)
+            end
+            @contains_opaques
         end
 
         @@index_var_stack = Array.new
@@ -504,7 +507,7 @@ module Orocos
                 end
 
                 begin
-                    type.dependencies.any? { |t| m_type?(t) }
+                    type.recursive_dependencies.any? { |t| t =~ /_m$/ }
                 rescue Typelib::NotFound
                 end
             end
