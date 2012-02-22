@@ -441,6 +441,8 @@ module Orocos
                     end
                     project = using_project(typekit)
                     typekit = project.typekit
+                elsif used_typekits.include?(typekit)
+                    return typekit
                 end
 
 		used_typekits << typekit
