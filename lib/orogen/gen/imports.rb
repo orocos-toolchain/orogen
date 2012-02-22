@@ -315,7 +315,7 @@ module Orocos
 
 	    def interface_type?(name)
 		if main_project
-		    main_project.used_typekits
+		    main_project.interface_type?(name)
 		else super
 		end
 	    end
