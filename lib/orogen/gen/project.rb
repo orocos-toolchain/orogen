@@ -439,8 +439,7 @@ module Orocos
                     if tk = used_typekits.find { |tk| tk.name == typekit }
                         return tk
                     end
-                    project = using_project(typekit)
-                    typekit = project.typekit
+                    typekit = import_typekit(typekit)
                 elsif used_typekits.include?(typekit)
                     return typekit
                 end
