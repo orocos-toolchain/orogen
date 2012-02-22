@@ -554,7 +554,7 @@ module Orocos
 	    end
 
             def extended_state_support?
-                self_tasks.any?(&:extended_state_support?)
+                self_tasks.any? { |t| t.extended_state_support? }
             end
 
             # Generate the project's source files
