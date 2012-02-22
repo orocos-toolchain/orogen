@@ -306,6 +306,13 @@ module Orocos
 		end
 	    end
 
+            def used_task_libraries
+                if main_project
+                    main_project.used_task_libraries
+                else super
+                end
+            end
+
 	    def interface_type?(name)
 		if main_project
 		    main_project.used_typekits
