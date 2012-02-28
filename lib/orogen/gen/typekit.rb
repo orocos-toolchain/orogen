@@ -440,6 +440,35 @@ module Orocos
 		end
             end
 
+            def find_opaque_for_intermediate(type)
+                type = find_type(type.name)
+                if m_type?(type)
+                    pp "opaque for: #{type.name}"
+                    # Yuk
+                    begin
+                        if @intermediate_to_opaque && (result = @intermediate_to_opaque[type.name])
+                            result
+                        else
+                            find_type(type.name.gsub(/_m$/, ''))
+                        end
+                    rescue Typelib::NotFound
+                        # This is a pretty expensive operation and is seldom
+                        # needed, so avoid doing it unnecessarily
+                        @intermediate_to_opaque ||= Hash.new
+                        @indexed_intermediates ||= Set.new
+                        registry.each do |t|
+                            if !@indexed_intermediates.include?(t) && t.contains_opaques?
+                                @indexed_intermediates << t
+                                @intermediate_to_opaque[intermediate_type_name_for(t)] = t
+                            end
+                        end
+                        @intermediate_to_opaque[type.name]
+                    end
+                else
+                    opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                end
+            end
+
             def intermediate_type_name_for(type_def, is_normalized = false)
                 type = find_type(type_def, is_normalized)
                 if type.opaque?
@@ -466,8 +495,7 @@ module Orocos
             end
 
             def intermediate_type?(type)
-                type = find_type(type.name)
-                opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                !!find_opaque_for_intermediate(type)
             end
 
             def m_type?(type)
