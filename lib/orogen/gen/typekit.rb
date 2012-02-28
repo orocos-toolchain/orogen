@@ -506,10 +506,7 @@ module Orocos
                     return true
                 end
 
-                begin
-                    type.recursive_dependencies.any? { |t| t =~ /_m$/ }
-                rescue Typelib::NotFound
-                end
+                type.recursive_dependencies.any? { |t| t =~ /_m$/ }
             end
         end
 
