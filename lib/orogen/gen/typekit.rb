@@ -443,7 +443,6 @@ module Orocos
             def find_opaque_for_intermediate(type)
                 type = find_type(type.name)
                 if m_type?(type)
-                    pp "opaque for: #{type.name}"
                     # Yuk
                     begin
                         if @intermediate_to_opaque && (result = @intermediate_to_opaque[type.name])
