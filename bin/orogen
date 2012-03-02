@@ -6,7 +6,7 @@ require 'optparse'
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
 
-DEFAULT_TRANSPORTS = %w{corba typelib}
+DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
 
 verbosity = 0
 extended_states = true
@@ -41,7 +41,7 @@ parser = OptionParser.new do |opt|
         Orocos::Generation.typekit_slice = slice_size
     end
 
-    opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled") do |transport_names|
+    opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         transport_names.split(',').each do |name|
             transports << name
         end
