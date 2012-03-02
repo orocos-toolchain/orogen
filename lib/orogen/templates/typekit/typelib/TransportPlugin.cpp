@@ -14,7 +14,7 @@ using namespace RTT;
 #define TYPEKIT_PACKAGE_NAME_aux(target) "<%= typekit.name %>-typekit-" TYPEKIT_PACKAGE_NAME_aux0(target)
 #define TYPEKIT_PACKAGE_NAME TYPEKIT_PACKAGE_NAME_aux(OROCOS_TARGET)
 
-std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTlbPath() const
+std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTypelibRegistryPath()
 {
 #ifdef HAS_ROSLIB
     using namespace ros::package;
@@ -30,6 +30,11 @@ std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTlbPa
     }
 #endif
     return TYPEKIT_REGISTRY;
+}
+
+std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTlbPath() const
+{
+    return <%= typekit.name %>TypelibTransportPlugin::getTypelibRegistryPath();
 }
 
 orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::<%= typekit.name %>TypelibTransportPlugin()

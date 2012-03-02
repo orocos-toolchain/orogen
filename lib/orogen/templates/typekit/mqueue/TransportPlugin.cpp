@@ -16,7 +16,7 @@ using namespace RTT;
 orogen_typekits::<%= typekit.name %>MQueueTransportPlugin::<%= typekit.name %>MQueueTransportPlugin()
     : m_registry(0)
 {
-    std::string path = <%= typekit.name %>TypelibTransportPlugin::getTlbPath();
+    std::string path = <%= typekit.name %>TypelibTransportPlugin::getTypelibRegistryPath();
     try
     {
         m_registry = Typelib::PluginManager::load("tlb", path);
