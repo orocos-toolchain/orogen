@@ -827,6 +827,10 @@ module Orocos
                     from_raw_data(self, name, pkg, registry_xml, typelist_txt)
             end
 
+	    def register_typekit(name, registry_xml, typelist)
+	    	@known_typekits[name] = [nil, registry_xml, typelist]
+	    end
+
 	    # call-seq:
 	    #   project.typekit do
 	    #      ... typekit setup ...
