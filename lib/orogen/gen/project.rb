@@ -1006,6 +1006,7 @@ module Orocos
                 end
 
                 register_loaded_project(lib.name, lib)
+                lib
             end
 
             # Finds the specification for the deployment +name+
