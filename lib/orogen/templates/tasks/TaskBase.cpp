@@ -170,6 +170,8 @@ void <%= task.basename %>Base::exception()
     <% if is_boolean %>
     if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
         return false;
+    <% else %>
+    <%= task.superclass.name %>::<%= hook_name %>Hook();
     <% end %>
 
     <% snippets.each do |code| %>
