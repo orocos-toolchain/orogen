@@ -625,7 +625,10 @@ module Orocos
                         class_eval <<-EOD
                         def generate_#{name}
                             if @#{name}
-                                @#{name}.call
+                                if result = @#{name}.call
+                                    result
+                                else ""
+                                end
                             end
                         end
                         EOD
