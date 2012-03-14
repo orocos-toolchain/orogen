@@ -9,6 +9,24 @@ module Orocos
             :sequential   => 'SequentialActivity'
         }
 
+        # Base class for all task model extensions. It provides a few useful
+        # common methods
+        class TaskModelExtension
+            attr_reader :name
+
+            def initialize(name = nil)
+                @name = name
+            end
+
+            def supercall(default, m, *args, &block)
+                if self.name && @super_ext || (@super_ext = task.superclass.find_extension(self.name))
+                    @super_ext.send(m, *args, &block)
+                else
+                    default
+                end
+            end
+        end
+
         # Model of a task context, i.e. a component interface
         #
         # The corresponding code generation support is done in
@@ -35,35 +53,51 @@ module Orocos
             attr_reader :extensions
 
             # True if an extension with the given name has been registered
-            def has_extension?(name); !!find_extension(name) end
+            def has_extension?(name, with_subclasses = true); !!find_extension(name, with_subclasses) end
 
             # Registers an extension with the given name. Raises ArgumentError
             # if there is already one.
-            def register_extension(name, obj)
-                if (old = find_extension(name)) && old != obj
+            def register_extension(obj)
+                if (old = find_extension(obj.name, false)) && old != obj
                     raise ArgumentError, "there is already an extension called #{name}: #{old}"
                 else
-                    extensions << [name, obj]
+                    extensions << obj
                 end
             end
 
             # Enumerates the extensions registered on this task model, as (name,
             # extension_object) pairs
-            def each_extension(&block)
-                extensions.each(&block)
+            def each_extension(with_subclasses = true, &block)
+                if !block_given?
+                    return enum_for(:each_extension, with_subclasses)
+                end
+
+                seen = Set.new
+                klass = self
+                while klass
+                    klass.extensions.each do |ext|
+                        if !seen.include?(ext.name)
+                            seen << ext.name
+                            yield(ext)
+                        end
+                    end
+                    klass = klass.superclass
+                end
             end
 
             # Returns the extension named +name+, or nil if there is none
-            def find_extension(name)
-                if result = extensions.find { |n, _| n == name }
-                    result[1]
+            def find_extension(name, with_subclasses = true)
+                if result = extensions.find { |ext| ext.name == name }
+                    result
+                elsif with_subclasses && superclass
+                    superclass.find_extension(name, true)
                 end
             end
 
             # Returns the extension named +name+, or raises ArgumentError if
             # none is registered with that name
-            def extension(name)
-                if ext = find_extension(name)
+            def extension(name, with_subclasses = true)
+                if ext = find_extension(name, with_subclasses)
                     ext
                 else raise ArgumentError, "no extension registered under the name '#{name}'"
                 end
@@ -241,7 +275,6 @@ module Orocos
                 ## WARN: is deterministic
                 @extensions = Array.new
 
-
                 super if defined? super
 	    end
 
@@ -303,12 +336,12 @@ module Orocos
                 pretty_print_interface(pp, "Attributes", each_attribute.to_a)
                 pretty_print_interface(pp, "Operations", each_operation.to_a)
 
-                extensions.each do |name, val|
+                extensions.each do |ext|
                     pp.breakable
-                    pp.text "Extension: #{name}"
+                    pp.text "Extension: #{ext.name}"
                     pp.nest(2) do
                         pp.breakable
-                        val.pretty_print(pp)
+                        ext.pretty_print(pp)
                     end
                 end
 	    end
