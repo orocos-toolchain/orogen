@@ -229,6 +229,10 @@ module Orocos
                 false
             end
 
+            # The set of deployments known so far, as a mapping from the
+            # deployment name to the Spec::Deployment instance that describes it
+            attr_reader :loaded_deployments
+
 	    def initialize
                 @tasks = Hash.new
 		Project.standard_tasks.each do |t|
@@ -253,6 +257,7 @@ module Orocos
                 @loaded_typekits = Hash.new
                 @enabled_transports = Set.new
                 @opaques = Array.new
+                @loaded_deployments = Hash.new
 
 		# Load orocos-specific types which cannot be used in the
 		# project-defined typekit but can be used literally in argument
@@ -1011,6 +1016,10 @@ module Orocos
 
             # Finds the specification for the deployment +name+
             def load_orogen_deployment(name)
+                if deployment = loaded_deployments[name]
+                    return deployment
+                end
+
                 begin
                     pkg = Utilrb::PkgConfig.new("orogen-#{name}")
                 rescue Utilrb::PkgConfig::NotFound
@@ -1022,7 +1031,7 @@ module Orocos
                 if !deployment
                     raise InternalError, "cannot find the deployment called #{name} in #{tasklib}. Candidates were #{tasklib.deployers.map(&:name).join(", ")}"
                 end
-                deployment
+                loaded_deployments[name] = deployment
             end
             
             # Called to store a loaded project for reuse later
