@@ -3,6 +3,10 @@
 # This policy indicates that the code below is cmake 2.6 compliant. This is necessary
 # To properly escape the add_definitions arguments.
 cmake_policy(VERSION 2.6)
+
+<% typekit_deps = typekit.plugin('typelib').dependencies(typekit); %>
+<%= Generation.cmake_pkgconfig_require(typekit_deps, 'typelib') %>
+
 orogen_pkg_check_modules(TYPELIB REQUIRED typelib)
 include_directories(${TYPELIB_INCLUDE_DIRS})
 link_directories(${TYPELIB_LIBRARY_DIRS})
@@ -25,8 +29,7 @@ target_link_libraries(${libname_typelib}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     <% end %>)
 
-target_link_libraries(${libname_typelib}
-    LINK_INTERFACE_LIBRARIES)
+<%= Generation.cmake_pkgconfig_link('typelib', '${libname_typelib}', typekit_deps) %>
 
 # rospack support
 if ( ROS_ROOT )
