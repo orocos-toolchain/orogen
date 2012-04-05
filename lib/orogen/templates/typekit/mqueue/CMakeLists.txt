@@ -3,6 +3,9 @@
 # OrocosRTT_PREFIX has been set by the pkg-config find modules:
 find_package(Orocos-RTT REQUIRED rtt-transport-mqueue HINTS ${OrocosRTT_PREFIX}/lib/cmake/orocos-rtt)
 
+<% typekit_deps = typekit.plugin('corba').dependencies(typekit); %>
+<%= Generation.cmake_pkgconfig_require(typekit_deps, 'mqueue') %>
+
 orogen_pkg_check_modules(RTT_Typelib REQUIRED rtt-typelib)
 include_directories(${RTT_Typelib_INCLUDE_DIRS})
 link_directories(${RTT_Typelib_LIBRARY_DIRS})
@@ -25,9 +28,7 @@ target_link_libraries(${libname_mqueue}
     ${OROCOS-RTT_MQUEUE_LIBRARIES}
     ${RTT_Typelib_LIBRARIES})
 
-<%= typekit_deps = typekit.plugin('mqueue').dependencies(typekit);
-    Generation.cmake_pkgconfig_link('mqueue', '${libname_mqueue}', typekit_deps) %>
-target_link_libraries(${libname_mqueue} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_MQUEUE_LIBRARIES})
+<%= Generation.cmake_pkgconfig_link('mqueue', '${libname_mqueue}', typekit_deps) %>
 
 SET(PKG_CONFIG_FILE_MQueue ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-mqueue-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-mqueue.pc.in ${PKG_CONFIG_FILE_MQueue} @ONLY)

@@ -6,7 +6,16 @@ module Orocos
                 def name; "typelib" end
 
                 def dependencies(typekit)
-                    []
+		    result = []
+		    typekit.used_libraries.each do |pkg|
+			needs_link = typekit.linked_used_libraries.include?(pkg)
+			result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+			    in_context('typelib', 'include')
+			if needs_link
+			    result.last.in_context('typelib', 'link')
+			end
+		    end
+                    result
                 end
 
                 def separate_cmake?; true end
