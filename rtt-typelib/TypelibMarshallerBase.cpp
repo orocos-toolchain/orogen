@@ -35,6 +35,10 @@ uint8_t* TypelibMarshallerBase::getTypelibSample(Handle* handle)
 {
     return handle->typelib_sample;
 }
+uint8_t* TypelibMarshallerBase::getOrocosSample(Handle* handle)
+{
+    return handle->orocos_sample;
+}
 char const* TypelibMarshallerBase::getMarshallingType() const
 { return m_typename_typelib.c_str(); }
 size_t TypelibMarshallerBase::getMarshallingSize(Handle const* handle) const

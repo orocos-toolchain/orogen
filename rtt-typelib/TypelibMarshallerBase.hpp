@@ -87,6 +87,16 @@ namespace orogen_transports
          */
         uint8_t* getTypelibSample(Handle* sample);
 
+        /** Returns a type-pruned pointer to an object that Typelib understands.
+         * This object is of the type returned by getMarshallingType
+         *
+         * If this handle has ownership of the sample, it is kept (i.e. not
+         * passed along). Note that the sample would need to have been
+         * either explicitly set or explicitly refreshed for this value to be
+         * non-NULL.
+         */
+        uint8_t* getOrocosSample(Handle* sample);
+
         /** Returns a type-pruned pointer to the C++ object, and passes
          * ownership along
          */
