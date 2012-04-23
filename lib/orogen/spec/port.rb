@@ -12,6 +12,23 @@ module Orocos
             # The port type name
             def type_name; type.name end
 
+            # Stores the policy for keeping last values. It can be nil, :initial or true
+            #
+            # The default is :initial. It reasonably ensures that connections
+            # containing variable-sized vectors such as std::vector are properly
+            # initialized, avoiding memory allocations. Turn it off for ports
+            # on which huge data samples are going to be sent and/or ports for
+            # which realtime communication is not required
+            dsl_attribute :keep_last_written_value do |value|
+                case value
+                when NilClass, TrueClass, FalseClass
+                when :initial
+                else
+                    raise ArgumentError, "keep_last_written_value can only be one of true, false/nil and :initial. Got #{value}"
+                end
+                value
+            end
+
             # True if the component supports only static connections on this
             # port, and false otherwise
             #
@@ -60,6 +77,7 @@ module Orocos
 		@task, @name, @type = task, name, type
 
                 @max_sizes = Hash.new
+                keep_last_written_value :initial
 	    end
 
 	    # call-seq:

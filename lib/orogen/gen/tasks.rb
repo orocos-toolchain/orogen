@@ -92,8 +92,17 @@ module Orocos
                 super
 
                 setup = []
-                setup << "_#{name}.keepLastWrittenValue(false);"
-                setup << "_#{name}.keepNextWrittenValue(true);"
+                if keep_last_written_value == :initial
+                    setup << "_#{name}.keepLastWrittenValue(false);"
+                    setup << "_#{name}.keepNextWrittenValue(true);"
+                elsif keep_last_written_value
+                    setup << "_#{name}.keepLastWrittenValue(true);"
+                    setup << "_#{name}.keepNextWrittenValue(false);"
+                else
+                    setup << "_#{name}.keepLastWrittenValue(false);"
+                    setup << "_#{name}.keepNextWrittenValue(false);"
+                end
+
                 task.add_base_construction("output_port", "_#{name}",
                         setup.join("\n"))
             end
