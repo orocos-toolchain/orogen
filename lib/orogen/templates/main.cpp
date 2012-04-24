@@ -106,9 +106,11 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDisc
 #endif 
 
 <% if deployer.corba_enabled? %>
+int sigint_com[2];
 void sigint_quit_orb(int)
 {
-    RTT::corba::TaskContextServer::ShutdownOrb(false);
+    uint8_t dummy = 0;
+    write(sigint_com[1], &dummy, 1);
 }
 <% end %>
 
@@ -286,6 +288,14 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% if deployer.corba_enabled? %>
+    /** Setup shutdown procedure on SIGINT. We use a pipe-based channel to do
+        so, as we can't shutdown the ORB from the signal handler */
+    if (pipe(sigint_com) == -1)
+    {
+        std::cerr << "failed to setup SIGINT handler: " << strerror(errno) << std::endl;
+        return 1;
+    }
+
     struct sigaction sigint_handler;
     sigint_handler.sa_handler = &sigint_quit_orb;
     sigemptyset(&sigint_handler.sa_mask);
@@ -304,7 +314,17 @@ int ORO_main(int argc, char* argv[])
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
-    RTT::corba::TaskContextServer::RunOrb();
+    RTT::corba::TaskContextServer::ThreadOrb();
+    while (true)
+    {
+        uint8_t dummy;
+        int read_count = read(sigint_com[0], &dummy, 1);
+        if (read_count == 1)
+            break;
+    }
+
+    RTT::corba::TaskContextServer::ShutdownOrb();
+    RTT::corba::TaskContextServer::DestroyOrb();
 <% elsif deployer.browse %>
     OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
     browser.loop();
