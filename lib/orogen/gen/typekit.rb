@@ -1246,6 +1246,17 @@ module Orocos
                 self_types.each do |type|
                     result.merge(base.minimal(type.name))
                 end
+
+                # Also register the intermediate types for our opaques. The
+                # resulting registry must be self-contained, and the
+                # intermediate stuff is specific to oroGen (i.e. typelib does
+                # not handle them for us)
+                opaques.each do |op_def|
+                    if result.include?(op_def.type.name)
+                        result.merge(base.minimal(find_type(op_def.intermediate).name))
+                    end
+                end
+
                 if with_base_types
                     standard_types = Typelib::Registry.new
                     Typelib::Registry.add_standard_cxx_types(standard_types)
@@ -1255,6 +1266,7 @@ module Orocos
                         result.merge(base.minimal(typename))
                     end
                 end
+
                 result
             end
 
