@@ -1692,12 +1692,20 @@ module Orocos
                     registered_types |= map_typeset_to_registry(registry, selected_types)
                 end
 
-                # Save all the types that this specific typekit handles
+                # Save all the types that this specific typekit handles,
+                # including aliases
                 registered_typenames = registered_types.map(&:name).to_set
+                all_names = Hash.new
+                minimal_registry.each(:with_aliases => true) do |name, type|
+                    all_names[type.name] ||= []
+                    all_names[type.name] << name
+                end
                 typelist_txt = []
                 generated_types.each do |type|
-                    typename = type.name
-                    typelist_txt << "#{typename} #{registered_typenames.include?(typename) ? '1' : '0'}"
+                    is_exported = registered_typenames.include?(type.name) ? '1' : '0'
+                    all_names[type.name].each do |type_name|
+                        typelist_txt << "#{type_name} #{is_exported}"
+                    end
                 end
                 save_automatic "#{name}.typelist",
                     typelist_txt.sort.join("\n")
