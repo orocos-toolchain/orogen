@@ -478,6 +478,9 @@ module Orocos
                     require file
                 rescue Exception => e
                     logger.warn "could not load plugin #{file}: #{e.message}"
+                    e.backtrace.each do |line|
+                        logger.warn "  #{line}"
+                    end
                 end
             end
         end

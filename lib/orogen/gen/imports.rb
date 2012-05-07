@@ -249,6 +249,9 @@ module Orocos
                 end
             end
 
+            def using_library(*args)
+            end
+
             def using_task_library(name)
                 main_project.using_task_library(name)
             end

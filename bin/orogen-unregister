@@ -1,0 +1,47 @@
+#! /usr/bin/env ruby
+require 'pp'
+
+require 'orogen'
+
+Orocos.logger.level = Logger::INFO
+project = Orocos::Generation::Project.new
+ARGV.each do |project_name|
+    begin
+        pkg, orogen_file_name = project.orogen_project_description(project_name)
+    rescue Orocos::Generation::ConfigError
+        Orocos.warn "could not find oroGen project #{project_name}"
+        next
+    end
+
+    pkg_config_dir = File.dirname(pkg.path)
+    bin_dir = File.join(pkg.exec_prefix, "bin")
+    lib_dir = pkg.libdir
+    include_dir = pkg.includedir
+    orogen_dir = File.dirname(pkg.deffile)
+    globs = [
+        File.join(pkg_config_dir, "orogen-project-#{project_name}.pc"),
+        File.join(pkg_config_dir, "#{project_name}-tasks-*.pc"),
+        File.join(pkg_config_dir, "#{project_name}-typekit-*.pc"),
+        File.join(pkg_config_dir, "#{project_name}-transport-*.pc"),
+        File.join(pkg_config_dir, "orogen-orogen_default_#{project_name}__*.pc"), # default deployments
+        File.join(bin_dir, "orogen_default_#{project_name}__*"), # default deployments
+        File.join(include_dir, project_name),
+        File.join(lib_dir, "lib#{project_name}-tasks-*"),
+        File.join(lib_dir, "types", "lib#{project_name}-typekit-*"),
+        File.join(lib_dir, "types", "lib#{project_name}-transport-*"),
+        File.join(orogen_dir, "#{project_name}.orogen"),
+        File.join(orogen_dir, "#{project_name}.typelist"),
+        File.join(orogen_dir, "#{project_name}.tlb")
+    ]
+
+    files = globs.map do |glob|
+        Dir.glob(glob).to_a
+    end.flatten
+
+    files.sort.each do |file|
+        Orocos.info "deleting #{file}"
+        FileUtils.rm_rf file
+    end
+
+    puts "successfully unregistered oroGen project #{project_name}"
+end

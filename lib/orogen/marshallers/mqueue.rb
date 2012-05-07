@@ -18,13 +18,25 @@ module Orocos
         def dependencies(typekit)
             result = []
             typekit.used_typekits.each do |tk|
-                build_dep = Orocos::Generation::BuildDependency.new(
-                    tk.name.upcase + "_TRANSPORT_MQUEUE",
-                    tk.pkg_transport_name('mqueue'))
-                build_dep.in_context('mqueue', 'include')
-                build_dep.in_context('mqueue', 'link')
-                result << build_dep
+                begin
+                    build_dep = Orocos::Generation::BuildDependency.new(
+                        tk.name.upcase + "_TRANSPORT_MQUEUE",
+                        tk.pkg_transport_name('mqueue'))
+                    build_dep.in_context('mqueue', 'include')
+                    build_dep.in_context('mqueue', 'link')
+                    result << build_dep
+                rescue Utilrb::PkgConfig::NotFound => e
+                    raise Orocos::Generation::ConfigError, "the MQueue transport for the #{tk.name} typekit cannot be found. It is needed to build the MQueue transport for this project"
+                end
             end
+	    typekit.used_libraries.each do |pkg|
+		needs_link = typekit.linked_used_libraries.include?(pkg)
+		result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+		    in_context('mqueue', 'include')
+		if needs_link
+		    result.last.in_context('mqueue', 'link')
+		end
+	    end
             result
         end
 

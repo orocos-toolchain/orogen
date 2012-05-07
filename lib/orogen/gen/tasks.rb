@@ -92,8 +92,17 @@ module Orocos
                 super
 
                 setup = []
-                setup << "_#{name}.keepLastWrittenValue(false);"
-                setup << "_#{name}.keepNextWrittenValue(true);"
+                if keep_last_written_value == :initial
+                    setup << "_#{name}.keepLastWrittenValue(false);"
+                    setup << "_#{name}.keepNextWrittenValue(true);"
+                elsif keep_last_written_value
+                    setup << "_#{name}.keepLastWrittenValue(true);"
+                    setup << "_#{name}.keepNextWrittenValue(false);"
+                else
+                    setup << "_#{name}.keepLastWrittenValue(false);"
+                    setup << "_#{name}.keepNextWrittenValue(false);"
+                end
+
                 task.add_base_construction("output_port", "_#{name}",
                         setup.join("\n"))
             end
@@ -476,7 +485,7 @@ module Orocos
                 self_properties.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
-                extensions.each do |ext_name, ext|
+                extensions.each do |ext|
                     if ext.respond_to?(:register_for_generation)
                         ext.register_for_generation(self)
                     end
@@ -625,7 +634,10 @@ module Orocos
                         class_eval <<-EOD
                         def generate_#{name}
                             if @#{name}
-                                @#{name}.call
+                                if result = @#{name}.call
+                                    result
+                                else ""
+                                end
                             end
                         end
                         EOD
