@@ -77,6 +77,10 @@ void <%= task.basename %>Base::setupComponentInterface()
         compact.join("\n") %>
 
 <% if task.extended_state_support? %>
+void <%= task.basename %>Base::report(States state)
+{
+    _state.write(state);
+}
 void <%= task.basename %>Base::state(States state)
 {
     _state.write(state);

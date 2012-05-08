@@ -634,6 +634,14 @@ module Orocos
                 end
             end
 
+            # Declares a certain number of reports
+            #
+            # This method will do nothing if it defines a report that is already
+            # defined by one of the superclasses.
+            def reports(*state_names)
+                runtime_states(*state_names)
+            end
+
             # Declares a certain number of runtime states
             #
             # This method will do nothing if it defines a state that is already

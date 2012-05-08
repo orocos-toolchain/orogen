@@ -88,6 +88,7 @@ namespace <%= component.name %> {
         <% end %>
 
         <% if task.extended_state_support? %>
+        void report(States state);
         void state(States state);
         void error(States state);
         void fatal(States state);
