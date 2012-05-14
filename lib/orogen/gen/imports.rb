@@ -17,8 +17,19 @@ module Orocos
                 raw_typelist = typelist_txt.split("\n").map(&:strip)
                 typekit_typelist, typekit_interface_typelist = [], []
                 raw_typelist.each do |decl|
-                    decl =~ /^([^\s]*)(?:\s+(\d+))?$/
-                    type, is_interface = $1, $2
+                    # using non greedy kleene star to match first expression: .*?
+                    # to handle following patterns:
+                    # /string
+                    # /unsigned char[8]
+                    # /unsigned char[8] 0 
+                    if decl =~ /^([^\s].*?)(\s+(\d+))?$/
+                        type, is_interface = $1, $2
+                    end
+                    # Validation using a simple exclude pattern
+                    if !decl || decl =~ /\s+\d\s+\d/
+                        raise InternalError, "Declaration '#{decl}' in a typelist could not be parsed -- wrong type pattern"
+                    end
+
                     typekit_typelist << type
                     if !is_interface || is_interface != '0'
                         typekit_interface_typelist << type
