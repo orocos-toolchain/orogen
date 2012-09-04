@@ -134,6 +134,10 @@ module Orocos
             # scope of the enclosing Component object -- i.e. either defined in
             # it, or imported by a Component#using_task_library call.
             def subclasses(task_context)
+                if @superclass != @project.default_task_superclass
+                    raise ConfigError, "#{@name} tries to subclass #{task_context} "+
+                        "while there is already #{@superclass.name}"
+                end
                 @superclass = project.find_task_context task_context
                 @default_activity = @superclass.default_activity.dup
                 @required_activity = @superclass.required_activity?
