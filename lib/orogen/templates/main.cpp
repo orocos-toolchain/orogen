@@ -110,7 +110,17 @@ int sigint_com[2];
 void sigint_quit_orb(int)
 {
     uint8_t dummy = 0;
-    write(sigint_com[1], &dummy, 1);
+    unsigned int sent = 0;
+    while(sent < sizeof(uint8_t))
+    {
+	int ret = write(sigint_com[1], &dummy, sizeof(uint8_t));
+	if(ret < 0)
+	{
+	    std::cerr << "Failed to signal quit to orb" << std::endl;
+	    break;
+	}
+	sent += ret;
+    }
 }
 <% end %>
 
