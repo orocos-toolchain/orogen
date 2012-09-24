@@ -15,7 +15,10 @@
     <depend package="rtt" />
     <depend package="typelib" />
     <depend package="rtt_typelib" />
+    <rosdep name="libxslt" />
     <rosdep name="nokogiri" />
+    <rosdep name="rake" />
+    <rosdep name="ruby" />
     <!--
     <rosdep name="webgen" type="doc" />
     <rosdep name="coderay" type="doc" />
