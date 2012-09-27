@@ -20,9 +20,8 @@ bool orogen_typekits::<%= typekit.name %>CorbaTransportPlugin::registerTransport
         %>
     <%= 'else ' unless first_type %>if (<%= if_cond %>)
     {
-        ti->addProtocol(ORO_CORBA_PROTOCOL_ID,
+        return ti->addProtocol(ORO_CORBA_PROTOCOL_ID,
             <%= type.method_name %>_CorbaTransport());
-        return true;
     }
     <% first_type = false
     end %>
