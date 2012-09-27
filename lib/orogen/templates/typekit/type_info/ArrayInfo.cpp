@@ -13,7 +13,7 @@ namespace orogen_typekits {
             : <%= type.info_type %>< RTT::internal::carray< <%= type.deference.cxx_name %> > >("<%= type.deference.full_name %>[]") {}
     };
 
-    RTT::types::TypeInfo* <%= type.deference.method_name(true) %>_ArrayTypeInfo()
+    RTT::types::TypeInfoGenerator* <%= type.deference.method_name(true) %>_ArrayTypeInfo()
     { return new <%= type.deference.method_name(true) %>ArrayTypeInfo(); }
 }
 

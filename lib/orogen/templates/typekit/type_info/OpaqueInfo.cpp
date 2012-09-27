@@ -74,7 +74,7 @@ namespace orogen_typekits {
         }
     };
 
-    RTT::types::TypeInfo* <%= type.method_name(true) %>_TypeInfo()
+    RTT::types::TypeInfoGenerator* <%= type.method_name(true) %>_TypeInfo()
     { return new <%= type.method_name(true) %>TypeInfo(); }
 }
 
