@@ -18,6 +18,7 @@ module Orocos
         def dependencies(typekit)
             result = []
             typekit.used_typekits.each do |tk|
+                next if tk.virtual?
                 begin
                     build_dep = Orocos::Generation::BuildDependency.new(
                         tk.name.upcase + "_TRANSPORT_MQUEUE",
