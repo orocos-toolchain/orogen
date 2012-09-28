@@ -4,18 +4,18 @@ require 'orogen/test'
 class TC_GenerationTypekit < Test::Unit::TestCase
     include Orocos::Generation::Test
 
-    TRANSPORTS = %w{corba typelib mqueue}
+    TRANSPORTS = ['corba', 'typelib', ['typelib', 'mqueue']]
     def self.transport_tests(name)
         TRANSPORTS.each do |transport|
-            define_method("test_#{name}_#{transport}") do
-                send(name, transport)
+            define_method("test_#{name}_#{[*transport].last}") do
+                send(name, *transport)
             end
         end
         define_method("test_#{name}_none") do
             send(name)
         end
         define_method("test_#{name}_all") do
-            send(name, *TRANSPORTS)
+            send(name, *TRANSPORTS.flatten)
         end
     end
 
