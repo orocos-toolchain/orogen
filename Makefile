@@ -1,7 +1,7 @@
 ifdef ROS_ROOT
 export MALLOC_CHECK_=0
 default: install
-include $(shell rosstack find orocos_toolchain_ros)/env.mk
+include $(shell rospack find rtt)/../env.mk
 install: 
 	rake setup[-DOROCOS_TARGET=$(OROCOS_TARGET)]
 else

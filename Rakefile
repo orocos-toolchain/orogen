@@ -17,6 +17,7 @@ task :setup do
         exit(1)
     end
 end
+
 task :default => :setup
 
 begin
