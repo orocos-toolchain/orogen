@@ -133,7 +133,7 @@ module Orocos
 
             def build_typegen(name, header_files, transports)
                 @working_directory = File.join(TEST_DIR, 'wc', name)
-                header_files = header_files.map do |file|
+                header_files = [*header_files].map do |file|
                     File.join(TEST_DATA_DIR, file)
                 end
 
