@@ -29,6 +29,8 @@ add_custom_command(
 <% if File.file?(component.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>")
+<% else %>
+add_custom_target(check-uptodate ALL)
 <% end %>
 
 # In Orogen components, the build target is specified at generation time
