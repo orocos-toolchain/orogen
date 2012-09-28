@@ -15,6 +15,7 @@
     <depend package="rtt" />
     <depend package="typelib" />
     <depend package="tools/service_discovery" optional="1" />
+    <depend package="rtt_typelib" />
     <rosdep name="nokogiri" />
     <!--
     <rosdep name="webgen" type="doc" />
