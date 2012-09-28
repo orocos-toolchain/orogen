@@ -3,9 +3,11 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
 #include <service_discovery/service_discovery.h>
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
+<% end %>
 
 #include <rtt/typekit/RealTimeTypekit.hpp>
 <% deployer.rtt_transports.each do |transport_name| %>
@@ -64,11 +66,13 @@ class Deinitializer
 
     std::vector<RTT::base::ActivityInterface*> m_activities;
 
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
 
     std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
 #endif
+<% end %>
 
 
 public:
@@ -80,6 +84,7 @@ public:
             (*it)->stop();
         }
 
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
         for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
                 sit != m_service_discoveries.end(); ++sit)
@@ -88,6 +93,7 @@ public:
             delete *sit;
         }
 #endif 
+<% end %>
     }
 };
 
@@ -97,6 +103,7 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
     return deinit;
 }
 
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
 Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
 {
@@ -104,6 +111,7 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDisc
     return deinit;
 }
 #endif 
+<% end %>
 
 <% if deployer.corba_enabled? %>
 int sigint_com[2];
@@ -131,9 +139,11 @@ int ORO_main(int argc, char* argv[])
    desc.add_options()
         ("help", "show all available options supported by this deployment")
         ("prefix", po::value<std::string>(), "Sets a prefix for all TaskContext names")
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
+<% end %>
         ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
@@ -234,6 +244,7 @@ int ORO_main(int argc, char* argv[])
 
    Deinitializer deinit;
 
+<% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
@@ -245,6 +256,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
     }
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
+<% end %>
 
 <% if !deployer.loggers.empty?
         deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
