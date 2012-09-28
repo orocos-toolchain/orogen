@@ -18,22 +18,31 @@ namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
 	public <%= base_class %>
     {
-        RTT::types::TypeInfo* intermediate_type_info;
+        mutable RTT::types::TypeInfo* intermediate_type_info;
 
-        typedef <%= type.cxx_name %> T;
-
-        <%= type.method_name(true) %>TypeInfo()
-            : <%= base_class %>("<%= type.full_name %>")
+        void getIntermediateTypeInfo() const
         {
+            if (intermediate_type_info)
+                return;
+            
             RTT::types::TypeInfoRepository::shared_ptr ti = RTT::types::TypeInfoRepository::Instance();
             intermediate_type_info = ti->type("<%= intermediate_type.name %>");
             if (!intermediate_type_info)
                 throw std::runtime_error("cannot initialize TypeInfo for opaque <%= type.full_name %> as I cannot find the TypeInfo for the intermediate type <%= intermediate_type.name %>");
         }
 
+        typedef <%= type.cxx_name %> T;
+
+        <%= type.method_name(true) %>TypeInfo()
+            : <%= base_class %>("<%= type.full_name %>")
+        {
+        }
+
 <% if Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         virtual bool composeType(RTT::base::DataSourceBase::shared_ptr source, RTT::base::DataSourceBase::shared_ptr target) const
         {
+            getIntermediateTypeInfo();
+
             <% if needs_copy %>
             <%= intermediate_type.cxx_name %> intermediate;
             typedef RTT::internal::ReferenceDataSource< <%= intermediate_type.cxx_name %> > IntermediateSource;
@@ -58,6 +67,8 @@ namespace orogen_typekits {
         }
 
         virtual RTT::base::DataSourceBase::shared_ptr getMember(RTT::base::DataSourceBase::shared_ptr item, const std::string& name) const {
+            getIntermediateTypeInfo();
+
             RTT::internal::AssignableDataSource<T>::shared_ptr value_source =
                 boost::dynamic_pointer_cast< RTT::internal::AssignableDataSource<T> >( item );
             if ( !value_source ) {
@@ -76,6 +87,7 @@ namespace orogen_typekits {
 
         virtual RTT::base::DataSourceBase::shared_ptr getMember(RTT::base::DataSourceBase::shared_ptr item,
                 RTT::base::DataSourceBase::shared_ptr id) const {
+            getIntermediateTypeInfo();
 
             RTT::internal::AssignableDataSource<T>::shared_ptr value_source =
                 boost::dynamic_pointer_cast< RTT::internal::AssignableDataSource<T> >( item );
