@@ -20,6 +20,7 @@ std::vector<float> const& orogen_typekits::toIntermediate(boost::shared_ptr<std:
 }
 bool orogen_typekits::fromIntermediate(boost::shared_ptr<std::vector<float> >& real_type, std::vector<float>* intermediate)
 {
-    real_type.reset( intermediate );
+    if (intermediate != real_type.get())
+        real_type.reset( intermediate );
     return true; // we get the ownership on +intermediate+
 }
