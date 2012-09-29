@@ -37,7 +37,7 @@ IF ( NOT CMAKE_BUILD_TYPE )
   SET( CMAKE_BUILD_TYPE Debug )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
-include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
+include(OrogenPkgCheckModules)
 orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
 
 ADD_CUSTOM_TARGET(regen
