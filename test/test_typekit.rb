@@ -87,6 +87,15 @@ link_directories(${TYPELIB_LIBRARY_DIRS})
                 EOT
             end
 
+            if transports.include?('corba')
+                cmake << <<-EOT
+find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
+include_directories(${OrocosCORBA_INCLUDE_DIRS})
+add_definitions(${OrocosCORBA_CFLAGS_OTHER})
+link_directories(${OrocosCORBA_LIBRARY_DIRS})
+                EOT
+            end
+
             cmake << <<-EOF
 link_directories(${CMAKE_INSTALL_PREFIX}/lib/orocos/plugins ${CMAKE_INSTALL_PREFIX}/lib/orocos/types)
 
@@ -104,6 +113,9 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
 
             transports.each do |transport_name|
                 cmake << "\ntarget_link_libraries(test opaque-transport-#{transport_name}-${OROCOS_TARGET})"
+            end
+            if transports.include?('corba')
+                cmake << "\ntarget_link_libraries(test ${OrocosCORBA_LIBRARIES} omniDynamic4)"
             end
 	end
 
