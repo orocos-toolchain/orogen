@@ -53,6 +53,7 @@ void Consumer::updateHook()
         cerr << "ERROR: expected " << (char)idx << ", got " << byte << endl;
         exit(1);
     }
+    ++idx;
 }
 
 // void Consumer::errorHook() {}
