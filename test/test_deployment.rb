@@ -162,8 +162,13 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         cross_deployment = Component.load(File.join(TEST_DATA_DIR, "modules", "cross_deployment", "deployment.orogen"))
 
         deployer = cross_deployment.deployers.find { true }
+        # oroGen projects must report all loaded typekits
         assert_equal(["rtt", "opaque", "cross_producer", "cross_consumer"], cross_deployment.used_typekits.map(&:name))
-        assert_equal(["opaque", "cross_producer", "cross_consumer"], deployer.used_typekits.map(&:name))
+        # The deployment reports only the typekits that are required so that we
+        # can interface with it. Since the cross_producer and cross_consumer
+        # typekits are only needed for the state types (which are not used in
+        # the interface), only the opaque typekit is needed.
+        assert_equal(["opaque"], deployer.used_typekits.map(&:name))
 
         cross_deployment = build_test_component("modules/cross_deployment", transports)
         install
