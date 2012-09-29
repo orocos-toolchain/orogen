@@ -8,15 +8,15 @@
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
-        "RTT::types::PrimitiveTypeInfo< #{type.cxx_name} >, RTT::types::TemplateConnFactory< #{type.cxx_name} >"
+        ["RTT::types::PrimitiveTypeInfo< #{type.cxx_name} >", "RTT::types::TemplateConnFactory< #{type.cxx_name} >"]
     else
-        "RTT::types::TemplateTypeInfo< #{type.cxx_name} >"
+	["RTT::types::TemplateTypeInfo< #{type.cxx_name} >"]
     end
 %>
 
 namespace orogen_typekits {
     struct <%= type.method_name(true) %>TypeInfo :
-	public <%= base_class %>
+        public <%= base_class.join(", public ") %>
     {
         mutable RTT::types::TypeInfo* intermediate_type_info;
 
@@ -34,7 +34,7 @@ namespace orogen_typekits {
         typedef <%= type.cxx_name %> T;
 
         <%= type.method_name(true) %>TypeInfo()
-            : <%= base_class %>("<%= type.full_name %>")
+            : <%= base_class.first %>("<%= type.full_name %>")
         {
         }
 
@@ -106,18 +106,14 @@ namespace orogen_typekits {
 <% end %>
 
 <%  if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
-    bool installTypeInfoObject(TypeInfo* ti) {
-        // aquire a shared reference to the this object
-        boost::shared_ptr< TemplateTypeInfo< <%= type.cxx_name %> > mthis =
-            boost::dynamic_pointer_cast<TemplateTypeInfo<<%= type.cxx_name %>> >( this->getSharedPtr() );
-        assert(mthis);
-        // Allow base to install first
-        PrimitiveTypeInfo<<%= type.cxx_name %>>::installTypeInfoObject(ti);
-        // Install the factories for primitive types
-        ti->setPortFactory( mthis );
-        // don't delete us, we're memory managed
-        return false;
-    }
+        bool installTypeInfoObject(RTT::types::TypeInfo* ti) {
+            // Allow base to install first
+            RTT::types::PrimitiveTypeInfo< <%= type.cxx_name %> >::installTypeInfoObject(ti);
+            // Install the factories for primitive types
+            ti->setPortFactory( boost::dynamic_pointer_cast< RTT::types::TemplateConnFactory< <%= type.cxx_name %> > >( this->getSharedPtr() ) );
+            // don't delete us, we're memory managed
+            return false;
+        }
 <% end %>
     };
 
