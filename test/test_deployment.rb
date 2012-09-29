@@ -139,7 +139,7 @@ class TC_GenerationDeployment < Test::Unit::TestCase
             sleep 0.5
             ::Process.kill 'SIGINT', child_pid
             result = ::Process.waitpid(child_pid)
-            assert_equal(0, result.exitstatus)
+            assert_equal(0, $?.exitstatus)
         end
     end
 
