@@ -47,6 +47,7 @@ module Orocos
 	    def teardown
                 clear_wc
                 ENV['PKG_CONFIG_PATH'] = @old_pkg_config
+                Utilrb::PkgConfig.clear_cache
 		super if defined? super
 	    end
 
