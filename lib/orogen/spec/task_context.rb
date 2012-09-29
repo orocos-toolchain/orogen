@@ -201,7 +201,7 @@ module Orocos
             # See also #default_activity
             dsl_attribute :required_activity do |type, *args|
                 if respond_to?(type.to_sym)
-                    send(type.to_sym)
+                    send(type.to_sym, *args)
                 else
                     default_activity type, *args
                 end
