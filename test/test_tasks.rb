@@ -108,7 +108,7 @@ class TC_GenerationTasks < Test::Unit::TestCase
 	assert_kind_of(Generation::Operation, meth)
 	assert_equal("MethodName", meth.name)
 	assert_equal("methodName", meth.method_name)
-	assert_equal([nil, 'void'], meth.return_type)
+	assert_equal([nil, 'void', ''], meth.return_type)
 	assert_equal("the method to test",  meth.doc)
 	assert(meth.arguments.empty?)
 	assert_equal("void methodName()", meth.signature)
