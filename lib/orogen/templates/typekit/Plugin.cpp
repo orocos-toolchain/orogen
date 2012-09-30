@@ -31,16 +31,10 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
     <% registered_types.each do |type| %>
         <% if type < Typelib::ArrayType %>
     ti = <%= type.deference.method_name(true) %>_ArrayTypeInfo();
-    if(!ti_repository->type(ti->getTypeName()))
-    {
-	ti_repository->addType( ti );
-    }
+    ti_repository->addType( ti );
         <% else %>
     ti = <%= type.method_name(true) %>_TypeInfo();
-    if(!ti_repository->type(ti->getTypeName()))
-    {
-	ti_repository->addType( ti );
-    }
+    ti_repository->addType( ti );
         <% end %>
     <% end %>
 
