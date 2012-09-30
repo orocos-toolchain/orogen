@@ -107,10 +107,16 @@ namespace orogen_typekits {
 
 <%  if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         bool installTypeInfoObject(RTT::types::TypeInfo* ti) {
+            // This shared pointer MUST be taken HERE, and MUST be pointing to
+            // the most derived class. Otherwise, you'll get double-free at
+            // deinitialization time
+            boost::shared_ptr< <%= type.method_name(true) %>TypeInfo > mthis =
+                boost::dynamic_pointer_cast< <%= type.method_name(true) %>TypeInfo >( this->getSharedPtr() );
+
             // Allow base to install first
             RTT::types::PrimitiveTypeInfo< <%= type.cxx_name %> >::installTypeInfoObject(ti);
             // Install the factories for primitive types
-            ti->setPortFactory( boost::dynamic_pointer_cast< RTT::types::TemplateConnFactory< <%= type.cxx_name %> > >( this->getSharedPtr() ) );
+            ti->setPortFactory(mthis);
             // don't delete us, we're memory managed
             return false;
         }
