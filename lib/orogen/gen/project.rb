@@ -1131,7 +1131,7 @@ module Orocos
                     options = { :validate => options }
                 end
 
-                if File.file?(name)
+                if File.file?(name) && File.extname(name) == ".orogen"
                     register_orogen_file(name)
                     name = File.basename(name, ".orogen")
                 end
