@@ -27,9 +27,9 @@ std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTlbPa
         if ( !ppath.empty() ) {
             return ppath + "/typekit" + "/<%= typekit.name %>.tlb";
         } else
-            log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+            log(Debug) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
     } catch(...) {
-        log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+        log(Debug) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
     }
 #endif
     return TYPEKIT_REGISTRY;
