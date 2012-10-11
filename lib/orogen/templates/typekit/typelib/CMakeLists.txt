@@ -31,8 +31,9 @@ target_link_libraries(${libname_typelib}
 
 <%= Generation.cmake_pkgconfig_link('typelib', '${libname_typelib}', typekit_deps) %>
 
-# rospack support
-if ( ROS_ROOT )
+# rospack support: if we're a ROS package, use rospack to return the location of our .tlb file.
+if ( IS_ROS_PACKAGE )
+      set(ROS_ROOT $ENV{ROS_ROOT})
       # Catkin style of fetching ROS deps
       FIND_PACKAGE( ROS QUIET COMPONENTS roslib )
 
@@ -54,7 +55,7 @@ if ( ROS_ROOT )
         add_definitions( -DHAS_ROSLIB )
       ENDIF(ROS_FOUND)
 
-endif( ROS_ROOT )
+endif( IS_ROS_PACKAGE )
 
 SET(PKG_CONFIG_FILE_TYPELIB ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-typelib-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-typelib.pc.in ${PKG_CONFIG_FILE_TYPELIB} @ONLY)

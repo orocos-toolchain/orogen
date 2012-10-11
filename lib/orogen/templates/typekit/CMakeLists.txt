@@ -50,14 +50,11 @@ ADD_CUSTOM_TARGET(regen
 # END if typekit.standalone?
 ##
 
-set(ROS_ROOT $ENV{ROS_ROOT})
-if ( ROS_ROOT )
-    if ( NOT ROSBUILD_init_called )
-        include(${ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-        rosbuild_init()
-    endif( NOT ROSBUILD_init_called )
+# Manually define '-DIS_ROS_PACKAGE' or include the UseOrocos.cmake file to automatically detect&set this flag.
+if ( IS_ROS_PACKAGE )
+    # When we import a typekit in a ROS package, we expect it to be in the package/lib directory
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos${OROCOS_SUFFIX}/types)
-endif( ROS_ROOT ) 
+endif( IS_ROS_PACKAGE ) 
 
 execute_process(COMMAND cmake -E create_symlink
     ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
