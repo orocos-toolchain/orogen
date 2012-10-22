@@ -471,7 +471,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # Check for the case when there is an superfluous dot at
             # the end of a task statement
             def check_for_stray_dots(filename, name, args)
-
                 # Building the regular expression to 
                 # match on the method name and arguments
                 regexp_expression = "#{name}.*"
@@ -532,7 +531,9 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     end
                 end
                 
-                check_for_stray_dots(project.deffile, name, args)
+                if project.deffile
+                    check_for_stray_dots(project.deffile, name, args)
+                end
 
                 return super
             end
