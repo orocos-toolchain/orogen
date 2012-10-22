@@ -379,8 +379,10 @@ module Orocos
 
                     if has_port?(p.name)
                         self_port = find_port(p.name)
-                        if (self_port.class != p.class || self_port.type != p.type)
-                            raise ArgumentError, "cannot merge as the output port #{self_port.name} have different meanings"
+                        if self_port.class != p.class
+                            raise ArgumentError, "cannot merge as #{self_port.name} is a #{self_port.class} in #{self} and a #{p.class} in #{other_model}"
+                        elsif self_port.type != p.type
+                            raise ArgumentError, "cannot merge as #{self_port.name} is of type #{self_port.type} in #{self} and of type #{p.type} in #{other_model}"
                         end
                     elsif p.kind_of?(OutputPort)
                         @output_ports[p.name] = p
