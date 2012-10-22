@@ -11,6 +11,10 @@ module Orocos
 	    attr_reader :type
             # The port type name
             def type_name; type.name end
+            # The port name as it is registered on RTT
+            def orocos_type_name
+                Typelib::Registry.rtt_typename(type)
+            end
 
             # Stores the policy for keeping last values. It can be nil, :initial or true
             #

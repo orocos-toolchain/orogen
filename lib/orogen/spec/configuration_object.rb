@@ -18,6 +18,9 @@ module Orocos
             # the +type+ attribute
             def type_name; type.name end
 
+            # The type name as registered on RTT
+            def orocos_type_name; Typelib::Registry.rtt_typename(type) end
+
 	    # The property's default value
 	    attr_reader :default_value
 

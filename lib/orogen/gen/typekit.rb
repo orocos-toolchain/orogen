@@ -391,6 +391,35 @@ struct #{target_basename}
             end
         end
 
+        # Returns the typename used by RTT to register the given type
+        def self.rtt_typename(type)
+            if !@typelib_to_rtt_mappings
+                cxx_types = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(cxx_types)
+                @typelib_to_rtt_mappings = {
+                    cxx_types.get('bool') => 'bool',
+                    cxx_types.get('int') => 'int',
+                    cxx_types.get('unsigned int') => 'uint',
+                    cxx_types.get('float') => 'float',
+                    cxx_types.get('double') => 'double',
+                    cxx_types.get('char') => 'char'
+                }
+            end
+
+            if type.name == "/std/string"
+                return "string"
+            elsif !(type <= Typelib::NumericType)
+                return type.name
+            end
+
+            if type.name == "/bool" then return 'bool'
+            elsif mapped = @typelib_to_rtt_mappings.find { |typelib, rtt| typelib == type }
+                return mapped[1]
+            else
+                raise ArgumentError, "#{type.name} is (probably) not registered on the RTT type system"
+            end
+        end
+
         # Returns the RTT type that we should use to handle +type+.
         #
         # This is used in property bag marshalling/demarshalling to convert to
