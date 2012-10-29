@@ -35,18 +35,9 @@ task_context "Task" do
    output_port "output", "int"
 
    # If you want that component's updateHook() to be executed when the "input"
-   # port gets data, uncomment this
+   # port gets data, uncomment this and comment the 'periodic' line
    # port_driven "input"
-end
-
-
-# Declares a deployment, i.e. an actual executable that contains various tasks.
-deployment "NAME_test" do
-    # This is a test deployment that should not be installed
-    do_not_install
-
-    # Declares it as periodic, with a period of 100ms
-    task("NAME", "Task").
-        periodic(0.1)
+   # By default, the task will be periodic with a period of 0.1
+   periodic 0.1
 end
 
