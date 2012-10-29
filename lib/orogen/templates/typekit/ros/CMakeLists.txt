@@ -2,10 +2,9 @@ set(PROJECT_NAME base_msgs)
 set(base_msgs_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 <% typekit_deps = typekit.plugin('ros').dependencies(typekit); %>
 
-# Cheat !
+# Requires CMAKE_PREFIX_PATH to be set properly
 <% %w{catkin genmsg genpy gencpp genlisp}.each do |ros_pkg| %>
-orogen_pkg_check_modules(<%= ros_pkg %> REQUIRED <%= ros_pkg %>)
-set(<%= ros_pkg %>_DIR ${<%= ros_pkg %>_PREFIX}/share/<%= ros_pkg %>/cmake)
+find_package(<%= ros_pkg %>)
 <% end %>
 
 find_package(catkin REQUIRED)
@@ -20,12 +19,11 @@ add_message_files(DIRECTORY msg
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
     tk.name
-end
+end.compact
 %>
 
 <% msg_deps.each do |dep_name| %>
-set(<%= dep_name %>_FOUND true)
-set(<%= dep_name %>_DIR ${<%= dep_name %>_TRANSPORT_ROS}_DIR/msg)
+find_package(<%= dep_name %>_msg)
 <% end %>
 
 <% if msg_deps.empty? %>
