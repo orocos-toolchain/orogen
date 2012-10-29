@@ -50,7 +50,7 @@ module Orocos
                             type = typekit.intermediate_type_for(type)
                         end
 
-                        if type <= Typelib::CompoundType
+                        if type <= Typelib::CompoundType && !typekit.m_type?(type)
                             msg = Orocos::Generation.render_template "typekit", "ros", "Type.msg", binding
                             typekit.save_automatic("transports", "ros", "msg", "#{msg_name}.msg", msg)
                             all_messages << msg_name
