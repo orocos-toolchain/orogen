@@ -77,10 +77,16 @@ module Orocos
                 end
 
                 def ros_cxx_type(type)
-                    if type < Typelib::ArrayType || type < Typelib::ContainerType
+                    if type < Typelib::EnumType
+                        "boost::int32_t"
+                    elsif type < Typelib::ArrayType || type < Typelib::ContainerType
                         "std::vector< #{ros_cxx_type(type.deference)} >"
                     elsif type < Typelib::NumericType
-                        "boost::" + ros_message_name(type, true).gsub(/\//, '::') + "_t"
+                        if type.integer?
+                            "boost::#{type.name[1..-1]}"
+                        else
+                            type.name[1..-1]
+                        end
                     else
                         ros_message_name(type, true).gsub(/\//, '::')
                     end
