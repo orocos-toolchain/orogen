@@ -43,8 +43,7 @@ target_link_libraries(${libname_ros}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosROS_LIBRARIES})
 
-SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name
-    %>-transport-ros-${OROCOS_TARGET}.pc)
+SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-ros-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
 install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
