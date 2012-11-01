@@ -42,6 +42,7 @@ set_source_files_properties(impl.join(" ")
 target_link_libraries(${libname_ros}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosROS_LIBRARIES})
+<%= Generation.cmake_pkgconfig_link('ros', '${libname_ros}', typekit_deps) %>
 
 SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-ros-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
