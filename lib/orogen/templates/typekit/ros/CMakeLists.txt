@@ -7,6 +7,8 @@ find_package(genmsg REQUIRED)
 
 <%= Generation.cmake_pkgconfig_require(typekit_deps, 'ros') %>
 
+<% if !all_messages.empty?
+%>
 add_message_files(DIRECTORY msg
     FILES
     <%= all_messages.join(".msg\n    ") %>.msg)
@@ -28,6 +30,8 @@ generate_messages()
 generate_messages(DEPENDENCIES <%= msg_deps.join(" ") %>)
 <% end %>
 include_directories(${CMAKE_BINARY_DIR}/gen/cpp)
+<% end # end of if !all_messages.empty?
+%>
 
 set(libname_ros <%= typekit.name %>-transport-ros-${OROCOS_TARGET})
 add_library(${libname_ros} SHARED
