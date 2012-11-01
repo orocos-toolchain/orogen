@@ -6,7 +6,7 @@
 #include <rtt/types/TransportPlugin.hpp>
 
 namespace orogen_typekits {
-    class <%= typekit.name %>ROSTransportPlugin
+    class <%= typekit.name %>RosTransportPlugin
         : public RTT::types::TransportPlugin
     {
     public:
@@ -16,7 +16,7 @@ namespace orogen_typekits {
         virtual std::string getName() const;
     };
 
-    extern <%= typekit.name %>ROSTransportPlugin <%= typekit.name %>ROSTransport;
+    extern <%= typekit.name %>RosTransportPlugin <%= typekit.name %>RosTransport;
 }
 
 #endif

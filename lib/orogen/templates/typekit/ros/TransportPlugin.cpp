@@ -8,7 +8,7 @@
 #include <rtt/transports/ros/RosLib.hpp>
 using namespace RTT;
 
-bool orogen_typekits::<%= typekit.name %>ROSTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
+bool orogen_typekits::<%= typekit.name %>RosTransportPlugin::registerTransport(std::string type_name, RTT::types::TypeInfo* ti)
 {
     if(ti->hasProtocol(ORO_ROS_PROTOCOL_ID))
 	return false;
@@ -31,12 +31,12 @@ bool orogen_typekits::<%= typekit.name %>ROSTransportPlugin::registerTransport(s
     end %>
     return false;
 }
-std::string orogen_typekits::<%= typekit.name %>ROSTransportPlugin::getTransportName() const
+std::string orogen_typekits::<%= typekit.name %>RosTransportPlugin::getTransportName() const
 { return "ROS"; }
-std::string orogen_typekits::<%= typekit.name %>ROSTransportPlugin::getTypekitName() const
+std::string orogen_typekits::<%= typekit.name %>RosTransportPlugin::getTypekitName() const
 { return "/orogen/<%= typekit.name %>"; }
-std::string orogen_typekits::<%= typekit.name %>ROSTransportPlugin::getName() const
+std::string orogen_typekits::<%= typekit.name %>RosTransportPlugin::getName() const
 { return "/orogen/<%= typekit.name %>/ROS"; }
 
-ORO_TYPEKIT_PLUGIN(orogen_typekits::<%= typekit.name %>ROSTransportPlugin);
+ORO_TYPEKIT_PLUGIN(orogen_typekits::<%= typekit.name %>RosTransportPlugin);
 
