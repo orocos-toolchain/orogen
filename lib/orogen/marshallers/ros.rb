@@ -51,8 +51,6 @@ module Orocos
                         "int32"
                     elsif type.name == "/std/string"
                         "string"
-                    elsif type.name == "/base/Time" # YUK
-                        "time"
                     end
                 end
 
