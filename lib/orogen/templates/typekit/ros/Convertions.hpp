@@ -16,7 +16,7 @@
 namespace ros_integration {
     /** Converted types: */
     <% typesets.converted_types.each do |type|
-        next if type.name == "/std/string" %>
+        next if ros_base_type?(type) %>
     bool toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value );
     bool fromROS( <%= type.ref_type %> value, <%= ros_arg_type(type) %> ros );
     <% end %>

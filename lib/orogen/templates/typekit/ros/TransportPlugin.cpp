@@ -15,6 +15,7 @@ bool orogen_typekits::<%= typekit.name %>ROSTransportPlugin::registerTransport(s
 
     <% first_type = true;
        typesets.interface_types.each do |type|
+           next if !ros_exported_type?(type)
            names = [type.name]
            if aliases = typesets.aliases[type]
                names.concat(aliases)

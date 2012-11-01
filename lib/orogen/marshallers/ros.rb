@@ -93,6 +93,11 @@ module Orocos
                     "#{ros_cxx_type(type)} const&"
                 end
 
+                def ros_exported_type?(type)
+                    type = typekit.intermediate_type_for(type)
+                    (type < Typelib::CompoundType) && !ros_base_type?(type)
+                end
+
                 def generate(typekit, typesets)
                     @typekit = typekit
                     headers, impl = Array.new, Array.new
@@ -111,7 +116,7 @@ module Orocos
                             type = typekit.intermediate_type_for(type)
                         end
 
-                        if type <= Typelib::CompoundType && !typekit.m_type?(type)
+                        if ros_exported_type?(type) && !typekit.m_type?(type)
                             msg = Orocos::Generation.render_template "typekit", "ros", "Type.msg", binding
                             typekit.save_automatic("transports", "ros", "msg", "#{msg_name}.msg", msg)
                             all_messages << msg_name
@@ -133,7 +138,7 @@ module Orocos
                                                    "TransportPlugin.cpp", code)
 
                     code_snippets = typesets.interface_types.map do |type|
-                        next if !(type < Typelib::CompoundType)
+                        next if !ros_exported_type?(type)
                         code  = Generation.render_template "typekit", "ros", "Type.cpp", binding
                         [type, code]
                     end.compact

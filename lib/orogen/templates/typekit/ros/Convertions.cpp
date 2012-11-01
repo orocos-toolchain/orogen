@@ -16,7 +16,7 @@
 <% end %>
 
 <% typesets.converted_types.each do |type|
-    next if type.name == "/std/string" %>
+    next if ros_base_type?(type) %>
 bool ros_integration::toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value )
 {
 <%= result = ""
