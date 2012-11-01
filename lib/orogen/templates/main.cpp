@@ -8,8 +8,11 @@
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 
 #include <rtt/typekit/RealTimeTypekit.hpp>
-<% deployer.rtt_transports.each do |transport_name| %>
-#include <rtt/transports/<%= transport_name %>/TransportPlugin.hpp>
+<% if deployer.transports.include?('corba') %>
+#include <rtt/transports/corba/TransportPlugin.hpp>
+<% end %>
+<% if deployer.transports.include?('mqueue') %>
+#include <rtt/transports/mqueue/TransportPlugin.hpp>
 <% end %>
 
 <% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
@@ -38,6 +41,9 @@
 #include <rtt/transports/corba/TaskContextServer.hpp>
 #include <rtt/transports/corba/CorbaDispatcher.hpp>
 #include <signal.h>
+<% end %>
+<% if deployer.transports.include? 'ros' %>
+#include <ros/ros.h>
 <% end %>
 
 <% require 'set'
@@ -295,6 +301,25 @@ int ORO_main(int argc, char* argv[])
         return -1;
     }
     <% end %>
+<% end %>
+
+<% if deployer.transports.include? 'ros' %>
+    RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
+    if(!ros::isInitialized()){
+        int argc =__os_main_argc();
+        char ** argv = __os_main_argv();
+        ros::init(argc,argv,"rtt",ros::init_options::AnonymousName);
+      if(ros::master::check())
+          ros::start();
+      else{
+          RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
+          ros::shutdown();
+          return false;
+      }   
+    }
+    static ros::AsyncSpinner spinner(1); // Use 1 threads
+    spinner.start();
+    RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
 <% end %>
 
 <% if deployer.corba_enabled? %>

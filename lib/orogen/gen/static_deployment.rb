@@ -879,6 +879,12 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                         in_context('corba', 'include').
                         in_context('corba', 'link')
                 end
+                if transports.include? 'ros'
+                    result << BuildDependency.new(
+                        "ROSLIB", "roslib").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                end
 
                 used_typekits.each do |tk|
                     next if tk.virtual?

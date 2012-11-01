@@ -44,9 +44,10 @@ target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-<%= transp
 target_link_libraries(<%= deployer.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
 <% end %>
 <%= Generation.cmake_pkgconfig_link_noncorba(deployer.name, dependencies) %>
+
 <%= if deployer.corba_enabled?
-        Generation.cmake_pkgconfig_link_corba(deployer.name, dependencies)
-    end %>
+Generation.cmake_pkgconfig_link_corba(deployer.name, dependencies)
+end %>
 
 <% if deployer.install? %>
 install(TARGETS <%= deployer.name %>
