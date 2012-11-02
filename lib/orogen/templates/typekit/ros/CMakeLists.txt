@@ -29,7 +29,7 @@ generate_messages()
 <% else %>
 generate_messages(DEPENDENCIES <%= msg_deps.join("_msgs ") %>_msgs)
 <% end %>
-include_directories(${CMAKE_BINARY_DIR}/gen/cpp)
+include_directories(BEFORE ${CMAKE_BINARY_DIR}/gen/cpp)
 <% end # end of if !all_messages.empty?
 %>
 
