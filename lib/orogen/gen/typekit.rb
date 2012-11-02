@@ -535,7 +535,7 @@ module Orocos
                     return true
                 end
 
-                type.recursive_dependencies.any? { |t| t =~ /_m$/ }
+                type.recursive_dependencies.any? { |t| t.name =~ /_m$/ }
             end
         end
 
