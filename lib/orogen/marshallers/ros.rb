@@ -42,7 +42,7 @@ module Orocos
                         if type.name == "/bool"
                             "bool"
                         elsif type.integer?
-                            "int#{type.size * 8}"
+                            "#{'u' if type.unsigned?}int#{type.size * 8}"
                         else
                             "float#{type.size * 8}"
                         end
