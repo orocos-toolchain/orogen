@@ -17,7 +17,7 @@ add_message_files(DIRECTORY msg
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
     tk.name
-end.compact
+end.compact.sort
 %>
 
 <% msg_deps.each do |dep_name| %>

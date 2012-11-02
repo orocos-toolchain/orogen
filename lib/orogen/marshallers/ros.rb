@@ -128,6 +128,7 @@ module Orocos
                             all_messages << msg_name
                         end
                     end
+                    all_messages = all_messages.sort
 
                     convert_types = Set.new
                     typesets.converted_types.each do |type|
@@ -139,6 +140,7 @@ module Orocos
                             convert_types << [target_type, type]
                         end
                     end
+                    convert_types = convert_types.sort_by { |t0, t1| [t0.name, t1.name] }
 
                     convert_array_types = Set.new
                     typesets.array_types.each do |type|
@@ -151,7 +153,7 @@ module Orocos
                             convert_array_types << [target_type, type]
                         end
                     end
-
+                    convert_array_types = convert_array_types.sort_by { |t0, t1| [t0.name, t1.name] }
 
                     code  = Generation.render_template "typekit", "ros", "Convertions.hpp", binding
                     headers << typekit.save_automatic("transports", "ros",
@@ -179,10 +181,10 @@ module Orocos
 
                     impl = impl.map do |path|
                         typekit.cmake_relative_path(path, "transports", "ros")
-                    end
+                    end.sort
                     headers = headers.map do |path|
                         typekit.cmake_relative_path(path, "transports", "ros")
-                    end
+                    end.sort
 
                     pkg_config = Generation.render_template "typekit", "ros", "transport-ros.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
