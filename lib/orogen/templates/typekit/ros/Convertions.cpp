@@ -32,7 +32,7 @@ namespace ros_integration {
     inline void fromROS(CXX* value, ROS const& ros, int length)
     {
         for (int idx = 0; idx < length; ++idx)
-            value[idx] = ros[idx];
+            value[idx] = static_cast<CXX>(ros[idx]);
     }
 }
 
