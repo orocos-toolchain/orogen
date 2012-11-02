@@ -36,8 +36,8 @@ include_directories(BEFORE ${CMAKE_BINARY_DIR}/gen/cpp)
 set(libname_ros <%= typekit.name %>-transport-ros-${OROCOS_TARGET})
 add_library(${libname_ros} SHARED
     <%= impl.join("\n    ") %>)
-<% deps = all_messages.map { |msg_name| "${CMAKE_BINARY_DIR}/gen/gencpp/#{typekit.name}_msgs" }.join(";") %>
-set_source_files_properties(impl.join(" ")
+<% deps = all_messages.map { |msg_name| "${CMAKE_BINARY_DIR}/gen/cpp/#{typekit.name}_msgs/#{msg_name}.h" }.join(";") %>
+set_source_files_properties(<%= impl.join(" ") %>
     PROPERTIES OBJECT_DEPENDS "<%= deps %>")
 target_link_libraries(${libname_ros}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
