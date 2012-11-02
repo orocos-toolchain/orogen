@@ -113,8 +113,7 @@ module Orocos
                     # All the generated messages. Used to generate the CMake
                     # file
                     all_messages = Array.new
-
-                    rosmsg_registry.each do |type|
+                    typesets.converted_types.each do |type|
                         type_name = type.name
                         msg_name  = ros_message_name(type)
 
