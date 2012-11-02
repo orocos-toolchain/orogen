@@ -308,7 +308,7 @@ int ORO_main(int argc, char* argv[])
     if(!ros::isInitialized()){
         int argc =__os_main_argc();
         char ** argv = __os_main_argv();
-        ros::init(argc,argv,"rtt",ros::init_options::AnonymousName);
+        ros::init(argc,argv,prefix + "<%= deployer.name %>");
       if(ros::master::check())
           ros::start();
       else{
