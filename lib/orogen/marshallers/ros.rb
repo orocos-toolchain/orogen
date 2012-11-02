@@ -131,7 +131,6 @@ module Orocos
 
                     convert_types = Set.new
                     typesets.converted_types.each do |type|
-                        puts "#{type.name} #{typekit.m_type?(type)}"
                         next if ros_base_type?(type) || typekit.m_type?(type)
                         convert_types << [type, type]
 
