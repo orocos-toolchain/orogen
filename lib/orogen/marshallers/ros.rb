@@ -186,6 +186,9 @@ module Orocos
                         typekit.cmake_relative_path(path, "transports", "ros")
                     end.sort
 
+                    cmake_config = Generation.render_template "typekit", "ros", "config.cmake.in", binding
+                    typekit.save_automatic("transports", "ros", "#{typekit.name}_msgs-config.cmake.in", cmake_config)
+
                     pkg_config = Generation.render_template "typekit", "ros", "transport-ros.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
 

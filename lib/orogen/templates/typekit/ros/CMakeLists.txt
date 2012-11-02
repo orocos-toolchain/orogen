@@ -45,9 +45,13 @@ target_link_libraries(${libname_ros}
 <%= Generation.cmake_pkgconfig_link('ros', '${libname_ros}', typekit_deps) %>
 
 SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-ros-${OROCOS_TARGET}.pc)
-CONFIGURE_FILE(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
+configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
+
+# Needed to generate the config.cmake file
+configure_file(<%= typekit.name %>_msgs-config.cmake.in <%= typekit.name %>_msgs-config.cmake @ONLY)
 install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>_msgs-config.cmake DESTINATION share/<%= typekit.name %>_msgs/cmake)
 install(FILES
     <%= headers.join("\n   ") %>
     Convertions.hpp

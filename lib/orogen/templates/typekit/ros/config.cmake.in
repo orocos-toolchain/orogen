@@ -1,0 +1,2 @@
+set(<%= typekit.name %>_msgs_DIR @CMAKE_INSTALL_PREFIX@/share/<%= typekit.name %>_msgs/cmake)
+
