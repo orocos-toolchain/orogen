@@ -81,10 +81,10 @@ module Orocos
 
             impl = impl.map do |path|
                 typekit.cmake_relative_path(path, "transports", "corba")
-            end
+            end.sort
             headers = headers.map do |path|
                 typekit.cmake_relative_path(path, "transports", "corba")
-            end
+            end.sort
 
             pkg_config = Generation.render_template "typekit", "corba", "transport-corba.pc", binding
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
