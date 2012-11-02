@@ -15,9 +15,29 @@
 <% end %>
 <% end %>
 
-<% typesets.converted_types.each do |type|
-    next if ros_base_type?(type) %>
-bool ros_integration::toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value )
+namespace ros_integration {
+    template<typename ROS, typename CXX>
+    inline void toROS(ROS& ros, CXX const& value) { ros = value; }
+    // Cast needed for the enums
+    template<typename ROS, typename CXX>
+    inline void fromROS(CXX& value, ROS const& ros) { value = static_cast<CXX>(ros); }
+    template<typename ROS, typename CXX>
+    inline void toROS(ROS& ros, CXX const* value, int length)
+    {
+        ros.resize(length);
+        for (int idx = 0; idx < length; ++idx)
+            ros[idx] = value[idx];
+    }
+    template<typename ROS, typename CXX>
+    inline void fromROS(CXX* value, ROS const& ros, int length)
+    {
+        for (int idx = 0; idx < length; ++idx)
+            value[idx] = ros[idx];
+    }
+}
+
+<% convert_types.each do |type, ros_type|  %>
+bool ros_integration::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value )
 {
 <%= result = ""
 	type.to_ros(typekit, result, " " * 4)
@@ -25,7 +45,7 @@ bool ros_integration::toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %>
 	%>
     return true;
 }
-bool ros_integration::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(type) %> ros )
+bool ros_integration::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros )
 {
 <%= result = ""
 	type.from_ros(typekit, result, " " * 4)
@@ -34,8 +54,9 @@ bool ros_integration::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(type
     return true;
 }
 <% end %>
-<% typesets.array_types.each do |type| %>
-bool ros_integration::toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value, int length )
+
+<% convert_array_types.each do |type, ros_type| %>
+bool ros_integration::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.cxx_name %> const* value, int length )
 {
 <%= result = ""
 	type.to_ros(typekit, result, " " * 4)
@@ -43,7 +64,7 @@ bool ros_integration::toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %>
 	%>
     return true;
 }
-bool ros_integration::fromROS( <%= type.ref_type %> value, int length, <%= ros_arg_type(type) %> ros )
+bool ros_integration::fromROS( <%= type.cxx_name %>* value, <%= ros_arg_type(ros_type) %> ros, int length )
 {
 <%= result = ""
 	type.from_ros(typekit, result, " " * 4)

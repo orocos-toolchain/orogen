@@ -7,23 +7,20 @@
 #include <boost/cstdint.hpp>
 #include <string>
 
-<% typesets.converted_types.each do |type|
-    if type < Typelib::CompoundType %>
-#include <<%= ros_message_name(type, true) %>.h>
-<%  end %>
+<% all_messages.each do |msg_name| %>
+#include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>
 
 namespace ros_integration {
     /** Converted types: */
-    <% typesets.converted_types.each do |type|
-        next if ros_base_type?(type) %>
-    bool toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value );
-    bool fromROS( <%= type.ref_type %> value, <%= ros_arg_type(type) %> ros );
+    <% convert_types.each do |type, ros_type| %>
+    bool toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value );
+    bool fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros );
     <% end %>
     /** Array types: */
-    <% typesets.array_types.each do |type| %>
-    bool toROS( <%= ros_ref_type(type) %> ros, <%= type.arg_type %> value, int length );
-    bool fromROS( <%= type.ref_type %> value, int length, <%= ros_arg_type(type) %> ros );
+    <% convert_array_types.each do |type, ros_type| %>
+    bool toROS( <%= ros_typename(ros_type) %>* ros, <%= type.cxx_name%> const* value, int length );
+    bool fromROS( <%= type.cxx_name %>* value, <%= ros_typename(ros_type) %> const* ros, int length );
     <% end %>
 }
 

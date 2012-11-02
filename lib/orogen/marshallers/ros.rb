@@ -129,6 +129,31 @@ module Orocos
                         end
                     end
 
+                    convert_types = Set.new
+                    typesets.converted_types.each do |type|
+                        puts "#{type.name} #{typekit.m_type?(type)}"
+                        next if ros_base_type?(type) || typekit.m_type?(type)
+                        convert_types << [type, type]
+
+                        target_type = typekit.intermediate_type_for(type)
+                        if target_type != type
+                            convert_types << [target_type, type]
+                        end
+                    end
+
+                    convert_array_types = Set.new
+                    typesets.array_types.each do |type|
+                        type = type.deference
+                        next if ros_base_type?(type) || typekit.m_type?(type)
+                        convert_array_types << [type, type]
+
+                        target_type = typekit.intermediate_type_for(type)
+                        if target_type != type
+                            convert_array_types << [target_type, type]
+                        end
+                    end
+
+
                     code  = Generation.render_template "typekit", "ros", "Convertions.hpp", binding
                     headers << typekit.save_automatic("transports", "ros",
                                                       "Convertions.hpp", code)
@@ -172,12 +197,150 @@ module Orocos
             Orocos::Generation::Typekit.register_plugin(Plugin)
 
             module TypeExtension
-                def to_ros(*args)
+                def call_to_ros(ros_var, value_var)
+                    "toROS(#{ros_var}, #{value_var})"
                 end
-                def from_ros(*args)
+                def call_from_ros(value_var, ros_var)
+                    "fromROS(#{value_var}, #{ros_var})"
+                end
+            end
+            module OpaqueTypeExtension
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a const-ref to the C++
+                # type. The ROS value is called 'ros' and is a ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def to_ros(typekit, buffer, indent)
+                    needs_copy  = typekit.opaque_specification(self).needs_copy?
+                    target_type = typekit.intermediate_type_for(self)
+                    if needs_copy
+                        buffer <<
+                            "#{indent}#{target_type.cxx_name} temp;\n" <<
+                            "#{indent}orogen_typekits::toIntermediate(temp, value);\n" <<
+                            "#{indent}#{target_type.call_to_ros("ros", "temp")};\n"
+                    else
+                        buffer <<
+                            "#{indent}#{target_type.arg_type} temp = orogen_typekits::toIntermediate(value);\n" <<
+                            "#{indent}#{target_type.call_to_ros("ros", "temp")};\n"
+                    end
+                end
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a ref to the C++
+                # type. The ROS value is called 'ros' and is a const-ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def from_ros(typekit, buffer, indent)
+                    needs_copy  = typekit.opaque_specification(self).needs_copy?
+                    target_type = typekit.intermediate_type_for(self)
+                    if needs_copy
+                        buffer <<
+                            "#{indent}#{target_type.cxx_name} temp;\n" <<
+                            "#{indent}#{target_type.call_from_ros("temp", "ros")};\n"
+                            "#{indent}orogen_typekits::fromIntermediate(value, temp);\n"
+                    else
+                        buffer <<
+                            "#{indent}std::auto_ptr< #{target_type.cxx_name} > temp(new #{target_type.cxx_name});\n" <<
+                            "#{indent}#{target_type.call_from_ros("*temp", "ros")};\n"
+                            "#{indent}if (orogen_typekits::fromIntermediate(value, temp.get())) temp.release();\n"
+                    end
+                end
+            end
+            module ArrayTypeExtension
+                def call_to_ros(ros_var, value_var)
+                    "toROS(#{ros_var}, #{value_var}, #{length})"
+                end
+                def call_from_ros(value_var, ros_var)
+                    "fromROS(#{value_var}, #{ros_var}, #{length})"
+                end
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a const-ref to the C++
+                # type. The ROS value is called 'ros' and is a ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def to_ros(typekit, buffer, indent)
+                    buffer <<
+                        "#{indent}ros.resize(#{length});\n" <<
+                        "#{indent}for (size_t idx = 0; idx < #{length}; ++idx)\n" <<
+                        "#{indent}#{deference.call_to_ros("ros[idx]", "value[idx]")};\n"
+                end
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a ref to the C++
+                # type. The ROS value is called 'ros' and is a const-ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def from_ros(typekit, buffer, indent)
+                    buffer <<
+                        "#{indent}for (size_t idx = 0; idx < #{length}; ++idx)\n" <<
+                        "#{indent}#{deference.call_from_ros("value[idx]", "ros[idx]")};\n"
+                end
+            end
+            module ContainerTypeExtension
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a const-ref to the C++
+                # type. The ROS value is called 'ros' and is a ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def to_ros(typekit, buffer, indent)
+                    if deference.kind_of?(Typelib::NumericType)
+                        buffer << "#{indent}ros = value;"
+                    else
+                        buffer <<
+                            "#{indent}ros.resize(value.size());\n" <<
+                            "#{indent}for (size_t idx = 0; idx < value.size(); ++idx)\n" <<
+                            "#{indent}#{deference.call_to_ros("ros[idx]", "value[idx]")};\n"
+                    end
+                end
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a ref to the C++
+                # type. The ROS value is called 'ros' and is a const-ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def from_ros(typekit, buffer, indent)
+                    if deference.kind_of?(Typelib::NumericType)
+                        buffer << "#{indent}value = ros;"
+                    else
+                        buffer <<
+                            "#{indent}value.resize(ros.size());\n" <<
+                            "#{indent}for (size_t idx = 0; idx < ros.size(); ++idx)\n" <<
+                            "#{indent}#{deference.call_from_ros("value[idx]", "ros[idx]")};\n"
+                    end
+                end
+            end
+            module CompoundTypeExtension
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a const-ref to the C++
+                # type. The ROS value is called 'ros' and is a ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def to_ros(typekit, buffer, indent)
+                    each_field do |field_name, field_type|
+                        buffer << "#{indent}#{field_type.call_to_ros("ros.#{field_name}", "value.#{field_name}")};\n"
+                    end
+                end
+                # Convert a C++ value into the corresponding ROS value
+                # The C++ value is called 'value' and is a ref to the C++
+                # type. The ROS value is called 'ros' and is a const-ref.
+                #
+                # The method must return the string that will be used for
+                # convertion
+                def from_ros(typekit, buffer, indent)
+                    each_field do |field_name, field_type|
+                        buffer << "#{indent}#{field_type.call_from_ros("value.#{field_name}", "ros.#{field_name}")};\n"
+                    end
                 end
             end
             Typelib::Type.extend TypeExtension
+            Typelib::OpaqueType.extend OpaqueTypeExtension
+            Typelib::ContainerType.extend ContainerTypeExtension
+            Typelib::ArrayType.extend ArrayTypeExtension
+            Typelib::CompoundType.extend CompoundTypeExtension
         end
     end
 end
