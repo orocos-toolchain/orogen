@@ -14,13 +14,13 @@
 namespace ros_integration {
     /** Converted types: */
     <% convert_types.each do |type, ros_type| %>
-    bool toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value );
-    bool fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros );
+    void toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value );
+    void fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros );
     <% end %>
     /** Array types: */
     <% convert_array_types.each do |type, ros_type| %>
-    bool toROS( <%= ros_typename(ros_type) %>* ros, <%= type.cxx_name%> const* value, int length );
-    bool fromROS( <%= type.cxx_name %>* value, <%= ros_typename(ros_type) %> const* ros, int length );
+    void toROS( <%= ros_typename(ros_type) %>* ros, <%= type.cxx_name%> const* value, int length );
+    void fromROS( <%= type.cxx_name %>* value, <%= ros_typename(ros_type) %> const* ros, int length );
     <% end %>
 }
 
