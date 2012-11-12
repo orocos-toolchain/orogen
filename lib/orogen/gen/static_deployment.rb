@@ -884,6 +884,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                         "ROSLIB", "roslib").
                         in_context('core', 'include').
                         in_context('core', 'link')
+                    result << BuildDependency.new(
+                        "ROSCPP", "roscpp").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
                 end
 
                 used_typekits.each do |tk|
