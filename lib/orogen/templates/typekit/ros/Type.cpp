@@ -14,7 +14,7 @@
 namespace orogen_typekits {
     RTT::types::TypeTransporter*  <%= type.method_name %>_ROSTransport()
     {
-        return new ros_integration::RosMsgTransporter< <%= type.cxx_name %>, <%= ros_cxx_type(type) %> >;
+        return new ros_integration::RosMsgTransporter< <%= type.cxx_name %>, <%= ros_cxx_type(type, false) %> >;
     }
 }
 

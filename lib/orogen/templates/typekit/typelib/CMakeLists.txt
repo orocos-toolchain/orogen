@@ -4,7 +4,7 @@
 # To properly escape the add_definitions arguments.
 cmake_policy(VERSION 2.6)
 
-<% typekit_deps = typekit.plugin('typelib').dependencies(typekit); %>
+<% typekit_deps = typekit.plugin('typelib').dependencies %>
 <%= Generation.cmake_pkgconfig_require(typekit_deps, 'typelib') %>
 
 orogen_pkg_check_modules(TYPELIB REQUIRED typelib)

@@ -7,6 +7,9 @@
 #include <boost/cstdint.hpp>
 #include <string>
 
+<% if has_custom_convertions? %>
+#include "ROSConvertions.hpp"
+<% end %>
 <% all_messages.each do |msg_name| %>
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>
@@ -21,6 +24,11 @@ namespace ros_integration {
     <% convert_array_types.each do |type, ros_type| %>
     void toROS( <%= ros_typename(ros_type) %>* ros, <%= type.cxx_name%> const* value, int length );
     void fromROS( <%= type.cxx_name %>* value, <%= ros_typename(ros_type) %> const* ros, int length );
+    <% end %>
+
+    <% convert_boxed_types.each do |type, ros_type| %>
+    void toROS( <%= ros_ref_type(ros_type, false) %> ros, <%= type.arg_type %> value );
+    void fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type, false) %> ros );
     <% end %>
 }
 

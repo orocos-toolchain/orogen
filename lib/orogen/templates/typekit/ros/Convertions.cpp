@@ -74,3 +74,10 @@ void ros_integration::fromROS( <%= type.cxx_name %>* value, <%= ros_arg_type(ros
 }
 <% end %>
 
+<% convert_boxed_types.each do |type, ros_type| %>
+void ros_integration::toROS( <%= ros_ref_type(ros_type, false) %> ros, <%= type.arg_type %> value )
+{ return toROS(ros.data, value); }
+void ros_integration::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type, false) %> ros )
+{ return fromROS(value, ros.data); }
+<% end %>
+
