@@ -6,6 +6,7 @@
 }
 bool orogen_typekits::fromIntermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate)
 {
-    real_type.reset(intermediate);
+    if (real_type.get() != intermediate)
+        real_type.reset(intermediate);
     return true; // the smart pointer took ownership of the pointer
 }

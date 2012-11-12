@@ -1,19 +1,4 @@
-macro(orogen_pkg_check_modules VARNAME)
-    if (NOT ${VARNAME}_FOUND)
-        pkg_check_modules(${VARNAME} ${ARGN})
-        foreach(${VARNAME}_lib ${${VARNAME}_LIBRARIES})
-          set(_${VARNAME}_lib NOTFOUND)
-          find_library(_${VARNAME}_lib NAMES ${${VARNAME}_lib} HINTS ${${VARNAME}_LIBRARY_DIRS})
-          if (NOT _${VARNAME}_lib)
-            set(_${VARNAME}_lib ${${VARNAME}_lib})
-          endif()
-          list(APPEND _${VARNAME}_LIBRARIES ${_${VARNAME}_lib})
-        endforeach()
-        list(APPEND _${VARNAME}_LIBRARIES ${${VARNAME}_LDFLAGS_OTHER})
-        set(${VARNAME}_LIBRARIES ${_${VARNAME}_LIBRARIES} CACHE INTERNAL "")
-    endif()
-endmacro()
-
+include(OrogenPkgCheckModules)
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
@@ -29,6 +14,8 @@ add_custom_command(
 <% if File.file?(component.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(component.deffile) %>")
+<% else %>
+add_custom_target(check-uptodate ALL)
 <% end %>
 
 # In Orogen components, the build target is specified at generation time
@@ -76,7 +63,6 @@ ENDIF ( DOXYGEN_FOUND )
 #
 
 # First, we need the Orocos::RTT, and optionally the CORBA part
-include(FindPkgConfig) # This is the Cmake 2.6 FindPkgConfig macro
 orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=2.1.0")
 
 # Add generic include directories

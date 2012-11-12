@@ -14,8 +14,16 @@
 
     <depend package="rtt" />
     <depend package="typelib" />
+    <!--
+    Disabled for now, until I know whether tools/service_discovery will be moved
+    to orocos-toolchain or not
     <depend package="tools/service_discovery" optional="1" />
+    -->
+    <depend package="rtt_typelib" />
+    <rosdep name="libxslt" />
     <rosdep name="nokogiri" />
+    <rosdep name="rake" />
+    <rosdep name="ruby" />
     <!--
     <rosdep name="webgen" type="doc" />
     <rosdep name="coderay" type="doc" />

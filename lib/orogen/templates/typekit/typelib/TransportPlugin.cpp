@@ -17,6 +17,8 @@ using namespace RTT;
 std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTypelibRegistryPath()
 {
 #ifdef HAS_ROSLIB
+    /** If ROSLIB is available, we'll use ros::package to find the path to a package with the
+      same name as our typekit. This may only be enabled if IS_ROS_PACKAGE is true at build time ! **/
     using namespace ros::package;
     try {
         bool all_good = true, found = false;
@@ -24,9 +26,9 @@ std::string orogen_typekits::<%= typekit.name %>TypelibTransportPlugin::getTypel
         if ( !ppath.empty() ) {
             return ppath + "/typekit" + "/<%= typekit.name %>.tlb";
         } else
-            log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+            log(Debug) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
     } catch(...) {
-        log(Error) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
+        log(Debug) << "Not a ros package: " << "<%= typekit.name %>" << endlog();
     }
 #endif
     return TYPEKIT_REGISTRY;

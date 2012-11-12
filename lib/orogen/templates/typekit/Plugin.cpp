@@ -27,20 +27,14 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
 {
     RTT::types::TypeInfoRepository::shared_ptr ti_repository = RTT::types::TypeInfoRepository::Instance();
 
-    RTT::types::TypeInfo* ti = 0;
+    RTT::types::TypeInfoGenerator* ti = 0;
     <% registered_types.each do |type| %>
         <% if type < Typelib::ArrayType %>
     ti = <%= type.deference.method_name(true) %>_ArrayTypeInfo();
-    if(!ti_repository->type(ti->getTypeName()))
-    {
-	ti_repository->addType( ti );
-    }
+    ti_repository->addType( ti );
         <% else %>
     ti = <%= type.method_name(true) %>_TypeInfo();
-    if(!ti_repository->type(ti->getTypeName()))
-    {
-	ti_repository->addType( ti );
-    }
+    ti_repository->addType( ti );
         <% end %>
     <% end %>
 

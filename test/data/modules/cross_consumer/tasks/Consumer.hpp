@@ -13,6 +13,7 @@ namespace cross_consumer {
 
     public:
         Consumer(std::string const& name = "cross_consumer::Consumer", TaskCore::TaskState initial_state = Stopped);
+        Consumer(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state = Stopped);
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the

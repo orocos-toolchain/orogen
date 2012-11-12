@@ -5,6 +5,8 @@ using namespace std;
 
 Consumer::Consumer(std::string const& name, TaskCore::TaskState initial_state)
     : ConsumerBase(name, initial_state) {}
+Consumer::Consumer(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state)
+    : ConsumerBase(name, engine, initial_state) {}
 
 
 

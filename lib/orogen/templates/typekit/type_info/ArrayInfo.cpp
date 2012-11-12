@@ -21,7 +21,7 @@ namespace orogen_typekits {
             : <%= base_class %>("<%= type.deference.full_name %>[]") {}
     };
 
-    RTT::types::TypeInfo* <%= type.deference.method_name(true) %>_ArrayTypeInfo()
+    RTT::types::TypeInfoGenerator* <%= type.deference.method_name(true) %>_ArrayTypeInfo()
     { return new <%= type.deference.method_name(true) %>ArrayTypeInfo(); }
 }
 

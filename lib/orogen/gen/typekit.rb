@@ -452,7 +452,11 @@ module Orocos
                     raise ConfigError, "#{target} was expected to be a symbolic link, but is not"
                 end
                 pointed_to = File.readlink(target)
-                return if pointed_to == target
+                if pointed_to == target
+                    return 
+                else
+                    FileUtils.rm_f target
+                end
             end
             FileUtils.mkdir_p(File.dirname(target))
             FileUtils.ln_sf(source, target)

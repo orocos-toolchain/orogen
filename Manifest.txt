@@ -97,15 +97,6 @@ lib/orogen/templates/typekit/typelib/Type.cpp
 lib/orogen/templates/typekit/typelib/transport-typelib.pc
 lib/orogen/test.rb
 lib/orogen/version.rb
-rtt-typelib/CMakeLists.txt
-rtt-typelib/MQTypelibMarshaller.cpp
-rtt-typelib/MQTypelibMarshaller.hpp
-rtt-typelib/OpaqueTypelibMarshaller.hpp
-rtt-typelib/TypelibMarshaller.hpp
-rtt-typelib/TypelibMarshallerBase.cpp
-rtt-typelib/TypelibMarshallerBase.hpp
-rtt-typelib/TypelibMarshallerHandle.hpp
-rtt-typelib/rtt-typelib.pc.in
 test/data/build_regen_library/include/regen_lib.h
 test/data/empty_component.orogen
 test/data/exists

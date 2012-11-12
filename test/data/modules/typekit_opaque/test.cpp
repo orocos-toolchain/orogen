@@ -14,7 +14,7 @@
 
 #ifdef WITH_TYPELIB
 #include "transports/typelib/TransportPlugin.hpp"
-#include ".orogen/typekit/transports/typelib/TypelibMarshallerBase.hpp"
+#include <rtt/typelib/TypelibMarshallerBase.hpp>
 #endif
 
 #include ".orogen/typekit/OpaqueConvertions.hpp"
