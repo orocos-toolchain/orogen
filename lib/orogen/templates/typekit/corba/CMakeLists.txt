@@ -1,6 +1,6 @@
 # Generated from orogen/lib/orogen/templates/typekit/corba/CMakeLists.txt
 
-<% typekit_deps = typekit.plugin('corba').dependencies(typekit); %>
+<% typekit_deps = typekit.plugin('corba').dependencies %>
 
 find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
 INCLUDE_DIRECTORIES(${OrocosCORBA_INCLUDE_DIRS})

@@ -1,6 +1,6 @@
 set(PROJECT_NAME <%= typekit.name %>_msgs)
 set(<%= typekit.name %>_msgs_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-<% typekit_deps = typekit.plugin('ros').dependencies(typekit); %>
+<% typekit_deps = typekit.plugin('ros').dependencies %>
 
 find_package(catkin REQUIRED)
 find_package(genmsg REQUIRED)

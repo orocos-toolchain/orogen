@@ -2,7 +2,9 @@ module Orocos
     module TypekitMarshallers
     module MQueue
     class Plugin
-        def initialize
+        attr_reader :typekit
+        def initialize(typekit)
+            @typekit = typekit
             Typelib::Type          .extend(TypekitMarshallers::MQueue::Type)
             Typelib::NumericType   .extend(TypekitMarshallers::MQueue::NumericType)
             Typelib::ContainerType .extend(TypekitMarshallers::MQueue::ContainerType)
@@ -15,7 +17,7 @@ module Orocos
         def self.name; "mqueue" end
         def name; "mqueue" end
 
-        def dependencies(typekit)
+        def dependencies
             result = []
             typekit.used_typekits.each do |tk|
                 begin
@@ -46,7 +48,7 @@ module Orocos
             "orogen_typekits::#{typekit_name}MQueueTransportPlugin"
         end
 
-        def generate(typekit, typesets)
+        def generate(typesets)
             headers, impl = [], []
             
             code  = Generation.render_template "typekit", "mqueue", "TransportPlugin.hpp", binding
