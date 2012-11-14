@@ -1,4 +1,3 @@
-require 'pry'
 module Orocos
     module TypekitMarshallers
         module ROS
