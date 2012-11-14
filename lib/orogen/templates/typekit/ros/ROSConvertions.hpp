@@ -11,7 +11,7 @@
 #include <<%= ros_msg %>.h>
 <% end %>
 
-namespace ros_integration {
+namespace ros_convertions {
     /** Converted types: */
     <% user_converted_types.each do |type, ros_type| %>
     void toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value );

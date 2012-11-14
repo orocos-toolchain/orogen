@@ -14,7 +14,7 @@
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>
 
-namespace ros_integration {
+namespace ros_convertions {
     /** Converted types: */
     <% convert_types.each do |type, ros_type| %>
     void toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value );
