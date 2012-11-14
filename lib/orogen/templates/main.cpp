@@ -313,7 +313,6 @@ int ORO_main(int argc, char* argv[])
           ros::start();
       else{
           RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
-          ros::shutdown();
           return false;
       }   
     }
