@@ -8,7 +8,7 @@
 #include <string>
 
 <% if has_custom_convertions? %>
-#include "ROSConvertions.hpp"
+#include <<%= typekit.name %>/transports/ros/ROSConvertions.hpp>
 <% end %>
 <% all_messages.each do |msg_name| %>
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>

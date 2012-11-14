@@ -338,6 +338,8 @@ module Orocos
                         headers << typekit.save_user("ROSConvertions.hpp", code)
                         code  = Generation.render_template "typekit", "ros", "ROSConvertions.cpp", binding
                         impl << typekit.save_user("ROSConvertions.cpp", code)
+                        Orocos::Generation.create_or_update_symlink(
+                            headers.last, File.join(typekit.automatic_dir, "typekit", "transports", "ros", "ROSConvertions.hpp"))
                     else raise
                     end
 
