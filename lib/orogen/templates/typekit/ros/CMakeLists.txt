@@ -16,18 +16,23 @@ add_message_files(DIRECTORY msg
 <%
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
-    tk.name
-end.compact.sort
+    "#{tk.name}_msgs"
+end.compact.to_set
+user_converted_types.each do |type, ros_type|
+    msg = type_mappings[ros_type.name]
+    msg_deps << msg.split('/').first
+end
+msg_deps = msg_deps.to_a.sort
 %>
 
 <% msg_deps.each do |dep_name| %>
-find_package(<%= dep_name %>_msgs)
+find_package(<%= dep_name %>)
 <% end %>
 
 <% if msg_deps.empty? %>
 generate_messages()
 <% else %>
-generate_messages(DEPENDENCIES <%= msg_deps.join("_msgs ") %>_msgs)
+generate_messages(DEPENDENCIES <%= msg_deps.join(" ") %>)
 <% end %>
 include_directories(BEFORE ${CMAKE_BINARY_DIR}/gen/cpp)
 <% end # end of if !all_messages.empty?
