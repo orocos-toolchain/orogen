@@ -330,7 +330,7 @@ module Orocos
                     code  = Generation.render_template "typekit", "ros", "TransportPlugin.cpp", binding
                     impl << typekit.save_automatic("transports", "ros",
                                                    "TransportPlugin.cpp", code)
-                    if !convert_types.empty?
+                    if !user_converted_types.empty?
                         # We need to generate a user part with the convertion
                         # functions. Reuse the templates !
                         

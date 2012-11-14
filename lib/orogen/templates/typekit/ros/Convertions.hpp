@@ -7,7 +7,7 @@
 #include <boost/cstdint.hpp>
 #include <string>
 
-<% if has_custom_convertions? %>
+<% if !user_converted_types.empty? %>
 #include <<%= typekit.name %>/transports/ros/ROSConvertions.hpp>
 <% end %>
 <% all_messages.each do |msg_name| %>

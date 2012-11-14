@@ -7,8 +7,8 @@
 #include <boost/cstdint.hpp>
 #include <string>
 
-<% type_mappings.each_value do |ros_msg| %>
-#include <<%= ros_msg %>.h>
+<% user_converted_types.each do |type, ros_type| %>
+#include <<%= type_mappings[ros_type.name] %>.h>
 <% end %>
 
 namespace ros_convertions {
