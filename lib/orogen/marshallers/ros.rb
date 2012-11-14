@@ -17,6 +17,24 @@ module Orocos
                 end
             end
 
+            # Loads a rosmap file
+            #
+            # These files are generated for each ROS transport. They contain
+            # the mapping from an oroGen type name to the corresponding ROS
+            # message name.
+            #
+            # @return [Hash<String,String>] mapping from the oroGen type
+            #   name to the corresponding ROS message name
+            def self.load_rosmap(path)
+                result = Hash.new
+                File.readlines(path).each do |line|
+                    line = line.strip
+                    type_name, ros_field_name, ros_msg_name = line.split(/\s+/)
+                    result[type_name] = ros_msg_name
+                end
+                result
+            end
+
             # Typekit generation plugin to handle ROS types
             class Plugin
                 def self.name; "ros" end
@@ -73,6 +91,21 @@ module Orocos
                     mappings.each do |typename, ros_msg_name|
                         type = typekit.find_type(typename)
                         type_mappings[type.name] = ros_msg_name
+                    end
+                end
+
+                def load_ros_mappings
+                    typekit.used_typekits.each do |tk|
+                        next if tk.virtual?
+                        begin
+                            # Yuk ! Not dependent on the architecture, and
+                            # hardcoded pkg-config stuff behaviour
+                            pkg = Utilrb::PkgConfig.new("#{tk.name}-transport-ros-#{Orocos::Generation.orocos_target}")
+                            raw_mapping = ROS.load_rosmap(pkg.rosmap)
+                            raw_mapping.delete_if { |type_name, _| !typekit.registry.include?(type_name) }
+                            ros_mappings(raw_mapping)
+                        rescue Utilrb::PkgConfig::NotFound
+                        end
                     end
                 end
 
@@ -239,6 +272,8 @@ module Orocos
 
                 # Do the code generation for this ROS transport
                 def generate(typesets)
+                    load_ros_mappings
+
                     @typekit = typekit
                     headers, impl = Array.new, Array.new
 
@@ -325,6 +360,9 @@ module Orocos
 
                     cmake_config = Generation.render_template "typekit", "ros", "config.cmake.in", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}_msgs-config.cmake.in", cmake_config)
+
+                    rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
+                    rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
 
                     pkg_config = Generation.render_template "typekit", "ros", "transport-ros.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)

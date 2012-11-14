@@ -51,6 +51,7 @@ configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @O
 configure_file(<%= typekit.name %>_msgs-config.cmake.in <%= typekit.name %>_msgs-config.cmake @ONLY)
 install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
+install(FILES <%= rosmap %> DESTINATION share/orogen/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>_msgs-config.cmake DESTINATION share/<%= typekit.name %>_msgs/cmake)
 install(FILES
     <%= headers.join("\n   ") %>

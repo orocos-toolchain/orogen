@@ -1,0 +1,1 @@
+<%= (convert_types | user_converted_types).map { |type, ros_type| "#{type.name} #{ros_message_name(ros_type, true)} #{ros_field_name(ros_type, true)}" }.join("\n") %>

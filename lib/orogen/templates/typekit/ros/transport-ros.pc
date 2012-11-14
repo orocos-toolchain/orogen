@@ -10,6 +10,7 @@ project_name=<%= typekit.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(typekit.component.deffile) %>
 <% end %>
 type_registry=${prefix}/share/orogen/<%= typekit.name %>.tlb
+rosmap=${prefix}/share/orogen/<%= typekit.name %>.rosmap
 
 Name: <%= typekit.name %>ROSTransport
 Version: <%= typekit.version %>
