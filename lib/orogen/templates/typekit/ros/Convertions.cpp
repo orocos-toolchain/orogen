@@ -15,7 +15,7 @@
 <% end %>
 <% end %>
 
-namespace ros_integration {
+namespace ros_convertions {
     template<typename ROS, typename CXX>
     inline void toROS(ROS& ros, CXX const& value) { ros = value; }
     // Cast needed for the enums
@@ -37,40 +37,47 @@ namespace ros_integration {
 }
 
 <% convert_types.each do |type, ros_type|  %>
-bool ros_integration::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value )
+void ros_convertions::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_type %> value )
 {
 <%= result = ""
 	type.to_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return true;
+    return;
 }
-bool ros_integration::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros )
+void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros )
 {
 <%= result = ""
 	type.from_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return true;
+    return;
 }
 <% end %>
 
 <% convert_array_types.each do |type, ros_type| %>
-bool ros_integration::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.cxx_name %> const* value, int length )
+void ros_convertions::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.cxx_name %> const* value, int length )
 {
 <%= result = ""
 	type.to_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return true;
+    return;
 }
-bool ros_integration::fromROS( <%= type.cxx_name %>* value, <%= ros_arg_type(ros_type) %> ros, int length )
+void ros_convertions::fromROS( <%= type.cxx_name %>* value, <%= ros_arg_type(ros_type) %> ros, int length )
 {
 <%= result = ""
 	type.from_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return true;
+    return;
 }
+<% end %>
+
+<% convert_boxed_types.each do |type, ros_type| %>
+void ros_convertions::toROS( <%= ros_ref_type(ros_type, false) %> ros, <%= type.arg_type %> value )
+{ return toROS(ros.data, value); }
+void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type, false) %> ros )
+{ return fromROS(value, ros.data); }
 <% end %>
 

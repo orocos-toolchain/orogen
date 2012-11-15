@@ -7,7 +7,13 @@ module Orocos
             end
             @rtt_scripting = true
 
-            def initialize
+            def self.name; "type_info" end
+            def name; "type_info" end
+
+            attr_reader :typekit
+            def initialize(typekit)
+                @typekit = typekit
+
                 Typelib::Type          .extend(TypekitMarshallers::TypeInfo::Type)
                 Typelib::NumericType   .extend(TypekitMarshallers::TypeInfo::NumericType)
                 Typelib::ContainerType .extend(TypekitMarshallers::TypeInfo::ContainerType)
@@ -16,15 +22,12 @@ module Orocos
                 Typelib::ArrayType     .extend(TypekitMarshallers::TypeInfo::ArrayType)
             end
 
-            def self.name; "type_info" end
-            def name; "type_info" end
-
-            def dependencies(typekit)
+            def dependencies
             end
 
             def separate_cmake?; false end
 
-            def generate(typekit, typesets)
+            def generate(typesets)
                 headers, impl = [], []
 
                 arrays, plain = typesets.registered_types.

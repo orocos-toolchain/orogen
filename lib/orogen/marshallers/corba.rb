@@ -2,7 +2,10 @@ module Orocos
     module TypekitMarshallers
     module Corba
     class Plugin
-        def initialize
+        attr_reader :typekit
+        def initialize(typekit)
+            @typekit = typekit
+
             Typelib::Type          .extend(TypekitMarshallers::Corba::Type)
             Typelib::NumericType   .extend(TypekitMarshallers::Corba::NumericType)
             Typelib::ContainerType .extend(TypekitMarshallers::Corba::ContainerType)
@@ -15,7 +18,7 @@ module Orocos
         def self.name; "corba" end
         def name; "corba" end
 
-        def dependencies(typekit)
+        def dependencies
             result = []
             typekit.used_typekits.each do |tk|
                 next if tk.virtual?
@@ -39,7 +42,7 @@ module Orocos
 
         def separate_cmake?; true end
 
-        def generate(typekit, typesets)
+        def generate(typesets)
             headers, impl = [], []
 
             idl_registry = typesets.minimal_registry.dup

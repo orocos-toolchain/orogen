@@ -869,7 +869,7 @@ module Orocos
                 @include_dirs << "/usr/include" << "/usr/local/include"
 
                 @plugins = []
-                plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new)
+                plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new(self))
 
                 @internal_dependencies = []
 		@imports, @loads    = [], []
@@ -925,11 +925,28 @@ module Orocos
                 if !(plugin = Typekit.plugins[name])
                     raise ArgumentError, "there is not typekit plugin called #{name}"
                 end
-                plugins << plugin.new
+                plugins << plugin.new(self)
             end
 
+
+            # Looks for an enabled plugin called +name+
+            #
+            # @param [String] name the name of the plugin to look for
+            # @return [Object] the plugin object, or nil if it cannot be found
+            # @see plugin
+            def find_plugin(name)
+                return plugins.find { |p| p.name == name }
+            end
+
+            # Return the plugin object for +name+
+            #
+            # @param [String] name the name of the plugin to look for
+            # @return [Object] the plugin object, or nil if it cannot be found
+            # @raise [ArgumentError] raised if no plugin is enabled with name
+            # +name+
+            # @see find_plugin
             def plugin(name)
-                if plg = plugins.find { |p| p.name == name }
+                if plg = find_plugin(name)
                     return plg
                 else
                     raise ArgumentError, "there is no plugin called #{name}"
@@ -1376,7 +1393,7 @@ module Orocos
                 # in the other typekits types
                 each_plugin do |plg|
                     if !plg.separate_cmake?
-                        if deps = plg.dependencies(self)
+                        if deps = plg.dependencies
                             result.concat(deps)
                         end
                     end
@@ -1814,7 +1831,7 @@ module Orocos
                         plg_typesets.aliases = plg_typesets.aliases.merge(base_type_aliases)
                     end
 
-                    headers, impl = plg.generate(self, plg_typesets)
+                    headers, impl = plg.generate(plg_typesets)
                     public_header_files.concat(headers)
                     implementation_files.concat(impl)
                 end

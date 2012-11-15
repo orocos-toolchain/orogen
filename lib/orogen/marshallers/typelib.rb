@@ -5,7 +5,12 @@ module Orocos
                 def self.name; "typelib" end
                 def name; "typelib" end
 
-                def dependencies(typekit)
+                attr_reader :typekit
+                def initialize(typekit)
+                    @typekit = typekit
+                end
+
+                def dependencies
 		    result = []
 		    typekit.used_libraries.each do |pkg|
 			needs_link = typekit.linked_used_libraries.include?(pkg)
@@ -20,7 +25,7 @@ module Orocos
 
                 def separate_cmake?; true end
 
-                def generate(typekit, typesets)
+                def generate(typesets)
                     impl    = []
                     headers = []
 

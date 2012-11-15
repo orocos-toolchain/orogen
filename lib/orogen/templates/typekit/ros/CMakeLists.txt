@@ -1,6 +1,6 @@
 set(PROJECT_NAME <%= typekit.name %>_msgs)
 set(<%= typekit.name %>_msgs_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-<% typekit_deps = typekit.plugin('ros').dependencies(typekit); %>
+<% typekit_deps = typekit.plugin('ros').dependencies %>
 
 find_package(catkin REQUIRED)
 find_package(genmsg REQUIRED)
@@ -16,18 +16,23 @@ add_message_files(DIRECTORY msg
 <%
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
-    tk.name
-end.compact.sort
+    "#{tk.name}_msgs"
+end.compact.to_set
+user_converted_types.each do |type, ros_type|
+    msg = type_mappings[ros_type.name]
+    msg_deps << msg.split('/').first
+end
+msg_deps = msg_deps.to_a.sort
 %>
 
 <% msg_deps.each do |dep_name| %>
-find_package(<%= dep_name %>_msgs)
+find_package(<%= dep_name %>)
 <% end %>
 
 <% if msg_deps.empty? %>
 generate_messages()
 <% else %>
-generate_messages(DEPENDENCIES <%= msg_deps.join("_msgs ") %>_msgs)
+generate_messages(DEPENDENCIES <%= msg_deps.join(" ") %>)
 <% end %>
 include_directories(BEFORE ${CMAKE_BINARY_DIR}/gen/cpp)
 <% end # end of if !all_messages.empty?
@@ -51,6 +56,7 @@ configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @O
 configure_file(<%= typekit.name %>_msgs-config.cmake.in <%= typekit.name %>_msgs-config.cmake @ONLY)
 install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
+install(FILES <%= rosmap %> DESTINATION share/orogen/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>_msgs-config.cmake DESTINATION share/<%= typekit.name %>_msgs/cmake)
 install(FILES
     <%= headers.join("\n   ") %>

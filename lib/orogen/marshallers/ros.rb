@@ -1,11 +1,116 @@
 module Orocos
     module TypekitMarshallers
         module ROS
+            class Orocos::Generation::Typekit
+                def ros_mappings(mappings)
+                    plugin =
+                        begin
+                            find_plugin('ros')
+                        rescue ArgumentError
+                            Orocos.info "ignoring ros_mappings(#{mappings}) call: the ROS plugin is not enabled"
+                            return self
+                        end
+
+                    plugin.ros_mappings(mappings)
+                    self
+                end
+            end
+
+            # Loads a rosmap file
+            #
+            # These files are generated for each ROS transport. They contain
+            # the mapping from an oroGen type name to the corresponding ROS
+            # message name.
+            #
+            # @return [Hash<String,String>] mapping from the oroGen type
+            #   name to the corresponding ROS message name
+            def self.load_rosmap(path)
+                result = Hash.new
+                File.readlines(path).each do |line|
+                    line = line.strip
+                    type_name, ros_field_name, ros_msg_name = line.split(/\s+/)
+                    result[type_name] = ros_msg_name
+                end
+                result
+            end
+
+            # Typekit generation plugin to handle ROS types
             class Plugin
                 def self.name; "ros" end
                 def name; "ros" end
 
-                def dependencies(typekit)
+                def initialize(typekit)
+                    @typekit = typekit
+                    @type_mappings = Hash.new
+                    @boxed_msg_mappings = Hash.new
+                    boxed_msg_mappings['std_msgs/Time'] = 'time'
+
+                    Typelib::Type.extend TypeExtension
+                    Typelib::OpaqueType.extend OpaqueTypeExtension
+                    Typelib::ContainerType.extend ContainerTypeExtension
+                    Typelib::ArrayType.extend ArrayTypeExtension
+                    Typelib::CompoundType.extend CompoundTypeExtension
+                end
+
+                # Mappings from oroGen types to ROS message names
+                #
+                # @see ros_mappings
+                attr_reader :type_mappings
+
+                # Mappings from ROS boxed messages to the base type they are
+                # wrapping
+                #
+                # Base ROS types cannot be used as messages. One has to first
+                # box them into a std_msgs message. This registers these
+                # mappings. oroGen then always generate a convertion function
+                # for the boxed type whenever the type_mappings specify a
+                # message that should be boxed.
+                #
+                # @see ros_mappings
+                attr_reader :boxed_msg_mappings
+
+                # True if some custom oroGen-to-ROS convertions have been
+                # registered
+                def has_custom_convertions?
+                    !type_mappings.empty?
+                end
+
+                # Checks whether a ROS message name is a boxing type
+                def boxed_ros_msg?(msg_name)
+                    !!boxed_msg_mappings[msg_name]
+                end
+
+                # Define custom mappings from typegen types to ROS messages
+                #
+                # @param [Hash{String=>String}] mapping from the name of a type
+                # known to oroGen to the ROS message that should be used to
+                # represent it on the ROS side. The ROS message name should be
+                # fully qualified
+                def ros_mappings(mappings)
+                    mappings.each do |typename, ros_msg_name|
+                        type = typekit.find_type(typename)
+                        type_mappings[type.name] = ros_msg_name
+                    end
+                end
+
+                def load_ros_mappings
+                    typekit.used_typekits.each do |tk|
+                        next if tk.virtual?
+                        begin
+                            # Yuk ! Not dependent on the architecture, and
+                            # hardcoded pkg-config stuff behaviour
+                            pkg = Utilrb::PkgConfig.new("#{tk.name}-transport-ros-#{Orocos::Generation.orocos_target}")
+                            raw_mapping = ROS.load_rosmap(pkg.rosmap)
+                            raw_mapping.delete_if { |type_name, _| !typekit.registry.include?(type_name) }
+                            ros_mappings(raw_mapping)
+                        rescue Utilrb::PkgConfig::NotFound
+                        end
+                    end
+                end
+
+                # Generates the set of compilation dependencies for the ROS
+                # transport
+                def dependencies
                     result = []
                     typekit.used_typekits.each do |tk|
                         next if tk.virtual?
@@ -33,10 +138,14 @@ module Orocos
                     result
                 end
 
+                # Generates the set of compilation dependencies for the ROS
+                # transport
                 def separate_cmake?; true end
 
+                # The underlying typekit
                 attr_reader :typekit
 
+                # Returns the ROS typename for +type+ if +type+ is a basic type
                 def ros_typename(type)
                     if type <= Typelib::NumericType
                         if type.name == "/bool"
@@ -54,15 +163,36 @@ module Orocos
                     end
                 end
 
+                # Returns true if +type+ is a base type in ROS
                 def ros_base_type?(type)
                     !!ros_typename(type)
                 end
 
+                # Returns the type name that should be used in a field in
+                # another ROS message
+                #
+                # For "normal" messages, this is the message name. For boxed
+                # messages (e.g. std_msgs/Time), it is the corresponding base
+                # type
+                def ros_field_name(type, absolute = false)
+                    msg_name = ros_message_name(type, absolute)
+                    boxed_msg_mappings[msg_name] || msg_name
+                end
+
+                # Returns the ROS message name for +type+
+                #
+                # @param [TypeClass] the type as a typelib Type class
+                # @param [Boolean] absolute if true, the message name will
+                # always contain its namespace. Otherwise, it contains its
+                # namespace only if not generated by +typekit+. This is required
+                # by the ROS message generator
                 def ros_message_name(type, absolute = false)
                     if base_type = ros_typename(type)
                         base_type
+                    elsif msg_name = type_mappings[type.name]
+                        return msg_name
                     elsif type <= Typelib::ArrayType || type <= Typelib::ContainerType
-                        "#{ros_message_name(type.deference)}[]"
+                        "#{ros_message_name(type.deference, absolute)}[]"
                     else
                         source_typekit = typekit.imported_typekits_for(type.name).first
                         if source_typekit || absolute
@@ -76,11 +206,17 @@ module Orocos
                     end
                 end
 
-                def ros_cxx_type(type)
+                # Returns the C++ type name for the ROS message that represents
+                # +type+
+                #
+                # @param [Boolean] do_unboxing if true, the returned type is the
+                # unboxed version of the message (i.e. std_msgs/Time would map
+                # to ros::Time). If false, the base message type name is kept
+                def ros_cxx_type(type, do_unboxing = true)
                     if type < Typelib::EnumType
                         "boost::int32_t"
                     elsif type < Typelib::ArrayType || type < Typelib::ContainerType
-                        "std::vector< #{ros_cxx_type(type.deference)} >"
+                        "std::vector< #{ros_cxx_type(type.deference, do_unboxing)} >"
                     elsif type < Typelib::NumericType
                         if type.integer?
                             "boost::#{type.name[1..-1]}"
@@ -88,23 +224,55 @@ module Orocos
                             type.name[1..-1]
                         end
                     else
-                        ros_message_name(type, true).gsub(/\//, '::')
+                        msg_name = ros_message_name(type, true)
+                        if do_unboxing && (unboxed = boxed_msg_mappings[msg_name])
+                            msg_name = unboxed
+                        end
+
+                        if msg_name == "time"
+                            return "ros::Time"
+                        else
+                            return msg_name.gsub(/\//, '::')
+                        end
                     end
                 end
 
-                def ros_ref_type(type)
-                    "#{ros_cxx_type(type)}&"
-                end
-                def ros_arg_type(type)
-                    "#{ros_cxx_type(type)} const&"
+                # Returns a reference signature to the C++ type for the ROS
+                # message that represents +type+
+                def ros_ref_type(type, unbox = true)
+                    "#{ros_cxx_type(type, unbox)}&"
                 end
 
+                # Returns the argument signature the C++ type for the ROS
+                # message that represents +type+
+                def ros_arg_type(type, unbox = true)
+                    "#{ros_cxx_type(type, unbox)} const&"
+                end
+
+                # Returns whether +type+ should be exported as a ROS message
                 def ros_exported_type?(type)
                     type = typekit.intermediate_type_for(type)
                     (type < Typelib::CompoundType) && !ros_base_type?(type)
                 end
 
-                def generate(typekit, typesets)
+                def generate_type_convertion_list(typeset)
+                    convert_types = Array.new
+                    typeset.each do |type|
+                        next if ros_base_type?(type)
+                        convert_types << [type, type]
+
+                        target_type = typekit.intermediate_type_for(type)
+                        if target_type != type
+                            convert_types << [target_type, type]
+                        end
+                    end
+                    convert_types.sort_by { |t0, t1| [t0.name, t1.name] }
+                end
+
+                # Do the code generation for this ROS transport
+                def generate(typesets)
+                    load_ros_mappings
+
                     @typekit = typekit
                     headers, impl = Array.new, Array.new
 
@@ -114,6 +282,8 @@ module Orocos
                     # file
                     all_messages = Array.new
                     typesets.converted_types.each do |type|
+                        # We are reusing an existing ROS message
+                        next if type_mappings.has_key?(type.name)
                         type_name = type.name
                         msg_name  = ros_message_name(type)
 
@@ -127,32 +297,24 @@ module Orocos
                             all_messages << msg_name
                         end
                     end
+
                     all_messages = all_messages.sort
 
-                    convert_types = Set.new
-                    typesets.converted_types.each do |type|
-                        next if ros_base_type?(type) || typekit.m_type?(type)
-                        convert_types << [type, type]
+                    convert_types = generate_type_convertion_list(
+                        typesets.converted_types.
+                            find_all { |t| !type_mappings[t.name] && !typekit.m_type?(t)})
+                    convert_array_types = generate_type_convertion_list(
+                        typesets.array_types.map(&:deference).
+                            find_all { |t| !typekit.m_type?(t)})
+                    user_converted_types = generate_type_convertion_list(
+                        typesets.converted_types.
+                            find_all { |t| type_mappings[t.name] })
 
-                        target_type = typekit.intermediate_type_for(type)
-                        if target_type != type
-                            convert_types << [target_type, type]
-                        end
+                    # Have a look the user_converted_types whether we need to
+                    # generate some unboxing functions automatically
+                    convert_boxed_types = user_converted_types.find_all do |type, ros_type|
+                        boxed_ros_msg?(ros_message_name(ros_type, true))
                     end
-                    convert_types = convert_types.sort_by { |t0, t1| [t0.name, t1.name] }
-
-                    convert_array_types = Set.new
-                    typesets.array_types.each do |type|
-                        type = type.deference
-                        next if ros_base_type?(type) || typekit.m_type?(type)
-                        convert_array_types << [type, type]
-
-                        target_type = typekit.intermediate_type_for(type)
-                        if target_type != type
-                            convert_array_types << [target_type, type]
-                        end
-                    end
-                    convert_array_types = convert_array_types.sort_by { |t0, t1| [t0.name, t1.name] }
 
                     code  = Generation.render_template "typekit", "ros", "Convertions.hpp", binding
                     headers << typekit.save_automatic("transports", "ros",
@@ -167,6 +329,17 @@ module Orocos
                     code  = Generation.render_template "typekit", "ros", "TransportPlugin.cpp", binding
                     impl << typekit.save_automatic("transports", "ros",
                                                    "TransportPlugin.cpp", code)
+                    if !user_converted_types.empty?
+                        # We need to generate a user part with the convertion
+                        # functions. Reuse the templates !
+                        
+                        code  = Generation.render_template "typekit", "ros", "ROSConvertions.hpp", binding
+                        headers << typekit.save_user("ROSConvertions.hpp", code)
+                        code  = Generation.render_template "typekit", "ros", "ROSConvertions.cpp", binding
+                        impl << typekit.save_user("ROSConvertions.cpp", code)
+                        Orocos::Generation.create_or_update_symlink(
+                            headers.last, File.join(typekit.automatic_dir, "typekit", "transports", "ros", "ROSConvertions.hpp"))
+                    end
 
                     code_snippets = typesets.interface_types.map do |type|
                         next if !ros_exported_type?(type)
@@ -188,6 +361,9 @@ module Orocos
                     cmake_config = Generation.render_template "typekit", "ros", "config.cmake.in", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}_msgs-config.cmake.in", cmake_config)
 
+                    rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
+                    rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
+
                     pkg_config = Generation.render_template "typekit", "ros", "transport-ros.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
 
@@ -200,9 +376,24 @@ module Orocos
             Orocos::Generation::Typekit.register_plugin(Plugin)
 
             module TypeExtension
+                # Call to generate the C++ call required to convert this type
+                # into the corresponding ROS message.
+                #
+                # @param [String] ros_var the name of the C++ local variable
+                # representing the ROS message
+                # @param [String] value_var the name of the C++ local variable
+                # representing the typegen type
                 def call_to_ros(ros_var, value_var)
                     "toROS(#{ros_var}, #{value_var})"
                 end
+
+                # Call to generate the C++ call required to convert this type
+                # from the corresponding ROS message.
+                #
+                # @param [String] value_var the name of the C++ local variable
+                # representing the typegen type
+                # @param [String] ros_var the name of the C++ local variable
+                # representing the ROS message
                 def call_from_ros(value_var, ros_var)
                     "fromROS(#{value_var}, #{ros_var})"
                 end
@@ -339,11 +530,6 @@ module Orocos
                     end
                 end
             end
-            Typelib::Type.extend TypeExtension
-            Typelib::OpaqueType.extend OpaqueTypeExtension
-            Typelib::ContainerType.extend ContainerTypeExtension
-            Typelib::ArrayType.extend ArrayTypeExtension
-            Typelib::CompoundType.extend CompoundTypeExtension
         end
     end
 end
