@@ -3,13 +3,11 @@ module Orocos
         module ROS
             class Orocos::Generation::Typekit
                 def ros_mappings(mappings)
-                    plugin =
-                        begin
-                            find_plugin('ros')
-                        rescue ArgumentError
-                            Orocos.info "ignoring ros_mappings(#{mappings}) call: the ROS plugin is not enabled"
-                            return self
-                        end
+                    plugin = find_plugin('ros')
+                    if !plugin
+                        Orocos.info "ignoring ros_mappings(#{mappings}) call: the ROS plugin is not enabled"
+                        return self
+                    end
 
                     plugin.ros_mappings(mappings)
                     self
