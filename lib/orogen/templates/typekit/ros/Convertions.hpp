@@ -10,6 +10,9 @@
 <% if !user_converted_types.empty? %>
 #include <<%= typekit.name %>/transports/ros/ROSConvertions.hpp>
 <% end %>
+<% convert_boxed_types.each do |type, ros_type| %>
+#include <<%= ros_message_name(ros_type, true) %>.h>
+<% end %>
 <% all_messages.each do |msg_name| %>
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>

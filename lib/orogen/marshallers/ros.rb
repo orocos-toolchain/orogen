@@ -217,8 +217,6 @@ module Orocos
                 def ros_cxx_type(type, do_unboxing = true)
                     if type < Typelib::EnumType
                         "boost::int32_t"
-                    elsif type < Typelib::ArrayType || type < Typelib::ContainerType
-                        "std::vector< #{ros_cxx_type(type.deference, do_unboxing)} >"
                     elsif type < Typelib::NumericType
                         if type.integer?
                             "boost::#{type.name[1..-1]}"
@@ -226,6 +224,11 @@ module Orocos
                             type.name[1..-1]
                         end
                     else
+                        explicit_mapping = type_mappings[type.name]
+                        if !explicit_mapping && (type < Typelib::ArrayType || type < Typelib::ContainerType)
+                            return "std::vector< #{ros_cxx_type(type.deference, do_unboxing)} >"
+                        end
+
                         msg_name = ros_message_name(type, true)
                         if do_unboxing && (unboxed = boxed_msg_mappings[msg_name])
                             msg_name = unboxed
@@ -254,15 +257,38 @@ module Orocos
                 end
 
                 # Returns whether +type+ should be exported as a ROS message
+                def ros_converted_type?(type)
+                    type = typekit.intermediate_type_for(type)
+                    return true if type_mappings.has_key?(type.name)
+                    return if ros_base_type?(type)
+
+                    if type < Typelib::CompoundType
+                        ros_exported_type?(type)
+                    elsif type < Typelib::ContainerType
+                        !(type.deference < Typelib::ContainerType) && ros_exported_type?(type.deference)
+                    else true
+                    end
+                end
+
+                # Returns whether +type+ should be exported as a ROS message
                 def ros_exported_type?(type)
                     type = typekit.intermediate_type_for(type)
-                    (type < Typelib::CompoundType) && !ros_base_type?(type)
+                    return if ros_base_type?(type)
+                    return if !(type < Typelib::CompoundType)
+                    # ROS cannot represent arrays in arrays. Filter those out
+                    type.recursive_dependencies.each do |t|
+                        next if type_mappings.has_key?(t.name)
+                        if t < Typelib::ContainerType && t.deference < Typelib::ContainerType
+                            return
+                        end
+                    end
+                    return true
                 end
 
                 def generate_type_convertion_list(typeset)
                     convert_types = Array.new
                     typeset.each do |type|
-                        next if ros_base_type?(type)
+                        next if !ros_converted_type?(type)
                         convert_types << [type, type]
 
                         target_type = typekit.intermediate_type_for(type)
@@ -313,6 +339,9 @@ module Orocos
                     user_converted_types = generate_type_convertion_list(
                         typesets.converted_types.
                             find_all { |t| type_mappings[t.name] })
+                    user_converted_types.delete_if do |type, ros_type|
+                        ros_cxx_type(type) == type.cxx_name.gsub(/^::/, '')
+                    end
 
                     # Have a look the user_converted_types whether we need to
                     # generate some unboxing functions automatically
