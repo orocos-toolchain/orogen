@@ -47,6 +47,7 @@ module Orocos
                     @type_mappings = Hash.new
                     @boxed_msg_mappings = Hash.new
                     boxed_msg_mappings['std_msgs/Time'] = 'time'
+                    boxed_msg_mappings['std_msgs/String'] = 'string'
 
                     Typelib::Type.extend TypeExtension
                     Typelib::OpaqueType.extend OpaqueTypeExtension
@@ -161,8 +162,6 @@ module Orocos
                     elsif type <= Typelib::EnumType
                         # TODO: compute minimal size ?
                         "int32"
-                    elsif type.name == "/std/string"
-                        "string"
                     end
                 end
 
@@ -234,6 +233,8 @@ module Orocos
 
                         if msg_name == "time"
                             return "ros::Time"
+                        elsif msg_name == 'string'
+                            return 'std::string'
                         else
                             return msg_name.gsub(/\//, '::')
                         end
