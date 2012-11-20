@@ -13,6 +13,11 @@ module Orocos
                     self
                 end
             end
+            class Orocos::Generation::ImportedTypekit
+                def ros_mappings(mappings)
+                    self
+                end
+            end
 
             # Loads a rosmap file
             #
