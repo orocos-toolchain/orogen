@@ -59,12 +59,12 @@ void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_
 void ros_convertions::toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length )
 {
     ros.resize(length);
-    for (size_t idx = 0; idx < length; ++idx)
+    for (int idx = 0; idx < length; ++idx)
         <%= type.call_to_ros("ros[idx]", "value[idx]") %>;
 }
 void ros_convertions::fromROS( <%= type.cxx_name %>* value, std::vector< <%= ros_cxx_type(ros_type) %> > const& ros, int length )
 {
-    for (size_t idx = 0; idx < length; ++idx)
+    for (int idx = 0; idx < length; ++idx)
         <%= type.call_from_ros("value[idx]", "ros[idx]") %>;
 }
 <% end %>
