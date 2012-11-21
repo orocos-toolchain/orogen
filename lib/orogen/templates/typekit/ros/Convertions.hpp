@@ -25,8 +25,8 @@ namespace ros_convertions {
     <% end %>
     /** Array types: */
     <% convert_array_types.each do |type, ros_type| %>
-    void toROS( <%= ros_typename(ros_type) %>* ros, <%= type.cxx_name%> const* value, int length );
-    void fromROS( <%= type.cxx_name %>* value, <%= ros_typename(ros_type) %> const* ros, int length );
+    void toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length );
+    void fromROS( <%= type.cxx_name %>* value, std::vector< <%= ros_cxx_type(ros_type) %> const& ros, int length );
     <% end %>
 
     <% convert_boxed_types.each do |type, ros_type| %>

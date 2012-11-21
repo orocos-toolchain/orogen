@@ -56,21 +56,16 @@ void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_
 <% end %>
 
 <% convert_array_types.each do |type, ros_type| %>
-void ros_convertions::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.cxx_name %> const* value, int length )
+void ros_convertions::toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length )
 {
-<%= result = ""
-	type.to_ros(typekit, result, " " * 4)
-	result 
-	%>
-    return;
+    ros.resize(length);
+    for (size_t idx = 0; idx < length; ++idx)
+        <%= type.call_to_ros("ros[idx]", "value[idx]") %>;
 }
-void ros_convertions::fromROS( <%= type.cxx_name %>* value, <%= ros_arg_type(ros_type) %> ros, int length )
+void ros_convertions::fromROS( <%= type.cxx_name %>* value, std::vector< <%= ros_cxx_type(ros_type) %> > const& ros, int length )
 {
-<%= result = ""
-	type.from_ros(typekit, result, " " * 4)
-	result 
-	%>
-    return;
+    for (size_t idx = 0; idx < length; ++idx)
+        <%= type.call_from_ros("value[idx]", "ros[idx]") %>;
 }
 <% end %>
 

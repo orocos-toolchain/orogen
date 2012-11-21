@@ -490,7 +490,7 @@ module Orocos
                 def to_ros(typekit, buffer, indent)
                     buffer <<
                         "#{indent}ros.resize(#{length});\n" <<
-                        "#{indent}for (size_t idx = 0; idx < #{length}; ++idx)\n" <<
+                        "#{indent}for (size_t idx = 0; idx < length; ++idx)\n" <<
                         "#{indent}#{deference.call_to_ros("ros[idx]", "value[idx]")};\n"
                 end
                 # Convert a C++ value into the corresponding ROS value
@@ -501,7 +501,7 @@ module Orocos
                 # convertion
                 def from_ros(typekit, buffer, indent)
                     buffer <<
-                        "#{indent}for (size_t idx = 0; idx < #{length}; ++idx)\n" <<
+                        "#{indent}for (size_t idx = 0; idx < length; ++idx)\n" <<
                         "#{indent}#{deference.call_from_ros("value[idx]", "ros[idx]")};\n"
                 end
             end
