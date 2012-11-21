@@ -49,6 +49,7 @@ module Orocos
                     @boxed_msg_mappings = Hash.new
                     boxed_msg_mappings['std_msgs/Time'] = 'time'
                     boxed_msg_mappings['std_msgs/String'] = 'string'
+                    type_mappings['/std/string'] = 'std_msgs/String'
 
                     Typelib::Type.extend TypeExtension
                     Typelib::OpaqueType.extend OpaqueTypeExtension
