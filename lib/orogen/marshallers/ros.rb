@@ -267,7 +267,7 @@ module Orocos
                     if type < Typelib::CompoundType
                         ros_exported_type?(type)
                     elsif type < Typelib::ContainerType
-                        !(type.deference < Typelib::ContainerType) && ros_exported_type?(type.deference)
+                        !(type.deference < Typelib::ContainerType) && (ros_converted_type?(type.deference) || type.deference <= Typelib::EnumType)
                     else true
                     end
                 end
