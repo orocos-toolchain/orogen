@@ -16,6 +16,14 @@
 <% all_messages.each do |msg_name| %>
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>
+<% convert_types.
+    find_all { |_, t| t.respond_to?(:deference) }.
+    each do |_, ros_type| %>
+#include <<%= ros_message_name(ros_type.deference, true) %>.h>
+<% end %>
+<% convert_array_types.each do |_, ros_type| %>
+#include <<%= ros_message_name(ros_type, true) %>.h>
+<% end %>
 
 namespace ros_convertions {
     /** Converted types: */
