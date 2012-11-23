@@ -1205,7 +1205,7 @@ module Orocos
                     raise ArgumentError, "there is already a deployment named '#{name}' in this oroGen project"
                 end
 
-                deployer = StaticDeployment.new(self, name, &block)
+                deployer = Spec::Deployment.new(self, name, &block)
                 @enabled_transports.each do |t|
                     deployer.enable_transport(t)
                 end
