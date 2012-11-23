@@ -288,6 +288,10 @@ module Orocos
                 @extensions = Array.new
 
                 super if defined? super
+
+                if block_given?
+                    instance_eval(&proc)
+                end
 	    end
 
             def initialize_copy(from)
