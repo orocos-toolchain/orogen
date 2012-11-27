@@ -58,7 +58,7 @@ rescue Exception => e
 end
 
 require 'utilrb/doc/rake'
-Utilrb.doc 'doc', :include => ['lib/**/*.rb'],
+Utilrb.doc :include => ['lib/**/*.rb'],
     :title => 'oroGen',
     :plugins => ['utilrb']
 
