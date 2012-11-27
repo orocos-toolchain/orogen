@@ -319,11 +319,11 @@ module Orocos
                         type_name = type.name
                         msg_name  = ros_message_name(type)
 
-                        if type.opaque?
-                            type = typekit.intermediate_type_for(type)
-                        end
-
                         if ros_exported_type?(type) && !typekit.m_type?(type)
+                            if type.opaque?
+                                type = typekit.intermediate_type_for(type)
+                            end
+
                             msg = Orocos::Generation.render_template "typekit", "ros", "Type.msg", binding
                             typekit.save_automatic("transports", "ros", "msg", "#{msg_name}.msg", msg)
                             all_messages << msg_name
