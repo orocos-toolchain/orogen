@@ -446,6 +446,8 @@ end
 
 module Orocos
     module Generation
+        # Helper method used to create a symbolic link. If a link already
+        # exists, it makes sure that it is up to date
         def self.create_or_update_symlink(source, target)
             if File.exists?(target)
                 if !File.symlink?(target)
@@ -465,6 +467,10 @@ module Orocos
         # Common implementation of opaque-related methods. It gets included in
         # Project and Typekit
         module OpaqueHandling
+            # Get the opaque definition for a given type
+            #
+            # @param [Type,String] the type or type name
+            # @return [OpaqueDefinition]
             def opaque_specification(type_def)
                 type = find_type(type_def)
                 raise "#{type} is unknown" unless type
@@ -476,6 +482,11 @@ module Orocos
 		end
             end
 
+            # Finds the opaque (or opaque-containing) type for which the given
+            # type is an intermediate
+            #
+            # @return [Type,nil] the type, or nil if 'type' is not used as an
+            #   intermediate
             def find_opaque_for_intermediate(type)
                 type = find_type(type.name)
                 if m_type?(type)
@@ -504,6 +515,16 @@ module Orocos
                 end
             end
 
+            # Computes the name of the type that should be used as an
+            # intermediate for the given type
+            #
+            # @param [String,Type] type_def the type or type name
+            # @param [Boolean] is_normalized if true, the provided type name is
+            #   supposed to be normalized. Otherwise, an (expensive) normalization
+            #   will be computed if it cannot be found as-is in the typekit's
+            #   registry
+            # @return [String] the normalized name of the intermediate type, or
+            #   the type's name if 'type' is not an opaque
             def intermediate_type_name_for(type_def, is_normalized = false)
                 type = find_type(type_def, is_normalized)
                 if type.opaque?
@@ -524,15 +545,25 @@ module Orocos
                 end
             end
 
+            # Gets the intermediate type for a given type
+            #
+            # @param [Type,String] type_def the type or type name
+            # @return [Type] the type of the intermediate, or 'type_def' itself
+            #   if 'type_def' is not an opaque
+            # @raises Typelib::NotFound if the expected intermediate type cannot
+            #   be found
             def intermediate_type_for(type_def)
                 typename = intermediate_type_name_for(type_def)
                 return find_type(typename, true)
             end
 
+            # Checks if a type is used as an intermediate
             def intermediate_type?(type)
                 !!find_opaque_for_intermediate(type)
             end
 
+            # Checks if a type is an oroGen-generated type used as an
+            # intermediate
             def m_type?(type)
                 typename = type.name
                 if type.name =~ /_m$/
@@ -551,6 +582,11 @@ module Orocos
         end
 
         class << self
+            # Multiple type info objects can be grouped in a single file to
+            # reduce the overhead, at compilation time, of reading the
+            # preprocessed file
+            #
+            # This controls the size of the grouping
             attr_accessor :typekit_slice
             attr_accessor :typekit_slice_minimum
         end
