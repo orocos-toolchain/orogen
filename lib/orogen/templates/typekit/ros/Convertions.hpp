@@ -17,12 +17,14 @@
 #include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
 <% end %>
 <% convert_types.
-    find_all { |_, t| t.respond_to?(:deference) }.
+    find_all { |_, t| t.respond_to?(:deference) && (t.deference <= Typelib::CompoundType || t.deference <= Typelib::OpaqueType) }.
     each do |_, ros_type| %>
 #include <<%= ros_message_name(ros_type.deference, true) %>.h>
 <% end %>
-<% convert_array_types.each do |_, ros_type| %>
+<% convert_array_types.each do |_, ros_type|
+    if ros_type <= Typelib::CompoundType || ros_type <= Typelib::OpaqueType %>
 #include <<%= ros_message_name(ros_type, true) %>.h>
+<%  end %>
 <% end %>
 
 namespace ros_convertions {
