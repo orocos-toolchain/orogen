@@ -539,7 +539,14 @@ module Orocos
                     return true
                 end
 
-                type.recursive_dependencies.any? { |t| t.name =~ /_m$/ }
+                if type.respond_to?(:deference)
+                    while type.respond_to?(:deference)
+                        type = type.deference
+                    end
+                    m_type?(type)
+                else
+                    false
+                end
             end
         end
 
