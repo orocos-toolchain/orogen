@@ -528,12 +528,12 @@ module Orocos
                     if state_port.kind_of?(InputPort)
                         raise ArgumentError, 
                             "there is already an input port called 'state', cannot enable extended state support"
-                    elsif state_port.type != project.find_type("/int")
+                    elsif state_port.type != project.find_type("/int32_t")
                         raise ArgumentError, 
                             "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.type_name}"
                     end
                 else
-                    output_port('state', '/int').
+                    output_port('state', '/int32_t').
                         triggered_once_per_update
                 end
 
