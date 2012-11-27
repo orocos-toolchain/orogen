@@ -486,6 +486,13 @@ module Orocos
                 !imported_typekits_for(typename).empty?
             end
 
+            # Returns true if +typename+ can be used on a task context interface
+            def exported_type?(typename)
+                imported_typekits_for(typename).any? do |tk|
+                    tk.interface_type?(typename)
+                end
+            end
+
             # Returns the type object for +typename+, validating that we can use
             # it in a task interface, i.e. that it will be registered in the
             # RTT's typeinfo system

@@ -787,6 +787,13 @@ module Orocos
                 !imported_typekits_for(typename).empty?
             end
 
+            # Returns true if +typename+ can be used on a task context interface
+            def exported_type?(typename)
+                imported_typekits_for(typename).any? do |tk|
+                    tk.interface_type?(typename)
+                end
+            end
+
             # Returns the Typelib::Type subclass that represents the type whose
             # name is given. If the type is a derived type (pointer, array or
             # container), then it will be built on the fly.
