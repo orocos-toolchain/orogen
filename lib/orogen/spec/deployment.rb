@@ -611,7 +611,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             def task(name, klass)
                 begin task_context = project.find_task_context(klass)
                 rescue ArgumentError
-                    raise ConfigError, "#{klass} is not a known task context model"
+                    raise ArgumentError, "#{klass} is not a known task context model"
                 end
 
                 name = Generation.verify_valid_identifier(name)
