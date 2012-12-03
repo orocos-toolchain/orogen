@@ -629,8 +629,6 @@ module Orocos
 
             enumerate_inherited_set "base_method", "base_methods"
             enumerate_inherited_set "user_method", "user_methods"
-            attr_reader :base_initializers
-            attr_reader :base_constructions
 
             # Base class for code generation in tasks
             class GeneratedObject
