@@ -594,13 +594,13 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # the corresponding TaskDeployment object. This instance can be used
             # to configure the task further (for instance specifying the
             # activity). See TaskDeployment documentation for available options.
-            #
-            # +name+ is used in the task browser, and will be the global task's
-            # name on the CORBA name server.
             def task(name, klass)
-                begin task_context = project.find_task_context(klass)
-                rescue ArgumentError
-                    raise ArgumentError, "#{klass} is not a known task context model"
+                if klass.respond_to?(:to_str)
+                    begin task_context = project.find_task_context(klass)
+                    rescue ArgumentError
+                        raise ArgumentError, "#{klass} is not a known task context model"
+                    end
+                else task_context = klass
                 end
 
                 name = Generation.verify_valid_identifier(name)
