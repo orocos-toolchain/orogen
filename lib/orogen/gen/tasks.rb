@@ -266,6 +266,11 @@ module Orocos
                     @base_hook_code[hook_name] = Array.new
                 end
 
+                @user_hook_code = Hash.new
+                hooks.each do |hook_name|
+                    @user_hook_code[hook_name] = Array.new
+                end
+
                 @generation_handlers = Array.new
                 @base_methods = Array.new
                 @user_methods = Array.new
@@ -607,7 +612,20 @@ module Orocos
                 in_hook(@base_hook_code, hook, string, &block)
             end
 
+            # Call to add some code to the generated hooks in the Base task
+            # classes
+            def in_user_hook(hook, string = nil, &block)
+                in_hook(@user_hook_code, hook, string, &block)
+            end
+
             attr_reader :base_hook_code
+
+            # [{String=>Set<String,#call>}] a set of code snippets that are
+            # inserted in the task class hooks. It is a mapping from a hook name
+            # (such as 'update') to the set of snippets. Snippets can be given
+            # as strings or as an object whose #call method is going to return
+            # the code as a string
+            attr_reader :user_hook_code
 
             enumerate_inherited_set "base_method", "base_methods"
             enumerate_inherited_set "user_method", "user_methods"
