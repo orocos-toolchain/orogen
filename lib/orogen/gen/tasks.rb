@@ -618,6 +618,11 @@ module Orocos
                 in_hook(@user_hook_code, hook, string, &block)
             end
 
+            # [{String=>Set<String,#call>}] a set of code snippets that are
+            # inserted in the base task class hooks. It is a mapping from a hook name
+            # (such as 'update') to the set of snippets. Snippets can be given
+            # as strings or as an object whose #call method is going to return
+            # the code as a string
             attr_reader :base_hook_code
 
             # [{String=>Set<String,#call>}] a set of code snippets that are
@@ -760,7 +765,7 @@ module Orocos
                 end
             end
 
-            # Helper method for #add_base_method and #add_method
+            # Helper method for {#add_base_method} and {#add_user_method}
             def add_method(kind, return_type, name, signature)
                 self_set = send("self_#{kind}")
                 if !name.respond_to?(:to_str)
