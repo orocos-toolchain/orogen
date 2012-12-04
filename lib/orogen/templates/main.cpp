@@ -219,6 +219,7 @@ int ORO_main(int argc, char* argv[])
         }
     }    
 
+//First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
     if (rename_map.count(task_name))
@@ -227,8 +228,6 @@ int ORO_main(int argc, char* argv[])
         task_name = prefix + task_name;
     
     <%= task.context.class_name %> task_<%= task.name%>(task_name);
-    <%= task.generate_activity_setup %>
-    task_<%= task.name %>.setActivity(activity_<%= task.name %>);
     <% task.properties.sort_by { |prop| prop.name }.each do |prop|
         if prop.value %>
     dynamic_cast< RTT::Property<  <%= prop.interface_object.type.cxx_name %> >*>(
@@ -247,6 +246,16 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 
 <% end %>
+
+//Create all Activities afterwards to be sure all tasks are created. The Activitied are also handeld by the deployment because
+//the order needs to be known since slav activities are useable
+//
+<% activity_ordered_tasks.each do |task| %>
+    <%= task.generate_activity_setup %>
+    task_<%= task.name %>.setActivity(activity_<%= task.name %>);
+<% end %>
+
+
 
    Deinitializer deinit;
 

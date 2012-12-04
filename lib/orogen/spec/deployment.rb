@@ -116,6 +116,9 @@ module Orocos
             #
             # See worstcase_trigger_latency
             attr_accessor :worstcase_trigger_latency
+            
+            # Master of this Task, if this is an slave of another Task for execution
+            attr_accessor :master
 
             # Default minimal latency value used for realtime scheduling
             #
@@ -182,6 +185,7 @@ module Orocos
 		@realtime = false
 		@priority = :lowest
                 @max_overruns = -1
+                @master = nil
                 if task_model.default_activity
                     send(*task_model.default_activity)
                     @explicit_activity = task_model.required_activity?
@@ -264,21 +268,6 @@ module Orocos
     <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
 </struct>
                     EOD
-                end
-                self
-            end
-
-            # Make this task being driven "on demand", i.e. when the step()
-            # method is explicitely called on it.
-            def slave
-                activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
-                activity_setup do
-                    result = <<-EOD
-#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
-                    EOD
-                end
-                activity_xml do
-                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
                 end
                 self
             end
@@ -641,6 +630,44 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             #
             # See #corba_enabled?
             def enable_corba; @corba_enabled = true end
+
+            #handels theActivity creation order to be sure that all activities are created in the right order
+            def activity_ordered_tasks(ordered=Array.new)
+                oldsize = ordered.size()
+                task_activities.each do |task|
+                    if((task.master == nil or ordered.include?(task.master)) and not ordered.include?(task))
+                        ordered << task
+                    end
+                end
+                if(oldsize == ordered.size())
+                    raise InternalError, "Could not Create order in where the Activities of The deployment #{name} should be created." <<
+                        "Did you created a loop among master<->slave activities?"
+
+                elsif(ordered.size() != task_activities.size()) 
+                    return activity_ordered_tasks(ordered)
+                else
+                    return ordered
+                end
+            end
+
+            # Define an master slave avtivity between tasks
+            def set_master_slave_activity(master,slave)
+                #First create and peer connection between the master and the slave
+                add_peers(master,slave)
+
+                #Setting up the SlaveActivity
+                slave.activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                slave.master = master
+                slave.activity_setup do
+                    result = <<-EOD
+#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}.engine());
+                    EOD
+                end
+                slave.activity_xml do
+                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
+                end
+                self
+            end
 
             dsl_attribute :main_task do |task|
                 @main_task = task
