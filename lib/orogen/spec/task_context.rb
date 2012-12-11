@@ -735,6 +735,7 @@ module Orocos
             #
             # Yields all dynamic input ports that are defined on this task context.
             def each_dynamic_input_port(only_self = false)
+                return enum_for(:each_dynamic_input_port, only_self) if !block_given?
                 each_dynamic_port do |port|
                     if port.kind_of?(InputPort)
                         yield(port)
@@ -749,6 +750,7 @@ module Orocos
             #
             # Yields all dynamic output ports that are defined on this task context.
             def each_dynamic_output_port(only_self = false)
+                return enum_for(:each_dynamic_output_port, only_self) if !block_given?
                 each_dynamic_port do |port|
                     if port.kind_of?(OutputPort)
                         yield(port)
@@ -1046,7 +1048,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || !p.type || p.type == type) && p.name === name }
+                each_dynamic_input_port.find_all { |p| (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if there is an input port definition that match the
@@ -1063,7 +1065,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || !p.type || p.type == type) && p.name === name }
+                each_dynamic_output_port.find_all { |p| (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if an output port of the given name and type could be
