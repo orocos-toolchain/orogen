@@ -1,6 +1,8 @@
 require 'test/unit'
+require 'minitest/spec'
 require 'fileutils'
 require 'orogen'
+require 'flexmock'
 
 module Orocos
     module Generation
@@ -25,6 +27,8 @@ module Orocos
 	module Test
 	    include Orocos
 	    include Orocos::Generation
+            include FlexMock::ArgumentTypes
+            include FlexMock::MockContainer
 
 	    TEST_DIR      = File.expand_path('../../test', File.dirname(__FILE__))
             TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
@@ -49,6 +53,7 @@ module Orocos
                 ENV['PKG_CONFIG_PATH'] = @old_pkg_config
                 Utilrb::PkgConfig.clear_cache
 		super if defined? super
+                flexmock_teardown
 	    end
 
 	    def create_wc(*subdir)
