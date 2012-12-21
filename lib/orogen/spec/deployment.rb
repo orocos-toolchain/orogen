@@ -512,6 +512,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @loglevel        = nil
                 @transports      = Array.new
                 @manually_loaded_types = Set.new
+                @lock_timeout_no_period = nil
+                @lock_timeout_period_factor =  nil
             end
 
             KNOWN_LOG_LEVELS = {
@@ -781,6 +783,27 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ArgumentError, "cannot browse and use CORBA at the same time"
                 end
                 @browse = task
+            end
+
+            def get_lock_timeout_no_period
+                @lock_timeout_no_period
+            end
+
+            # Set the lock timeout of a thread, which has no period
+            # if set, the minimum setting is 1s
+            def lock_timeout_no_period(timeout_in_s)
+                @lock_timeout_no_period = [1,timeout_in_s].max
+            end
+
+            def get_lock_timeout_period_factor
+                @lock_timeout_period_factor
+            end
+
+            # Set the mutex timeout for a thread with a given period 
+            # by a factor of its period
+            # if set, the minimum setting is factor 10 (times the period)
+            def lock_timeout_period_factor(factor)
+                @lock_timeout_period_factor = [10,factor.to_i].max
             end
 
             def used_task_libraries

@@ -218,6 +218,14 @@ int ORO_main(int argc, char* argv[])
                 ren_str.substr(0,colon_pos), ren_str.substr(colon_pos+1) ));
         }
     }    
+   
+<% if lock_timeout = deployer.get_lock_timeout_no_period %>
+    RTT::os::Thread::setLockTimeoutNoPeriod(<%= lock_timeout %>);
+<% end %>
+
+<% if lock_factor = deployer.get_lock_timeout_period_factor %>
+    RTT::os::Thread::setLockTimeoutPeriodFactor(<%= lock_factor %>);
+<% end %>
 
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
