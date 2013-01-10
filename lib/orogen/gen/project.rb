@@ -412,6 +412,14 @@ module Orocos
             # does include the opaques defined in our own typekit
             attr_reader :opaque_registry
 
+            class TypeImportError < LoadError
+                attr_reader :imported_name
+                def initialize(imported_name)
+                    @imported_name = imported_name
+                    super()
+                end
+            end
+
             # Imports the types defined by the given argument
             #
             # +name+ can either be another orogen project or a header file. In
@@ -425,6 +433,8 @@ module Orocos
                 else
                     typekit(true).load name, true, *args
                 end
+            rescue LoadError
+                raise TypeImportError.new(name), "cannot find typekit or file #{name}. If this is supposed to be a header, the following include path was used: #{typekit.include_dirs.to_a.join(":")}"
             end
 
             def using_plugin(name)
