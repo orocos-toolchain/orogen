@@ -301,6 +301,14 @@ module Orocos
             # project
             attr_reader :loaded_orogen_projects
 
+            class MissingTaskLibrary < LoadError
+                attr_reader :name
+                def initialize(name)
+                    @name = name
+                    super()
+                end
+            end
+
             # call-seq:
             #   orogen_project_description(name) => pkg, description
             #
@@ -322,7 +330,7 @@ module Orocos
                           end
 
                       rescue Utilrb::PkgConfig::NotFound
-                          raise ConfigError, "no task library named '#{name}' is available"
+                          raise MissingTaskLibrary.new(name), "no task library named '#{name}' is available"
                       end
 
                 @known_projects[name] = [pkg, pkg.deffile]
@@ -413,9 +421,9 @@ module Orocos
             attr_reader :opaque_registry
 
             class TypeImportError < LoadError
-                attr_reader :imported_name
-                def initialize(imported_name)
-                    @imported_name = imported_name
+                attr_reader :name
+                def initialize(name)
+                    @name = name
                     super()
                 end
             end
