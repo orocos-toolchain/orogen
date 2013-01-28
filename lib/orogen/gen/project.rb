@@ -1245,6 +1245,14 @@ module Orocos
                 deployer
 	    end
 
+            # Returns the deployment model with the given name
+            #
+            # @return [Orocos::Spec::Deployment,nil] the model found, or nil if
+            #   none is registered with that name
+            def find_deployment_by_name(name)
+                deployers.find { |obj| obj.name == name }
+            end
+
             # call-seq:
             #   simple_deployment(name, klass) => task_context
             #

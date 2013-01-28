@@ -611,6 +611,14 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 deployment
             end
 
+            # Returns the deployed task that has this name
+            #
+            # @return [TaskDeployment,nil] the deployed task model, or nil if
+            #   none exists with that name
+            def find_task_by_name(name)
+                task_activities.find { |act| act.name == name }
+            end
+
             # True if this deployment should export its tasks through CORBA.
             #
             # It is true by default if the CORBA transport is enabled
