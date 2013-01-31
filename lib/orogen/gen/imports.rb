@@ -22,16 +22,14 @@ module Orocos
                     # /string
                     # /unsigned char[8]
                     # /unsigned char[8] 0 
-                    if decl =~ /^([^\s].*?)(\s+(\d+))?$/
-                        type, is_interface = $1, $2
-                    end
-                    # Validation using a simple exclude pattern
-                    if !decl || decl =~ /\s+\d\s+\d/
-                        raise InternalError, "Declaration '#{decl}' in a typelist could not be parsed -- wrong type pattern"
+                    if decl =~ /^(.*) (\d)$/
+                        type, is_interface = $1, ($2 == '1')
+                    else
+                        type, is_interface = decl, true
                     end
 
                     typekit_typelist << type
-                    if !is_interface || is_interface != '0'
+                    if is_interface
                         typekit_interface_typelist << type
                     end
                 end
