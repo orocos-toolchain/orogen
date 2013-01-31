@@ -25,7 +25,7 @@ this installation of typegen knows the following transports: #{available_transpo
     opt.on('-i LIBRARY', '--import=LIBRARY', String, "a library or typekit to get headers and/or types from, using its pkg-config name") do |name|
         begin
             pkg = Utilrb::PkgConfig.new(name)
-            if !pkg.typelist.empty?
+            if pkg.typelist && !pkg.typelist.empty?
                 typekit = typekit_loader.load_typekit(name)
                 typekit.using_typekit(typekit)
             else
