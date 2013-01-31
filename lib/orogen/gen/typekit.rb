@@ -499,8 +499,8 @@ module Orocos
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                else
-                    opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                    opaque_def.type
                 end
             end
 
