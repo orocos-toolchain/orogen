@@ -71,7 +71,7 @@ add_definitions(${OrocosRTT_CFLAGS_OTHER})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 
 <% if typekit.has_opaques_with_templates? %>
-include_directories(${CMAKE_SOURCE_DIR}/typekit)
+include_directories(BEFORE ${CMAKE_SOURCE_DIR}/typekit)
 <% end %>
 
 # Now set up the dependencies
