@@ -28,6 +28,7 @@ class Module
 
     def enumerate_inherited_map(each_name, attribute_name = each_name) # :nodoc:
 	class_eval <<-EOD
+        attr_reader :#{attribute_name}
 	def all_#{attribute_name}; each_#{each_name}.to_a end
 	def self_#{attribute_name}; @#{attribute_name}.values end
 	def has_#{attribute_name}?(name); !!find_#{each_name}(name) end
