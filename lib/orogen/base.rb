@@ -364,7 +364,7 @@ module Orocos
             attr_reader :context
 
             def initialize(var_name, pkg_name)
-                @var_name = var_name
+                @var_name = var_name.gsub(/[^\w]/, '_')
                 @pkg_name = pkg_name
                 @context = []
             end

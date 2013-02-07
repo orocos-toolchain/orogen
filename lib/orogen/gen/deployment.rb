@@ -119,6 +119,8 @@ module Orocos
                 end
 
                 used_task_libraries.each do |pkg|
+                    next if pkg.name == project.name
+
                     result << BuildDependency.new(
                         "#{pkg.name}_TASKLIB",
                         "#{pkg.name}-tasks-#{Generation.orocos_target}").

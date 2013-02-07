@@ -823,19 +823,17 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     !task.project.orogen_project?
                 end
 
-                dependencies = project.used_task_libraries.find_all do |tasklib|
-                    current_size = task_models.size
-                    tasklib_tasks = tasklib.self_tasks
-                    task_models.delete_if do |task|
-                        tasklib_tasks.include?(task)
+                dependencies = Hash.new
+                task_models.each do |model|
+                    if p = dependencies[model.project.name]
+                        if p != model.project
+                            raise InternalError, "found two Project objects that seem to refer to the same project: #{p.name}"
+                        end
+                    else
+                        dependencies[model.project.name] = model.project
                     end
-                    current_size != task_models.size
                 end
-
-                if !task_models.all? { |t| project.self_tasks.include?(t) }
-                    raise ArgumentError, "cannot find an imported task library which defines #{task_models.map(&:name).join(", ")}"
-                end
-                dependencies
+                dependencies.values
             end
 
             # Displays this deployment's definition nicely

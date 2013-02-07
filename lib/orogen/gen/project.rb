@@ -1019,7 +1019,7 @@ module Orocos
 
                 pkg, description = orogen_project_description(name)
 
-                Orocos.info "loading oroGen project #{name}"
+                Orocos.info "loading oroGen project #{name} on #{self.name}"
                 lib = ImportedProject.new(self, pkg)
                 lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
@@ -1148,26 +1148,30 @@ module Orocos
                 if !options.kind_of?(Hash)
                     options = { :validate => options }
                 end
-
-                if File.file?(name) && File.extname(name) == ".orogen"
-                    register_orogen_file(name)
-                    name = File.basename(name, ".orogen")
-                end
-
-		if tasklib = used_task_libraries.find { |lib| lib.name == name }
-		    return tasklib
-		end
-
                 options = Kernel.validate_options options,
                     :validate => true, :define_dummy_types => false
 
-                tasklib = load_task_library(name, options)
+
+                if name.respond_to?(:to_str)
+                    if File.file?(name) && File.extname(name) == ".orogen"
+                        register_orogen_file(name)
+                        name = File.basename(name, ".orogen")
+                    end
+
+                    if tasklib = used_task_libraries.find { |lib| lib.name == name }
+                        return tasklib
+                    end
+                    tasklib = load_task_library(name, options)
+                else
+                    tasklib = name
+                end
+
                 tasklib.self_tasks.each do |t|
                     tasks[t.name] = t
                 end
                 used_task_libraries << tasklib
                 if self.typekit
-                    self.typekit.include_dirs |= tasklib.include_dirs.to_set
+                    typekit.using_library(tasklib.tasklib_pkg, :link => false)
                 end
 
                 max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|

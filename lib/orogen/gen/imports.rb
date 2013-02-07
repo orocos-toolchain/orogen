@@ -206,7 +206,10 @@ module Orocos
             end
 
             def load_task_library(name)
-                main_project.load_task_library(name)
+                if main_project
+                    main_project.load_task_library(name)
+                else super
+                end
             end
 
             def eval(*args, &block)
@@ -221,40 +224,17 @@ module Orocos
                 result
             end
 
-	    def find_interface_type(*args)
-                if main_project
-                    main_project.find_interface_type(*args)
-                else super
-                end
-	    end
-
-            def find_type(*args)
-                if main_project
-                    main_project.find_type(*args)
-                else super
-                end
-            end
-
-            def registry
-                if main_project
-                    main_project.registry
-                else super
-                end
-            end
-
-            def opaque_specification(*args)
-                if main_project
-                    main_project.opaque_specification(*args)
-                else
-                    super
-                end
-            end
-
             def using_typekit(name)
                 if main_project
-                    main_project.using_typekit(name)
-                else
-                    super
+                    super(main_project.using_typekit(name))
+                else super
+                end
+            end
+
+            def import_types_from(name, *args)
+                if main_project && main_project.has_typekit?(name)
+                    using_typekit name
+                else typekit
                 end
             end
 
@@ -262,7 +242,10 @@ module Orocos
             end
 
             def using_task_library(name)
-                main_project.using_task_library(name)
+                if main_project
+                    super(main_project.using_task_library(name))
+                else super
+                end
             end
 
             def task_context(name, &block) # :nodoc:
@@ -271,74 +254,9 @@ module Orocos
                 task
             end
 
-            def find_typekit(name)
-                main_project.find_typekit(name)
-            end
-
-            def find_task_context(name)
-                begin
-                    super
-                rescue ArgumentError
-                    if main_project
-                        main_project.find_task_context(name)
-                    else raise
-                    end
-                end
-            end
-
-	    def find_type(type, is_normalized = false)
-		if type
-		    if type.respond_to?(:to_str)
-                        type = type.gsub('::', '/')
-                        if !is_normalized
-                            type = Typelib::Type.normalize_typename(type)
-                        end
-                        begin
-                            registry.get(type)
-                        rescue Typelib::NotFound
-                            typekit(true)
-                            registry.get(type)
-                        end
-		    elsif type.kind_of?(Class) && type <= Typelib::Type
-                        type
-                    else
-			raise ArgumentError, "expected a type object, got #{type}"
-		    end
-		end
-	    end
-
             # Simply ignore type export directives
             def export_types(*args); self end
             def type_export_policy(*args); self end
-
-	    def used_typekits
-		if main_project
-		    main_project.used_typekits
-		else super
-		end
-	    end
-
-            def used_task_libraries
-                if main_project
-                    main_project.used_task_libraries
-                else super
-                end
-            end
-
-	    def interface_type?(name)
-		if main_project
-		    main_project.interface_type?(name)
-		else super
-		end
-	    end
-
-            def import_types_from(name, *args)
-                if main_project && main_project.has_typekit?(name)
-                    using_typekit name
-                else
-                    typekit
-                end
-            end
 
             def typekit(create = nil, &block) # :nodoc:
                 if @typekit.nil? && @has_typekit.nil?
@@ -357,8 +275,7 @@ module Orocos
                         end
 
                     if @has_typekit
-                        @typekit = main_project.import_typekit(name)
-                        main_project.using_typekit(@typekit)
+                        @typekit = using_typekit(name)
                     end
                 end
                 @typekit
