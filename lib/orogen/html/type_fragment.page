@@ -1,0 +1,99 @@
+<%
+if !produced_by.empty? || !consumed_by.empty?
+%>
+<table><tr>
+<% if !produced_by.empty? %>
+    <td><ul class="body-header-list half-size" style="margin:0;">
+    <%= page.render_item("Produced by") %>
+    <% produced_by.each do |port_model| %>
+        <li><%= page.link_to(port_model.task) %>.<%= port_model.name %></li>
+    <% end %>
+    </ul></td>
+<% end %>
+<% if !consumed_by.empty? %>
+    <td><ul class="body-header-list half-size" style="margin:0;">
+    <%= page.render_item("Consumed by") %>
+    <% consumed_by.each do |port_model| %>
+        <li><%= page.link_to(port_model.task) %>.<%= port_model.name %></li>
+    <% end %>
+    </ul></td>
+<% end %>
+</tr></table>
+<%
+end
+%>
+
+<%
+if !displayed_by.empty?
+%>
+<table><tr>
+    <td><ul class="body-header-list half-size" style="margin:0;">
+    <%= page.render_item("Displayed by") %>
+    <% displayed_by.each do |widget| %>
+        <% if registration_line = Vizkit.default_loader.registration_files[widget.name]
+               registration_package = Autoproj.manifest.enum_for(:each_package).find do |pkg|
+                   registration_line =~ /^#{Regexp.quote(pkg.srcdir)}/
+               end
+               if registration_package
+                   registration_package = registration_package.name
+               else
+                   if File.basename(registration_line) =~ /(.*)_vizkit.rb$/
+                       package_basename = $1
+                       registration_packages = Autoproj.manifest.enum_for(:each_package).find_all do |pkg|
+                           File.basename(pkg.name) == package_basename
+                       end
+                       registration_package = registration_packages.map(&:name).sort_by(&:size).first
+                   end
+               end
+           end
+           if registration_package
+               registration_package = Autoproj.manifest.package(registration_package)
+           end
+        %>
+        <li><%= page.link_to(widget) %> (from <%= page.link_to(registration_package) %>)</li>
+    <% end %>
+    </ul></td>
+</tr></table>
+<%
+end
+%>
+
+<h2>General Info</h2>
+<% typekit = Orocos.load_typekit_for(type, false) %>
+<% if typekit.interface_type?(type.name) %>
+This type is <b>exported</b> by the <%= typekit.name %> typekit
+<ul>
+    <li>it <b>can</b> be used in task interfaces</li>
+    <li>it can be used in other oroGen projects by adding<br/>
+    <div class="orogen_spec">
+    import_types_from "<%= typekit.name %>"
+    </div></li>
+</ul>
+<% else %>
+This type is <b>not</b> exported by the <%= typekit.name %> typekit
+<ul>
+    <li>it <b>cannot</b> be used in task interfaces</li>
+    <li>it can be used in other oroGen projects by adding<br/>
+    <div class="orogen_spec">
+    import_types_from "<%= typekit.name %>"
+    </div></li>
+</ul>
+<% end %>
+
+<% header = ["C++"]
+   header << "Logging" if !intermediate_type
+   header << "Ruby" if !ruby_type %>
+<h2><%= header.join(",") %></h2>
+<%= render_type_definition_fragment(type) %>
+<% if intermediate_type %>
+   <% header = ["Logging"]
+      header << "Ruby" if !ruby_type %>
+   <h2><%= header.join(",") %></h2>
+   <p>This type cannot be logged directly. It is first converted to the <%= Rock::Doc::HTML.escape_html(intermediate_type.name) %> type, whose definition follows</p>
+   <%= render_type_definition_fragment(intermediate_type) %>
+<% end %>
+<% if ruby_type %>
+   <h2>Ruby</h2>
+   <%= render_type_convertion(ruby_type) %>
+<% end %>
+
