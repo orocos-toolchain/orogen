@@ -956,8 +956,8 @@ module Orocos
                 name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
                 @input_ports[name] = InputPort.new(self, name, type)
-            rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared"
+            rescue Typelib::NotFound => e
+                raise ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             def all_ports
