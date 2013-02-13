@@ -572,9 +572,7 @@ module Orocos
 
             rescue Typelib::NotFound => e
                 if define_dummy_types?
-                    xml = "<typelib><opaque name=\"#{typename}\" size=\"0\"/></typelib>"
-                    registry.merge(Typelib::Registry.from_xml(xml))
-                    return registry.get(typename)
+                    return registry.create_null(typename)
                 elsif typekit && !typekit.pending_loads.empty?
                     typekit.perform_pending_loads
                     retry
