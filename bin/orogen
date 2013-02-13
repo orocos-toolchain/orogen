@@ -139,7 +139,7 @@ end
 ConfigError = Orocos::Generation::ConfigError
 begin
     filename  = files.first
-    Orocos::Generation.beautify_loading_errors do
+    Orocos.beautify_loading_errors(filename) do
         component.enable_transports(*transports)
         component.load(filename, verbosity > 1)
     end
@@ -148,6 +148,7 @@ begin
 rescue Orocos::Generation::ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
+    file_pattern = /#{Regexp.quote(File.basename(filename))}/
     error_line = e.backtrace.find { |line| line =~ file_pattern }
     STDERR.puts "#{error_line}: #{e.message}"
     exit 1
