@@ -106,6 +106,11 @@ module Orocos
                 Orocos::Generation.orocos_target.dup
             end
 
+            def to_s
+                "#<Orocos::Project: #{name}>"
+            end
+            def inspect; to_s end
+
             # True if the orocos target is gnulinux
             def linux?; orocos_target == 'gnulinux' end
             # True if the orocos target is xenomai
