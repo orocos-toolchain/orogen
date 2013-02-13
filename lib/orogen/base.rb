@@ -506,5 +506,31 @@ module Orocos
 
         registry
     end
+
+    def self.beautify_loading_errors(filename)
+        yield
+    rescue Exception => e
+        # Two options:
+        #  * the first line of the backtrace is the orogen file
+        #    => change it into a ConfigError. If, in addition, this is a
+        #       NoMethodError then change it into a statement error
+        #  * the second line of the backtrace is in the orogen file
+        #    => most likely a bad argument, transform it into a ConfigError
+        #       too
+        #  * all other cases are reported as internal errors
+        file_pattern = /#{Regexp.quote(File.basename(filename))}/
+        if e.backtrace.first =~ file_pattern
+            if e.kind_of?(NoMethodError) || e.kind_of?(NameError)
+                e.message =~ /undefined (?:local variable or )?method `([^']+)'/
+                method_name = $1
+                raise Generation::ConfigError, "unknown statement '#{method_name}'", e.backtrace
+            else
+                raise Generation::ConfigError, e.message, e.backtrace
+            end
+        elsif (e.backtrace[1] =~ file_pattern) || e.kind_of?(ArgumentError)
+            raise Generation::ConfigError, e.message, e.backtrace
+        end
+        raise
+    end
 end
 
