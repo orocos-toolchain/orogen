@@ -288,6 +288,9 @@ module Orocos
                         @typekit = using_typekit(name)
                     end
                 end
+                if !@typekit && create
+                    @typekit = Typekit.new(self)
+                end
                 @typekit
             end
 
