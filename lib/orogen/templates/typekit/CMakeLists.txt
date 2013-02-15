@@ -11,10 +11,13 @@ SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 # In Orogen components, the build target is specified at generation time
 set(OROCOS_TARGET "<%= typekit.orocos_target %>")
-# By default, install libs in /target/ subdir in order to allow
-# multi-target installs.
-if ( NOT OROCOS_SUFFIX )
+# If UseOrocos-RTT.cmake is used, install libs in /target/package subdir in order to allow
+# multi-target/package installs.
+if ( USE_OROCOS_RTT )
+  if ( NOT OROCOS_SUFFIX )
     set (OROCOS_SUFFIX "/${OROCOS_TARGET}")
+  endif()
+  set(OROCOS_PKG_DIR "${OROCOS_SUFFIX}/<%= typekit.name %>")
 endif()
 
 # Enable -Wall for compilers that know it
@@ -29,7 +32,7 @@ endif (CXX_SUPPORTS_WALL)
 option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
 if(WITH_RPATH)
     include(RPATHHandling)
-    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos")
+    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos:${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
 endif(WITH_RPATH)
 
 # Set the build type to debug by default
@@ -100,7 +103,7 @@ target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES}
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
-install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos/types)
+install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES
     Types.hpp
     <% if typekit.has_opaques_with_templates? %>

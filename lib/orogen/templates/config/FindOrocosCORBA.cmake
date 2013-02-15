@@ -23,8 +23,12 @@ ELSE(NOT OrocosCORBA_FOUND)
     # In the case of the TAO ORB, we add TAO_Strategies to be able to use
     # multiple communication methods
     IF (CORBA_IMPLEMENTATION STREQUAL "TAO")
-        LIST(APPEND OrocosCORBA_LIBS TAO_Strategies)
+        LIST(APPEND OrocosCORBA_LIBRARIES TAO_Strategies TAO_AnyTypeCode)
     ENDIF (CORBA_IMPLEMENTATION STREQUAL "TAO")
+    IF (CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+        LIST(APPEND OrocosCORBA_LIBRARIES omniDynamic4)
+    ENDIF (CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
+
 
     # ORB-specific configuration steps if the TYPEKIT component
     # is required
