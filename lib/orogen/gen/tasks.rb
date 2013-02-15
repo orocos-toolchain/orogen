@@ -387,22 +387,6 @@ module Orocos
                 end
             end
 
-            # Interface for RTT 1.x methods
-            #
-            # This raises NotImplementedError with a message asking to convert
-            # to RTT2 operations
-            def method(name)
-                raise NotImplementedError, "RTT 1.x methods must be replaced by RTT 2.x operations. Use #operation"
-            end
-
-            # Interface for RTT 1.x commands
-            #
-            # This raises NotImplementedError with a message asking to convert
-            # to RTT2 operations
-            def command(name)
-                raise NotImplementedError, "RTT 1.x commands must be replaced by RTT 2.x operations. Use #operation"
-            end
-	    
 	    # The set of task libraries that are required by this task context
             #
             # This is the set of task libraries that implement our superclasses
