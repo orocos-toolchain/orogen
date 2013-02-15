@@ -1183,11 +1183,11 @@ module Orocos
 
                 # Now import the typekits the project also imports, and the
                 # tasklib's own typekit if there is one
-                if has_typekit?(tasklib.name)
-                    using_typekit tasklib.name
+                if tasklib.typekit
+                    using_typekit tasklib.typekit
                 end
                 tasklib.used_typekits.each do |tk|
-                    using_typekit tk.name
+                    using_typekit tk
                 end
                 tasklib
             end
