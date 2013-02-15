@@ -131,17 +131,6 @@ module Orocos
                 main_project.m_type?(*args)
             end
 
-            def find_type(*args)
-                # Check first that this project has the requested type
-                # definition
-                t = super
-                # But, then, return the equivalent type from the master project
-                if main_project
-                    main_project.find_type(t.name)
-                else t
-                end
-            end
-
             def using_library(*args); end
             def using_typekit(*args); end
 
@@ -232,6 +221,17 @@ module Orocos
                 result = super
                 validate_max_sizes_spec
                 result
+            end
+
+            def find_type(*args)
+                # Check first that this project has the requested type
+                # definition
+                t = super
+                # But, then, return the equivalent type from the master project
+                if main_project
+                    main_project.find_type(t.name)
+                else t
+                end
             end
 
             def using_typekit(name)
