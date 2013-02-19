@@ -136,7 +136,7 @@ module Orocos
             def subclasses(task_context)
                 if task_context.respond_to?(:to_str)
                     if @superclass != TaskContext.orogen_rtt_task_context
-                        raise ConfigError, "#{@name} tries to subclass #{task_context} "+
+                        raise Orocos::Generation::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
                     @superclass = project.find_task_context task_context
@@ -489,7 +489,7 @@ module Orocos
                 begin
                     type = project.find_interface_type(type)
                 rescue Typelib::NotFound
-                    raise ConfigError, "type #{type} is not declared"
+                    raise Orocos::Generation::ConfigError, "type #{type} is not declared"
                 end
 
                 if default_value
@@ -942,7 +942,7 @@ module Orocos
                 check_uniqueness(name)
                 @output_ports[name] = OutputPort.new(self, name, type)
             rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared"
+                raise Orocos::Generation::ConfigError, "type #{type} is not declared"
 	    end
 
 	    # call-seq:
@@ -957,7 +957,7 @@ module Orocos
                 check_uniqueness(name)
                 @input_ports[name] = InputPort.new(self, name, type)
             rescue Typelib::NotFound => e
-                raise ConfigError, "type #{type} is not declared", e.backtrace
+                raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             def all_ports
