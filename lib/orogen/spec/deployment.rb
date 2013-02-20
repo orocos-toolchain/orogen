@@ -1,5 +1,32 @@
 module Orocos
     module Spec
+    
+        class << self
+            # Default minimal latency value used for realtime scheduling
+            #
+            # See TaskDeployment::minimal_trigger_latency
+            attr_accessor :default_rt_minimal_trigger_latency
+            # Default expected latency value used for realtime scheduling
+            #
+            # See TaskDeployment::worstcase_trigger_latency
+            attr_accessor :default_rt_worstcase_trigger_latency
+            
+            # Default minimal latency value used for non-realtime scheduling
+            #
+            # See TaskDeployment::minimal_trigger_latency
+            attr_accessor :default_nonrt_minimal_trigger_latency
+            # Default expected latency value used for non-realtime scheduling
+            #
+            # See TaskDeployment::worstcase_trigger_latency
+            attr_accessor :default_nonrt_worstcase_trigger_latency
+        end
+        
+        @default_rt_minimal_trigger_latency = 0.001
+        @default_rt_worstcase_trigger_latency = 0.005
+        
+        @default_nonrt_minimal_trigger_latency = 0.005
+        @default_nonrt_worstcase_trigger_latency = 0.020
+        
         class GenericObjectDeployment
             attr_reader :activity, :interface_object
             def initialize(activity, interface_object)
@@ -120,23 +147,6 @@ module Orocos
             # Master of this Task, if this is an slave of another Task for execution
             attr_accessor :master
 
-            # Default minimal latency value used for realtime scheduling
-            #
-            # See minimal_trigger_latency
-            DEFAULT_RT_MINIMAL_TRIGGER_LATENCY = 0.001
-            # Default expected latency value used for realtime scheduling
-            #
-            # See worstcase_trigger_latency
-            DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY = 0.005
-            # Default minimal latency value used for non-realtime scheduling
-            #
-            # See minimal_trigger_latency
-            DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY = 0.005
-            # Default expected latency value used for non-realtime scheduling
-            #
-            # See worstcase_trigger_latency
-            DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY = 0.020
-
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
             # and the time updateHook() is actually called, based on its
@@ -150,9 +160,9 @@ module Orocos
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    DEFAULT_RT_MINIMAL_TRIGGER_LATENCY
+                    Orocos::default_rt_minimal_trigger_latency
                 else
-                    DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY
+                    Orocos::default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -172,9 +182,9 @@ module Orocos
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY
+                        Orocos::default_rt_worstcase_trigger_latency
                     else
-                        DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY
+                        Orocos::default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
