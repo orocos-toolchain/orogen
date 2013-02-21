@@ -160,9 +160,9 @@ module Orocos
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    Orocos::default_rt_minimal_trigger_latency
+                    Orocos::Spec::default_rt_minimal_trigger_latency
                 else
-                    Orocos::default_nonrt_minimal_trigger_latency
+                    Orocos::Spec::default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -182,9 +182,9 @@ module Orocos
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        Orocos::default_rt_worstcase_trigger_latency
+                        Orocos::Spec::default_rt_worstcase_trigger_latency
                     else
-                        Orocos::default_nonrt_worstcase_trigger_latency
+                        Orocos::Spec::default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
