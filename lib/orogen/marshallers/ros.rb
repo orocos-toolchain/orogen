@@ -218,6 +218,8 @@ module Orocos
                 def ros_cxx_type(type, do_unboxing = true)
                     if type < Typelib::EnumType
                         "boost::int32_t"
+		    elsif type.name == '/std/string'
+			"std::string"
                     elsif type < Typelib::ArrayType || type < Typelib::ContainerType
                         "std::vector< #{ros_cxx_type(type.deference, do_unboxing)} >"
                     elsif type < Typelib::NumericType
@@ -341,7 +343,7 @@ module Orocos
                         code  = Generation.render_template "typekit", "ros", "ROSConvertions.cpp", binding
                         impl << typekit.save_user("ROSConvertions.cpp", code)
                         Orocos::Generation.create_or_update_symlink(
-                            headers.last, File.join(typekit.automatic_dir, "typekit", "transports", "ros", "ROSConvertions.hpp"))
+                            headers.last, File.join(typekit.automatic_dir, "transports", "ros", "ROSConvertions.hpp"))
                     end
 
                     code_snippets = typesets.interface_types.map do |type|
