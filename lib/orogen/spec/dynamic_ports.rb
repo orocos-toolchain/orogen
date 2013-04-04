@@ -1,9 +1,12 @@
 module Orocos
     module Spec
         module DynamicPort
-            def instanciate(name)
+            def instanciate(name, type = nil)
                 m = dup
                 m.instance_variable_set :@name, name
+                if type
+                    m.instance_variable_set :@type, type
+                end
                 m
             end
 

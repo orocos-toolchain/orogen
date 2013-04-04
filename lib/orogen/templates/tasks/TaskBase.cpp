@@ -110,7 +110,7 @@ void <%= task.basename %>Base::fatal(States state)
 struct StateExporter
 {
     RTT::TaskContext const& task;
-    RTT::OutputPort<int>&   port;
+    RTT::OutputPort<<%= task.project.find_type('/int32_t').cxx_name %>>&   port;
 
     StateExporter(RTT::TaskContext const& task, RTT::OutputPort<int>& port)
         : task(task), port(port) {}

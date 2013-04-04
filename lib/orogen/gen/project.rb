@@ -106,6 +106,11 @@ module Orocos
                 Orocos::Generation.orocos_target.dup
             end
 
+            def to_s
+                "#<Orocos::Project: #{name}>"
+            end
+            def inspect; to_s end
+
             # True if the orocos target is gnulinux
             def linux?; orocos_target == 'gnulinux' end
             # True if the orocos target is xenomai
@@ -301,6 +306,14 @@ module Orocos
             # project
             attr_reader :loaded_orogen_projects
 
+            class MissingTaskLibrary < LoadError
+                attr_reader :name
+                def initialize(name)
+                    @name = name
+                    super()
+                end
+            end
+
             # call-seq:
             #   orogen_project_description(name) => pkg, description
             #
@@ -322,7 +335,7 @@ module Orocos
                           end
 
                       rescue Utilrb::PkgConfig::NotFound
-                          raise ConfigError, "no task library named '#{name}' is available"
+                          raise MissingTaskLibrary.new(name), "no task library named '#{name}' is available"
                       end
 
                 @known_projects[name] = [pkg, pkg.deffile]
@@ -412,6 +425,14 @@ module Orocos
             # does include the opaques defined in our own typekit
             attr_reader :opaque_registry
 
+            class TypeImportError < LoadError
+                attr_reader :name
+                def initialize(name)
+                    @name = name
+                    super()
+                end
+            end
+
             # Imports the types defined by the given argument
             #
             # +name+ can either be another orogen project or a header file. In
@@ -425,6 +446,8 @@ module Orocos
                 else
                     typekit(true).load name, true, *args
                 end
+            rescue LoadError
+                raise TypeImportError.new(name), "cannot find typekit or file #{name}. If this is supposed to be a header, the following include path was used: #{typekit.include_dirs.to_a.join(":")}"
             end
 
             def using_plugin(name)
@@ -556,9 +579,7 @@ module Orocos
 
             rescue Typelib::NotFound => e
                 if define_dummy_types?
-                    xml = "<typelib><opaque name=\"#{typename}\" size=\"0\"/></typelib>"
-                    registry.merge(Typelib::Registry.from_xml(xml))
-                    return registry.get(typename)
+                    return registry.create_null(typename)
                 elsif typekit && !typekit.pending_loads.empty?
                     typekit.perform_pending_loads
                     retry
@@ -1008,7 +1029,7 @@ module Orocos
 
                 pkg, description = orogen_project_description(name)
 
-                Orocos.info "loading oroGen project #{name}"
+                Orocos.info "loading oroGen project #{name} on #{self.name}"
                 lib = ImportedProject.new(self, pkg)
                 lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
@@ -1137,26 +1158,30 @@ module Orocos
                 if !options.kind_of?(Hash)
                     options = { :validate => options }
                 end
-
-                if File.file?(name) && File.extname(name) == ".orogen"
-                    register_orogen_file(name)
-                    name = File.basename(name, ".orogen")
-                end
-
-		if tasklib = used_task_libraries.find { |lib| lib.name == name }
-		    return tasklib
-		end
-
                 options = Kernel.validate_options options,
                     :validate => true, :define_dummy_types => false
 
-                tasklib = load_task_library(name, options)
+
+                if name.respond_to?(:to_str)
+                    if File.file?(name) && File.extname(name) == ".orogen"
+                        register_orogen_file(name)
+                        name = File.basename(name, ".orogen")
+                    end
+
+                    if tasklib = used_task_libraries.find { |lib| lib.name == name }
+                        return tasklib
+                    end
+                    tasklib = load_task_library(name, options)
+                else
+                    tasklib = name
+                end
+
                 tasklib.self_tasks.each do |t|
                     tasks[t.name] = t
                 end
                 used_task_libraries << tasklib
                 if self.typekit
-                    self.typekit.include_dirs |= tasklib.include_dirs.to_set
+                    typekit.using_library(tasklib.tasklib_pkg, :link => false)
                 end
 
                 max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|
@@ -1165,11 +1190,11 @@ module Orocos
 
                 # Now import the typekits the project also imports, and the
                 # tasklib's own typekit if there is one
-                if has_typekit?(tasklib.name)
-                    using_typekit tasklib.name
+                if tasklib.typekit
+                    using_typekit tasklib.typekit
                 end
                 tasklib.used_typekits.each do |tk|
-                    using_typekit tk.name
+                    using_typekit tk
                 end
                 tasklib
             end
@@ -1212,7 +1237,7 @@ module Orocos
                     raise ArgumentError, "there is already a deployment named '#{name}' in this oroGen project"
                 end
 
-                deployer = StaticDeployment.new(self, name, &block)
+                deployer = Spec::Deployment.new(self, name, &block)
                 @enabled_transports.each do |t|
                     deployer.enable_transport(t)
                 end
@@ -1233,6 +1258,14 @@ module Orocos
                 @deployers << deployer
                 deployer
 	    end
+
+            # Returns the deployment model with the given name
+            #
+            # @return [Orocos::Spec::Deployment,nil] the model found, or nil if
+            #   none is registered with that name
+            def find_deployment_by_name(name)
+                deployers.find { |obj| obj.name == name }
+            end
 
             # call-seq:
             #   simple_deployment(name, klass) => task_context

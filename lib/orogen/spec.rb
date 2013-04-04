@@ -17,3 +17,4 @@ require 'orogen/spec/output_port'
 require 'orogen/spec/dynamic_ports'
 
 require 'orogen/spec/task_context'
+require 'orogen/spec/deployment'

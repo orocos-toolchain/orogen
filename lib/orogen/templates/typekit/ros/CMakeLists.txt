@@ -34,16 +34,16 @@ generate_messages()
 <% else %>
 generate_messages(DEPENDENCIES <%= msg_deps.join(" ") %>)
 <% end %>
-include_directories(BEFORE ${CMAKE_BINARY_DIR}/gen/cpp)
+include_directories(BEFORE ${CMAKE_BINARY_DIR}/${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/)
 <% end # end of if !all_messages.empty?
 %>
 
 set(libname_ros <%= typekit.name %>-transport-ros-${OROCOS_TARGET})
 add_library(${libname_ros} SHARED
     <%= impl.join("\n    ") %>)
-<% deps = all_messages.map { |msg_name| "${CMAKE_BINARY_DIR}/gen/cpp/#{typekit.name}_msgs/#{msg_name}.h" }.join(";") %>
-set_source_files_properties(<%= impl.join(" ") %>
-    PROPERTIES OBJECT_DEPENDS "<%= deps %>")
+# <% deps = all_messages.map { |msg_name| "${CMAKE_BINARY_DIR}/${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/#{msg_name}.h" }.join(";") %>
+# set_source_files_properties(<%= impl.join(" ") %>
+#     PROPERTIES OBJECT_DEPENDS "<%= deps %>")
 target_link_libraries(${libname_ros}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosROS_LIBRARIES})

@@ -9,7 +9,6 @@ class TC_GenerationTasks < Test::Unit::TestCase
     def test_task_name_should_not_clash_with_namespace_name
         component = Component.new
         component.typekit(true).load File.join(TEST_DATA_DIR, 'modules', 'typekit_simple', 'simple.h')
-
         assert_raises(ArgumentError) { component.task_context("Test") {} }
     end
 
@@ -58,23 +57,6 @@ class TC_GenerationTasks < Test::Unit::TestCase
 
         create_wc("tasks/property")
 	compile_wc(component)
-    end
-
-    def test_no_duplicate_property_name
-	component = Component.new
-        component.name "project"
-        task = component.task_context "Task"
-	task.property("bla", "/double")
-	assert_raises(ArgumentError) { task.property("bla", "/double") }
-    end
-    def test_property_name_validation
-	component = Component.new
-        component.name "project"
-        task = component.task_context "Task"
-	assert_raises(ArgumentError) { task.property("bla bla", "/double") }
-	assert_raises(ArgumentError) { task.property("bla(bla", "/double") }
-	assert_raises(ArgumentError) { task.property("bla!bla", "/double") }
-	assert_raises(ArgumentError) { task.property("bla/bla", "/double") }
     end
 
     def test_validate_toplevel_types
@@ -237,21 +219,13 @@ class TC_GenerationTasks < Test::Unit::TestCase
         install
     end
 
-    def test_dynamic_ports
+    def test_dynamic_port_code_generation
 	component = Component.new 
 	component.name 'test'
 
 	task = component.task_context "task"
         task.dynamic_input_port(/r$/, "/int")
         task.dynamic_output_port(/w$/, "/double")
-
-        assert task.has_dynamic_input_port?("hgkur", "/int")
-        assert !task.has_dynamic_input_port?("hgkur", "/double")
-        assert !task.has_dynamic_input_port?("hgkuw", "/int")
-
-        assert task.has_dynamic_output_port?("hgkuw", "/double")
-        assert !task.has_dynamic_output_port?("hgkur", "/double")
-        assert !task.has_dynamic_output_port?("hgkuw", "/int")
 
         create_wc("tasks/dynamic_ports")
 	compile_wc(component)

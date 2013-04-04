@@ -266,6 +266,11 @@ module Orocos
                     @base_hook_code[hook_name] = Array.new
                 end
 
+                @user_hook_code = Hash.new
+                hooks.each do |hook_name|
+                    @user_hook_code[hook_name] = Array.new
+                end
+
                 @generation_handlers = Array.new
                 @base_methods = Array.new
                 @user_methods = Array.new
@@ -382,22 +387,6 @@ module Orocos
                 end
             end
 
-            # Interface for RTT 1.x methods
-            #
-            # This raises NotImplementedError with a message asking to convert
-            # to RTT2 operations
-            def method(name)
-                raise NotImplementedError, "RTT 1.x methods must be replaced by RTT 2.x operations. Use #operation"
-            end
-
-            # Interface for RTT 1.x commands
-            #
-            # This raises NotImplementedError with a message asking to convert
-            # to RTT2 operations
-            def command(name)
-                raise NotImplementedError, "RTT 1.x commands must be replaced by RTT 2.x operations. Use #operation"
-            end
-	    
 	    # The set of task libraries that are required by this task context
             #
             # This is the set of task libraries that implement our superclasses
@@ -607,12 +596,28 @@ module Orocos
                 in_hook(@base_hook_code, hook, string, &block)
             end
 
+            # Call to add some code to the generated hooks in the Base task
+            # classes
+            def in_user_hook(hook, string = nil, &block)
+                in_hook(@user_hook_code, hook, string, &block)
+            end
+
+            # [{String=>Set<String,#call>}] a set of code snippets that are
+            # inserted in the base task class hooks. It is a mapping from a hook name
+            # (such as 'update') to the set of snippets. Snippets can be given
+            # as strings or as an object whose #call method is going to return
+            # the code as a string
             attr_reader :base_hook_code
+
+            # [{String=>Set<String,#call>}] a set of code snippets that are
+            # inserted in the task class hooks. It is a mapping from a hook name
+            # (such as 'update') to the set of snippets. Snippets can be given
+            # as strings or as an object whose #call method is going to return
+            # the code as a string
+            attr_reader :user_hook_code
 
             enumerate_inherited_set "base_method", "base_methods"
             enumerate_inherited_set "user_method", "user_methods"
-            attr_reader :base_initializers
-            attr_reader :base_constructions
 
             # Base class for code generation in tasks
             class GeneratedObject
@@ -744,7 +749,7 @@ module Orocos
                 end
             end
 
-            # Helper method for #add_base_method and #add_method
+            # Helper method for {#add_base_method} and {#add_user_method}
             def add_method(kind, return_type, name, signature)
                 self_set = send("self_#{kind}")
                 if !name.respond_to?(:to_str)

@@ -211,5 +211,31 @@ install(TARGETS test RUNTIME DESTINATION bin)
         build_test_component('modules/typekit_dependencies', transports)
     end
     transport_tests 'dependencies'
+
+    def test_parse_typelist_single_type_without_export_boolean
+        typelist, interface_typelist = ImportedTypekit.parse_typelist("/string")
+        assert_equal ['/string'], typelist
+        assert_equal ['/string'], interface_typelist
+    end
+    def test_parse_typelist_array_type_without_export_boolean
+        typelist, interface_typelist = ImportedTypekit.parse_typelist("/string[9]")
+        assert_equal ['/string[9]'], typelist
+        assert_equal ['/string[9]'], interface_typelist
+    end
+    def test_parse_typelist_type_with_spaces_in_name_without_export_boolean
+        typelist, interface_typelist = ImportedTypekit.parse_typelist("/unsigned int")
+        assert_equal ['/unsigned int'], typelist
+        assert_equal ['/unsigned int'], interface_typelist
+    end
+    def test_parse_typelist_type_with_spaces_in_name_exported
+        typelist, interface_typelist = ImportedTypekit.parse_typelist("/unsigned int 1")
+        assert_equal ['/unsigned int'], typelist
+        assert_equal ['/unsigned int'], interface_typelist
+    end
+    def test_parse_typelist_type_with_spaces_in_name_not_exported
+        typelist, interface_typelist = ImportedTypekit.parse_typelist("/unsigned int 0")
+        assert_equal ['/unsigned int'], typelist
+        assert_equal [], interface_typelist
+    end
 end
 

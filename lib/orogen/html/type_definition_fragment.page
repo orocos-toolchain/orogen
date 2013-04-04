@@ -1,0 +1,25 @@
+<% if type < Typelib::OpaqueType %>
+Unknown to oroGen (this is an opaque type)
+<% elsif type < Typelib::CompoundType %>
+<ul class="body-header-list">
+    <% type.each_field do |field_name, field_type| %>
+        <%= page.render_item(field_name, page.link_to(field_type)) %>
+    <% end %>
+</ul>
+<% elsif type < Typelib::EnumType %>
+<ul class="body-header-list">
+    <% type.keys.sort_by(&:last).each do |key, value| %>
+        <%= page.render_item(key, value) %>
+    <% end %>
+</ul>
+<% elsif type < Typelib::ArrayType %>
+<ul class="body-header-list">
+    <li><%= page.link_to(type.deference) %>[<%= type.length %>]</li>
+</ul>
+<% elsif type < Typelib::ContainerType %>
+<ul class="body-header-list">
+    <li><%= type.container_kind %>&lt;<%= page.link_to(type.deference) %>&gt;</li>
+</ul>
+<% else raise ArgumentError, "don't know how to display #{type.name} (#{type.ancestors.map(&:name).join(", ")})" %>
+<% end %>
+

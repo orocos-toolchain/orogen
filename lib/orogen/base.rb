@@ -28,6 +28,7 @@ class Module
 
     def enumerate_inherited_map(each_name, attribute_name = each_name) # :nodoc:
 	class_eval <<-EOD
+        attr_reader :#{attribute_name}
 	def all_#{attribute_name}; each_#{each_name}.to_a end
 	def self_#{attribute_name}; @#{attribute_name}.values end
 	def has_#{attribute_name}?(name); !!find_#{each_name}(name) end
@@ -363,7 +364,7 @@ module Orocos
             attr_reader :context
 
             def initialize(var_name, pkg_name)
-                @var_name = var_name
+                @var_name = var_name.gsub(/[^\w]/, '_')
                 @pkg_name = pkg_name
                 @context = []
             end
@@ -504,6 +505,32 @@ module Orocos
         end
 
         registry
+    end
+
+    def self.beautify_loading_errors(filename)
+        yield
+    rescue Exception => e
+        # Two options:
+        #  * the first line of the backtrace is the orogen file
+        #    => change it into a ConfigError. If, in addition, this is a
+        #       NoMethodError then change it into a statement error
+        #  * the second line of the backtrace is in the orogen file
+        #    => most likely a bad argument, transform it into a ConfigError
+        #       too
+        #  * all other cases are reported as internal errors
+        file_pattern = /#{Regexp.quote(File.basename(filename))}/
+        if e.backtrace.first =~ file_pattern
+            if e.kind_of?(NoMethodError) || e.kind_of?(NameError)
+                e.message =~ /undefined (?:local variable or )?method `([^']+)'/
+                method_name = $1
+                raise Generation::ConfigError, "unknown statement '#{method_name}'", e.backtrace
+            else
+                raise Generation::ConfigError, e.message, e.backtrace
+            end
+        elsif (e.backtrace[1] =~ file_pattern) || e.kind_of?(ArgumentError)
+            raise Generation::ConfigError, e.message, e.backtrace
+        end
+        raise
     end
 end
 

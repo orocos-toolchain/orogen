@@ -1,0 +1,44 @@
+<ul class="body-header-list">
+   <% if task.doc %>
+   <%= page.render_item("doc", task.doc) %>
+   <% else %>
+   <%= page.render_item("doc", "<i>no documentation provided for this task context</i>") %>
+   <% end %>
+   <%= page.render_item("subclassed from", page.link_to(task.superclass)) %>
+
+   <% if task.needs_configuration? %>
+   <li>This task does <b>NOT</b> need any configuration</li>
+   <% else %>
+   <li>This task <b>does</b> need configuration</li>
+   <% end %>
+
+<% states = task.each_state.to_a
+   states = states.sort_by { |*v| v.map(&:to_s) } %>
+<% if states.empty? %>
+   <li class="title">No custom states</li>
+<% else %>
+   <li class="title">States</li>
+   <% states.each do |name, type| %>
+     <%= page.render_item(name, type) %>
+   <% end %>
+<% end %>
+
+<% interface_objects =
+      [[:each_input_port, "Input Ports"],
+       [:each_output_port, "Output Ports"],
+       [:each_property, "Properties"]] %>
+<% interface_objects.each do |enum_with, kind|
+   objects = task.send(enum_with).to_a.sort_by(&:name) %>
+  <% if objects.empty? %>
+     <li class="title">No <%= kind %></li>
+  <% else %>
+     <li class="title"><%= kind %></li>
+     <% objects.each do |p| %>
+     <%= page.render_item(p.name, "(#{page.link_to(p.type)}) #{p.doc}") %>
+     <% end %>
+  <% end %>
+<% end %>
+
+   <li class="title">Operations [NOT IMPLEMENTED YET]</li>
+</ul>
+

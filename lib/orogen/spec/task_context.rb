@@ -134,12 +134,16 @@ module Orocos
             # scope of the enclosing Component object -- i.e. either defined in
             # it, or imported by a Component#using_task_library call.
             def subclasses(task_context)
-                if @superclass != @project.default_task_superclass
-                    raise ConfigError, "#{@name} tries to subclass #{task_context} "+
-                        "while there is already #{@superclass.name}"
+                if task_context.respond_to?(:to_str)
+                    if @superclass != TaskContext.orogen_rtt_task_context
+                        raise Orocos::Generation::ConfigError, "#{@name} tries to subclass #{task_context} "+
+                            "while there is already #{@superclass.name}"
+                    end
+                    @superclass = project.find_task_context task_context
+                else
+                    @superclass = task_context
                 end
-                @superclass = project.find_task_context task_context
-                @default_activity = @superclass.default_activity.dup
+                @default_activity  = @superclass.default_activity.dup
                 @required_activity = @superclass.required_activity?
                 if !superclass
                     raise ArgumentError, "no such task context #{task_context}"
@@ -244,17 +248,21 @@ module Orocos
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
+            def self.orogen_rtt_task_context
+                Orocos::Generation::Project.standard_tasks.find { |t| t.name == "RTT::TaskContext" }
+            end
+
 	    # Create a new task context in the given component and with
 	    # the given name. If a block is given, it is evaluated
 	    # in the context of the newly created TaskContext object.
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use Component#task_context for that.
-	    def initialize(project, name = nil)
+	    def initialize(project = nil, name = nil)
                 @project  = project
 
                 if !name || (name != "RTT::TaskContext")
-                    @superclass = project.default_task_superclass
+                    @superclass = TaskContext.orogen_rtt_task_context
                 end
                 @implemented_classes = []
 		@name = name
@@ -280,6 +288,10 @@ module Orocos
                 @extensions = Array.new
 
                 super if defined? super
+
+                if block_given?
+                    instance_eval(&proc)
+                end
 	    end
 
             def initialize_copy(from)
@@ -477,7 +489,7 @@ module Orocos
                 begin
                     type = project.find_interface_type(type)
                 rescue Typelib::NotFound
-                    raise ConfigError, "type #{type} is not declared"
+                    raise Orocos::Generation::ConfigError, "type #{type} is not declared"
                 end
 
                 if default_value
@@ -516,12 +528,12 @@ module Orocos
                     if state_port.kind_of?(InputPort)
                         raise ArgumentError, 
                             "there is already an input port called 'state', cannot enable extended state support"
-                    elsif state_port.type != project.find_type("/int")
+                    elsif state_port.type != project.find_type("/int32_t")
                         raise ArgumentError, 
                             "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.type_name}"
                     end
                 else
-                    output_port('state', '/int').
+                    output_port('state', '/int32_t').
                         triggered_once_per_update
                 end
 
@@ -723,6 +735,7 @@ module Orocos
             #
             # Yields all dynamic input ports that are defined on this task context.
             def each_dynamic_input_port(only_self = false)
+                return enum_for(:each_dynamic_input_port, only_self) if !block_given?
                 each_dynamic_port do |port|
                     if port.kind_of?(InputPort)
                         yield(port)
@@ -737,6 +750,7 @@ module Orocos
             #
             # Yields all dynamic output ports that are defined on this task context.
             def each_dynamic_output_port(only_self = false)
+                return enum_for(:each_dynamic_output_port, only_self) if !block_given?
                 each_dynamic_port do |port|
                     if port.kind_of?(OutputPort)
                         yield(port)
@@ -928,7 +942,7 @@ module Orocos
                 check_uniqueness(name)
                 @output_ports[name] = OutputPort.new(self, name, type)
             rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared"
+                raise Orocos::Generation::ConfigError, "type #{type} is not declared"
 	    end
 
 	    # call-seq:
@@ -942,8 +956,8 @@ module Orocos
                 name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
                 @input_ports[name] = InputPort.new(self, name, type)
-            rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared"
+            rescue Typelib::NotFound => e
+                raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             def all_ports
@@ -1034,7 +1048,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(InputPort) && (!type || !p.type || p.type == type) && p.name === name }
+                each_dynamic_input_port.find_all { |p| (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if there is an input port definition that match the
@@ -1051,7 +1065,7 @@ module Orocos
                 if type
                     type = project.find_type(type)
                 end
-                dynamic_ports.find_all { |p| p.kind_of?(OutputPort) && (!type || !p.type || p.type == type) && p.name === name }
+                each_dynamic_output_port.find_all { |p| (!type || !p.type || p.type == type) && p.name === name }
             end
 
             # Returns true if an output port of the given name and type could be

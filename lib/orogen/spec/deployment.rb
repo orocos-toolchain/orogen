@@ -1,7 +1,32 @@
-require 'set'
-
 module Orocos
-    module Generation
+    module Spec
+    
+        class << self
+            # Default minimal latency value used for realtime scheduling
+            #
+            # See TaskDeployment::minimal_trigger_latency
+            attr_accessor :default_rt_minimal_trigger_latency
+            # Default expected latency value used for realtime scheduling
+            #
+            # See TaskDeployment::worstcase_trigger_latency
+            attr_accessor :default_rt_worstcase_trigger_latency
+            
+            # Default minimal latency value used for non-realtime scheduling
+            #
+            # See TaskDeployment::minimal_trigger_latency
+            attr_accessor :default_nonrt_minimal_trigger_latency
+            # Default expected latency value used for non-realtime scheduling
+            #
+            # See TaskDeployment::worstcase_trigger_latency
+            attr_accessor :default_nonrt_worstcase_trigger_latency
+        end
+        
+        @default_rt_minimal_trigger_latency = 0.001
+        @default_rt_worstcase_trigger_latency = 0.005
+        
+        @default_nonrt_minimal_trigger_latency = 0.005
+        @default_nonrt_worstcase_trigger_latency = 0.020
+        
         class GenericObjectDeployment
             attr_reader :activity, :interface_object
             def initialize(activity, interface_object)
@@ -18,6 +43,7 @@ module Orocos
         end
         class OperationDeployment   < GenericObjectDeployment; end
 
+        # Representation of a RTT connection policy
         class ConnPolicy
             # The connection type. Can be either :data (the default) or :buffer
             attr_accessor :type
@@ -117,23 +143,9 @@ module Orocos
             #
             # See worstcase_trigger_latency
             attr_accessor :worstcase_trigger_latency
-
-            # Default minimal latency value used for realtime scheduling
-            #
-            # See minimal_trigger_latency
-            DEFAULT_RT_MINIMAL_TRIGGER_LATENCY = 0.001
-            # Default expected latency value used for realtime scheduling
-            #
-            # See worstcase_trigger_latency
-            DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY = 0.005
-            # Default minimal latency value used for non-realtime scheduling
-            #
-            # See minimal_trigger_latency
-            DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY = 0.005
-            # Default expected latency value used for non-realtime scheduling
-            #
-            # See worstcase_trigger_latency
-            DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY = 0.020
+            
+            # Master of this Task, if this is an slave of another Task for execution
+            attr_accessor :master
 
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
@@ -148,9 +160,9 @@ module Orocos
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    DEFAULT_RT_MINIMAL_TRIGGER_LATENCY
+                    Orocos::Spec::default_rt_minimal_trigger_latency
                 else
-                    DEFAULT_NONRT_MINIMAL_TRIGGER_LATENCY
+                    Orocos::Spec::default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -170,9 +182,9 @@ module Orocos
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        DEFAULT_RT_WORSTCASE_TRIGGER_LATENCY
+                        Orocos::Spec::default_rt_worstcase_trigger_latency
                     else
-                        DEFAULT_NONRT_WORSTCASE_TRIGGER_LATENCY
+                        Orocos::Spec::default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
@@ -183,6 +195,7 @@ module Orocos
 		@realtime = false
 		@priority = :lowest
                 @max_overruns = -1
+                @master = nil
                 if task_model.default_activity
                     send(*task_model.default_activity)
                     @explicit_activity = task_model.required_activity?
@@ -265,21 +278,6 @@ module Orocos
     <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
 </struct>
                     EOD
-                end
-                self
-            end
-
-            # Make this task being driven "on demand", i.e. when the step()
-            # method is explicitely called on it.
-            def slave
-                activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
-                activity_setup do
-                    result = <<-EOD
-#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
-                    EOD
-                end
-                activity_xml do
-                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
                 end
                 self
             end
@@ -386,24 +384,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @activity_xml = block
             end
 
-            def generate_activity_setup
-                if @activity_setup
-                    @activity_setup.call
-                else
-                    result = <<-EOD
-#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
-            #{rtt_scheduler},
-            #{rtt_priority},
-            task_#{name}.engine(),
-            "#{name}");
-                    EOD
-                end
-            end
-
-            def to_deployer_xml
-                @activity_xml.call
-            end
-
             # Call to make the deployer start this task when the component is
             # launched
             def start; @start = true; self end
@@ -468,43 +448,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
             end
 
-            # Check for the case when there is an superfluous dot at
-            # the end of a task statement
-            def check_for_stray_dots(filename, name, args)
-                # Building the regular expression to 
-                # match on the method name and arguments
-                regexp_expression = "#{name}.*"
-                args.each do |element|
-                    regexp_expression << "#{element}.*"
-                end
-                regexp = Regexp.new(regexp_expression)
-
-                # Check the spec to locate the error in case
-                # of stray dots
-                File.open(filename) do |file|
-                    begin 
-                        line_counter = 0
-                        previous_non_empty_line_number = 0
-                        previous_non_empty_line = nil
-                        while true
-                            line = file.readline
-                            line_counter += 1
-                            if regexp.match(line)
-                                if previous_non_empty_line =~ /\.$/
-                                    raise ArgumentError, "stray dot in statement: #{previous_non_empty_line.strip} (line #{previous_non_empty_line_number})"
-                                end
-                            end
-
-                            if line =~ /.+/
-                                previous_non_empty_line = line
-                                previous_non_empty_line_number = line_counter
-                            end
-                        end
-                    rescue EOFError
-                    end
-                end
-            end
-
             def method_missing(m, *args) # :nodoc:
                 name = m.to_s
                 if name =~ /=$/
@@ -553,8 +496,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
-						#Array for additional Loaded Types
-
 	    # Do not install that deployment
 	    def do_not_install; @install = false end
 	    # True if this deployment should be installed
@@ -565,11 +506,12 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # True if we are generating for Xenomai
             def xenomai?;   project.xenomai? end
 
-            def initialize(project, name)
+            def initialize(project = nil, name = nil)
+                @project       = project
 		@name		 = name
+
 		@install	 = true
                 @task_activities = Array.new
-                @project       = project
                 @file_reporters  = Hash.new
                 @loggers	 = Hash.new
                 @connections     = Array.new
@@ -580,6 +522,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @loglevel        = nil
                 @transports      = Array.new
                 @manually_loaded_types = Set.new
+                @lock_timeout_no_period = nil
+                @lock_timeout_period_factor =  nil
             end
 
             KNOWN_LOG_LEVELS = {
@@ -662,19 +606,27 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # the corresponding TaskDeployment object. This instance can be used
             # to configure the task further (for instance specifying the
             # activity). See TaskDeployment documentation for available options.
-            #
-            # +name+ is used in the task browser, and will be the global task's
-            # name on the CORBA name server.
             def task(name, klass)
-                begin task_context = project.find_task_context(klass)
-                rescue ArgumentError
-                    raise ConfigError, "#{klass} is not a known task context model"
+                if klass.respond_to?(:to_str)
+                    begin task_context = project.find_task_context(klass)
+                    rescue ArgumentError
+                        raise ArgumentError, "#{klass} is not a known task context model"
+                    end
+                else task_context = klass
                 end
 
                 name = Generation.verify_valid_identifier(name)
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment
+            end
+
+            # Returns the deployed task that has this name
+            #
+            # @return [TaskDeployment,nil] the deployed task model, or nil if
+            #   none exists with that name
+            def find_task_by_name(name)
+                task_activities.find { |act| act.name == name }
             end
 
             # True if this deployment should export its tasks through CORBA.
@@ -699,24 +651,42 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # See #corba_enabled?
             def enable_corba; @corba_enabled = true end
 
-            # Generates the code associated with this deployment setup
-            def generate
-                deployer = self
-
-                if !corba_enabled? && !@browse
-                    STDERR.puts "WARN: the deployment #{name} will do nothing. Either generate with --transports=corba or use the 'browse' statement"
+            #handels theActivity creation order to be sure that all activities are created in the right order
+            def activity_ordered_tasks(ordered=Array.new)
+                oldsize = ordered.size()
+                task_activities.each do |task|
+                    if((task.master == nil or ordered.include?(task.master)) and not ordered.include?(task))
+                        ordered << task
+                    end
                 end
+                if(oldsize == ordered.size())
+                    raise InternalError, "Could not Create order in where the Activities of The deployment #{name} should be created." <<
+                        "Did you created a loop among master<->slave activities?"
 
-		main = Generation.render_template 'main.cpp', binding
-		Generation.save_automatic "main-#{name}.cpp", main
-                pkg = if install?
-                          Generation.render_template 'deployment.pc', binding
-                      else
-                          Generation.render_template 'local_deployment.pc', binding
-                      end
-                Generation.save_automatic "#{name}.pc.in", pkg
-                cmake = Generation.render_template 'config/Deployment.cmake', binding
-                Generation.save_automatic "config/#{name}Deployment.cmake", cmake
+                elsif(ordered.size() != task_activities.size()) 
+                    return activity_ordered_tasks(ordered)
+                else
+                    return ordered
+                end
+            end
+
+            # Define an master slave avtivity between tasks
+            def set_master_slave_activity(master,slave)
+                #First create and peer connection between the master and the slave
+                add_peers(master,slave)
+
+                #Setting up the SlaveActivity
+                slave.activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                slave.master = master
+                slave.activity_setup do
+                    result = <<-EOD
+#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}.engine());
+                    EOD
+                end
+                slave.activity_xml do
+                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
+                end
+                self
             end
 
             dsl_attribute :main_task do |task|
@@ -833,6 +803,27 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @browse = task
             end
 
+            def get_lock_timeout_no_period
+                @lock_timeout_no_period
+            end
+
+            # Set the lock timeout of a thread, which has no period
+            # if set, the minimum setting is 1s
+            def lock_timeout_no_period(timeout_in_s)
+                @lock_timeout_no_period = [1,timeout_in_s].max
+            end
+
+            def get_lock_timeout_period_factor
+                @lock_timeout_period_factor
+            end
+
+            # Set the mutex timeout for a thread with a given period 
+            # by a factor of its period
+            # if set, the minimum setting is factor 10 (times the period)
+            def lock_timeout_period_factor(factor)
+                @lock_timeout_period_factor = [10,factor.to_i].max
+            end
+
             def used_task_libraries
                 task_models = Set.new
                 task_activities.each do |task|
@@ -842,120 +833,17 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     !task.project.orogen_project?
                 end
 
-                dependencies = project.used_task_libraries.find_all do |tasklib|
-                    current_size = task_models.size
-                    tasklib_tasks = tasklib.self_tasks
-                    task_models.delete_if do |task|
-                        tasklib_tasks.include?(task)
-                    end
-                    current_size != task_models.size
-                end
-
-                if !task_models.all? { |t| project.self_tasks.include?(t) }
-                    raise ArgumentError, "cannot find an imported task library which defines #{task_models.map(&:name).join(", ")}"
-                end
-                dependencies
-            end
-
-            def dependencies
-                result = []
-                result << BuildDependency.new(
-                    "OrocosRTT",
-                    "orocos-rtt-#{Generation.orocos_target}").
-                    in_context('core', 'include').
-                    in_context('core', 'link')
-
-                if browse
-                    result << BuildDependency.new(
-                        "OrocosOCL",
-                        "orocos-ocl-#{Generation.orocos_target}").
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-                end
-                if corba_enabled?
-                    result << BuildDependency.new(
-                        "OrocosCORBA",
-                        "orocos-rtt-corba-#{Generation.orocos_target}").
-                        in_context('corba', 'include').
-                        in_context('corba', 'link')
-                end
-                if transports.include? 'ros'
-                    result << BuildDependency.new(
-                        "ROSLIB", "roslib").
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-                    result << BuildDependency.new(
-                        "ROSCPP", "roscpp").
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-                end
-
-                used_typekits.each do |tk|
-                    next if tk.virtual?
-                    result << BuildDependency.new(
-                        "#{tk.name}_TYPEKIT",
-                        tk.pkg_name).
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-
-                    transports.each do |transport_name|
-                        result << BuildDependency.new(
-                            "#{tk.name}_TRANSPORT_#{transport_name.upcase}",
-                            tk.pkg_transport_name(transport_name)).
-                            in_context('core', 'include').
-                            in_context('core', 'link')
+                dependencies = Hash.new
+                task_models.each do |model|
+                    if p = dependencies[model.project.name]
+                        if p != model.project
+                            raise InternalError, "found two Project objects that seem to refer to the same project: #{p.name}"
+                        end
+                    else
+                        dependencies[model.project.name] = model.project
                     end
                 end
-
-                project.used_libraries.each do |pkg|
-                    result << BuildDependency.new(
-                        "#{pkg.name}",
-                        "#{pkg.name}").
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-                end
-
-                used_task_libraries.each do |pkg|
-                    result << BuildDependency.new(
-                        "#{pkg.name}_TASKLIB",
-                        "#{pkg.name}-tasks-#{Generation.orocos_target}").
-                        in_context('core', 'include').
-                        in_context('core', 'link')
-                end
-
-                # Task files could be using headers from external libraries, so add the relevant
-                # directory in our include path
-                project.tasklib_dependencies.
-                    find_all { |builddep| builddep.in_context?('core', 'include') }.
-                    each do |builddep|
-                        builddep = BuildDependency.new(builddep.var_name, builddep.pkg_name)
-                        builddep.in_context('core', 'include')
-                        result << builddep
-                    end
-
-                result.to_a.sort_by { |dep| dep.var_name }
-            end
-
-            def to_deployer_xml
-                result = []
-                result << <<-EOHEADER
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "cpf.dtd">
-<properties>
-                EOHEADER
-                used_typekits.each do |tk|
-                    next if tk.virtual?
-                    result << "<simple name=\"Import\" type=\"string\"><value>#{tk.name}</value></simple>"
-                end
-                used_task_libraries.each do |pkg|
-                    result << "<simple name=\"Import\" type=\"string\"><value>#{pkg.name}</value></simple>"
-                end
-
-                task_activities.each do |task|
-                    result << task.to_deployer_xml
-                end
-                result << "</properties>"
-                result.join("\n")
+                dependencies.values
             end
 
             # Displays this deployment's definition nicely
@@ -985,8 +873,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
             end
         end
-
-        StaticDeployment = Deployment
     end
 end
 

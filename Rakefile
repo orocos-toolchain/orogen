@@ -57,33 +57,8 @@ rescue Exception => e
     end
 end
 
-do_doc = begin
-             require 'rdoc/task'
-             true
-         rescue LoadError => e
-             STDERR.puts "WARN: cannot load RDoc, documentation generation disabled"
-             STDERR.puts "WARN:   #{e.message}"
-         end
-
-if do_doc
-    task 'docs' => 'doc:all'
-    task 'clobber_docs' => 'doc:clobber'
-    task 'redocs' do
-        Rake::Task['clobber_docs'].invoke
-        if !system('rake', 'doc:all')
-            raise "failed to regenerate documentation"
-        end
-    end
-
-    namespace 'doc' do
-        task 'all' => %w{api}
-        task 'clobber' => 'clobber_api'
-        RDoc::Task.new("api") do |rdoc|
-            rdoc.rdoc_dir = 'doc'
-            rdoc.title    = "oroGen"
-            rdoc.options << '--show-hash'
-            rdoc.rdoc_files.include('lib/**/*.rb')
-        end
-    end
-end
+require 'utilrb/doc/rake'
+Utilrb.doc :include => ['lib/**/*.rb'],
+    :title => 'oroGen',
+    :plugins => ['utilrb']
 

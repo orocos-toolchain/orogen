@@ -1,8 +1,6 @@
 = Orogen: easy component building for Orocos/RTT
 
-* http://doudou.github.com/orogen
-* http://github.com/doudou/orogen
-* git://github.com/doudou/orogen.git
+  http://rock-robotics.org/stable/documentation/orogen
 
 == What is oroGen ?
 
@@ -19,10 +17,10 @@ implementing the actual functionality.
 The remaining of this readme is about oroGen installation. See the user's guide
 for more in-depth usage information:
 
-  http://doudou.github.com/orogen
+  http://rock-robotics.org/stable/documentation/orogen
 
 == Installation
 
-oroGen is part of the RubyInMotion software suite. Check out
-sites.google.com/sites/rubyinmotion for installation instructions.
+oroGen is part of the Robot Construction Kit. Check out
+http://rock-robotics.org for installation instructions.
 
