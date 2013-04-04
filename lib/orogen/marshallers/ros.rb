@@ -219,6 +219,8 @@ module Orocos
                 def ros_cxx_type(type, do_unboxing = true)
                     if type < Typelib::EnumType
                         "boost::int32_t"
+                    elsif type.name == '/std/string'
+                        "std::string"
                     elsif type < Typelib::NumericType
                         if type.integer?
                             "boost::#{type.name[1..-1]}"
