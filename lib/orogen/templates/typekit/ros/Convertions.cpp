@@ -43,7 +43,6 @@ void ros_convertions::toROS( <%= ros_ref_type(ros_type) %> ros, <%= type.arg_typ
 	type.to_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return;
 }
 void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros )
 {
@@ -51,7 +50,6 @@ void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_
 	type.from_ros(typekit, result, " " * 4)
 	result 
 	%>
-    return;
 }
 <% end %>
 
