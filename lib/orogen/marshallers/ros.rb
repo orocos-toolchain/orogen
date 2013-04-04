@@ -298,7 +298,7 @@ module Orocos
                             convert_types << [target_type, type]
                         end
                     end
-                    convert_types.sort_by { |t0, t1| [t0.name, t1.name] }
+                    convert_types.to_set.to_a.sort_by { |t0, t1| [t0.name, t1.name] }
                 end
 
                 # Do the code generation for this ROS transport
