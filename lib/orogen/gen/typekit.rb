@@ -1778,7 +1778,10 @@ module Orocos
                 # just been computed
                 registered_types =
                     if type_export_policy == :all
-                        generated_types.dup
+                        generated_types.find_all do |type|
+                            !m_type?(type)
+                        end.to_value_set
+
                     elsif type_export_policy == :used
                         used_types = project.self_tasks.inject(ValueSet.new) do |result, task|
                             result | map_typeset_to_registry(registry, task.interface_types)
