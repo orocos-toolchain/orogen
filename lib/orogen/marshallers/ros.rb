@@ -179,8 +179,12 @@ module Orocos
                 # messages (e.g. std_msgs/Time), it is the corresponding base
                 # type
                 def ros_field_name(type, absolute = false)
-                    msg_name = ros_message_name(type, absolute)
-                    boxed_msg_mappings[msg_name] || msg_name
+                    if !type_mappings.has_key?(type.name) && (type <= Typelib::ArrayType || type <= Typelib::ContainerType)
+                        "#{ros_field_name(type.deference, absolute)}[]"
+                    else
+                        msg_name = ros_message_name(type, absolute)
+                        boxed_msg_mappings[msg_name] || msg_name
+                    end
                 end
 
                 # Returns the ROS message name for +type+
