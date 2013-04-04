@@ -40,10 +40,10 @@ include_directories(BEFORE ${CMAKE_BINARY_DIR}/${CATKIN_DEVEL_PREFIX}/${gencpp_I
 
 set(libname_ros <%= typekit.name %>-transport-ros-${OROCOS_TARGET})
 add_library(${libname_ros} SHARED
-    <%= impl.join("\n    ") %>)
-# <% deps = all_messages.map { |msg_name| "${CMAKE_BINARY_DIR}/${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/#{msg_name}.h" }.join(";") %>
-# set_source_files_properties(<%= impl.join(" ") %>
-#     PROPERTIES OBJECT_DEPENDS "<%= deps %>")
+    "<%= impl.join("\"\n    \"") %>")
+<% deps = all_messages.map { |msg_name| "${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/${PROJECT_NAME}/#{msg_name}.h" }.join(";") %>
+set_source_files_properties(<%= impl.join(" ") %>
+    PROPERTIES OBJECT_DEPENDS "<%= deps %>")
 target_link_libraries(${libname_ros}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosROS_LIBRARIES})
