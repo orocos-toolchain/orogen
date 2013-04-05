@@ -38,6 +38,11 @@ module Orocos
                 result
             end
 
+            def self.load_rosmap_by_package_name(name)
+                pkg = Utilrb::PkgConfig.new("#{name}-transport-ros-#{Orocos::Generation.orocos_target}")
+                load_rosmap(pkg.rosmap)
+            end
+
             # Typekit generation plugin to handle ROS types
             class Plugin
                 def self.name; "ros" end
@@ -105,8 +110,7 @@ module Orocos
                         begin
                             # Yuk ! Not dependent on the architecture, and
                             # hardcoded pkg-config stuff behaviour
-                            pkg = Utilrb::PkgConfig.new("#{tk.name}-transport-ros-#{Orocos::Generation.orocos_target}")
-                            raw_mapping = ROS.load_rosmap(pkg.rosmap)
+                            raw_mapping = ROS.load_rosmap_by_package_name(tk.name)
                             raw_mapping.delete_if { |type_name, _| !typekit.registry.include?(type_name) }
                             ros_mappings(raw_mapping)
                         rescue Utilrb::PkgConfig::NotFound
