@@ -292,6 +292,8 @@ module Orocos
                         next if type_mappings.has_key?(t.name)
                         if t < Typelib::ContainerType && t.deference < Typelib::ContainerType
                             return
+                        elsif t < Typelib::ArrayType && t.deference < Typelib::ArrayType
+                            return
                         end
                     end
                     return true
