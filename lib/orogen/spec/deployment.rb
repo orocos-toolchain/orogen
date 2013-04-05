@@ -144,8 +144,13 @@ module Orocos
             # See worstcase_trigger_latency
             attr_accessor :worstcase_trigger_latency
             
-            # Master of this Task, if this is an slave of another Task for execution
+            # If this task is deployed with a slave activity, this is the master task
+            # @return [TaskDeployment]
             attr_accessor :master
+            # If this task is the master of other tasks deployed as slave
+            # activities, they are listed here
+            # @return [Array<TaskDeployment>]
+            attr_reader :slaves
 
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
@@ -196,6 +201,7 @@ module Orocos
 		@priority = :lowest
                 @max_overruns = -1
                 @master = nil
+                @slaves = Array.new
                 if task_model.default_activity
                     send(*task_model.default_activity)
                     @explicit_activity = task_model.required_activity?
@@ -678,6 +684,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 #Setting up the SlaveActivity
                 slave.activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
                 slave.master = master
+                master.slaves << slave
                 slave.activity_setup do
                     result = <<-EOD
 #{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}.engine());
