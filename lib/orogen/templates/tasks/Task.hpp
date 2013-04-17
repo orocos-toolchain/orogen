@@ -28,7 +28,7 @@ namespace <%= component.name %> {
 
 <%= task.self_user_methods.sort_by(&:name).
     map { |m| m.with_indent(8, :declaration) }.
-    compact.join("\n\n") %>
+    compact.join("\n") %>
 
     public:
         /** TaskContext constructor for <%= task.basename %>

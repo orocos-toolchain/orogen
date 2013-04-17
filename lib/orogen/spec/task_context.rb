@@ -724,7 +724,7 @@ module Orocos
             def hidden_operation(name, body)
                 op = operation(name)
                 op.hidden = true
-                op.base_body = body
+                op.body = body
                 op
             end
 
