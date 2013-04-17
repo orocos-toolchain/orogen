@@ -30,7 +30,7 @@ module Orocos
                 if dynamic?
                     task.add_code_to_base_method "updateProperties","\t\t&& set#{name.capitalize}(_#{name}.get())\n"
                     operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
-                    operation.body = "\t//Call the base function, DO-NOT Remove\n\tif(!#{task.name}Base::set#{name.capitalize}(value)) \n\t\treturn false;\n\n\t//TODO Add your code here \n\n\treturn true;"
+                    operation.body = "\tif(!#{task.name}Base::set#{name.capitalize}(value)) return false;//Call the base function, DO-NOT Remove\n\n\treturn true;"
                 end
 
             end
@@ -207,15 +207,16 @@ module Orocos
                     initializer("_#{name}(\"#{name}\", &#{task.basename}Base::#{method_name}, this, #{thread_flag})").
                     constructor("#{constructor};")
 
+               
+
                 m = nil
                 if hidden?
-                    m = task.add_base_method(return_type[1], method_name, argument_signature)
+                    m = task.add_base_method(return_type[1], method_name, argument_signature, base_body)
                 else
-                    m = task.add_user_method(return_type[1], method_name, argument_signature)     
+                    m = task.add_user_method(return_type[1], method_name, argument_signature, base_body)
                     m.code = body
-                end        
-                m.doc(doc || "Handler for the #{method_name} operation")
-                task.add_code_to_base_method(method_name,base_body) if base_body
+                end
+                m.doc(doc!="" ? doc : "Handler for the #{method_name} operation")
 
             end
         end
@@ -831,12 +832,12 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_user_method(return_type, name, signature = "")
+            def add_user_method(return_type, name, signature = "", base_body = nil)
                 if !has_base_method?(name)
                     # Add a pure virtual method to remind the user that he
                     # should add it to its implementation
                     m = add_base_method(return_type, name, signature)
-                    #m.code = base_body
+                    m.code = base_body
                     m.doc "If the compiler issues an error at this point, it is probably that",
                             "you forgot to add the corresponding method to the #{self.name} class."
                 end
