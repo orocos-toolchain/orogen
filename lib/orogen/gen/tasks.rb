@@ -11,6 +11,7 @@ module Orocos
         # Module that is used to add code generation functionality to
         # Spec::Property
         module PropertyGeneration
+
             def used_types; [type] end
 
             def register_for_generation
@@ -24,6 +25,14 @@ module Orocos
                     "RTT::Property< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\", \"#{doc}\")").
                     constructor(constructor.join("\n"))
+
+
+                if dynamic?
+                    task.add_code_to_base_method "updateProperties","\t\t&& set#{name.capitalize}(_#{name}.get())\n"
+                    operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
+                    operation.body = "\tif(!#{task.name}Base::set#{name.capitalize}(value)) return false;//Call the base function, DO-NOT Remove\n\n\treturn true;"
+                end
+
             end
         end
 
@@ -157,6 +166,7 @@ module Orocos
 	    end
 
             attr_accessor :body
+            attr_accessor :base_body
 
 	    # call-seq:
 	    #	method_name new_name -> self
@@ -180,9 +190,10 @@ module Orocos
                     constructor += "\n" + arguments.map { |n, _, d| "    .arg(\"#{n}\", \"#{d}\")" }.join("\n")
                 end
 
-                if hidden? && !self.body
+                if hidden? && !self.base_body
                     raise InternalError, "a hidden operation must have a body"
                 end
+
 
                 body =
                     if self.body
@@ -192,17 +203,21 @@ module Orocos
                     else ""
                     end
 
-                add = if hidden? then "add_base_method"
-                      else "add_user_method"
-                      end
-
                 task.add_base_member("operation", "_#{name}", "RTT::Operation< #{signature(false)} >").
                     initializer("_#{name}(\"#{name}\", &#{task.basename}Base::#{method_name}, this, #{thread_flag})").
                     constructor("#{constructor};")
 
-                m = task.send(add, return_type[1], method_name, argument_signature).
-                    doc("Handler for the #{method_name} operation").
-                    body(body)
+               
+
+                m = nil
+                if hidden?
+                    m = task.add_base_method(return_type[1], method_name, argument_signature, base_body)
+                else
+                    m = task.add_user_method(return_type[1], method_name, argument_signature, base_body)
+                    m.code = body
+                end
+                m.doc(doc!="" ? doc : "Handler for the #{method_name} operation")
+
             end
         end
 
@@ -466,12 +481,16 @@ module Orocos
                         returns("int").
                         doc("returns the PID for this task")
                 else
-                    add_base_method("std::string", "getModelName", "").
-                        body("    return \"#{name}\";")
+                    add_base_method("std::string", "getModelName","","    return \"#{name}\";")
                 end
 
+                
+                add_base_method("bool","updateProperties","")
+                add_code_to_base_method("updateProperties","\treturn true\n")
+
+
+                self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
                 new_operations.each(&:register_for_generation)
-                self_properties.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
                 extensions.each do |ext|
@@ -479,6 +498,8 @@ module Orocos
                         ext.register_for_generation(self)
                     end
                 end
+                
+                add_code_to_base_method "updateProperties","\t;"
 
                 generation_handlers.each do |h|
                     if h.arity == 1
@@ -716,14 +737,15 @@ module Orocos
                 attr_reader :return_type
                 attr_reader :name
                 attr_reader :signature
-                attr_reader :body
-
+                attr_accessor :code
+                
                 def initialize(task, return_type, name, signature)
                     super(task)
 
                     @return_type = return_type
                     @name = name
                     @signature = signature
+                    @code = "" 
                 end
 
                 code_snippet 'body'
@@ -740,6 +762,7 @@ module Orocos
                 end
 
                 def generate_definition
+                    @body = TaskContextGeneration.validate_code_object(@code,nil)
                     if body
                         "#{return_type} #{task.basename}#{'Base' if in_base}::#{name}(#{signature})\n" +
                         "{\n" +
@@ -781,8 +804,9 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_base_method(return_type, name, signature = "")
+            def add_base_method(return_type, name, signature = "", body = nil)
                 m = add_method("base_methods", return_type, name, signature)
+                m.code = body if body
                 m.in_base = true
                 m
             end
@@ -793,6 +817,13 @@ module Orocos
                 all_base_methods.any? { |m| m.name == name }
             end
 
+            def add_code_to_base_method(name,code)
+                m = find_base_methods(name)
+                raise ArgumentError "Method #{name} could not be found" if m.nil?
+                m.code <<  code
+            end
+
+
             # Define a new method on the user-part class of this task
             #
             # It will also add a pure-virtual method with the same signature on
@@ -801,12 +832,13 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_user_method(return_type, name, signature = "")
+            def add_user_method(return_type, name, signature = "", base_body = nil)
                 if !has_base_method?(name)
                     # Add a pure virtual method to remind the user that he
                     # should add it to its implementation
-                    add_base_method(return_type, name, signature).
-                        doc "If the compiler issues an error at this point, it is probably that",
+                    m = add_base_method(return_type, name, signature)
+                    m.code = base_body
+                    m.doc "If the compiler issues an error at this point, it is probably that",
                             "you forgot to add the corresponding method to the #{self.name} class."
                 end
                 add_method("user_methods", return_type, name, signature)
