@@ -20,7 +20,7 @@ using namespace <%= task.component.name %>;
 
 <%= task.self_user_methods.sort_by(&:name).
     map { |m| m.with_indent(0, :definition) }.
-    compact.join("\n") %>
+    compact.join("\n\n") %>
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See <%= task.basename %>.hpp for more detailed

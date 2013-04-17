@@ -14,6 +14,11 @@ module Orocos
 	    # component's type registry
 	    attr_reader :type
 
+            #If this property coudl be set Dynamic this returns true
+            def dynamic?
+                @dynamic
+            end
+
             # The name of the type this property is using, for consistency with
             # the +type+ attribute
             def type_name; type.name end
@@ -23,6 +28,9 @@ module Orocos
 
 	    # The property's default value
 	    attr_reader :default_value
+
+            #Returns the operation if this is an dynamic property, nil othrwise
+            attr_reader :operation
 
             # The property default value, formatted for as a C++ value
             def cxx_default_value
@@ -42,9 +50,24 @@ module Orocos
 
                 type = task.project.find_interface_type(type)
                 Orocos.validate_toplevel_type(type)
-
+                @dynamic = false
 		@task, @name, @type, @default_value = task, name, type, default_value
+                @operation = nil
 	    end
+
+            def dynamic
+                if task.find_operation("set#{name.capitalize}")
+                    raise ArgumentError, "an operation of name set#{name.capitalize} already Exists, this means you cannot register and dynamic peoperty with the name #{name}"
+                end
+                @operation = task.operation("set#{name.capitalize}").
+                    returns("bool").
+                    argument("value", type_name).
+                    doc("Dynamic Property setter of #{name}")
+
+
+                @dynamic = true
+                self
+            end
 
             def pretty_print(pp)
                 default = if value = self.default_value
