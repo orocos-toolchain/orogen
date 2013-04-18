@@ -268,6 +268,13 @@ module Orocos
                     "#{ros_cxx_type(type, unbox)} const&"
                 end
 
+                ARRAY_TYPES = [Typelib::ContainerType, Typelib::ArrayType]
+
+                def multidimensional_array?(type)
+                    ARRAY_TYPES.any? { |array_t| type < array_t } &&
+                        ARRAY_TYPES.any? { |array_t| type.deference < array_t }
+                end
+
                 # Returns whether +type+ should be exported as a ROS message
                 def ros_converted_type?(type)
                     type = typekit.intermediate_type_for(type)
@@ -276,8 +283,10 @@ module Orocos
 
                     if type < Typelib::CompoundType
                         ros_exported_type?(type)
-                    elsif type < Typelib::ContainerType
-                        !(type.deference < Typelib::ContainerType) && (ros_converted_type?(type.deference) || type.deference <= Typelib::EnumType)
+                    elsif multidimensional_array?(type)
+                        return false
+                    elsif ARRAY_TYPES.any? { |array_type| type < array_type }
+                        return (ros_converted_type?(type.deference) || type.deference <= Typelib::EnumType)
                     else true
                     end
                 end
@@ -290,9 +299,7 @@ module Orocos
                     # ROS cannot represent arrays in arrays. Filter those out
                     type.recursive_dependencies.each do |t|
                         next if type_mappings.has_key?(t.name)
-                        if t < Typelib::ContainerType && t.deference < Typelib::ContainerType
-                            return
-                        elsif t < Typelib::ArrayType && t.deference < Typelib::ArrayType
+                        if multidimensional_array?(t)
                             return
                         end
                     end
