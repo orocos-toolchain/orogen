@@ -16,6 +16,9 @@ add_message_files(DIRECTORY msg
 <%
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
+    # Don't depend on transports that actually don't define any messages
+    pkg_rosmap = Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(tk.name)
+    next if pkg_rosmap.empty?
     "#{tk.name}_msgs"
 end.compact.to_set
 user_converted_types.each do |type, ros_type|
@@ -29,9 +32,51 @@ msg_deps = msg_deps.to_a.sort
 find_package(<%= dep_name %>)
 <% end %>
 
+# This is a shameless copy of code from share/genmsg/extras/genmsg-extras.cmake
+# genmsg-groovy forces us to find_package the transitive dependencies from our
+# direct dependencies.
+
+macro(find_genmsg_transitive_packages)
+  set(workspaces ${CATKIN_WORKSPACES})
+  list(FIND workspaces ${CATKIN_DEVEL_PREFIX} _index)
+  if(_index EQUAL -1)
+    list(INSERT workspaces 0 ${CATKIN_DEVEL_PREFIX})
+  endif()
+  
+  set(pending_deps ${ARGN})
+  set(handled_deps "")
+  while(pending_deps)
+    list(GET pending_deps 0 dep)
+    list(REMOVE_AT pending_deps 0)
+    list(APPEND handled_deps ${dep})
+  
+    find_package(${dep} REQUIRED)
+  
+    unset(config CACHE)
+    set(filename "share/${dep}/cmake/${dep}-msg-paths.cmake")
+    find_file(config ${filename} PATHS ${workspaces}
+      NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
+    if("${config}" STREQUAL "config-NOTFOUND")
+      message(FATAL_ERROR "Could not find '${filename}' (searched in '${workspaces}').")
+    endif()
+    include(${config})
+    unset(config CACHE)
+  
+    # add transitive msg dependencies
+    foreach(recdep ${${dep}_MSG_DEPENDENCIES})
+      set(all_deps ${handled_deps} ${pending_deps})
+      list(FIND all_deps ${recdep} _index)
+      if(_index EQUAL -1)
+        list(APPEND pending_deps ${recdep})
+      endif()
+    endforeach()
+  endwhile()
+endmacro()
+
 <% if msg_deps.empty? %>
 generate_messages()
 <% else %>
+find_genmsg_transitive_packages("<%= msg_deps.join("\" \"") %>")
 generate_messages(DEPENDENCIES <%= msg_deps.join(" ") %>)
 <% end %>
 include_directories(BEFORE ${CMAKE_BINARY_DIR}/${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/)
