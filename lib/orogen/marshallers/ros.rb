@@ -32,7 +32,7 @@ module Orocos
                 File.readlines(path).each do |line|
                     line = line.strip
                     next if line.empty?
-                    type_name, ros_field_name, ros_msg_name = line.split(/\s+/)
+                    type_name, ros_msg_name, ros_field_name = line.split(/\s+/)
                     result[type_name] = ros_msg_name
                 end
                 result
