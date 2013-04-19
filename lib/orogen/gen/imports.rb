@@ -134,6 +134,14 @@ module Orocos
             def using_library(*args); end
             def using_typekit(*args); end
 
+	    def find_type(type)
+		if type.respond_to?(:name)
+		    registry.get(type.name)
+		else
+		    registry.get(type)
+		end
+	    end
+
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
                            else type.to_str

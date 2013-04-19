@@ -580,7 +580,7 @@ module Orocos
             rescue Typelib::NotFound => e
                 if define_dummy_types?
                     return registry.create_null(typename)
-                elsif typekit && !typekit.pending_loads.empty?
+                elsif typekit && typekit.respond_to?(:pending_loads) && !typekit.pending_loads.empty?
                     typekit.perform_pending_loads
                     retry
                 end
