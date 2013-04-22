@@ -820,9 +820,8 @@ module Orocos
             #
             # It returns an instance of GeneratedMethod that can be used to
             # setup the method further
-            def add_base_method(return_type, name, signature = "", body = nil)
+            def add_base_method(return_type, name, signature = "")
                 m = add_method("base_methods", return_type, name, signature)
-                m.code = body if body
                 m.in_base = true
                 m
             end
