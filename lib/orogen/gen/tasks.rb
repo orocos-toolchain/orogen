@@ -654,20 +654,20 @@ module Orocos
                         self
                     end
                     def add_to_#{name}_before(code, &block)
-                        code = TaskContextGeneration.validate_code_object(code, block)
                         if !@#{name}
-                            #{name}(code)
+                            #{name}(code,*block)
                         else
+                            code = TaskContextGeneration.validate_code_object(code, block)
                             old_code = @#{name}
                             @#{name} = lambda { |*args| code.call(*args) + old_code.call(*args) }
                         end
                         self
                     end
                     def add_to_#{name}_after(code, &block)
-                        code = TaskContextGeneration.validate_code_object(code, block)
                         if !@#{name}
-                            #{name}(code)
+                            #{name}(code,*block)
                         else
+                            code = TaskContextGeneration.validate_code_object(code, block)
                             old_code = @#{name}
                             @#{name} = lambda { |*args| old_code.call(*args) + code.call(*args) }
                         end
