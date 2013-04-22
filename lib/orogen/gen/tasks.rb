@@ -28,7 +28,7 @@ module Orocos
 
 
                 if dynamic?
-                    task.add_code_to_base_method "updateProperties","\t\t&& set#{name.capitalize}(_#{name}.get())\n"
+                    task.add_code_to_base_method "updateDynamicProperties","\t\t&& set#{name.capitalize}(_#{name}.get())\n"
                     operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
                     operation.body = "\t//Call the base function, DO-NOT Remove\n\tif(!#{task.name}Base::set#{name.capitalize}(value)) \n\t\treturn false;\n\n\t//TODO Add your code here \n\n\treturn true;"
                 end
@@ -492,11 +492,11 @@ module Orocos
 
                 
                 if has_dynamic_properties?
-                    add_base_method("bool","updateProperties").
+                    add_base_method("bool","updateDynamicProperties").
                         body("\treturn true\n")
 
                     if superclass.has_dynamic_properties?
-                        add_code_to_base_method "updateProperties","\t&& #{superclass.name}::updateProperties()\n"
+                        add_code_to_base_method "updateDynamicProperties","\t&& #{superclass.name}::updateDynamicProperties()\n"
                     end
                 end
 
@@ -512,7 +512,7 @@ module Orocos
                     end
                 end
                
-                add_code_to_base_method "updateProperties","\t;" if has_dynamic_properties?
+                add_code_to_base_method "updateDynamicProperties","\t;" if has_dynamic_properties?
                 
                 generation_handlers.each do |h|
                     if h.arity == 1
