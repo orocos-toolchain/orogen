@@ -1011,6 +1011,15 @@ module Orocos
                 !!find_output_port(name)
             end
 
+
+            # Return true if this task interface has an dynamic property.
+            def has_dynamic_properties?
+                self_properties.each do |p|
+                    return true if p.dynamic?
+                end
+                return false
+            end
+
             # call-seq:
             #   dynamic_input_port name_regex, typename
             #
