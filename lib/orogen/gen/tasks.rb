@@ -832,10 +832,19 @@ module Orocos
                 all_base_methods.any? { |m| m.name == name }
             end
 
+
+            # This function adds @param code [String] AFTER the already defined code on the 
+            # @param name [String] given method
             def add_code_to_base_method(name,code)
-                m = find_base_methods(name)
-                raise ArgumentError "Method #{name} could not be found" if m.nil?
-                m.code <<  code
+                done = false
+                self_base_methods.each do |p|
+                    if p.name == name
+                        p.add_to_body_after(code)
+                        done = true
+                    end
+                end
+                raise ArgumentError "Method #{name} could not be found" if !done
+                self
             end
 
 
