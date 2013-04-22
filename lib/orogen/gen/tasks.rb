@@ -756,7 +756,6 @@ module Orocos
                 attr_reader :return_type
                 attr_reader :name
                 attr_reader :signature
-                attr_accessor :code
                 
                 def initialize(task, return_type, name, signature)
                     super(task)
@@ -764,7 +763,6 @@ module Orocos
                     @return_type = return_type
                     @name = name
                     @signature = signature
-                    @code = "" 
                 end
 
                 code_snippet 'body'
@@ -781,7 +779,6 @@ module Orocos
                 end
 
                 def generate_definition
-                    @body = TaskContextGeneration.validate_code_object(@code,nil)
                     if body
                         "#{return_type} #{task.basename}#{'Base' if in_base}::#{name}(#{signature})\n" +
                         "{\n" +
