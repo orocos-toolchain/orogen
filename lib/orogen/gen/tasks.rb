@@ -209,13 +209,19 @@ module Orocos
 
                 m = nil
                 if hidden?
-                    m = task.add_base_method(return_type[1], method_name, argument_signature)
+                    m = task.add_base_method(return_type[1], method_name, argument_signature).
+                        body(base_body)
                 else
-                    m = task.add_user_method(return_type[1], method_name, argument_signature)     
-                    m.code = body
+                    m = task.add_user_method(return_type[1], method_name, argument_signature). 
+                        body(body)
+                    if base_body
+                        if !task.has_base_method?(method_name)
+                            task.add_base_method(return_type[1], method_name, argument_signature)
+                        end
+                        task.add_code_to_base_method(method_name,base_body)
+                    end
                 end        
                 m.doc(doc || "Handler for the #{method_name} operation")
-                task.add_code_to_base_method(method_name,base_body) if base_body
 
             end
         end
@@ -480,12 +486,20 @@ module Orocos
                         returns("int").
                         doc("returns the PID for this task")
                 else
-                    add_base_method("std::string", "getModelName","","    return \"#{name}\";")
+                    add_base_method("std::string", "getModelName","")
+                    .body("    return \"#{name}\";")
                 end
 
                 
-                add_base_method("bool","updateProperties","")
-                add_code_to_base_method("updateProperties","\treturn true\n")
+                if has_dynamic_properties?
+                    add_base_method("bool","updateProperties").
+                        body("\treturn true\n")
+
+                    if superclass.has_dynamic_properties?
+                        add_code_to_base_method "updateProperties","\t&& #{superclass.name}::updateProperties()\n"
+                    end
+                end
+
 
 
                 self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
@@ -497,9 +511,9 @@ module Orocos
                         ext.register_for_generation(self)
                     end
                 end
+               
+                add_code_to_base_method "updateProperties","\t;" if has_dynamic_properties?
                 
-                add_code_to_base_method "updateProperties","\t;"
-
                 generation_handlers.each do |h|
                     if h.arity == 1
                         h.call(self)
@@ -861,7 +875,6 @@ module Orocos
                     # Add a pure virtual method to remind the user that he
                     # should add it to its implementation
                     m = add_base_method(return_type, name, signature)
-                    #m.code = base_body
                     m.doc "If the compiler issues an error at this point, it is probably that",
                             "you forgot to add the corresponding method to the #{self.name} class."
                 end
