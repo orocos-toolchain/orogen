@@ -486,8 +486,8 @@ module Orocos
                         returns("int").
                         doc("returns the PID for this task")
                 else
-                    add_base_method("std::string", "getModelName","")
-                    .body("    return \"#{name}\";")
+                    add_base_method("std::string", "getModelName","").
+                        body("    return \"#{name}\";")
                 end
 
                 
