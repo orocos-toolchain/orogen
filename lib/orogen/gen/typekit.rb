@@ -494,8 +494,9 @@ module Orocos
                     begin
                         if @intermediate_to_opaque && (result = @intermediate_to_opaque[type.name])
                             result
-                        else
+                        elsif type.name =~ /_m$/
                             find_type(type.name.gsub(/_m$/, ''))
+                        else raise Typelib::NotFound
                         end
                     rescue Typelib::NotFound
                         # This is a pretty expensive operation and is seldom
