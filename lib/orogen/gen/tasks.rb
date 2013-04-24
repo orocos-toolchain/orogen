@@ -207,22 +207,18 @@ module Orocos
                     initializer("_#{name}(\"#{name}\", &#{task.basename}Base::#{method_name}, this, #{thread_flag})").
                     constructor("#{constructor};")
 
-                m = nil
-                if hidden?
-                    m = task.add_base_method(return_type[1], method_name, argument_signature).
-                        body(base_body)
-                else
-                    m = task.add_user_method(return_type[1], method_name, argument_signature). 
-                        body(body)
-                    if base_body
-                        if !task.has_base_method?(method_name)
-                            task.add_base_method(return_type[1], method_name, argument_signature)
-                        end
-                        task.add_code_to_base_method(method_name,base_body)
-                    end
-                end        
-                m.doc(doc || "Handler for the #{method_name} operation")
 
+                if hidden? || base_body
+                    task.add_base_method(return_type[1], method_name, argument_signature).
+                        body(base_body).
+                        doc("base implementation of the #{method_name} operation")
+                end
+                if !hidden?
+                    task.add_user_method(return_type[1], method_name, argument_signature). 
+                        body(body).
+                        doc(doc || "Handler for the #{method_name} operation")
+                end
+                    
             end
         end
 
@@ -850,15 +846,13 @@ module Orocos
             # This function adds @param code [String] AFTER the already defined code on the 
             # @param name [String] given method
             def add_code_to_base_method(name,code)
-                done = false
                 self_base_methods.each do |p|
                     if p.name == name
                         p.add_to_body_after(code)
-                        done = true
+                        return self 
                     end
                 end
-                raise ArgumentError "Method #{name} could not be found" if !done
-                self
+                raise ArgumentError "Method #{name} could not be found"
             end
 
 
