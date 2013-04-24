@@ -308,6 +308,10 @@ module Orocos
             # Task library objects represent an import, and as such they cannot
             # be generated.  This method raises NotImplementedError
             def generate_build_system; raise NotImplementedError end
+
+            def to_s
+                "#<Orocos::ImportedProject: #{name} on #{main_project.name}>"
+            end
         end
     end
 end
