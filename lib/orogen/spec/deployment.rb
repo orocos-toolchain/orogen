@@ -120,7 +120,7 @@ module Orocos
         # needed for a task.
         class TaskDeployment
             # The task name as specified by the user
-            attr_reader :name
+            attr_accessor :name
             # The TaskContext model used to define this task
             attr_reader :task_model
             # Backward compatibility only. Use #task_model instead.
