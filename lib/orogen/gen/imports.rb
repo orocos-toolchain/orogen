@@ -212,6 +212,13 @@ module Orocos
                 end
             end
 
+            def load_orogen_project(name, options = Hash.new)
+                if main_project
+                    main_project.load_orogen_project(name, options)
+                else super
+                end
+            end
+
             def load_task_library(name)
                 if main_project
                     main_project.load_task_library(name)
