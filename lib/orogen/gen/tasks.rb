@@ -28,9 +28,9 @@ module Orocos
 
 
                 if dynamic?
-                    task.add_code_to_base_method "updateDynamicProperties","\t\t&& set#{name.capitalize}(_#{name}.get())\n"
+                    task.add_code_to_base_method_before "updateDynamicProperties","\tif(!set#{name.capitalize}(_#{name}.get())) return false;\n"
                     operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
-                    operation.body = "\t//Call the base function, DO-NOT Remove\n\tif(!#{task.name}Base::set#{name.capitalize}(value)) \n\t\treturn false;\n\n\t//TODO Add your code here \n\n\treturn true;"
+                    operation.body = "\t//TODO Add your code here \n\n  \t//Call the base function, DO-NOT Remove\n\treturn(#{task.name}Base::set#{name.capitalize}(value));"
                 end
 
             end
@@ -488,12 +488,16 @@ module Orocos
 
                 
                 if has_dynamic_properties?
-                    add_base_method("bool","updateDynamicProperties").
-                        body("\treturn true\n")
+                    add_base_method("bool","updateDynamicProperties")
 
                     if superclass.has_dynamic_properties?
-                        add_code_to_base_method "updateDynamicProperties","\t&& #{superclass.name}::updateDynamicProperties()\n"
+                        #call the superclass method if needed, returning false if they failed. Otherwise check our dynamic properties
+                        #they are generated in register_for_generation, or returning true in the end
+                        add_code_to_base_method_after "updateDynamicProperties","\tif(!#{superclass.name}::updateDynamicProperties()) return false;\n"
                     end
+                    
+                    #Add the return true in any case
+                    add_code_to_base_method_after "updateDynamicProperties","\treturn true;\n"
                 end
 
 
@@ -508,8 +512,6 @@ module Orocos
                     end
                 end
                
-                add_code_to_base_method "updateDynamicProperties","\t;" if has_dynamic_properties?
-                
                 generation_handlers.each do |h|
                     if h.arity == 1
                         h.call(self)
@@ -845,10 +847,22 @@ module Orocos
 
             # This function adds @param code [String] AFTER the already defined code on the 
             # @param name [String] given method
-            def add_code_to_base_method(name,code)
+            def add_code_to_base_method_after(name,code)
                 self_base_methods.each do |p|
                     if p.name == name
                         p.add_to_body_after(code)
+                        return self 
+                    end
+                end
+                raise ArgumentError "Method #{name} could not be found"
+            end
+            
+            # This function adds @param code [String] BEFORE the already defined code on the 
+            # @param name [String] given method
+            def add_code_to_base_method_before(name,code)
+                self_base_methods.each do |p|
+                    if p.name == name
+                        p.add_to_body_before(code)
                         return self 
                     end
                 end
