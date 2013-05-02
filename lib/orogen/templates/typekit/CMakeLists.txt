@@ -10,7 +10,10 @@ cmake_minimum_required(VERSION 2.6)
 SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
 # In Orogen components, the build target is specified at generation time
-set(OROCOS_TARGET "<%= typekit.orocos_target %>")
+# But we allow to override in case of typegen/USE_OROCOS_RTT:
+if (NOT OROCOS_TARGET)
+  set(OROCOS_TARGET "<%= typekit.orocos_target %>")
+endif()
 # If UseOrocos-RTT.cmake is used, install libs in /target/package subdir in order to allow
 # multi-target/package installs.
 if ( USE_OROCOS_RTT )
