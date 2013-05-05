@@ -1,0 +1,18 @@
+<package>
+  <description brief="An oroGen plugin that allows to create specifications for ROS nodes">
+  
+  </description>
+  <author>Sylvain Joyeux/sylvain.joyeux@dfki.de</author>
+  <license></license>
+  <url>http://</url>
+  <logo>http://</logo>
+
+  <depend package="utilrb" />
+  <!--
+   To add any dependencies use the depend tag
+  <depend package="dummy-dependency-0" />
+	...
+  <depend package="dummy-dependency-n-1" />
+  <depend package="dummy-dependency-n" />
+  -->
+</package>
