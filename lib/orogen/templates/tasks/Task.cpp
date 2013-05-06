@@ -31,23 +31,21 @@ using namespace <%= task.component.name %>;
 <%    is_boolean = (hook_name == "start" || hook_name == "configure") %>
 <%= (is_boolean ? 'bool' : 'void') %> <%= task.basename %>::<%= hook_name %>Hook()
 {
-    <% if is_boolean %>
+<% if is_boolean %>
     if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
         return false;
-    <% else %>
+<% else %>
     <%= task.superclass.name %>::<%= hook_name %>Hook();
-    <% end %>
-
-    <% snippets.each do |code| %>
-        <% if code.respond_to?(:to_str) %>
+<% end %>
+<% snippets.each do |code| %>
+<%     if code.respond_to?(:to_str) %>
 <%= code %>
-        <% else %>
+<%     else %>
 <%= code.call %>
-        <% end %>
-    <% end %>
-
-    <% if is_boolean %>
+<%     end %>
+<% end %>
+<% if is_boolean %>
     return true;
-    <% end %>
+<% end %>
 }
 <% end %>

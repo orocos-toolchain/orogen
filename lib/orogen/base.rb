@@ -179,7 +179,7 @@ module Orocos
 				      raise ArgumentError, "template #{File.join(*path)} does not exist"
 				  end
 
-		templates[path] = ERB.new(template_data.read, nil, nil, path.join('_').gsub(/[\/\.-]/, '_'))
+		templates[path] = ERB.new(template_data.read, nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
 	    end
 	end
 
@@ -407,7 +407,7 @@ module Orocos
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
 		end
                 result
-            end.join("\n")
+            end.join("\n") + "\n"
         end
 
         def self.cmake_pkgconfig_link(context, target, depspec)
@@ -416,7 +416,7 @@ module Orocos
                     result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
                 end
                 result
-            end.join("\n")
+            end.join("\n") + "\n"
         end
 
         def self.cmake_pkgconfig_link_corba(target, depspec)

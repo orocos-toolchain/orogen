@@ -6,10 +6,12 @@
 #include <string>
 #include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
-<% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" then %>#include <rtt/Operation.hpp><% end %>
-<% unless task.self_ports.empty? %>#include <rtt/Port.hpp><% end %>
-
-
+<% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" %>
+#include <rtt/Operation.hpp>
+<% end %>
+<% if !task.self_ports.empty? %>
+#include <rtt/Port.hpp>
+<% end %>
 <% if task.extended_state_support? %>
 #include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
 <% end %>
@@ -22,7 +24,9 @@
 <% task.implemented_classes.sort.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
-<% if component.typekit %>#include "<%= component.typekit.name %>/Types.hpp"<% end %>
+<% if component.typekit %>
+#include "<%= component.typekit.name %>/Types.hpp"
+<% end %>
 
 <% code_before, code_after =
     task.base_header_code.partition(&:first)

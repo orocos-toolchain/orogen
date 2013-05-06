@@ -17,7 +17,9 @@
 #include <rtt/transports/mqueue/TransportPlugin.hpp>
 <% end %>
 
-<% if component.typekit || !component.used_typekits.empty? %>#include <rtt/types/TypekitPlugin.hpp><% end %>
+<% if component.typekit || !component.used_typekits.empty? %>
+#include <rtt/types/TypekitPlugin.hpp>
+<% end %>
 <% if typekit = component.typekit %>
 #include "typekit/Plugin.hpp"
 <% deployer.transports.each do |transport_name| %>
@@ -32,9 +34,7 @@
     <% end %>
 <% end %>
 
-<% task_activities = deployer.task_activities.
-        sort_by(&:name) %>
-
+<% task_activities = deployer.task_activities.sort_by(&:name) %>
 <% task_activities.each do |task| %>
 #include <<%= task.context.header_file %>>
 <% end %>
@@ -60,7 +60,6 @@
 <% if deployer.browse %>
 #include <ocl/TaskBrowser.hpp>
 <% end %>
-
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
 
