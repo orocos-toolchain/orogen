@@ -667,7 +667,7 @@ module Orocos
                     end
                     def add_to_#{name}_before(code, &block)
                         if !@#{name}
-                            #{name}(code,*block)
+                            #{name}(code,&block)
                         else
                             code = TaskContextGeneration.validate_code_object(code, block)
                             old_code = @#{name}
@@ -677,7 +677,7 @@ module Orocos
                     end
                     def add_to_#{name}_after(code, &block)
                         if !@#{name}
-                            #{name}(code,*block)
+                            #{name}(code,&block)
                         else
                             code = TaskContextGeneration.validate_code_object(code, block)
                             old_code = @#{name}
