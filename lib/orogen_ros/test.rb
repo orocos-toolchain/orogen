@@ -5,10 +5,10 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
         require 'simplecov'
     rescue LoadError
         require 'syskit'
-        Orogen::ROS.warn "coverage is disabled because the 'simplecov' gem cannot be loaded"
+        Orocos::ROS.warn "coverage is disabled because the 'simplecov' gem cannot be loaded"
     rescue Exception => e
         require 'syskit'
-        Orogen::ROS.warn "coverage is disabled: #{e.message}"
+        Orocos::ROS.warn "coverage is disabled: #{e.message}"
     end
 end
 
@@ -21,11 +21,11 @@ if ENV['TEST_ENABLE_PRY'] != '0'
     begin
         require 'pry'
     rescue Exception
-        Orogen::ROS.warn "debugging is disabled because the 'pry' gem cannot be loaded"
+        Orocos::ROS.warn "debugging is disabled because the 'pry' gem cannot be loaded"
     end
 end
 
-module Orogen::ROS
+module Orocos::ROS
     # This module is the common setup for all tests
     #
     # It should be included in the toplevel describe blocks

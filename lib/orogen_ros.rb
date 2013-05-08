@@ -7,7 +7,7 @@ require 'orogen_ros/node'
 #
 # You should describe the basic idea about orogen_ros here
 require 'utilrb/logger'
-module Orogen::ROS
-    extend Logger::Root('Orogen::ROS', Logger::WARN)
+module Orocos::ROS
+    extend Logger::Root('Orocos::ROS', Logger::WARN)
 end
 

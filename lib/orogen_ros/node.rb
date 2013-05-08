@@ -1,7 +1,7 @@
-module Orocos
+module Orocos::ROS
     module Spec
         # Representation of a ROS node as an oroGen model
-        class ROSNode < TaskContext
+        class Node < Orocos::Spec::TaskContext
             # @return [String] the actual name on the ROS side
             #   {name} returns the node-local name (the "port" name)
             attr_accessor :ros_name

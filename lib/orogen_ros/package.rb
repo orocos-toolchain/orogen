@@ -1,9 +1,9 @@
 # This is going to be the main namespace for your project
-module Orocos
+module Orocos::ROS
     module Spec
         # Used to extend the Project class when loading an oroGen project that
         # represents a ROS package
-        module ROSPackage
+        module Package
             # @return [String] the type name that should be used on the oroGen
             #   side to represent the given ROS message
             #
