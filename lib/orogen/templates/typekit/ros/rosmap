@@ -1,1 +1,7 @@
-<%= (convert_types | user_converted_types).map { |type, ros_type| "#{type.name} #{ros_message_name(ros_type, true)} #{ros_field_name(ros_type, true)}" }.join("\n") %>
+<%=
+(convert_types | user_converted_types).map do |type, ros_type|
+    if !ros_type.respond_to?(:deference)
+        "#{type.name} #{ros_message_name(ros_type, true)} #{ros_field_name(ros_type, true)}"
+    end
+end.join("\n")
+%>
