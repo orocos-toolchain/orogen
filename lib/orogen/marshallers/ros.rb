@@ -40,7 +40,10 @@ module Orocos
 
             def self.load_rosmap_by_package_name(name)
                 pkg = Utilrb::PkgConfig.new("#{name}-transport-ros-#{Orocos::Generation.orocos_target}")
-                load_rosmap(pkg.rosmap)
+                if pkg.rosmap
+                    load_rosmap(pkg.rosmap)
+                else raise ArgumentError, "the oroGen project #{name} does not have a rosmap"
+                end
             end
 
             # Typekit generation plugin to handle ROS types
