@@ -46,6 +46,25 @@ module Orocos
                 end
             end
 
+            DEFAULT_BOXED_MSG_MAPPINGS = Hash.new
+            DEFAULT_TYPE_TO_MSG = Hash.new
+
+            DEFAULT_BOXED_MSG_MAPPINGS['std_msgs/Time'] = 'time'
+            [8, 16, 32, 64].each do |int_size|
+                DEFAULT_BOXED_MSG_MAPPINGS["std_msgs/Int#{int_size}"]  = "int#{int_size}"
+                DEFAULT_TYPE_TO_MSG["/int#{int_size}_t"] = "std_msgs/Int#{int_size}"
+                DEFAULT_BOXED_MSG_MAPPINGS["std_msgs/UInt#{int_size}"]  = "uint#{int_size}"
+                DEFAULT_TYPE_TO_MSG["/uint#{int_size}_t"] = "std_msgs/UInt#{int_size}"
+            end
+            DEFAULT_BOXED_MSG_MAPPINGS['std_msgs/Bool']  = 'bool'
+            DEFAULT_TYPE_TO_MSG['/bool'] = 'std_msgs/Bool'
+            DEFAULT_BOXED_MSG_MAPPINGS['std_msgs/Float32'] = 'float32'
+            DEFAULT_TYPE_TO_MSG['/float'] = 'std_msgs/Float32'
+            DEFAULT_BOXED_MSG_MAPPINGS['std_msgs/Float64'] = 'float64'
+            DEFAULT_TYPE_TO_MSG['/double'] = 'std_msgs/Float64'
+            DEFAULT_BOXED_MSG_MAPPINGS['std_msgs/String'] = 'string'
+            DEFAULT_TYPE_TO_MSG['/std/string'] = 'std_msgs/String'
+
             # Typekit generation plugin to handle ROS types
             class Plugin
                 def self.name; "ros" end
@@ -53,24 +72,8 @@ module Orocos
 
                 def initialize(typekit)
                     @typekit = typekit
-                    @type_to_msg = Hash.new
-                    @boxed_msg_mappings = Hash.new
-                    boxed_msg_mappings['std_msgs/Time'] = 'time'
-
-                    [8, 16, 32, 64].each do |int_size|
-                        boxed_msg_mappings["std_msgs/Int#{int_size}"]  = "int#{int_size}"
-                        type_to_msg["/int#{int_size}_t"] = "std_msgs/Int#{int_size}"
-                        boxed_msg_mappings["std_msgs/UInt#{int_size}"]  = "uint#{int_size}"
-                        type_to_msg["/uint#{int_size}_t"] = "std_msgs/UInt#{int_size}"
-                    end
-                    boxed_msg_mappings['std_msgs/Bool']  = 'bool'
-                    type_to_msg['/bool'] = 'std_msgs/Bool'
-                    boxed_msg_mappings['std_msgs/Float32'] = 'float32'
-                    type_to_msg['/float'] = 'std_msgs/Float32'
-                    boxed_msg_mappings['std_msgs/Float64'] = 'float64'
-                    type_to_msg['/double'] = 'std_msgs/Float64'
-                    boxed_msg_mappings['std_msgs/String'] = 'string'
-                    type_to_msg['/std/string'] = 'std_msgs/String'
+                    @type_to_msg = DEFAULT_TYPE_TO_MSG.dup
+                    @boxed_msg_mappings = DEFAULT_BOXED_MSG_MAPPINGS.dup
 
                     Typelib::Type.extend TypeExtension
                     Typelib::OpaqueType.extend OpaqueTypeExtension
