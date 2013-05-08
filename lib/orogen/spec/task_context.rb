@@ -724,7 +724,7 @@ module Orocos
             def hidden_operation(name, body)
                 op = operation(name)
                 op.hidden = true
-                op.body = body
+                op.base_body = body
                 op
             end
 
@@ -1009,6 +1009,15 @@ module Orocos
             # type as well
             def has_output_port?(name)
                 !!find_output_port(name)
+            end
+
+
+            # Return true if this task interface has an dynamic property.
+            def has_dynamic_properties?
+                self_properties.each do |p|
+                    return true if p.dynamic?
+                end
+                return false
             end
 
             # call-seq:

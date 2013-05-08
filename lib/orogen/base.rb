@@ -11,6 +11,11 @@ require 'find'
 class Module
     def enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
 	class_eval <<-EOD
+	def find_#{attribute_name}(name) 
+            each_#{each_name} do |n|
+                return n if n.name == name
+            end
+        end
 	def all_#{attribute_name}; each_#{each_name}.to_a end
 	def self_#{attribute_name}; @#{attribute_name} end
 	def each_#{each_name}(&block)
