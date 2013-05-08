@@ -937,10 +937,13 @@ module Orocos
             # corresponding OutputPort object.
 	    #
 	    # See also #input_port
-	    def output_port(name, type)
+	    def output_port(name, type, options = Hash.new)
                 name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
-                @output_ports[name] = OutputPort.new(self, name, type)
+                options = Kernel.validate_options options,
+                    :class => OutputPort
+
+                @output_ports[name] = options[:class].new(self, name, type)
             rescue Typelib::NotFound
                 raise Orocos::Generation::ConfigError, "type #{type} is not declared"
 	    end
@@ -955,7 +958,10 @@ module Orocos
 	    def input_port(name, type)
                 name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
-                @input_ports[name] = InputPort.new(self, name, type)
+                options = Kernel.validate_options options,
+                    :class => InputPort
+
+                @input_ports[name] = options[:class].new(self, name, type)
             rescue Typelib::NotFound => e
                 raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
             end

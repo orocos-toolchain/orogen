@@ -972,8 +972,7 @@ module Orocos
             #
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
-            #
-	    def task_context(name, &block)
+	    def task_context(name, options = Hash.new, &block)
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name that the project"
                 elsif name !~ /^(\w+::)*\w+$/
@@ -987,7 +986,7 @@ module Orocos
                     typekit.perform_pending_loads
                 end
 
-                task = external_task_context(name, &block)
+                task = external_task_context(name, options, &block)
                 if extended_states?
                     task.extended_state_support
                 end
@@ -1002,14 +1001,20 @@ module Orocos
 	    end
 
             # Declares a task context that is being imported, not defined
-            def external_task_context(name, &block)
+            #
+            # @options options [Class] type (Orocos::Spec::TaskContext) the
+            #   class of the created task context
+            def external_task_context(name, options = Hash.new, &block)
 		if has_task_context?(name)
 		    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
 		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
 		end
 
-		new_task = TaskContext.new(self, "#{self.name}::#{name}")
+                options = Kernel.validate_options options,
+                    :class => Orocos::Spec::TaskContext
+
+		new_task = options[:class].new(self, "#{self.name}::#{name}")
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
                 self_tasks << new_task
