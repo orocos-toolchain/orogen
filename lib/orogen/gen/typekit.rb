@@ -1339,7 +1339,7 @@ module Orocos
             BASE_TYPES = ['int', 'unsigned int', 'double', 'float', 'bool', 'char']
             BASE_TYPES_RTT_NAMES = {
                 'unsigned int' => 'uint' }
-            BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib}
+            BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib ros}
 
             def normalize_registry(with_base_types = false)
                 base = self.registry
