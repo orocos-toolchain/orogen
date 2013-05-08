@@ -435,11 +435,27 @@ module Orocos
         end
     end
 
-    def self.each_orogen_plugin_dir(&block)
-        if dirs = ENV['OROGEN_PLUGIN_PATH']
-            dirs.split(':').each(&block)
-        else
-            [].each(&block)
+    def self.each_orogen_plugin_path(&block)
+        (ENV['OROGEN_PLUGIN_PATH'] || "").split(':').each(&block)
+    end
+
+    def self.each_orogen_plugin_dir
+        each_orogen_plugin_path do |p|
+            if File.directory?(p)
+                yield(p)
+            end
+        end
+    end
+
+    def self.each_orogen_plugin_file(*type)
+        each_orogen_plugin_path do |path|
+            if File.file?(path)
+                yield(path)
+            else
+                Dir.glob(File.join(path, type, '*.rb')).each do |file|
+                    yield(file)
+                end
+            end
         end
     end
 
@@ -477,16 +493,14 @@ module Orocos
             $LOAD_PATH << dir
         end
         type = File.join(*type)
-        each_orogen_plugin_dir do |dir|
-            Dir.glob(File.join(dir, type, '*.rb')).each do |file|
-                logger.info "loading plugin #{file}"
-                begin
-                    require file
-                rescue Exception => e
-                    logger.warn "could not load plugin #{file}: #{e.message}"
-                    e.backtrace.each do |line|
-                        logger.warn "  #{line}"
-                    end
+        each_orogen_plugin_file do |file|
+            logger.info "loading plugin #{file}"
+            begin
+                require file
+            rescue Exception => e
+                logger.warn "could not load plugin #{file}: #{e.message}"
+                e.backtrace.each do |line|
+                    logger.warn "  #{line}"
                 end
             end
         end
