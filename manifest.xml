@@ -8,11 +8,5 @@
   <logo>http://</logo>
 
   <depend package="utilrb" />
-  <!--
-   To add any dependencies use the depend tag
-  <depend package="dummy-dependency-0" />
-	...
-  <depend package="dummy-dependency-n-1" />
-  <depend package="dummy-dependency-n" />
-  -->
+  <depend package="orogen" />
 </package>

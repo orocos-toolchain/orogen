@@ -1,0 +1,1 @@
+require 'orogen_ros'
