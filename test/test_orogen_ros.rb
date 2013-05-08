@@ -1,7 +1,7 @@
 require 'orogen_ros/test'
 
-describe OrogenRos do
-    include OrogenRos::SelfTest
+describe Orogen::ROS do
+    include Orogen::ROS::SelfTest
 
     before do
         # Code that is run before each test
