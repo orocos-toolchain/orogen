@@ -1,3 +1,4 @@
+require 'orogen'
 require 'orogen_ros/package'
 require 'orogen_ros/input_topic'
 require 'orogen_ros/output_topic'
