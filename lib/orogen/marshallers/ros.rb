@@ -50,24 +50,24 @@ module Orocos
 
                 def initialize(typekit)
                     @typekit = typekit
-                    @type_mappings = Hash.new
+                    @type_to_msg = Hash.new
                     @boxed_msg_mappings = Hash.new
                     boxed_msg_mappings['std_msgs/Time'] = 'time'
 
                     [8, 16, 32, 64].each do |int_size|
                         boxed_msg_mappings["std_msgs/Int#{int_size}"]  = "int#{int_size}"
-                        type_mappings["/int#{int_size}_t"] = "std_msgs/Int#{int_size}"
+                        type_to_msg["/int#{int_size}_t"] = "std_msgs/Int#{int_size}"
                         boxed_msg_mappings["std_msgs/UInt#{int_size}"]  = "uint#{int_size}"
-                        type_mappings["/uint#{int_size}_t"] = "std_msgs/UInt#{int_size}"
+                        type_to_msg["/uint#{int_size}_t"] = "std_msgs/UInt#{int_size}"
                     end
                     boxed_msg_mappings['std_msgs/Bool']  = 'bool'
-                    type_mappings['/bool'] = 'std_msgs/Bool'
+                    type_to_msg['/bool'] = 'std_msgs/Bool'
                     boxed_msg_mappings['std_msgs/Float32'] = 'float32'
-                    type_mappings['/float'] = 'std_msgs/Float32'
+                    type_to_msg['/float'] = 'std_msgs/Float32'
                     boxed_msg_mappings['std_msgs/Float64'] = 'float64'
-                    type_mappings['/double'] = 'std_msgs/Float64'
+                    type_to_msg['/double'] = 'std_msgs/Float64'
                     boxed_msg_mappings['std_msgs/String'] = 'string'
-                    type_mappings['/std/string'] = 'std_msgs/String'
+                    type_to_msg['/std/string'] = 'std_msgs/String'
 
                     Typelib::Type.extend TypeExtension
                     Typelib::OpaqueType.extend OpaqueTypeExtension
@@ -79,7 +79,7 @@ module Orocos
                 # Mappings from oroGen types to ROS message names
                 #
                 # @see ros_mappings
-                attr_reader :type_mappings
+                attr_reader :type_to_msg
 
                 # Mappings from ROS boxed messages to the base type they are
                 # wrapping
@@ -87,7 +87,7 @@ module Orocos
                 # Base ROS types cannot be used as messages. One has to first
                 # box them into a std_msgs message. This registers these
                 # mappings. oroGen then always generate a convertion function
-                # for the boxed type whenever the type_mappings specify a
+                # for the boxed type whenever the type_to_msg specify a
                 # message that should be boxed.
                 #
                 # @see ros_mappings
@@ -96,7 +96,7 @@ module Orocos
                 # True if some custom oroGen-to-ROS convertions have been
                 # registered
                 def has_custom_convertions?
-                    !type_mappings.empty?
+                    !type_to_msg.empty?
                 end
 
                 # Checks whether a ROS message name is a boxing type
@@ -113,7 +113,7 @@ module Orocos
                 def ros_mappings(mappings)
                     mappings.each do |typename, ros_msg_name|
                         type = typekit.find_type(typename)
-                        type_mappings[type.name] = ros_msg_name
+                        type_to_msg[type.name] = ros_msg_name
                     end
                 end
 
@@ -180,7 +180,7 @@ module Orocos
                 # messages (e.g. std_msgs/Time), it is the corresponding base
                 # type
                 def ros_field_name(type, absolute = false)
-                    if !type_mappings.has_key?(type.name) && (type <= Typelib::ArrayType || type <= Typelib::ContainerType)
+                    if !type_to_msg.has_key?(type.name) && (type <= Typelib::ArrayType || type <= Typelib::ContainerType)
                         "#{ros_field_name(type.deference, absolute)}[]"
                     else
                         msg_name = ros_message_name(type, absolute)
@@ -198,7 +198,7 @@ module Orocos
                 def ros_message_name(type, absolute = false)
                     if type < Typelib::EnumType
                         "std_msgs/Int32"
-                    elsif msg_name = type_mappings[type.name]
+                    elsif msg_name = type_to_msg[type.name]
                         return msg_name
                     elsif type <= Typelib::ArrayType || type <= Typelib::ContainerType
                         "#{ros_message_name(type.deference, absolute)}[]"
@@ -222,7 +222,7 @@ module Orocos
                 # unboxed version of the message (i.e. std_msgs/Time would map
                 # to ros::Time). If false, the base message type name is kept
                 def ros_cxx_type(type, do_unboxing = true)
-                    explicit_mapping = type_mappings[type.name]
+                    explicit_mapping = type_to_msg[type.name]
                     if !explicit_mapping && (type < Typelib::ArrayType || type < Typelib::ContainerType)
                         return "std::vector< #{ros_cxx_type(type.deference, do_unboxing)} >"
                     end
@@ -276,7 +276,7 @@ module Orocos
                 # Returns whether +type+ should be exported as a ROS message
                 def ros_converted_type?(type)
                     type = typekit.intermediate_type_for(type)
-                    return true if type_mappings.has_key?(type.name)
+                    return true if type_to_msg.has_key?(type.name)
                     return if ros_base_type?(type)
 
                     if type < Typelib::CompoundType
@@ -292,12 +292,12 @@ module Orocos
                 # Returns whether +type+ should be exported as a ROS message
                 def ros_exported_type?(type)
                     type = typekit.intermediate_type_for(type)
-                    return true if type_mappings.has_key?(type.name)
+                    return true if type_to_msg.has_key?(type.name)
                     return if ros_base_type?(type)
                     return if !(type < Typelib::CompoundType)
                     # ROS cannot represent arrays in arrays. Filter those out
                     type.recursive_dependencies.each do |t|
-                        next if type_mappings.has_key?(t.name)
+                        next if type_to_msg.has_key?(t.name)
                         if multidimensional_array?(t)
                             return
                         end
@@ -333,7 +333,7 @@ module Orocos
                     all_messages = Array.new
                     typesets.converted_types.each do |type|
                         # We are reusing an existing ROS message
-                        next if type_mappings.has_key?(type.name)
+                        next if type_to_msg.has_key?(type.name)
                         type_name = type.name
                         msg_name  = ros_message_name(type)
 
@@ -352,13 +352,13 @@ module Orocos
 
                     convert_types = generate_type_convertion_list(
                         typesets.converted_types.
-                            find_all { |t| !type_mappings[t.name] && !typekit.m_type?(t)})
+                            find_all { |t| !type_to_msg[t.name] && !typekit.m_type?(t)})
                     convert_array_types = generate_type_convertion_list(
                         typesets.array_types.map(&:deference).
                             find_all { |t| !typekit.m_type?(t)})
                     user_converted_types = generate_type_convertion_list(
                         typesets.converted_types.
-                            find_all { |t| type_mappings[t.name] })
+                            find_all { |t| type_to_msg[t.name] })
                     user_converted_types.delete_if do |type, ros_type|
                         ros_cxx_type(type) == type.cxx_name.gsub(/^::/, '')
                     end
@@ -376,7 +376,7 @@ module Orocos
                             next
                         end
 
-                        if (mapped = type_mappings[type.name]) && boxed_ros_msg?(mapped)
+                        if (mapped = type_to_msg[type.name]) && boxed_ros_msg?(mapped)
                             convert_boxed_types << [type, type]
                         end
                         code  = Generation.render_template "typekit", "ros", "Type.cpp", binding

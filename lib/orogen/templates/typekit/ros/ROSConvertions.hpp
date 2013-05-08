@@ -8,7 +8,7 @@
 #include <string>
 
 <% user_converted_types.each do |type, ros_type| %>
-#include <<%= type_mappings[ros_type.name] %>.h>
+#include <<%= type_to_msg[ros_type.name] %>.h>
 <% end %>
 
 namespace ros_convertions {

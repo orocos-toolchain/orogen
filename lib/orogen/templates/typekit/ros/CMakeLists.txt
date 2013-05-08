@@ -22,7 +22,7 @@ msg_deps = typekit.used_typekits.map do |tk|
     "#{tk.name}_msgs"
 end.compact.to_set
 user_converted_types.each do |type, ros_type|
-    msg = type_mappings[ros_type.name]
+    msg = type_to_msg[ros_type.name]
     msg_deps << msg.split('/').first
 end
 msg_deps = msg_deps.to_a.sort
