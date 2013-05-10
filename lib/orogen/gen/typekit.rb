@@ -1695,7 +1695,7 @@ module Orocos
                 # CORBA) for the base types *if and only if* we are NOT
                 # standalone (we are using oroGen and not typegen) *and* the
                 # oroGen project does not import any other typekit
-                generate_transports_for_base_types = (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
+                generate_transports_for_base_types = false && (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
 
                 # Load any queued file. This must be done before the call
                 # to local_headers below, as the new files will get
