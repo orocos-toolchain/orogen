@@ -317,7 +317,7 @@ module Orocos
             def generate_build_system; raise NotImplementedError end
 
             def to_s
-                "#<Orocos::ImportedProject: #{name} on #{main_project.name}>"
+                "#<Orocos::Generation::ImportedProject: #{name} on #{main_project.name}>"
             end
         end
     end
