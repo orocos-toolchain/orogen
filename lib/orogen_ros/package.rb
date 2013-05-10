@@ -25,7 +25,7 @@ module Orocos::ROS
             # @param [String] name the name of the node
             # @return [ROSNode]
             def ros_node(name, &block)
-                external_task_context(name, :type => ROSNode, &block)
+                external_task_context(name, :class => Node, &block)
             end
         end
     end
