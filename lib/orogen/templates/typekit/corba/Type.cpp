@@ -17,7 +17,13 @@ namespace RTT
 
             static bool update(const CORBA::Any& any, BaseType& tp)
             {
-                <% if type.inlines_code? || type <= Typelib::EnumType %>
+                <% if type.inlines_code? %>
+                CorbaType  corba;
+                if (!(any >>= corba))
+                    return false;
+                <%= type.inline_fromCorba("tp", "corba", " " * 16) %>;
+                return true;
+                <% elsif type <= Typelib::EnumType %>
                 CorbaType  corba;
                 if (!(any >>= corba))
                     return false;
@@ -26,8 +32,7 @@ namespace RTT
                 CorbaType*  corba;
                 if (!(any >>= corba))
                     return false;
-                bool ret = orogen_typekits::fromCORBA(tp, *corba);
-                return ret;
+                return orogen_typekits::fromCORBA(tp, *corba);
                 <% end %>
             }
 
@@ -41,7 +46,11 @@ namespace RTT
 
             static bool updateAny( BaseType const& value, CORBA::Any& any )
             {
-                <% if type.inlines_code? || type <= Typelib::EnumType %>
+                <% if type.inlines_code? %>
+                CorbaType corba;
+                <%= type.inline_toCorba("corba", "value", " " * 16) %>;
+                any <<= corba;
+                <% elsif type <= Typelib::EnumType %>
                 CorbaType corba;
                 if (!orogen_typekits::toCORBA(corba, value))
                     return false;

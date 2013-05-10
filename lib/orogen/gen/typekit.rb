@@ -828,7 +828,7 @@ module Orocos
             # Returns true if +typename+ has been defined by a typekit imported
             # by using_typekit
             def imported_type?(typename)
-                !imported_typekits_for(typename).empty?
+                !selected_types.find { |t| t.name == typename } && !imported_typekits_for(typename).empty?
             end
 
             # Returns true if +typename+ can be used on a task context interface
@@ -1747,6 +1747,7 @@ module Orocos
                 # unnecessarily (the original sets are hashes, and therefore don't
                 # have a stable order).
                 converted_types = generated_types.
+                    find_all { |type| !(type <= Typelib::NumericType) }.
                     sort_by { |type| type.name }
 
                 # We need a special case for arrays. The issue is the following:
