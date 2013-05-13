@@ -792,7 +792,7 @@ module Orocos
                 end
 
 		if typekit && !typekit.name
-		    typekit.name new
+		    typekit.name = new
 		end
 		new
 	    end
