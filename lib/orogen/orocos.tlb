@@ -3,6 +3,7 @@
   <alias name="/int64" source="/int64_t"/>
   <alias name="/uint32" source="/uint32_t"/>
   <alias name="/uint64" source="/uint64_t"/>
+  <alias name="/uint" source="/uint32_t"/>
   <container  name="/std/string" of="/int8_t" size="8" kind="/std/string"/>
   <alias name="/string" source="/std/string"/>
 </typelib>
