@@ -273,11 +273,6 @@ module Orocos
                 Project.using_rtt_typekit(self)
 
                 @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
-
-                begin
-                    import_types_from 'std'
-                rescue TypeImportError
-                end
 	    end
 
             def self.using_rtt_typekit(obj)

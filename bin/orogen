@@ -13,6 +13,7 @@ extended_states = true
 component = Orocos::Generation::Project.new
 Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = true
 
+imported_typekits = []
 transports = []
 no_transports = false
 explicit_typekit_slice = false
@@ -59,6 +60,9 @@ parser = OptionParser.new do |opt|
 
     opt.on('--type-export-policy=STRING", "sets the default type export policy. Must be either all or used') do |mode|
         Orocos::Generation.default_type_export_policy = mode.to_sym
+    end
+    opt.on('--import=NAME', 'import types from this typekit') do |tk_name|
+        imported_typekits << tk_name
     end
 
     opt.on('--[no-]rtt-scripting', 'when generating the typekit, remove features needed for RTT scripting (speeds up compilation and reduces code size)') do |value|
@@ -142,6 +146,13 @@ begin
     Orocos.beautify_loading_errors(filename) do
         component.enable_transports(*transports)
         component.load(filename, verbosity > 1)
+        imported_typekits.each do |tk_name|
+            begin
+                component.using_typekit tk_name
+            rescue LoadError
+                raise ArgumentError, "#{tk_name}, which was given to the --import option, does not seem to be a typekit name"
+            end
+        end
     end
 
     component.generate
