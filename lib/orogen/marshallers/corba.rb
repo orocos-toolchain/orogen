@@ -127,8 +127,14 @@ module Orocos
         def inline_fromCorba(result, value, indent)
             "#{indent}#{result} = #{value};\n"
         end
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}if (!(#{any_var} >>= #{corba_var})) return false;"
+        end
         def inline_toCorba(result, value, indent)
             "#{indent}#{result} = #{value};\n"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= #{corba_var};"
         end
     end
 
@@ -138,7 +144,11 @@ module Orocos
 		if name == "/bool"
 		    "CORBA::Boolean"
                 elsif size == 1
-                    "CORBA::Octet"
+                    if unsigned?
+                        "CORBA::Octet"
+                    else
+                        "CORBA::Char"
+                    end
                 elsif size == 2
                     "CORBA::#{'U' if unsigned?}Short"
                 elsif size == 4
@@ -157,6 +167,33 @@ module Orocos
                     raise "unexpected floating-point size #{size}"
                 end
 	    end
+        end
+    end
+
+    ::Typelib::specialize_model '/uint8_t' do
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} >>= CORBA::Any::to_octet(#{corba_var});"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= CORBA::Any::from_octet(#{corba_var});"
+        end
+    end
+
+    ::Typelib::specialize_model '/int8_t' do
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} >>= CORBA::Any::to_char(#{corba_var});"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= CORBA::Any::from_char(#{corba_var});"
+        end
+    end
+
+    ::Typelib::specialize_model '/bool' do
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} >>= CORBA::Any::to_boolean(#{corba_var});"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= CORBA::Any::from_boolean(#{corba_var});"
         end
     end
 

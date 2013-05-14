@@ -19,8 +19,7 @@ namespace RTT
             {
                 <% if type.inlines_code? %>
                 CorbaType  corba;
-                if (!(any >>= corba))
-                    return false;
+                <%= type.inline_fromAny("any", "corba", " " * 16) %>;
                 <%= type.inline_fromCorba("tp", "corba", " " * 16) %>;
                 return true;
                 <% elsif type <= Typelib::EnumType %>
@@ -49,7 +48,7 @@ namespace RTT
                 <% if type.inlines_code? %>
                 CorbaType corba;
                 <%= type.inline_toCorba("corba", "value", " " * 16) %>;
-                any <<= corba;
+                <%= type.inline_toAny("any", "corba", " " * 16) %>;
                 <% elsif type <= Typelib::EnumType %>
                 CorbaType corba;
                 if (!orogen_typekits::toCORBA(corba, value))
