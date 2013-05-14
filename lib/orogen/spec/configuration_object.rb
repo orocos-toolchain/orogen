@@ -6,7 +6,7 @@ module Orocos
         # Representation of a task's attribute or property
 	class ConfigurationObject
             # The task on which this property is attached
-            attr_reader :task
+            attr_accessor :task
 	    # The property name
 	    attr_reader :name
 
@@ -15,9 +15,13 @@ module Orocos
 	    attr_reader :type
 
             #If this property coudl be set Dynamic this returns true
-            def dynamic?
-                @dynamic
-            end
+            def dynamic?; !!@setter_operation end
+
+            # An operation that can be used to set the property. This is non-nil
+            # only for dynamic properties
+            #
+            # @return [Orocos::Spec::Operation]
+            attr_accessor :setter_operation
 
             # The name of the type this property is using, for consistency with
             # the +type+ attribute
@@ -28,9 +32,6 @@ module Orocos
 
 	    # The property's default value
 	    attr_reader :default_value
-
-            #Returns the operation if this is an dynamic property, nil othrwise
-            attr_reader :operation
 
             # The property default value, formatted for as a C++ value
             def cxx_default_value
@@ -52,20 +53,18 @@ module Orocos
                 Orocos.validate_toplevel_type(type)
                 @dynamic = false
 		@task, @name, @type, @default_value = task, name, type, default_value
-                @operation = nil
+                @setter_operation = nil
 	    end
 
             def dynamic
-                if task.find_operation("set#{name.capitalize}")
-                    raise ArgumentError, "an operation of name set#{name.capitalize} already Exists, this means you cannot register and dynamic peoperty with the name #{name}"
+                @setter_operation = task.find_operation("set#{name.capitalize}")
+                if !@setter_operation
+                    @setter_operation = task.operation("set#{name.capitalize}").
+                        returns("bool").
+                        argument("value", type_name).
+                        doc("Dynamic Property setter of #{name}")
                 end
-                @operation = task.operation("set#{name.capitalize}").
-                    returns("bool").
-                    argument("value", type_name).
-                    doc("Dynamic Property setter of #{name}")
 
-
-                @dynamic = true
                 self
             end
 

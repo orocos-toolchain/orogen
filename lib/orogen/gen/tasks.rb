@@ -27,10 +27,10 @@ module Orocos
                     constructor(constructor.join("\n"))
 
 
-                if dynamic?
+                if dynamic? && (setter_operation.task == task)
                     task.add_code_to_base_method_before "updateDynamicProperties","\tif(!set#{name.capitalize}(_#{name}.get())) return false;\n"
-                    operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
-                    operation.body = "\t//TODO Add your code here \n\n  \t//Call the base function, DO-NOT Remove\n\treturn(#{task.name}Base::set#{name.capitalize}(value));"
+                    setter_operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
+                    setter_operation.body = "\t//TODO Add your code here \n\n  \t//Call the base function, DO-NOT Remove\n\treturn(#{task.name}Base::set#{name.capitalize}(value));"
                 end
 
             end

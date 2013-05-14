@@ -513,6 +513,17 @@ module Orocos
                 !!find_property(name)
             end
 
+            # Make an existing property dynamic
+            #
+            # @return [Property] the property object
+            def make_property_dynamic(name)
+                # TODO: add error handling
+                property = @properties[name] = find_property(name).dup
+                property.task = self
+                property.dynamic
+                property
+            end
+
             # Asks orogen to implement the extended state support interface in
             # the Base class. This adds:
             #  * a 'state' output port in which the current task's state is written
