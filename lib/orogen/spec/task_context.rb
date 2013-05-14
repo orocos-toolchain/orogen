@@ -517,8 +517,11 @@ module Orocos
             #
             # @return [Property] the property object
             def make_property_dynamic(name)
-                # TODO: add error handling
-                property = @properties[name] = find_property(name).dup
+                prop = find_property(name)
+                if !prop
+                    raise ArgumentError, "The requested property " + name + " could not be found"
+                end
+                property = @properties[name] = prop.dup
                 property.task = self
                 property.dynamic
                 property
