@@ -32,10 +32,10 @@ using namespace <%= task.component.name %>;
 <%= (is_boolean ? 'bool' : 'void') %> <%= task.basename %>::<%= hook_name %>Hook()
 {
     <% if is_boolean %>
-    if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
+    if (! <%= task.basename %>::<%= hook_name %>Hook())
         return false;
     <% else %>
-    <%= task.superclass.name %>::<%= hook_name %>Hook();
+    <%= task.basename %>::<%= hook_name %>Hook();
     <% end %>
 
     <% snippets.each do |code| %>
