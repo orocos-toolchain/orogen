@@ -1,0 +1,25 @@
+<package>
+  <name>orogen</name>
+  <version>1.1.1</version>
+  <description>
+    orogen offers a specification interface for components developped in the
+    Orocos Realtime Toolkit. Moreover, it generates the specified modules,
+    thus offering an easy and fast development process.
+  </description>
+  <author>Sylvain Joyeux/sylvain.joyeux@m4x.org</author>
+  <maintainer email="orocos-dev@lists.mech.kuleuven.be">OCL Development Team</maintainer>
+  <license>GPL v2 or later</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+  <export>
+    <build_type>
+      cmake
+    </build_type>
+  </export>
+  <build_depend>ruby</build_depend>
+
+  <run_depend>ruby</run_depend>
+  <run_depend>typelib</run_depend>
+  <run_depend>utilrb</run_depend>
+
+</package>
