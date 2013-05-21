@@ -447,7 +447,7 @@ module Orocos
         end
     end
 
-    def self.each_orogen_plugin_file(*type)
+    def self.each_orogen_plugin_file(type)
         each_orogen_plugin_path do |path|
             if File.file?(path)
                 yield(path)
@@ -489,11 +489,11 @@ module Orocos
 
     def self.load_orogen_plugins(*type)
         original_load_path = $LOAD_PATH.dup
+        type = File.join(*type)
         each_orogen_plugin_dir do |dir|
             $LOAD_PATH << dir
         end
-        type = File.join(*type)
-        each_orogen_plugin_file do |file|
+        each_orogen_plugin_file(type) do |file|
             logger.info "loading plugin #{file}"
             begin
                 require file
