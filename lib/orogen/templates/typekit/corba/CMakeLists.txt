@@ -39,6 +39,11 @@ add_library(${libname_corba} SHARED
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosCORBA_LIBRARIES})
+if(WITH_RPATH AND APPLE)
+  set_target_properties( ${libname_corba} PROPERTIES
+    INSTALL_NAME_DIR "@rpath"
+    LINK_FLAGS "-Wl,-rpath ${CMAKE_INSTALL_PREFIX}/lib -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
+endif()
 
 <%= Generation.cmake_pkgconfig_link('corba', '${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
