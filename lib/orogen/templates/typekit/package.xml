@@ -1,0 +1,25 @@
+<package>
+  <name><%=typekit.name %>-typekit</name>
+  <version>0.0.1</version>
+    <description>
+      <%= typekit.name %>-typekit description
+    </description>
+    <!--NOTE: set the license and author before you publish this code-->
+    <license></license>
+    <author>Unknown Author</author>
+    <maintainer email="unknown@maintainer.com">Unknown Author</maintainer>
+
+    <buildtool_depend>cmake</buildtool_depend>
+
+    <build_depend>rtt</build_depend>
+    <build_depend>rtt_typelib</build_depend>
+    <run_depend>rtt</run_depend>
+    <run_depend>rtt_typelib</run_depend>
+
+    <export>
+      <build_type>
+	cmake
+      </build_type>
+    </export>
+</package>
+
