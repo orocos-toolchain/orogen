@@ -253,8 +253,13 @@ module Orocos
                 @explicit_activity = true
                 @period = nil
                 @activity_setup = nil
+                @stop_timeout = 10
                 
                 ActivityDefinition.new(type[0], type[1], type[2])
+            end
+
+            dsl_attribute :stop_timeout do |value|
+                Float(value)
             end
 
             # Makes this task's activity driven by a file descriptor. The underlying
