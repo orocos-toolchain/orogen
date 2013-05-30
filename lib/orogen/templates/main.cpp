@@ -259,6 +259,12 @@ int ORO_main(int argc, char* argv[])
 //
 <% activity_ordered_tasks.each do |task| %>
     <%= task.generate_activity_setup %>
+    <% if timeout = task.stop_timeout %>
+    { RTT::os::Thread* thread = dynamic_cast<RTT::os::Thread*>(activity_<%= task.name %>);
+        if (thread)
+            thread->setStopTimeout(<%= timeout %>);
+    }
+    <% end %>
     task_<%= task.name %>.setActivity(activity_<%= task.name %>);
 <% end %>
 

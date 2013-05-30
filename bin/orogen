@@ -156,7 +156,7 @@ begin
     end
 
     component.generate
-rescue Orocos::Generation::ConfigError, ArgumentError => e
+rescue LoadError, Orocos::Generation::ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
