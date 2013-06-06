@@ -417,7 +417,7 @@ module Orocos
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
             def interface_types
-                (all_properties + all_operations + all_ports + all_dynamic_ports).
+                (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
             end

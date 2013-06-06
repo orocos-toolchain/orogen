@@ -457,12 +457,34 @@ module Orocos
             # Will generate a task context with a <tt>_device_name</tt>
             # attribute of type RTT::Attribute<std::string>.
 	    def attribute(name, type, default_value = nil)
-                name = name.to_s if name.respond_to?(:to_sym)
-		type = project.find_interface_type(type)
+		@attributes[name] = configuration_object(Attribute, name, type, default_value)
+	    end
+
+            def configuration_object(klass, name, type, default_value)
+                name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
 
-		@attributes[name] = Attribute.new(self, name, type, default_value)
-	    end
+                begin
+                    type = project.find_interface_type(type)
+                rescue Typelib::NotFound => e
+                    raise Orocos::Generation::ConfigError, "invalid type #{type}: #{e.message}"
+                end
+
+                if default_value
+                    accepted = [Numeric, Symbol, String, TrueClass, FalseClass].
+                        any? { |klass| default_value.kind_of?(klass) }
+                    if !accepted
+                        raise ArgumentError, "default values for #{klass.name.downcase} can be specified only for simple types (numeric, string and boolean)"
+                    end
+                    begin
+                        Typelib.from_ruby(default_value, type)
+                    rescue TypeError => e
+                        raise ArgumentError, e.message, e.backtrace
+                    end
+                end
+
+		klass.new(self, name, type, default_value)
+            end
 
             # Create a new property with the given name, type and default value
             # for this task. This returns the Property instance representing
@@ -483,29 +505,7 @@ module Orocos
             # Will generate a task context with a <tt>_device_name</tt>
             # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
-                name = Generation.verify_valid_identifier(name)
-                check_uniqueness(name)
-
-                begin
-                    type = project.find_interface_type(type)
-                rescue Typelib::NotFound
-                    raise Orocos::Generation::ConfigError, "type #{type} is not declared"
-                end
-
-                if default_value
-                    accepted = [Numeric, Symbol, String, TrueClass, FalseClass].
-                        any? { |klass| default_value.kind_of?(klass) }
-                    if !accepted
-                        raise ArgumentError, "property default values can be specified only for simple types (numeric, string and boolean)"
-                    end
-                    begin
-                        Typelib.from_ruby(default_value, type)
-                    rescue TypeError => e
-                        raise ArgumentError, e.message, e.backtrace
-                    end
-                end
-
-		@properties[name] = Property.new(self, name, type, default_value)
+		@properties[name] = configuration_object(Property, name, type, default_value)
 	    end
 
             # True if this task has a property with that name
