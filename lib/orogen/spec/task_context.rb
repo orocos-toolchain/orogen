@@ -472,7 +472,7 @@ module Orocos
 
                 if default_value
                     accepted = [Numeric, Symbol, String, TrueClass, FalseClass].
-                        any? { |klass| default_value.kind_of?(klass) }
+                        any? { |valid_klass| default_value.kind_of?(valid_klass) }
                     if !accepted
                         raise ArgumentError, "default values for #{klass.name.downcase} can be specified only for simple types (numeric, string and boolean)"
                     end
