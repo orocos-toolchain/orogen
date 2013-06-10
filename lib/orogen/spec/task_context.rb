@@ -327,7 +327,14 @@ module Orocos
 		pp.text "------- #{name} ------"
                 pp.breakable
                 if doc
-                    pp.text doc.to_s
+                    first_line = true
+                    doc.split("\n").each do |line|
+                        pp.breakable if !first_line
+                        first_line = false
+                        pp.text "# #{line}"
+                    end
+                    pp.breakable
+                    pp.text "# "
                 else
                     pp.text "no documentation defined for this task context model"
                 end
@@ -457,7 +464,9 @@ module Orocos
             # Will generate a task context with a <tt>_device_name</tt>
             # attribute of type RTT::Attribute<std::string>.
 	    def attribute(name, type, default_value = nil)
-		@attributes[name] = configuration_object(Attribute, name, type, default_value)
+		@attributes[name] = att = configuration_object(Attribute, name, type, default_value)
+                Spec.load_documentation(att, /attribute/)
+                att
 	    end
 
             def configuration_object(klass, name, type, default_value)
@@ -505,7 +514,9 @@ module Orocos
             # Will generate a task context with a <tt>_device_name</tt>
             # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
-		@properties[name] = configuration_object(Property, name, type, default_value)
+		@properties[name] = prop = configuration_object(Property, name, type, default_value)
+                Spec.load_documentation(prop, /property/)
+                prop
 	    end
 
             # True if this task has a property with that name
@@ -730,7 +741,9 @@ module Orocos
             # remotely or locally, and synchronoulsy as well as asynchronously.
 	    def operation(name)
                 name = Generation.verify_valid_identifier(name)
-		@operations[name] = Operation.new(self, name)
+		@operations[name] = op = Operation.new(self, name)
+                Spec.load_documentation(op, /operation/)
+                op
 	    end
 
             # Defines an operation whose implementation is in the Base class
@@ -957,7 +970,9 @@ module Orocos
                 options = Kernel.validate_options options,
                     :class => OutputPort
 
-                @output_ports[name] = options[:class].new(self, name, type)
+                @output_ports[name] = port = options[:class].new(self, name, type)
+                Spec.load_documentation(port, /output_port/)
+                port
             rescue Typelib::NotFound
                 raise Orocos::Generation::ConfigError, "type #{type} is not declared"
 	    end
@@ -975,7 +990,10 @@ module Orocos
                 options = Kernel.validate_options options,
                     :class => InputPort
 
-                @input_ports[name] = options[:class].new(self, name, type)
+                @input_ports[name] = port = options[:class].new(self, name, type)
+                Spec.load_documentation(port, /input_port/)
+                port
+
             rescue Typelib::NotFound => e
                 raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
             end

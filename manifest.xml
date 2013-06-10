@@ -20,6 +20,7 @@
     <depend package="tools/service_discovery" optional="1" />
     -->
     <depend package="rtt_typelib" />
+    <depend package="tools/metaruby" />
     <rosdep name="libxslt" />
     <rosdep name="nokogiri" />
     <rosdep name="rake" />
