@@ -1,9 +1,24 @@
+<% if doc = type.metadata.get('doc').first %>
+<div class="doc-above">
+<%= Kramdown::Document.new(doc).to_html %>
+</div>
+<% end %>
+
 <% if type < Typelib::OpaqueType %>
 Unknown to oroGen (this is an opaque type)
+<% elsif type < Typelib::NumericType %>
+<ul class="body-header-list">
+<%= page.render_item(type.name) %>
+</ul>
 <% elsif type < Typelib::CompoundType %>
 <ul class="body-header-list">
     <% type.each_field do |field_name, field_type| %>
-        <%= page.render_item(field_name, page.link_to(field_type)) %>
+        <li>
+        <% if doc = type.field_metadata[field_name].get('doc').first %>
+            <div class="doc-above"><%= Kramdown::Document.new(doc).to_html %></div>
+        <% end %>
+            <b><%= field_name %></b>: <%= page.link_to(field_type) %>
+        </li>
     <% end %>
 </ul>
 <% elsif type < Typelib::EnumType %>
