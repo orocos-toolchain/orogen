@@ -9,7 +9,10 @@ module Orocos
 
     module Generation
         def self.multiline_string_to_cxx(str)
-            "\"#{str.split("\n").join("\\n")}\""
+            if str
+                "\"#{str.split("\n").join("\\n").gsub('"', '\\"')}\""
+            else "\"\""
+            end
         end
 
         # Module that is used to add code generation functionality to
@@ -27,7 +30,7 @@ module Orocos
 
                 task.add_base_member("property", "_#{name}",
                     "RTT::Property< #{type.cxx_name} >").
-                    initializer("_#{name}(\"#{name}\", \"#{doc}\")").
+                    initializer("_#{name}(\"#{name}\", #{Generation.multiline_string_to_cxx(doc)})").
                     constructor(constructor.join("\n"))
 
 
