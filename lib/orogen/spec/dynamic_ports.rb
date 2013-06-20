@@ -5,7 +5,10 @@ module Orocos
                 m = dup
                 m.instance_variable_set :@name, name
                 if type
-                    m.instance_variable_set :@type, task.project.find_type(type)
+                    if type.respond_to?(:to_str)
+                        type = task.project.find_type(type)
+                    end
+                    m.instance_variable_set :@type, type
                 end
                 m
             end
