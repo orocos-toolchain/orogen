@@ -450,10 +450,15 @@ module Orocos
                     begin
                         while true
                             line = file.readline
-                            if Regexp.new(taskname + "\(.*\)").match(line)
-                                if $1 =~ /TaskCore::TaskState/
-                                    puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                            begin
+                                if Regexp.new(taskname + "\(.*\)").match(line)
+                                    if $1 =~ /TaskCore::TaskState/
+                                        puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                                    end
                                 end
+                            rescue ArgumentError => e 
+                                STDERR.puts "[CRITICAL] Could not parse \'#{line}\' maybe it contains invalid chars?"
+                                raise e
                             end
                         end
                     rescue EOFError
