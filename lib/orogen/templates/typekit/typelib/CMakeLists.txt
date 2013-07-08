@@ -37,7 +37,7 @@ if ( IS_ROS_PACKAGE )
       # Catkin style of fetching ROS deps
       FIND_PACKAGE( ROS QUIET COMPONENTS roslib )
 
-      IF(NOT ROS_FOUND) # pre-Fuerte
+      IF(NOT ROS_FOUND) # pre-Fuerte or Groovy
         # TODO: This block to get roslib is deprecated as of ROS Fuerte, but is left in for pre-Fuerte compatibility
         set(roslib_PACKAGE_PATH ${ROS_ROOT}/core/roslib) ### XXX hardcoded
         message("Falling back to roslib in: ${roslib_PACKAGE_PATH}")
@@ -53,6 +53,7 @@ if ( IS_ROS_PACKAGE )
       IF(ROS_FOUND)
         include_directories( ${ROS_INCLUDE_DIRS} )
         add_definitions( -DHAS_ROSLIB )
+	target_link_libraries( ${libname_typelib} ${ROS_LIBRARIES} )
       ENDIF(ROS_FOUND)
 
 endif( IS_ROS_PACKAGE )
