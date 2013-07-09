@@ -1462,7 +1462,7 @@ module Orocos
                     [prefix, "#{suffix}[#{type.length}]"]
                 else
                     name = intermediate_type_name_for(type)
-                    [name.gsub('/', '::').gsub('<::', '< ::')]
+                    [name.gsub('/', '::').gsub('<::', '< ::').gsub('>>','> >')]
                 end
             end
 
