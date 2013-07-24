@@ -116,7 +116,7 @@ module Orocos
                 definition_template.result(binding)
             end
 
-            def render(type)
+            def render(type, options = Hash.new)
                 @type = type
                 base = self.type
                 typekit = Orocos.load_typekit_for(base, false)

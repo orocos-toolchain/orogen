@@ -12,7 +12,7 @@ module Orocos
                 @page = page
             end
 
-            def render(task)
+            def render(task, options = Hash.new)
                 @task = task
                 page.push(nil, template.result(binding))
             end
