@@ -1,8 +1,8 @@
-= Orogen: easy component building for Orocos/RTT
+# Orogen: easy component building for Orocos/RTT
 
-  http://rock-robotics.org/stable/documentation/orogen
+* http://www.rock-robotics.org/stable/documentation/orogen
 
-== What is oroGen ?
+## What is oroGen ?
 
 oroGen is a specification language and code generator for the Orocos Realtime
 Toolkit (RTT). The Orocos/Real Time Toolkit is a C++ library allowing to build
@@ -17,9 +17,9 @@ implementing the actual functionality.
 The remaining of this readme is about oroGen installation. See the user's guide
 for more in-depth usage information:
 
-  http://rock-robotics.org/stable/documentation/orogen
+*  http://www.rock-robotics.org/stable/documentation/orogen
 
-== Installation
+## Installation
 
 oroGen is part of the Robot Construction Kit. Check out
 http://rock-robotics.org for installation instructions.
