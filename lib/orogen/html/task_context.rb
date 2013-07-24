@@ -6,7 +6,9 @@ module Orocos
             attr_reader :template
 
             def initialize(page)
-                @template = ERB.new(File.read(File.join(File.dirname(__FILE__), "task_context_fragment.page")))
+                path = File.join(File.dirname(__FILE__), "task_context_fragment.page")
+                @template = ERB.new(File.read(path))
+                @template.filename = path
                 @page = page
             end
 

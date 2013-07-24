@@ -18,8 +18,13 @@ module Orocos
 
             def initialize(page)
                 @page = page
-                @template = ERB.new(File.read(File.join(File.dirname(__FILE__), "type_fragment.page")))
-                @definition_template = ERB.new(File.read(File.join(File.dirname(__FILE__), "type_definition_fragment.page")))
+
+                template_path = File.join(File.dirname(__FILE__), "type_fragment.page")
+                @template = ERB.new(File.read(template_path))
+                template.filename = template_path
+                fragment_path = File.join(File.dirname(__FILE__), "type_definition_fragment.page")
+                @definition_template = ERB.new(File.read(fragment_path))
+                definition_template.filename = fragment_path
 
                 @produced_by = []
                 @consumed_by = []
