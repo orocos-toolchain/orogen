@@ -4,7 +4,9 @@
 <i>no documentation provided for this task context</i>
 <% end %>
 <ul class="body-header-list">
+   <% if task.superclass %>
    <%= page.render_item("subclassed from", page.link_to(task.superclass)) %>
+   <% end %>
 
    <% if task.needs_configuration? %>
    <li>This task does <b>NOT</b> need any configuration</li>
