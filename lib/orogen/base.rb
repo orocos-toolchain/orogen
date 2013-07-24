@@ -119,6 +119,7 @@ module Orocos
 
 		templates[path] = ERB.new(File.read(template_file), nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
                 templates[path].filename = template_file
+                templates[path]
 	    end
 	end
 
