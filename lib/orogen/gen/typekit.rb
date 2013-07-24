@@ -861,10 +861,10 @@ module Orocos
                         if template_arguments.size == 1
                             element_type = find_type(template_arguments[0], true)
                             if project
-                                project.registry.define_container(container_name,
-                                                project.find_type(element_type.name, true), 0)
+                                project.registry.create_container(container_name,
+                                                project.find_type(element_type.name, true))
                             end
-                            return registry.define_container(container_name, element_type, 0)
+                            return registry.create_container(container_name, element_type)
 
                         elsif project && type = project.registry.build(type_name)
                             while type.respond_to?(:deference)
