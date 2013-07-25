@@ -14,21 +14,12 @@
 
     <depend package="rtt" />
     <depend package="typelib" />
-    <!--
-    Disabled for now, until I know whether tools/service_discovery will be moved
-    to orocos-toolchain or not
-    <depend package="tools/service_discovery" optional="1" />
-    -->
     <depend package="rtt_typelib" />
     <depend package="tools/metaruby" />
-    <rosdep name="libxslt" />
-    <rosdep name="nokogiri" />
-    <rosdep name="rake" />
-    <rosdep name="ruby" />
-    <!--
-    <rosdep name="webgen" type="doc" />
-    <rosdep name="coderay" type="doc" />
-    <rosdep name="rdoc" type="doc" />
-    -->
+    <depend package="kramdown" optional="1" />
+    <depend package="libxslt" />
+    <depend package="nokogiri" />
+    <depend package="rake" />
+    <depend package="ruby" />
 </package>
 
