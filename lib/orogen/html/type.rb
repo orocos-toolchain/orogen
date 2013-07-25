@@ -117,6 +117,7 @@ module Orocos
             end
 
             def render(type, options = Hash.new)
+                _, push_options = Kernel.filter_options options, :external_objects => nil
                 @type = type
                 base = self.type
                 typekit = Orocos.load_typekit_for(base, false)
