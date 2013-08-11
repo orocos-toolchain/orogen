@@ -35,8 +35,6 @@
 #endif
 #ifdef ORO_CORELIB_DATASOURCES_HPP
     extern template class RTT::internal::ValueDataSource< <%= type.cxx_name %> >;
-    extern template class RTT::internal::ConstantDataSource< <%= type.cxx_name %> >;
-    extern template class RTT::internal::ReferenceDataSource< <%= type.cxx_name %> >;
 #endif
 #ifdef ORO_INPUT_PORT_HPP
     extern template class RTT::OutputPort< <%= type.cxx_name %> >;

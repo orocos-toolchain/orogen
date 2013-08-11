@@ -12,7 +12,4 @@ template class RTT::Attribute< <%= type.cxx_name %> >;
 
 template class RTT::internal::DataSource< <%= type.cxx_name %> >;
 template class RTT::internal::ValueDataSource< <%= type.cxx_name %> >;
-template class RTT::internal::ConstantDataSource< <%= type.cxx_name %> >;
-template class RTT::internal::AssignableDataSource< <%= type.cxx_name %> >;
-template class RTT::internal::ReferenceDataSource< <%= type.cxx_name %> >;
 
