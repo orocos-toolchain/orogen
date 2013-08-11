@@ -660,7 +660,7 @@ module Orocos
         end
 
         # Support for typekit generation in oroGen
-	class Typekit
+	class Typekit < Spec::Typekit
             class << self
                 attr_reader :plugins
             end
@@ -775,9 +775,6 @@ module Orocos
 
             attr_reader :selected_types
 
-	    attr_reader :registry
-            attr_reader :imported_types
-            attr_accessor :imported_typelist
             attr_reader :imported_typekits
 
             attr_reader :used_libraries
@@ -793,19 +790,21 @@ module Orocos
                 opaques.find_all { |opdef| !imported_type?(opdef.type) }
             end
 
-            attr_reader :opaque_registry
             attr_reader :pending_load_options
             attr_reader :pending_loads
 
-            def using_typekit(typekit)
-                self.imported_types.merge(typekit.registry)
-                self.imported_typelist |= typekit.typelist
-                self.include_dirs      |= typekit.include_dirs.to_set
-                self.opaques.concat(typekit.opaques)
-                if dir = typekit.types_dir
-                    self.include_dirs << dir
+            def find_pkgconfig_for_typekit(typekit)
+                if !typekit.virtual?
+                    return Utilrb::PkgConfig.new("#{typekit.name}-typekit-#{orocos_target}")
                 end
-                self.imported_typekits << typekit
+            end
+
+
+            def using_typekit(typekit)
+                super
+                if pkg = find_pkgconfig_for_typekit(typekit)
+                    self.include_dirs |= pkg.include_dirs.to_set
+                end
             end
 
             def using_library(library, options = Hash.new)
@@ -814,27 +813,6 @@ module Orocos
                 self.include_dirs |= library.include_dirs.to_set
                 if options[:link]
                     self.linked_used_libraries << library
-                end
-            end
-
-            # Returns the typekit object that defines this type
-            def imported_typekits_for(typename)
-		if typename.respond_to?(:name)
-		    typename = typename.name
-		end
-                return imported_typekits.find_all { |tk| tk.includes?(typename) }
-            end
-
-            # Returns true if +typename+ has been defined by a typekit imported
-            # by using_typekit
-            def imported_type?(typename)
-                !selected_types.find { |t| t.name == typename } && !imported_typekits_for(typename).empty?
-            end
-
-            # Returns true if +typename+ can be used on a task context interface
-            def exported_type?(typename)
-                imported_typekits_for(typename).any? do |tk|
-                    tk.interface_type?(typename)
                 end
             end
 
@@ -878,11 +856,7 @@ module Orocos
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
                     if !registry.include?(type.name)
-                        type_def = type.registry.minimal(type.name)
-                        registry.merge(type_def)
-                        if project
-                            project.registry.merge(type_def)
-                        end
+                        registry.merge(type)
                     end
                     return registry.get(type.name)
                 else
@@ -914,7 +888,7 @@ module Orocos
 	    attr_reader :loaded_files_dirs
 
 	    def initialize(project = nil)
-		@project = project
+                super(project)
 
                 @include_dirs = Set.new
                 @include_dirs << "/usr/include" << "/usr/local/include"
@@ -924,15 +898,12 @@ module Orocos
 
                 @internal_dependencies = []
 		@imports, @loads    = [], []
-		@registry           = Typelib::Registry.new
+                Project.using_rtt_typekit(self)
 		@imported_typekits  = []
-		@imported_types     = Typelib::Registry.new
-                @imported_typelist  = Set.new
 
                 @used_libraries        = []
                 @linked_used_libraries = []
 
-		@opaque_registry    = Typelib::Registry.new
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
                 @pending_load_options = []
@@ -1100,7 +1071,7 @@ module Orocos
             # to take ownership on that value, in which case it has to return
             # true. If the function returns false, then the sample is deleted after
             # the method call.
-            def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
+            def opaque_type(opaque_name, intermediate_type, options = {}, &convert_code_generator)
                 options = validate_options options,
                     :includes => [],
                     :needs_copy => true
@@ -1109,25 +1080,24 @@ module Orocos
                     options[:includes] = [options[:includes]]
                 end
 
-                base_type = base_type.to_str
-                base_type = Typelib::Type.normalize_typename(base_type)
-                if intermediate_type.kind_of?(Class) && intermediate_type < Typelib::Type
-                    intermediate_type = intermediate_type.name
-                else
-                    intermediate_type = Typelib::Type.normalize_typename(intermediate_type)
-                end
+                opaque_name = opaque_name.to_str
+                opaque_name = Typelib::Type.normalize_typename(opaque_name)
+                intermediate_typename =
+                    if intermediate_type.respond_to?(:name)
+                        intermediate_type.name
+                    else
+                        Typelib::Type.normalize_typename(intermediate_type)
+                    end
+                intermediate_type = find_type(intermediate_typename)
 
-                typedef = "<typelib><opaque name=\"#{base_type.gsub('<', '&lt;').gsub('>', '&gt;')}\" size=\"#{0}\" /></typelib>"
-                opaque_def = Typelib::Registry.from_xml(typedef)
-                opaque_registry.merge opaque_def
-                registry.merge opaque_def
-                if project
-                    project.registry.merge opaque_def
-                end
+                opaque_type = registry.create_opaque(opaque_name)
+                opaque_type.metadata.
+                    set 'orogen_intermediate_type', intermediate_type.name
+                intermediate_type.metadata.
+                    add 'orogen_intermediate_for', base_type
 
-                opaque_type = find_type(base_type, true)
-                orogen_def  = OpaqueDefinition.new(opaque_type,
-                                                 intermediate_type, options, convert_code_generator) 
+                orogen_def  = OpaqueDefinition.new(
+                    opaque_type, intermediate_type, options, convert_code_generator) 
                 orogen_def.caller = caller
                 @opaques << orogen_def
                 @opaques = opaques.
@@ -1138,7 +1108,7 @@ module Orocos
             # True if there are some opaques in this typekit. The result of this
             # method is only valid during generation. Don't use it in general.
             def has_opaques?
-                self_types.any? { |t| t.contains_opaques? }
+                !self_opaques.empty?
             end
 
             # True if some opaques require to generate templates
@@ -1252,7 +1222,11 @@ module Orocos
                 end
 
                 file_registry = Typelib::Registry.new
-                file_registry.merge opaque_registry
+                registry.each do |type|
+                    if type.opaque? && self_type?(type)
+                        file_registry.merge type
+                    end
+                end
 
                 options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
                 # GCCXML can't parse vectorized code, and the Typelib internal
@@ -1579,7 +1553,7 @@ module Orocos
             def self_types
 		generated_types = []
 		registry.each do |type|
-                    next if imported_type?(type.name)
+                    next if imported_type?(type)
                     generated_types << type
 		end
                 generated_types

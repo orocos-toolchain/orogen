@@ -19,4 +19,6 @@ require 'orogen/spec/dynamic_ports'
 require 'orogen/spec/task_context'
 require 'orogen/spec/deployment'
 
+require 'orogen/spec/typekit'
+
 require 'orogen/spec/doc'

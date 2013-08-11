@@ -92,9 +92,7 @@ module Orocos
             # project.
             attr_reader :self_tasks
 
-            # The Typelib::Registry object holding all known types defined in
-            # this project
-	    attr_reader :registry
+            def registry; typekit.registry end
 
             # If true, #find_type will create a new Null type when unknown types
             # are found. This is used to use orogen specifications before
@@ -130,13 +128,12 @@ module Orocos
 		if name !~ /^\d/
 		    raise ArgumentError, "version strings must start with a number (had: #{name})"
 		end
+                typekit.version = name
 		name
 	    end
 
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
-            # The set of pkg-config dependencies we depend on
-            attr_reader :typekit_libraries
 
             # A set of ImportedProject objects describing libraries which define
             # tasks. They have to provide a .orogen file which lists the tasks
@@ -152,7 +149,7 @@ module Orocos
             # Sets the project's definition file. It has to be an absolute path
             def deffile=(path)
                 @deffile = path
-                if typekit && path
+                if path
                     base_dir = self.base_dir
                     typekit.base_dir = base_dir
                     if base_dir
@@ -251,27 +248,17 @@ module Orocos
 
                 @name    = nil
 		@version = "0.0"
-		@used_typekits  = []
                 @used_libraries = []
-                @typekit_libraries = []
                 @used_task_libraries = Set.new
-                @typekit = nil
+                @typekit = Typekit.new(self)
+                typekit.type_export_policy Orocos::Generation.default_type_export_policy
 
                 @deployers = []
 
                 @loaded_orogen_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @enabled_transports = Set.new
-                @opaques = Array.new
                 @loaded_deployments = Hash.new
-
-		# Load orocos-specific types which cannot be used in the
-		# project-defined typekit but can be used literally in argument
-		# lists or property types
-		@registry = Typelib::Registry.new
-                @opaque_registry = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(registry)
-                Project.using_rtt_typekit(self)
 
                 @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
 	    end
@@ -297,7 +284,7 @@ module Orocos
             # Returns the typekit object that corresponds to +typekit_name+, or
             # nil if there is none
             def find_typekit(typekit_name)
-                project.used_typekits.find { |tk| tk.name == typekit_name }
+                used_typekits.find { |tk| tk.name == typekit_name }
             end
 
             # The set of typekits that are already loaded on this oroGen project
@@ -420,11 +407,7 @@ module Orocos
 
 	    # The set of typekits that are to be used in this project. This is
             # a set of ImportedTypekit instances.
-	    attr_reader :used_typekits
-
-            # The Typelib::Registry object with only opaque definitions. This
-            # does include the opaques defined in our own typekit
-            attr_reader :opaque_registry
+            def used_typekits; typekit.used_typekits end
 
             class TypeImportError < LoadError
                 attr_reader :name
@@ -445,7 +428,7 @@ module Orocos
                 if has_typekit?(name)
                     using_typekit name
                 else
-                    typekit(true).load name, true, *args
+                    typekit.load name, true, *args
                 end
             rescue LoadError
                 raise TypeImportError.new(name), "cannot find typekit or file #{name}. If this is supposed to be a header, the following include path was used: #{typekit.include_dirs.to_a.join(":")}"
@@ -474,23 +457,10 @@ module Orocos
                 end
 
 		used_typekits << typekit
-                if ours = self.typekit
-                    ours.using_typekit(typekit)
-                end
-                if typekit.respond_to?(:project)
-                    max_sizes.merge!(typekit.project.max_sizes) do |typename, a, b|
-                        a.merge(b)
-                    end
-                end
-                registry.merge(typekit.registry)
-                opaque_registry.merge(typekit.opaque_registry)
-                opaques.concat(typekit.opaques)
+                self.typekit.using_typekit(typekit)
+                # TODO: handle max sizes
                 typekit
 	    end
-
-            attr_reader :opaques
-
-            include OpaqueHandling
 
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
@@ -581,7 +551,7 @@ module Orocos
             rescue Typelib::NotFound => e
                 if define_dummy_types?
                     return registry.create_null(typename)
-                elsif typekit && typekit.respond_to?(:pending_loads) && !typekit.pending_loads.empty?
+                elsif typekit.respond_to?(:pending_loads) && !typekit.pending_loads.empty?
                     typekit.perform_pending_loads
                     retry
                 end
@@ -662,9 +632,7 @@ module Orocos
                     typekit(true).load(header)
                 end
 
-		if typekit
-		    typekit.generate
-		end
+                typekit.generate
                 validate_max_sizes_spec
 
                 pc = Generation.render_template "project.pc", binding
@@ -770,13 +738,11 @@ module Orocos
                 result = (used_typekits + used_libraries + used_tasklibs)
 
                 var_names = result.map(&:var_name).to_set
-                if typekit
-                    typekit.dependencies.each do |dep|
-                        next if !dep.in_context?('core') || var_names.include?(dep.var_name)
-                        dep = dep.dup
-                        dep.remove_context('link')
-                        result << dep
-                    end
+                typekit.dependencies.each do |dep|
+                    next if !dep.in_context?('core') || var_names.include?(dep.var_name)
+                    dep = dep.dup
+                    dep.remove_context('link')
+                    result << dep
                 end
 
                 result.to_set.to_a.sort_by { |dep| dep.var_name }
@@ -792,7 +758,7 @@ module Orocos
                     raise ArgumentError, 'name should be a string'
                 end
 
-		if typekit && !typekit.name
+		if !typekit.name
 		    typekit.name = new
 		end
 		new
@@ -836,10 +802,6 @@ module Orocos
 
                 do_typekit = options[:typekit] || options[:typekit_link]
                 if do_typekit
-                    typekit_libraries << [pkg, options[:typekit_link]]
-                end
-
-                if self.typekit && do_typekit
                     self.typekit.using_library(pkg, :link => options[:typekit_link])
                 end
                 self
@@ -878,45 +840,11 @@ module Orocos
             # The second form returns a Typekit object if one is defined, and
             # nil otherwise.
 	    def typekit(create = nil, &block)
-                if create.nil?
-                    create = true if block_given?
-                end
-                if create && !@typekit
-                    @typekit = Typekit.new(self)
-
-                    typekit.name     = name
-                    typekit.version  = version
-                    typekit.base_dir = base_dir
-                    typekit.type_export_policy Orocos::Generation.default_type_export_policy
-                    if base_dir
-                        typekit.user_dir      = File.join(base_dir, 'typekit')
-                        typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
-                        typekit.automatic_dir = File.join(base_dir, AUTOMATIC_AREA_NAME, 'typekit')
-                    end
-
-                    @enabled_transports.each do |t|
-                        typekit.enable_plugin(t)
-                    end
-
-                    typekit.include_dirs |=
-                        used_task_libraries.map { |pkg| pkg.include_dirs }.
-                        flatten.to_set
-
-                    typekit_libraries.each do |tk, do_link|
-                        typekit.using_library(tk, :link => do_link)
-                    end
-
-                    # Initialize the typekit's imported_types registry
-                    used_typekits.each do |tk|
-                        typekit.using_typekit(tk)
-                    end
-                end
-
 		if !block_given?
-		    return @typekit
+		    @typekit
                 else
                     @typekit.instance_eval(&block)
-                    nil
+                    @typekit
 		end
 	    end
 
@@ -926,10 +854,7 @@ module Orocos
             #
             # See Typekit#type_export_policy
             def type_export_policy(*args)
-                if !typekit(false)
-                    raise ConfigError, "using type_export_policy here makes no sense since no new types are defined in this project"
-                end
-                typekit(false).type_export_policy(*args)
+                typekit.type_export_policy(*args)
             end
 
             # Explicitely selects types that should be added to the RTT type
@@ -939,10 +864,7 @@ module Orocos
             #
             # See Typekit#export_types
             def export_types(*args)
-                if !typekit(false)
-                    raise ConfigError, "using export_types here makes no sense since no new types are defined in this project"
-                end
-                typekit(false).export_types(*args)
+                typekit.export_types(*args)
             end
 
             attr_writer :extended_states
@@ -983,7 +905,7 @@ module Orocos
                 name = Generation.verify_valid_identifier(name)
 
                 # If we have a typekit, resolve all pending loads
-                if typekit
+                if typekit.respond_to?(:perform_pending_loads)
                     typekit.perform_pending_loads
                 end
 
@@ -1187,9 +1109,7 @@ module Orocos
                     tasks[t.name] = t
                 end
                 used_task_libraries << tasklib
-                if self.typekit
-                    typekit.using_library(tasklib.tasklib_pkg, :link => false)
-                end
+                typekit.using_library(tasklib.tasklib_pkg, :link => false)
 
                 max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|
                     a.merge(b)
@@ -1236,7 +1156,7 @@ module Orocos
             # for more information.
 	    def deployment(name, &block) # :yield:
                 # If we have a typekit, resolve all pending loads
-                if typekit
+                if typekit.respond_to?(:perform_pending_loads)
                     typekit.perform_pending_loads
                 end
 
@@ -1348,9 +1268,7 @@ module Orocos
             # Enable the given transports
             def enable_transports(*transport_names)
                 transport_names.each do |name|
-                    if typekit
-                        typekit.enable_plugin(name)
-                    end
+                    typekit.enable_plugin(name)
                     deployers.each do |d|
                         d.enable_transport(name)
                     end
