@@ -13,8 +13,11 @@ module Orocos
             end
 
             def render(task, options = Hash.new)
-                _, push_options = Kernel.filter_options options, :external_objects => nil
+                options, push_options = Kernel.filter_options options, :doc => true, :external_objects => nil
                 @task = task
+                if options[:doc] && task.doc
+                    page.push nil, page.main_doc(task.doc)
+                end
                 page.push(nil, template.result(binding), push_options)
             end
         end

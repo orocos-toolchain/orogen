@@ -1,8 +1,3 @@
-<% if task.doc %>
-<%= Kramdown::Document.new(task.doc).to_html %>
-<% else %>
-<i>no documentation provided for this task context</i>
-<% end %>
 <ul class="body-header-list">
    <% if task.superclass %>
    <%= page.render_item("subclassed from", page.link_to(task.superclass)) %>
