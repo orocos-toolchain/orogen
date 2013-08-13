@@ -1,16 +1,7 @@
 /* Generated from orogen/templates/typekit/type_info/Info.cpp */
 
-#include <<%= typekit.name %>/Types.hpp>
-<% if Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
-#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
-#include <<%= type.info_type_header %>>
-<% if type.full_name == "/std/string" %>
-#include <rtt/typekit/StdStringTypeInfo.hpp>
-<% end %>
-<% else %>
-#include <rtt/types/PrimitiveTypeInfo.hpp>
-#include <rtt/types/TemplateConnFactory.hpp>
-<% end %>
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
+<%= typekit.cxx_gen_includes(*typekit.type_info_includes_for_type(type)) %>
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?

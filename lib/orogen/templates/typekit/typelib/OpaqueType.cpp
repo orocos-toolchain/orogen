@@ -1,7 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/typekit/typelib/OpaqueType.cpp */
 
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
+<%= typekit.cxx_gen_includes(*typekit.type_info_includes_for_type(type)) %>
 #include "OpaqueConvertions.hpp"
-#include "Types.hpp"
 #include <rtt/typelib/OpaqueTypelibMarshaller.hpp>
 #include "transports/typelib/Registration.hpp"
 
