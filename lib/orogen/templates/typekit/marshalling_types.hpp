@@ -6,6 +6,7 @@
 <% all_includes = needed_type_definitions.inject(Set.new) do |all, needed_type| %>
 <%     all |= typekit.include_for_type(needed_type).to_set %>
 <% end %>
+<% all_includes |= typekit.include_for_type(type).to_set %>
 <%= typekit.cxx_gen_includes(*all_includes) %>
 
 <% target_typename = typekit.intermediate_type_name_for(type)

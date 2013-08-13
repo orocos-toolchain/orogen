@@ -125,10 +125,22 @@ install(FILES
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
 
+
+<% typekit.included_files.each do |inc|
+    full_path = Pathname.new(typekit.automatic_dir).join('types', inc)
+    next if !full_path.exist?
+    target_dir = File.dirname(inc)
+    if full_path.symlink?
+       full_path = full_path.readlink
+    end
+    source_file = full_path.relative_path_from(Pathname.new(typekit.automatic_dir)) %>
+install(FILES <%= source_file.to_path %>
+    DESTINATION include/orocos/<%= target_dir %>)
+<% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.typelist
+install(FILES <%= typekit.name %>.tlb
+    <%= typekit.name %>.typelist
     DESTINATION share/orogen)
 
 <% typekit.each_plugin do |plg|

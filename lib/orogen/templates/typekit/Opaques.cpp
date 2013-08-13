@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Opaques.cpp */
 
-#include "Opaques.hpp"
+#include <<%= typekit.name %>/OpaqueTypes.hpp>
+#include <<%= typekit.name %>/Opaques.hpp>
 
     /** Returns the intermediate value that is contained in \c real_type */
     /** Stores \c intermediate into \c real_type. \c intermediate is owned by \c
