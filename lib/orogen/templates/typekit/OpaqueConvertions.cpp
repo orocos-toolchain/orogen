@@ -1,18 +1,24 @@
 /* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.cpp */
 
 #include "OpaqueConvertions.hpp"
+#include <<%= typekit.name %>/OpaqueTypes.hpp>
 #include <memory>
 
-<% typekit.used_typekits.each do |tk| %>
-<% next if tk.virtual? %>
-<% next if !tk.has_opaques? %>
+<% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>
+<% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
+
+<% needed_typekits = Set.new
+   types_containing_opaques.each do |t|
+       needed_typekits |= typekit.imported_typekits_for(t).to_set
+   end
+%>
+<% needed_typekits.sort_by(&:name).each do |tk| %>
 #include <<%= tk.name %>/typekit/OpaqueConvertions.hpp>
 <% end %>
 
 <% # We first handle the definitions that declare convertions functions
 # (i.e. the ones for which we don't need to generate anything)
-type_sets.opaque_types.
-    find_all(&:code_generator).
+type_sets.opaque_types.find_all(&:code_generator).
     each do |opdef|
         type = opdef.type
         target_type = typekit.intermediate_type_for(type)
@@ -25,8 +31,7 @@ type_sets.opaque_types.
 # Generate the body of the const-function for from_intermediate,
 # if the type does not need a copy.
 # See the Opaques.hpp template for more information
-type_sets.opaque_types.
-    find_all { |opdef| !opdef.needs_copy? }.
+type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.
     each do |opdef|
         type = opdef.type
         target_type = typekit.intermediate_type_for(type)
@@ -43,9 +48,7 @@ void orogen_typekits::fromIntermediate(<%= type.ref_type %> value, <%= target_ty
 <%
 # Then create the functions that convert a type that contains
 # opaques (but is not opaque itself) into its corresponding _m type
-type_sets.types.
-    find_all { |t| t.contains_opaques? && !t.opaque? }.
-    each do |type|
+types_containing_opaques.each do |type|
         m_type = intermediate_type_for(type) %>
 void orogen_typekits::toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value<%= ", int length" if type < Typelib::ArrayType %>)
 {

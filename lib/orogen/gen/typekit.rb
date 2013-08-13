@@ -698,12 +698,21 @@ module Orocos
                     include_dirs << path
                 end
             end
+
+            INCLUDE_DIR_NAME = 'types'
+
             # Change the directory into which the code generation should be done
             def automatic_dir=(path)
                 @automatic_dir = path
                 if path
-                    include_dirs << File.join(automatic_dir, 'types')
+                    include_dirs << File.join(automatic_dir, INCLUDE_DIR_NAME)
                 end
+            end
+
+            # Full path to the directory in which includes are either generated
+            # or symlinked
+            def includes_dir
+                File.join(automatic_dir, INCLUDE_DIR_NAME)
             end
 
             # The directory in which generated files that are meant to not be
@@ -1161,6 +1170,27 @@ module Orocos
                 self_opaques.any? { |op| op.generate_templates? }
             end
 
+            # Handle a load that points to a file in this typekit's source tree
+            def handle_local_load(file)
+                rel = Pathname.new(file).relative_path_from(Pathname.new(base_dir))
+                return file if rel.each_filename.first == ".."
+
+                local_type_dir = Pathname.new(includes_dir)
+                rel_to_type_dir = Pathname.new(file).relative_path_from(local_type_dir)
+                if rel_to_type_dir.each_filename.first == ".."
+                    # If the type is within a subdirectory called as the
+                    # typekit, remove the duplicate
+                    elements = rel.each_filename.to_a
+                    if elements.first != self.name
+                        elements.unshift self.name
+                    end
+                    target = File.join(includes_dir, *elements)
+                    Generation.create_or_update_symlink(file, target)
+                    target
+                else file
+                end
+            end
+
             # call-seq:
             #   load(file)
             #
@@ -1214,15 +1244,7 @@ module Orocos
 
                 # If it is a local header, symlink it to the "right" place in
                 # typekit/types and load that
-                rel = Pathname.new(file).relative_path_from(Pathname.new(base_dir))
-                if rel.to_path !~ /^\.\./
-                    local_type_dir = Pathname.new(automatic_dir) +'types'
-                    if Pathname.new(file).relative_path_from(local_type_dir).to_path =~ /^\.\.\//
-                        target = File.join(automatic_dir, 'types', self.name, rel.to_path)
-                        Generation.create_or_update_symlink(file, target)
-                        file = target
-                    end
-                end
+                file = handle_local_load(file)
 
                 # And resolve it to an include statement
                 include_path = include_dirs.map { |d| Pathname.new(d) }
@@ -1466,24 +1488,17 @@ module Orocos
                 imported_typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
             end
 
-            # List of typekits that this typekit depends on
-            def used_typekits
-                @registry = normalize_registry
+            # Computes the set of typekits that are required to get the given
+            # types.
+            #
+            # self is never included in the result
+            def typekits_required_for(types)
                 result = Set.new
-
-                # We depend on the typekits that define types that are used in
-                # our types (ouch), as they define the convertion functions that
-                # our typekit will use.
-                #
-                # We therefore must not use self_types there but really
-                # registry.each_type. Note that the registry is minimal, i.e.
-                # contains only our own types plus the types that are needed to
-                # define them, and this is therefore not a problem.
-		registry.each(:with_aliases => true) do |name, type|
+                types.each do |type|
                     loop do
                         imported_typekits.each do |tk|
                             if type < Typelib::ArrayType 
-                                if imported_array_of?(type.deference)
+                                if tk.defines_array_of?(type.deference)
                                     result << tk
                                 end
                             elsif tk.includes?(type.name)
@@ -1496,9 +1511,14 @@ module Orocos
                         else break
                         end
                     end
-		end
+                end
+                result
+            end
 
-                result.to_a.sort_by { |tk| tk.name }
+            # List of typekits that this typekit depends on
+            def used_typekits
+                @registry = normalize_registry
+                typekits_required_for(registry.each)
             end
 
             # Returns the set of pkg-config packages this typekit depends on
@@ -1556,10 +1576,6 @@ module Orocos
 
             def m_types_code
                 @m_types_code
-            end
-
-            def m_type_needed_type_definitions(type)
-                raise NotImplementedError
             end
 
             def m_type_exists?(type)
@@ -1646,11 +1662,11 @@ module Orocos
 
                 options = { :include => include_dirs.dup }
 
-                typekit = self
                 to_generate.each do |type|
-                    needed_type_definitions = type.dependencies.map do |needed_type|
+                    needed_type_definitions = type.direct_dependencies.map do |needed_type|
                         find_type(intermediate_type_for(needed_type), true)
                     end
+                    typekit = self
                     marshalling_code = Generation.
                         render_template 'typekit', 'marshalling_types.hpp', binding
 
@@ -1831,14 +1847,10 @@ module Orocos
                 # oroGen project does not import any other typekit
                 generate_transports_for_base_types = false && (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
 
-                # Load any queued file. This must be done before the call
-                # to local_headers below, as the new files will get
-                # registered only after the call
-                perform_pending_loads
-
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
+                perform_pending_loads
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
@@ -1987,6 +1999,14 @@ module Orocos
                     implementation_files <<
                         save_automatic("OpaqueConvertions.cpp", intermediates_cpp)
 
+                    fwd_hpp = Generation.render_template 'typekit/OpaqueFwd.hpp', binding
+                    public_header_files <<
+                        save_automatic("OpaqueFwd.hpp", fwd_hpp)
+
+                    types_hpp = Generation.render_template 'typekit/OpaqueTypes.hpp', binding
+                    public_header_files <<
+                        save_automatic("OpaqueTypes.hpp", types_hpp)
+
                     if has_opaques_with_templates?
                         user_hh = Generation.render_template 'typekit/Opaques.hpp', binding
                         user_cc = Generation.render_template 'typekit/Opaques.cpp', binding
@@ -2065,6 +2085,12 @@ module Orocos
                 end
             end
 
+            # Returns the set of includes that should be added to get access to
+            # the given type
+            #
+            # @param [Model<Typelib::Type>] type the type subclass
+            # @return [Array<String>]
+            # @see cxx_gen_includes
             def include_for_type(type)
                 if type.respond_to?(:deference)
                     return include_for_type(type.deference)
@@ -2086,6 +2112,12 @@ module Orocos
                 raise "no includes known for #{type.name}"
             end
 
+
+            # Given a set of includes, returns the code that includes them in a
+            # C++ file
+            #
+            # @param [String] includes
+            # @return [String]
             def cxx_gen_includes(*includes)
                 includes.to_set.map do |inc|
                     "#include <#{inc}>"

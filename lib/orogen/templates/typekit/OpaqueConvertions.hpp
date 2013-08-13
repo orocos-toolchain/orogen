@@ -4,7 +4,9 @@
 #define __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 
 #include <boost/cstdint.hpp>
-#include <<%= typekit.name %>/Types.hpp>
+#include <<%= typekit.name %>/OpaqueFwd.hpp>
+<% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>
+<% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
 <% if typekit.has_opaques_with_templates? %>
 #include <<%= typekit.name %>/Opaques.hpp>
 <% end %>
@@ -12,7 +14,7 @@
 namespace orogen_typekits
 {
 <%
-type_sets.opaque_types.find_all { |op| !op.generate_templates? }.each do |opaque_def|
+opaque_types.each do |opaque_def|
     from = opaque_def.type
     into = typekit.intermediate_type_for(from)
 
@@ -21,16 +23,13 @@ type_sets.opaque_types.find_all { |op| !op.generate_templates? }.each do |opaque
     void toIntermediate(<%= into.ref_type %> intermediate, <%= from.arg_type %> real_type);
     /** Converts \c intermediate into \c real_type */
     void fromIntermediate(<%= from.ref_type %> real_type, <%= into.arg_type %> intermediate);
-    <%
-    else
-    %>
+<%  else %>
     /** Returns the intermediate value that is contained in \c real_type */
     <%= into.arg_type %> toIntermediate(<%= from.arg_type %> real_type);
     /** Stores \c intermediate into \c real_type. \c intermediate is owned by \c
      * real_type afterwards. */
     bool fromIntermediate(<%= from.ref_type %> real_type, <%= into.cxx_name %>* intermediate);
-    <%
-    end
+<%  end
 end
 %>
 
@@ -54,13 +53,11 @@ type_sets.opaque_types.find_all { |opdef| !opdef.needs_copy? }.each do |opdef|
 # This handles the types that contain opaques, but are not opaque themselves. For those,
 # orogen generates so-called m-types, that are a mapping from the original (opaque-containing)
 # type into a one where opaque fields have been converted to their intermediate counterparts
-type_sets.types.
-    find_all { |t| t.contains_opaques? && !t.opaque? }.
-    each do |type|
-        m_type = typekit.intermediate_type_for(type)
-        if !m_type
-            raise RuntimeError, "no intermediate marshalling type for #{type.name}"
-        end
+types_containing_opaques.each do |type|
+    m_type = typekit.intermediate_type_for(type)
+    if !m_type
+        raise RuntimeError, "no intermediate marshalling type for #{type.name}"
+    end
 %>
     void toIntermediate(<%= m_type.ref_type %> intermediate, <%= type.arg_type %> value<%= ", int length" if type < Typelib::ArrayType %>);
     void fromIntermediate(<%= type.ref_type %> value<%= ", int length" if type < Typelib::ArrayType %>, <%= m_type.arg_type %> intermediate);
