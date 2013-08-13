@@ -1291,6 +1291,57 @@ module Orocos
                 include_candidates.compact.min_by { |inc| inc.size }
             end
 
+            # Resolves the orogen_include metadata for each type in the given
+            # registry
+            #
+            # It computes the set of #include <> statements that are required to
+            # get access on the C++ side to each type in the registry. It is
+            # saved in the orogen_include metadata information of the types.
+            #
+            # @param [Array<Pathname>] include_path the include path
+            # @param [Typelib::Registry] the registry whose types should be
+            #   resolved
+            def resolve_registry_includes(include_path, registry)
+                queue = Array.new
+                registry.each do |type|
+                    _, template_args = Typelib::GCCXMLLoader.parse_template(type.name)
+                    template_args.delete_if { |type_name| !registry.include?(type_name) }
+                    queue << [type, template_args]
+                end
+                queue = queue.sort_by { |_, template_args| template_args.size }
+
+                while !queue.empty?
+                    # If this is a template, we need to add the relevant
+                    # includes for the parameters as well. We need to do some
+                    # form of ordering for that to work ...
+                    queue.delete_if do |type, template_args|
+                        has_unresolved_args = template_args.any? do |arg_name|
+                            queue.include?(registry.get(arg_name))
+                        end
+                        next(false) if has_unresolved_args
+
+                        location = type.metadata.get('source_file_line').first
+                        next(true) if !location
+
+                        file, _ = location.split(':')
+                        if !File.file?(file)
+                            type.metadata.delete('source_file_line')
+                            next(true)
+                        end
+
+                        orogen_include = resolve_full_include_path_to_relative(file, include_path)
+                        type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
+                        template_args.each do |arg_name|
+                            t = registry.get(arg_name)
+                            t.metadata.get('orogen_include').each do |inc|
+                                type.metadata.add('orogen_include', inc)
+                            end
+                        end
+                        true
+                    end
+                end
+            end
+
             def perform_pending_loads
                 return if pending_loads.empty?
 
@@ -1334,19 +1385,7 @@ module Orocos
                         filter_unsupported_types(file_registry)
 
                         include_path = include_dirs.map { |d| Pathname.new(d) }
-                        file_registry.each do |type|
-                            location = type.metadata.get('source_file_line').first
-                            next if !location
-
-                            file, _ = location.split(':')
-                            if !File.file?(file)
-                                type.metadata.delete('source_file_line')
-                                next
-                            end
-
-                            orogen_include = resolve_full_include_path_to_relative(file, include_path)
-                            type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
-                        end
+                        resolve_registry_includes(include_path, file_registry)
                         registry.merge(file_registry)
                         if project
                             project.registry.merge(file_registry)
