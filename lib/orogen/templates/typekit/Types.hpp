@@ -3,14 +3,8 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
 
-<%= typekit.opaques.map { |opaque_def| opaque_def.includes }.
-    flatten.map { |p| "#include <#{p}>" }.join("\n") %>
-
-<% typekit.external_loads.each do |file| %>
+<% typekit.included_files.to_set.sort.each do |file| %>
 #include <<%= file %>>
-<% end %>
-<% typekit.local_headers(false).each do |path, dest_path| %>
-#include "<%= typekit.name %>/types/<%= typekit.name %>/<%= dest_path %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
 <% next if tk.virtual? %>
@@ -22,8 +16,6 @@
 // some of the types need std::vector.
 #include <vector>
 #include <boost/cstdint.hpp>
-
-<%= typekit.m_types_code %>
 
 <% interface_types.each do |type| %>
 #ifdef ORO_CHANNEL_ELEMENT_HPP

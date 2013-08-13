@@ -124,11 +124,7 @@ install(FILES
 	end
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
-<% typekit.local_headers(false).each do |path, dest_path| %>
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= (Pathname.new( typekit.base_dir ) + path).relative_path_from(Pathname.new(typekit.automatic_dir)) %>
-    DESTINATION include/orocos/<%= typekit.name %>/types/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
-<% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
@@ -143,17 +139,14 @@ end %>
 
 # Force the user to regenerate its typekit if the inputs changed
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
+get_directory_property(include_path INCLUDE_DIRECTORIES)
+foreach(dep <%= typekit.included_files.sort.join(" ") %>)
+    find_file(dep_full_path ${dep} PATHS ${include_path})
+    list(APPEND TYPEKIT_DEPENDENCIES ${dep_full_path})
+endforeach()
 add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS <%= loads = []
-        typekit.loads.each do |file| 
-	    loads << typekit.cmake_relative_path(file)
-        end
-        loads.join(" ") %> <%= extloads = []
-        typekit.external_loads.each do |file| 
-	    extloads << typekit.cmake_relative_path(file)
-        end
-        extloads.join(" ") %>
+    DEPENDS ${TYPEKIT_DEPENDENCIES}
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")

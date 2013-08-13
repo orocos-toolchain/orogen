@@ -698,10 +698,17 @@ module Orocos
                     include_dirs << path
                 end
             end
+            # Change the directory into which the code generation should be done
+            def automatic_dir=(path)
+                @automatic_dir = path
+                if path
+                    include_dirs << File.join(automatic_dir, 'types')
+                end
+            end
 
             # The directory in which generated files that are meant to not be
             # modified by the user should be saved
-            attr_accessor :automatic_dir
+            attr_reader :automatic_dir
             # The directory in which files that the user should modify should be
             # saved
             attr_accessor :user_dir
@@ -714,15 +721,8 @@ module Orocos
             attr_accessor :version
             # The set of include directories that should be considered in #load
             attr_accessor :include_dirs
-
-            # The set of external headers that have been imported in this
-            # typekit. I.e. it contains the headers that are loaded from a
-            # depended-upon library for instance.
-            def external_loads
-                loads.find_all do |name|
-                    name !~ /#{Regexp.quote(base_dir)}/
-                end
-            end
+            # The set of includes that have been loaded
+            attr_reader :included_files
 
             # The three possible type export policies. See #type_export_policy
             # and #export_types
@@ -918,6 +918,7 @@ module Orocos
 
                 @include_dirs = Set.new
                 @include_dirs << "/usr/include" << "/usr/local/include"
+                @included_files = Array.new
 
                 @plugins = []
                 plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new(self))
@@ -1028,9 +1029,20 @@ module Orocos
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
             def smart_ptr(name, base_type, options = Hash.new)
                 typekit = self
-                opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
+                opaque = opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
                     Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
+                # Add the headers required for the smart pointer definition to
+                # the list of included files, as well as to the headers needed
+                # for the type
+                options[:includes].each do |inc|
+                    included_files << inc
+                    opaque.metadata.add('orogen_include', inc)
+                end
+                base_type.metadata.get('orogen_include').each do |inc|
+                    opaque.metadata.add('orogen_include', inc)
+                end
+                opaque
             end
 
             # Make the typekit define the specialization of RTT::ReadOnlyPointer
@@ -1126,13 +1138,16 @@ module Orocos
                 end
 
                 opaque_type = find_type(base_type, true)
+                options[:includes].each do |inc|
+                    opaque_type.metadata.add('orogen_include', "#{self.name}:#{inc}")
+                end
                 orogen_def  = OpaqueDefinition.new(opaque_type,
                                                  intermediate_type, options, convert_code_generator) 
                 orogen_def.caller = caller
                 @opaques << orogen_def
                 @opaques = opaques.
                     sort_by { |orogen_def| orogen_def.type.name }
-                opaque_type.name
+                opaque_type
             end
 
             # True if there are some opaques in this typekit. The result of this
@@ -1182,11 +1197,6 @@ module Orocos
                     end
                 end
 
-                this_options = [add, user_options]
-                if pending_load_options != this_options
-                    perform_pending_loads
-                end
-
                 include_dirs = self.include_dirs
 
                 # Get the full path for +file+
@@ -1201,6 +1211,28 @@ module Orocos
                         loaded_files_dirs << dir
                         File.join(dir, file)
                     end
+
+                # If it is a local header, symlink it to the "right" place in
+                # typekit/types and load that
+                rel = Pathname.new(file).relative_path_from(Pathname.new(base_dir))
+                if rel.to_path !~ /^\.\./
+                    local_type_dir = Pathname.new(automatic_dir) +'types'
+                    if Pathname.new(file).relative_path_from(local_type_dir).to_path =~ /^\.\.\//
+                        target = File.join(automatic_dir, 'types', self.name, rel.to_path)
+                        Generation.create_or_update_symlink(file, target)
+                        file = target
+                    end
+                end
+
+                # And resolve it to an include statement
+                include_path = include_dirs.map { |d| Pathname.new(d) }
+                inc = resolve_full_include_path_to_relative(file, include_path)
+                included_files << inc
+
+                this_options = [add, user_options]
+                if pending_load_options != this_options
+                    perform_pending_loads
+                end
 
                 @pending_load_options = this_options
                 pending_loads << file
@@ -1239,6 +1271,24 @@ module Orocos
                         STDERR.puts "WARN: ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
                     end
                 end
+            end
+
+            # Resolves a full path into the one that should be used when taking
+            # into account the include path
+            #
+            # @param [String] file the full path to the include file
+            # @param [Array<Pathname>] include_path the set of include dirs
+            # @return [String]
+            def resolve_full_include_path_to_relative(file, include_path)
+                file = Pathname.new(file)
+                # Find the base include
+                include_candidates = include_path.map do |inc|
+                    rel = file.relative_path_from(inc).cleanpath.to_path
+                    if rel !~ /^\.\.\//
+                        rel
+                    end
+                end
+                include_candidates.compact.min_by { |inc| inc.size }
             end
 
             def perform_pending_loads
@@ -1282,6 +1332,21 @@ module Orocos
                     begin
                         do_import(file_registry, io.path, 'c', options)
                         filter_unsupported_types(file_registry)
+
+                        include_path = include_dirs.map { |d| Pathname.new(d) }
+                        file_registry.each do |type|
+                            location = type.metadata.get('source_file_line').first
+                            next if !location
+
+                            file, _ = location.split(':')
+                            if !File.file?(file)
+                                type.metadata.delete('source_file_line')
+                                next
+                            end
+
+                            orogen_include = resolve_full_include_path_to_relative(file, include_path)
+                            type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
+                        end
                         registry.merge(file_registry)
                         if project
                             project.registry.merge(file_registry)
@@ -1296,23 +1361,6 @@ module Orocos
                 end
                 pending_loads.clear
 	    end
-
-            # Returns the set of headers that have been loaded locally
-            def local_headers(absolute = true)
-                list = loads.find_all { |path| path =~ /^#{Regexp.quote(base_dir)}\// }
-                if absolute
-                    list
-                else
-                    list.map do |p|
-                        relative = p.gsub(/^#{Regexp.quote(base_dir)}\//, '')
-                        dest = relative.
-                            gsub(/^#{Regexp.quote(Generation::AUTOMATIC_AREA_NAME)}\//, '').
-                            gsub(/^#{name}\//, '')
-
-                        [relative, dest]
-                    end
-                end
-            end
 
             # Packages defined in this typekit on which the typekit should
             # depend. See #internal_dependency.
@@ -1471,6 +1519,60 @@ module Orocos
                 @m_types_code
             end
 
+            def m_type_needed_type_definitions(type)
+                raise NotImplementedError
+            end
+
+            def m_type_exists?(type)
+                target_typename = intermediate_type_name_for(type)
+                current_def = begin
+                                  find_type(target_typename)
+                              rescue Typelib::NotFound
+                              end
+
+                return false if !current_def
+
+                expected_type = type
+                while current_def.respond_to?(:deference)
+                    current_def = current_def.deference
+                    if !expected_type.respond_to?(:deference)
+                        raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                    end
+                    expected_type = expected_type.deference
+                end
+
+                if current_def < Typelib::CompoundType
+                    if expected_type.opaque?
+                        # nothing to do
+                    elsif !(expected_type < Typelib::CompoundType)
+                        raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                    elsif current_def.fields.size != expected_type.fields.size
+                        raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                    else
+                        type_fields    = expected_type.fields.dup
+                        current_fields = current_def.fields.dup
+
+                        while !type_fields.empty?
+                            expected = type_fields.first
+                            current  = current_fields.first
+
+                            if expected[0] != current[0] ||
+                                !expected[1].opaque? && expected[1] != current[1]
+                                raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                            elsif expected[1].opaque?
+                                if intermediate_type_for(expected[1]) != current[1]
+                                    raise "#{current_def.name} is already defined, but does not match the expected definition. Did you define it yourself ?"
+                                end
+                            end
+
+                            type_fields.pop
+                            current_fields.pop
+                        end
+                    end
+                end
+                true
+            end
+
             def handle_opaques_generation(generated_types)
                 # Make sure all opaque intermediate types are existing or can be
                 # instanciated
@@ -1488,40 +1590,33 @@ module Orocos
                 # Generate some type definitions for the pocosim marshalling. In
                 # practice, we generate C code that we merge back into the
                 # repository
-                generate_all_marshalling_types = false
                 needed_definitions = self_types.
                     find_all { |t| t.contains_opaques? && !t.opaque? }
 
-                needed_types = []
+                # Sort the types by the order in which we should generate their
+                # intermediates. This is needed when one m-type requires another
+                # m-type that we generate in this typekit as well
+                to_generate = []
                 while !needed_definitions.empty?
                     needed_definitions.delete_if do |type|
+                        next(true) if m_type_exists?(type)
                         next if type.dependencies.any? { |t| needed_definitions.include?(t) }
-                        needed_types << type
+                        to_generate << type
                     end
                 end
 
                 options = { :include => include_dirs.dup }
 
                 typekit = self
-                catch(:nothing_to_define) do
-                    Tempfile.open('orogen') do |io|
-                        Orocos::Generation.debug "loading m-type definitions"
-                        marshalling_code = Generation.render_template 'typekit', 'marshalling_types.hpp', binding
-                        @m_types_code = marshalling_code
-                        io << marshalling_code
-                        io.flush
-                        self.load(io.path, false, options)
-
-                        begin
-                            self.perform_pending_loads
-                        rescue Exception => e
-                            marshalling_code = marshalling_code.split("\n").
-                                each_with_index.map do |l, i|
-                                    "#{i} #{l}"
-                                end.join("\n")
-                            raise InternalError, "cannot load the definition of opaque m-types: #{e.message}\nThe faulty code is\n\n#{marshalling_code}", e.backtrace
-                        end
+                to_generate.each do |type|
+                    needed_type_definitions = type.dependencies.map do |needed_type|
+                        find_type(intermediate_type_for(needed_type), true)
                     end
+                    marshalling_code = Generation.
+                        render_template 'typekit', 'marshalling_types.hpp', binding
+
+                    path = Generation.save_automatic 'typekit', 'types', self.name, "m_types", "#{type.method_name(false)}.hpp", marshalling_code
+                    self.load(path, true, options)
                 end
                 true
             end
@@ -1702,11 +1797,6 @@ module Orocos
                 # registered only after the call
                 perform_pending_loads
 
-                self.local_headers(false).each do |path, dest_path|
-                    dest_path = File.join(automatic_dir, "types", name, dest_path)
-                    Generation.create_or_update_symlink(File.join(base_dir, path), dest_path)
-                end
-
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
@@ -1718,26 +1808,9 @@ module Orocos
                 generated_types = self_types.to_value_set
 
                 self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
-                opaque_types = self_opaques.map { |opdef| opdef.type }
-                opaque_intermediates = self_opaques.map do |opdef|
-                    find_type(opdef.intermediate)
-                end
 
 		issue_warnings(generated_types, minimal_registry)
                 generate_typedefs(generated_types, minimal_registry)
-
-                # Generate the XML representation of the generated type library,
-                # and add opaque information to it
-                plain_registry = minimal_registry.to_xml
-                doc = Nokogiri::XML(plain_registry)
-                doc.xpath('//opaque').each do |opaque_entry|
-                    spec = opaque_specification(opaque_entry['name'])
-
-                    opaque_entry['marshal_as'] = spec.intermediate
-                    opaque_entry['includes']   = spec.includes.join(':')
-                    opaque_entry['needs_copy'] = (spec.needs_copy? ? '1' : '0')
-                end
-                save_automatic "#{name}.tlb", doc.to_xml
 
                 # The first array is the set of types for which convertion
                 # functions are generated. The second is the set of types that
@@ -1808,12 +1881,30 @@ module Orocos
                 typelist_txt = []
                 generated_types.each do |type|
                     is_exported = registered_typenames.include?(type.name) ? '1' : '0'
+                    metadata = minimal_registry.get(type.name).metadata
+                    metadata.add 'orogen_defining_typekits', self.name
+                    if is_exported
+                        metadata.add 'orogen_exporting_typekits', self.name
+                    end
                     all_names[type.name].each do |type_name|
                         typelist_txt << "#{type_name} #{is_exported}"
                     end
                 end
                 save_automatic "#{name}.typelist",
                     typelist_txt.sort.join("\n")
+
+                # Generate the XML representation of the generated type library,
+                # and add opaque information to it
+                plain_registry = minimal_registry.to_xml
+                doc = Nokogiri::XML(plain_registry)
+                doc.xpath('//opaque').each do |opaque_entry|
+                    spec = opaque_specification(opaque_entry['name'])
+
+                    opaque_entry['marshal_as'] = spec.intermediate
+                    opaque_entry['includes']   = spec.includes.join(':')
+                    opaque_entry['needs_copy'] = (spec.needs_copy? ? '1' : '0')
+                end
+                save_automatic "#{name}.tlb", doc.to_xml
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
@@ -1892,7 +1983,7 @@ module Orocos
                 end
 
                 if standalone?
-                    FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
+                    FileUtils.mkdir_p File.join(automatic_dir, 'config')
                     Dir.glob File.join(Generation.template_path('config'), '*') do |path|
                         basename    = File.basename(path)
                         if !Project::CMAKE_GENERATED_CONFIG.include?(basename)
@@ -1919,6 +2010,47 @@ module Orocos
 
             def cmake_relative_path(file, *subdir)
                 "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
+            end
+
+            def type_info_includes_for_type(type)
+                if type.opaque?
+                    return type_info_includes_for_type(intermediate_type_for(type))
+                elsif Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+                   result = ["#{self.name}/type_info/BoostSerialization.hpp", type.info_type_header]
+                   if type.full_name == "/std/string"
+                       result << "rtt/typekit/StdStringTypeInfo.hpp"
+                   end
+                   result
+                else
+                   ["rtt/types/PrimitiveTypeInfo.hpp", "rtt/types/TemplateConnFactory.hpp"]
+                end
+            end
+
+            def include_for_type(type)
+                if type.respond_to?(:deference)
+                    return include_for_type(type.deference)
+                end
+
+                includes = type.metadata.get('orogen_include')
+                if !includes.empty?
+                    return includes.map { |s| s.split(':').last }
+                elsif type <= Typelib::NumericType
+                    return []
+                elsif imported_types.include?(type.name)
+                    import = imported_types.get(type.name)
+                    includes = import.metadata.get('orogen_include')
+                    if !includes.empty?
+                        return includes.map { |s| s.split(':').last }
+                    end
+                end
+
+                raise "no includes known for #{type.name}"
+            end
+
+            def cxx_gen_includes(*includes)
+                includes.to_set.map do |inc|
+                    "#include <#{inc}>"
+                end.sort.join("\n") + "\n"
             end
 	end
     end

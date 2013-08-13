@@ -1,9 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/typekit/type_info/ArrayInfo.cpp */
 
-#include <<%= typekit.name %>/Types.hpp>
-#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
+<%= typekit.cxx_gen_includes(*typekit.type_info_includes_for_type(type)) %>
 #include <rtt/internal/carray.hpp>
-#include <<%= type.info_type_header %>>
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?

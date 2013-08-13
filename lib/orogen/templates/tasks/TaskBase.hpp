@@ -13,7 +13,7 @@
 #include <rtt/Port.hpp>
 <% end %>
 <% if task.extended_state_support? %>
-#include <<%= component.typekit.name %>/<%= component.name %>TaskStates.hpp>
+#include <<%= component.typekit.name %>/TaskStates.hpp>
 <% end %>
 
 

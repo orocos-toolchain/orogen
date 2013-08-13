@@ -38,7 +38,6 @@ module Orocos
 
             def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(typekit_registry)
                 typekit_registry.merge_xml(registry_xml)
 
                 typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
