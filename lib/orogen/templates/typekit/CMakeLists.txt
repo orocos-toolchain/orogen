@@ -152,13 +152,14 @@ end %>
 # Force the user to regenerate its typekit if the inputs changed
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 get_directory_property(include_path INCLUDE_DIRECTORIES)
-foreach(dep <%= typekit.included_files.sort.join(" ") %>)
+foreach(dep <%= typekit.included_files.to_set.sort.join(" ") %>)
     find_file(dep_full_path ${dep} PATHS ${include_path})
-    list(APPEND TYPEKIT_DEPENDENCIES ${dep_full_path})
+    list(APPEND TYPEKIT_SOURCE_HEADERS ${dep_full_path})
+    unset(dep_full_path CACHE)
 endforeach()
 add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS ${TYPEKIT_DEPENDENCIES}
+    DEPENDS ${TYPEKIT_SOURCE_HEADERS}
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
