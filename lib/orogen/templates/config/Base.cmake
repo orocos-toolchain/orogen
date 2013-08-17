@@ -1,8 +1,7 @@
 include(OrogenPkgCheckModules)
 ADD_CUSTOM_TARGET(regen
-    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
-       orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
-    <%= ruby_bin %> <%= orogen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>
+    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
+    <%= ruby_bin %> -S orogen <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_command(
