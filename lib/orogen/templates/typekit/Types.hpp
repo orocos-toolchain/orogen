@@ -8,7 +8,7 @@
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
 <% next if tk.virtual? %>
-#include <<%= tk.name %>/Types.hpp>
+#include <<%= tk.name %>/typekit/Types.hpp>
 <% end %>
 
 // This is a hack. We include it unconditionally as it may be required by some

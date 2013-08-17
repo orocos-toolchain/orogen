@@ -2,7 +2,7 @@
 
 <%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
 <%= typekit.cxx_gen_includes(*typekit.include_for_type(typekit.intermediate_type_for(type))) %>
-#include "OpaqueConvertions.hpp"
+#include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 #include <rtt/typelib/OpaqueTypelibMarshaller.hpp>
 #include "transports/typelib/Registration.hpp"
 

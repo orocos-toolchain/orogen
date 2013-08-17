@@ -3,7 +3,7 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_USER_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_USER_HPP
 
-#include "Types.hpp"
+#include <<%= typekit.name %>/typekit/Types.hpp>
 #include <boost/cstdint.hpp>
 #include <string>
 

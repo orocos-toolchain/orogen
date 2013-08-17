@@ -2,7 +2,7 @@
 
 // First load all RTT interfaces so that we get all "extern template"
 // declarations in the TypekitImpl files
-#include "Plugin.hpp"
+#include <<%= typekit.name %>/typekit/Plugin.hpp>
 
 #include <iostream>
 #include <boost/cstdint.hpp>

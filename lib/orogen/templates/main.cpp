@@ -21,7 +21,7 @@
 #include <rtt/types/TypekitPlugin.hpp>
 <% end %>
 <% if typekit = component.typekit %>
-#include "typekit/Plugin.hpp"
+#include <<%= typekit.name %>/typekit/Plugin.hpp>
 <% deployer.transports.each do |transport_name| %>
 #include "typekit/transports/<%= transport_name %>/TransportPlugin.hpp"
 <% end %>

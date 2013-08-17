@@ -3,7 +3,7 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_CONVERTIONS_HPP
 
-#include "<%= typekit.name %>/Types.hpp"
+#include "<%= typekit.name %>/typekit/Types.hpp"
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 #include <boost/cstdint.hpp>
 #include <string>
