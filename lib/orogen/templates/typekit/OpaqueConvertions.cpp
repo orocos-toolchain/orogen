@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.cpp */
 
-#include "OpaqueConvertions.hpp"
-#include <<%= typekit.name %>/OpaqueTypes.hpp>
+#include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
+#include <<%= typekit.name %>/typekit/OpaqueTypes.hpp>
 #include <memory>
 
 <% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>

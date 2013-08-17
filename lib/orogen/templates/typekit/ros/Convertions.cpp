@@ -4,7 +4,7 @@
 #include <memory>
 
 <% if typekit.has_opaques? %>
-#include "OpaqueConvertions.hpp"
+#include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 <% end %>
 
 <% typekit.used_typekits.each do |tk| %>

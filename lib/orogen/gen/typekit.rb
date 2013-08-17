@@ -1766,6 +1766,12 @@ module Orocos
 
             attr_reader :template_instanciation_files
 
+            def save_automatic_public_header(*args)
+                rel = File.join(self.name, 'typekit', *args[0..-2])
+                Generation.save_generated(true, automatic_dir, INCLUDE_DIR_NAME, rel, args[-1])
+                rel
+            end
+
             def save_automatic(*args)
                 Generation.save_generated(true, automatic_dir, *args)
             end
@@ -1975,17 +1981,14 @@ module Orocos
                 type_sets.opaque_types     = self_opaques
                 type_sets.aliases          = Hash.new
 
-                public_header_files, implementation_files = [], []
+                public_header_files, plugin_header_files, implementation_files = [], [], []
 
 		type_header = Generation.render_template('typekit/Types.hpp', binding)
-                # Types.hpp is not registered in public_header_files as it gets
-                # installed in TYPEKIT_NAME/ directly instead of
-                # TYPEKIT_NAME/typekit
-		save_automatic("Types.hpp", type_header)
+		public_header_files << save_automatic_public_header("Types.hpp", type_header)
                 boost_serialization = Generation.render_template "typekit/BoostSerialization.hpp", binding
-                public_header_files << save_automatic("type_info", "BoostSerialization.hpp", boost_serialization)
+                public_header_files << save_automatic_public_header("BoostSerialization.hpp", boost_serialization)
                 tk_hpp = Generation.render_template "typekit/Plugin.hpp", binding
-		public_header_files << save_automatic("Plugin.hpp", tk_hpp)
+		public_header_files << save_automatic_public_header("Plugin.hpp", tk_hpp)
                 tk_cpp = Generation.render_template "typekit/Plugin.cpp", binding
 		implementation_files << save_automatic("Plugin.cpp", tk_cpp)
 
@@ -1993,7 +1996,7 @@ module Orocos
                 if has_opaques?
                     intermediates_hpp = Generation.render_template 'typekit/OpaqueConvertions.hpp', binding
                     public_header_files <<
-                        save_automatic("OpaqueConvertions.hpp", intermediates_hpp)
+                        save_automatic_public_header("OpaqueConvertions.hpp", intermediates_hpp)
 
                     intermediates_cpp = Generation.render_template 'typekit/OpaqueConvertions.cpp', binding
                     implementation_files <<
@@ -2001,11 +2004,11 @@ module Orocos
 
                     fwd_hpp = Generation.render_template 'typekit/OpaqueFwd.hpp', binding
                     public_header_files <<
-                        save_automatic("OpaqueFwd.hpp", fwd_hpp)
+                        save_automatic_public_header("OpaqueFwd.hpp", fwd_hpp)
 
                     types_hpp = Generation.render_template 'typekit/OpaqueTypes.hpp', binding
                     public_header_files <<
-                        save_automatic("OpaqueTypes.hpp", types_hpp)
+                        save_automatic_public_header("OpaqueTypes.hpp", types_hpp)
 
                     if has_opaques_with_templates?
                         user_hh = Generation.render_template 'typekit/Opaques.hpp', binding
@@ -2014,7 +2017,9 @@ module Orocos
                         implementation_files <<
                             save_user("Opaques.cpp", user_cc)
 
-                        Generation.create_or_update_symlink(File.join(user_dir, "Opaques.hpp"), File.join(automatic_dir, "Opaques.hpp"))
+                        Generation.create_or_update_symlink(
+                            File.join(user_dir, "Opaques.hpp"),
+                            File.join(automatic_dir, INCLUDE_DIR_NAME, self.name, 'typekit', "Opaques.hpp"))
                     end
                 end
 
@@ -2037,7 +2042,7 @@ module Orocos
                     end
 
                     headers, impl = plg.generate(plg_typesets)
-                    public_header_files.concat(headers)
+                    plugin_header_files.concat(headers)
                     implementation_files.concat(impl)
                 end
 
@@ -2068,7 +2073,7 @@ module Orocos
 	    end
 
             def cmake_relative_path(file, *subdir)
-                "${CMAKE_CURRENT_SOURCE_DIR}/#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
+                "#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
             end
 
             def type_info_includes_for_type(type)
@@ -2109,7 +2114,7 @@ module Orocos
                     end
                 end
 
-                raise "no includes known for #{type.name}"
+                raise "no includes known for #{type.name}, #{type.metadata.get("source_file_line")}"
             end
 
 

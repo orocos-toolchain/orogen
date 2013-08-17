@@ -19,13 +19,13 @@
 
 <% task.used_typekits.sort_by(&:name).each do |tk| %>
   <% next if tk.virtual? %>
-#include <<%= tk.name %>/Types.hpp>
+#include <<%= tk.name %>/typekit/Types.hpp>
 <% end %>
 <% task.implemented_classes.sort.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
 <% if component.typekit %>
-#include "<%= component.typekit.name %>/Types.hpp"
+#include "<%= component.typekit.name %>/typekit/Types.hpp"
 <% end %>
 
 <% code_before, code_after =

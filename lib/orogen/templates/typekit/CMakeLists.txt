@@ -112,21 +112,17 @@ configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES
-    Types.hpp
     <% if typekit.has_opaques_with_templates? %>
-    Opaques.hpp
+    ${PROJECT_SOURCE_DIR}/typekit/Opaques.hpp
     <% end %>
-    DESTINATION include/orocos/<%= typekit.name %>)
-install(FILES
     <%= relatives = []
-        public_header_files.each do |file|
+        plugin_header_files.each do |file|
 	    relatives << typekit.cmake_relative_path(file)
 	end
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
 
-
-<% typekit.included_files.each do |inc|
+<% (public_header_files + typekit.included_files).each do |inc|
     full_path = Pathname.new(typekit.automatic_dir).join('types', inc)
     next if !full_path.exist?
     target_dir = File.dirname(inc)
