@@ -56,7 +56,7 @@ module Orocos
                     spec = OpaqueDefinition.new(
                         typekit_registry.get(base_type_name),
                         inter_type_name,
-                        { :includes => includes.split(':'), :needs_copy => (needs_copy == '1') },
+                        { :include => includes.split(':'), :needs_copy => (needs_copy == '1') },
                         nil)
 
                     typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))

@@ -625,7 +625,7 @@ module Orocos
             end
             # The set of paths that should be added to -I to the generated
             # +type+ to +intermediate+ convertion.
-            def includes; options[:includes] end
+            def includes; options[:include] end
             # If true, the opaque needs to be copied into the intermediate. If
             # false, the convertion does not require a copy.
             def needs_copy?; !!options[:needs_copy] end
@@ -1044,7 +1044,7 @@ module Orocos
                 # Add the headers required for the smart pointer definition to
                 # the list of included files, as well as to the headers needed
                 # for the type
-                options[:includes].each do |inc|
+                options[:include].each do |inc|
                     included_files << inc
                     opaque.metadata.add('orogen_include', inc)
                 end
@@ -1059,8 +1059,8 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
-                options[:includes] ||= Array.new
-                options[:includes] << 'rtt/extras/ReadOnlyPointer.hpp'
+                options[:include] ||= Array.new
+                options[:include] << 'rtt/extras/ReadOnlyPointer.hpp'
                 smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
@@ -1069,8 +1069,8 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def shared_ptr(name, options = Hash.new)
-                options[:includes] ||= Array.new
-                options[:includes] << 'boost/shared_ptr.hpp'
+                options[:include] ||= Array.new
+                options[:include] << 'boost/shared_ptr.hpp'
                 smart_ptr("/boost/shared_ptr", find_type(name), options)
             end
 
@@ -1123,12 +1123,17 @@ module Orocos
             # the method call.
             def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
                 options = validate_options options,
+                    :include => [],
                     :includes => [],
                     :needs_copy => true
 
                 if options[:includes].respond_to?(:to_str)
                     options[:includes] = [options[:includes]]
                 end
+                if options[:include].respond_to?(:to_str)
+                    options[:include] = [options[:include]]
+                end
+                options[:include].concat(options.delete(:includes))
 
                 base_type = base_type.to_str
                 base_type = Typelib::Type.normalize_typename(base_type)
@@ -1147,7 +1152,7 @@ module Orocos
                 end
 
                 opaque_type = find_type(base_type, true)
-                options[:includes].each do |inc|
+                options[:include].each do |inc|
                     opaque_type.metadata.add('orogen_include', "#{self.name}:#{inc}")
                 end
                 orogen_def  = OpaqueDefinition.new(opaque_type,
