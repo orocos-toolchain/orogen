@@ -1328,7 +1328,10 @@ module Orocos
             # @param [Array<Pathname>] include_path the include path
             # @param [Typelib::Registry] the registry whose types should be
             #   resolved
-            def resolve_registry_includes(include_path, registry)
+            # @param [{String=>Array<String>}] file_to_include mapping from a
+            #   source file and line to the toplevel include that relates to
+            #   this file
+            def resolve_registry_includes(registry, file_to_include)
                 queue = Array.new
                 registry.each do |type|
                     _, template_args = Typelib::GCCXMLLoader.parse_template(type.name)
@@ -1350,23 +1353,89 @@ module Orocos
                         location = type.metadata.get('source_file_line').first
                         next(true) if !location
 
-                        file, _ = location.split(':')
+                        file, line = location.split(':')
                         if !File.file?(file)
                             type.metadata.delete('source_file_line')
                             next(true)
                         end
 
-                        orogen_include = resolve_full_include_path_to_relative(file, include_path)
-                        type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
-                        template_args.each do |arg_name|
-                            t = registry.get(arg_name)
-                            t.metadata.get('orogen_include').each do |inc|
-                                type.metadata.add('orogen_include', inc)
+                        orogen_include = file_to_include[file][Integer(line)]
+                        if imported_types.include?(type.name)
+                            metadata = imported_types.get(type.name).metadata.get('orogen_include')
+                            if !metadata.empty?
+                                metadata.each do |inc|
+                                    type.metadata.add('orogen_include', inc)
+                                end
+                                next(true)
                             end
+                        end
+                        if self.registry.include?(type.name)
+                            metadata = self.registry.get(type.name).metadata.get('orogen_include')
+                            if !metadata.empty?
+                                next(true)
+                            end
+                        end
+                        if type.metadata.get('orogen_include').empty?
+                            type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
                         end
                         true
                     end
                 end
+            end
+
+            def resolve_toplevel_include_mapping(toplevel_files, options)
+                includes = options[:include].map { |v| "-I#{v}" }
+                defines  = options[:define].map { |v| "-D#{v}" }
+
+                preprocessed = Tempfile.open('orogen_gccxml_input') do |io|
+                    toplevel_files.each do |path|
+                        io.puts "#include <#{path}>"
+                    end
+                    io.flush
+                    IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]).read
+                end
+
+                owners = Hash.new { |h,k| h[k] = Array.new }
+                current_toplevel_file = nil
+                current_file = nil
+                current_line = nil
+                preprocessed.each_line do |line|
+                    if line =~ /# (\d+) "(.*)"(?:\s\d)*/
+                        current_line, current_file = Integer($1), $2
+                        if toplevel_files.include?(current_file)
+                            current_toplevel_file = current_file
+                        end
+                    else
+                        owners[current_file][current_line] = current_toplevel_file
+                        current_line += 1
+                    end
+                end
+                return preprocessed, owners
+            end
+
+            def make_load_options(pending_loads, user_options)
+                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
+                # GCCXML can't parse vectorized code, and the Typelib internal
+                # parser can't parse eigen at all. It is therefore safe to do it
+                # here
+                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{Orocos::Generation.orocos_target}", '__orogen2']
+
+                options[:include] = self.include_dirs.dup
+                options = options.merge(user_options) do |key, a, b|
+                    if a.respond_to?(:to_ary)
+                        if b.respond_to?(:to_ary)
+                            b.concat(a)
+                        else
+                            [b].concat(a)
+                        end
+                    else
+                        b
+                    end
+                end
+
+                opaque_names = opaques.map { |opdef| opdef.type.name }
+                options[:opaques] = opaque_names
+                Kernel.filter_options options, :include, :define
             end
 
             def perform_pending_loads
@@ -1382,37 +1451,27 @@ module Orocos
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
-                # GCCXML can't parse vectorized code, and the Typelib internal
-                # parser can't parse eigen at all. It is therefore safe to do it
-                # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{Orocos::Generation.orocos_target}"]
+                preprocess_options, options = make_load_options(pending_loads, user_options)
+                preprocessed, include_mappings = resolve_toplevel_include_mapping(pending_loads, preprocess_options)
 
-                options[:include] = include_dirs.dup
-                options = options.merge(user_options) do |key, a, b|
-                    if a.respond_to?(:to_ary)
-                        if b.respond_to?(:to_ary)
-                            b.concat(a)
-                        else
-                            [b].concat(a)
-                        end
-                    else
-                        b
-                    end
+                include_path = include_dirs.map { |d| Pathname.new(d) }
+                pending_loads_to_relative = pending_loads.inject(Hash.new) do |map, path|
+                    map[path] = resolve_full_include_path_to_relative(path, include_path)
+                    map
+                end
+
+                include_mappings.each do |file, lines|
+                    lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
 
                 Tempfile.open("orogen_pending_loads") do |io|
-                    pending_loads.each do |f|
-                        io.puts "#include \"#{f}\""
-                    end
+                    io.write preprocessed
                     io.flush
 
                     begin
-                        do_import(file_registry, io.path, 'c', options)
+                        file_registry.import(io.path, 'c', options)
                         filter_unsupported_types(file_registry)
-
-                        include_path = include_dirs.map { |d| Pathname.new(d) }
-                        resolve_registry_includes(include_path, file_registry)
+                        resolve_registry_includes(file_registry, include_mappings)
                         registry.merge(file_registry)
                         if project
                             project.registry.merge(file_registry)
@@ -1682,21 +1741,6 @@ module Orocos
             end
 
             def do_import(registry, path, kind, options)
-                # Define __orogen2 or __orogen based on us using GCCXML (first
-                # case) or the typelib internal parser (second case)
-                uses_gccxml =
-                    Typelib::Registry.respond_to?(:uses_gccxml?) && Typelib::Registry.uses_gccxml?(path, 'c')
-                options[:define] ||= []
-                if uses_gccxml
-                    options[:define] << '__orogen2'
-                    opaque_names = opaques.map { |opdef| opdef.type.name }
-                    options[:opaques] ||= []
-                    options[:opaques].concat(opaque_names)
-                else
-                    options[:define] << '__orogen'
-                end
-
-                registry.import(path, kind, options)
             end
 
             # This generates typedefs for container types. These
@@ -2103,7 +2147,11 @@ module Orocos
             # @see cxx_gen_includes
             def include_for_type(type)
                 if type.respond_to?(:deference)
-                    return include_for_type(type.deference)
+                    result = []
+                    if type <= Typelib::ContainerType
+                        result << 'vector'
+                    end
+                    return result + include_for_type(type.deference)
                 end
 
                 includes = type.metadata.get('orogen_include')
