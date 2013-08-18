@@ -3,6 +3,7 @@
 #ifndef _OROGEN_M_TYPES_<%= type.method_name(false).upcase %>_HPP
 #define _OROGEN_M_TYPES_<%= type.method_name(false).upcase %>_HPP
 
+#include <boost/cstdint.hpp>
 <% all_includes = needed_type_definitions.inject(Set.new) do |all, needed_type| %>
 <%     all |= typekit.include_for_type(needed_type).to_set %>
 <% end %>
