@@ -9,7 +9,11 @@
 
 <% needed_typekits = Set.new
    types_containing_opaques.each do |t|
-       needed_typekits |= typekit.imported_typekits_for(t).to_set
+       t.direct_dependencies.each do |dep_t|
+           if dep_t.contains_opaques?
+               needed_typekits |= typekit.imported_typekits_for(dep_t).to_set
+           end
+        end
    end
 %>
 <% needed_typekits.sort_by(&:name).each do |tk| %>
