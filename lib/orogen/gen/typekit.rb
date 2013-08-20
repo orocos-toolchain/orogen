@@ -1402,18 +1402,25 @@ module Orocos
                 end
 
                 owners = Hash.new { |h,k| h[k] = Array.new }
-                current_toplevel_file = nil
-                current_file = nil
-                current_line = nil
+                current_file = [[]]
                 preprocessed.each_line do |line|
-                    if line =~ /# (\d+) "(.*)"(?:\s\d)*/
-                        current_line, current_file = Integer($1), $2
-                        if toplevel_files.include?(current_file)
-                            current_toplevel_file = current_file
+                    if line =~ /# (\d+) "(.*)"(?: (\d))?/
+                        lineno, file, mode = Integer($1), $2, $3
+
+                        if mode == "1"
+                            toplevel_file =
+                                if toplevel_files.include?(file) then file
+                                else current_file.last[0]
+                                end
+                            current_file.push [toplevel_file, file, lineno]
+                        elsif mode == "2"
+                            current_file.pop
                         end
+                        current_file.last[2] = lineno
                     else
-                        owners[current_file][current_line] = current_toplevel_file
-                        current_line += 1
+                        toplevel, file, lineno = *current_file.last
+                        owners[file][lineno] = toplevel
+                        current_file.last[2] += 1
                     end
                 end
                 return preprocessed, owners
