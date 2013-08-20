@@ -2047,6 +2047,10 @@ module Orocos
 
 		type_header = Generation.render_template('typekit/Types.hpp', binding)
 		public_header_files << save_automatic_public_header("Types.hpp", type_header)
+		type_header = Generation.render_template('typekit/TypesDeprecated.hpp', binding)
+		save_automatic("Types.hpp", type_header)
+		type_header = Generation.render_template('typekit/OpaquesDeprecated.hpp', binding)
+		save_automatic("Opaques.hpp", type_header)
                 boost_serialization = Generation.render_template "typekit/BoostSerialization.hpp", binding
                 public_header_files << save_automatic_public_header("BoostSerialization.hpp", boost_serialization)
                 tk_hpp = Generation.render_template "typekit/Plugin.hpp", binding

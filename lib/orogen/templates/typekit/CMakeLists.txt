@@ -111,6 +111,8 @@ set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OR
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
+install(FILES Types.hpp Opaques.hpp
+    DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
     <% if typekit.has_opaques_with_templates? %>
     ${PROJECT_SOURCE_DIR}/typekit/Opaques.hpp

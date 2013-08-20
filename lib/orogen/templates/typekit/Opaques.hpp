@@ -3,6 +3,8 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name %>_USER_MARSHALLING_HH
 #define __OROGEN_GENERATED_<%= typekit.name %>_USER_MARSHALLING_HH
 
+#include <<%= typekit.name %>/typekit/OpaqueFwd.hpp>
+
 namespace orogen_typekits
 {
     <% type_sets.opaque_types.find_all { |op| op.generate_templates? }.each do |opaque_def|
