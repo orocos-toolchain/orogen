@@ -1392,7 +1392,13 @@ module Orocos
                         io.puts "#include <#{path}>"
                     end
                     io.flush
-                    IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]).read
+                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]) do |io|
+                        io.read
+                    end
+                    if !$?.success?
+                        raise ArgumentError, "failed to preprocess #{toplevel_files.join(" ")}"
+                    end
+                    result
                 end
 
                 owners = Hash.new { |h,k| h[k] = Array.new }
