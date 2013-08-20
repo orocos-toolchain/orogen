@@ -2180,7 +2180,11 @@ module Orocos
                     end
                 end
 
-                raise "no includes known for #{type.name}, #{type.metadata.get("source_file_line")}"
+                if type.opaque?
+                    raise ConfigError, "no includes known for #{type.name}, This is an opaque, and you must either call import_types_from on a header that defines it, or provide the :include option to the opaque definition"
+                else
+                    raise InternalError, "no includes known for #{type.name}, #{type.metadata.get("source_file_line")}"
+                end
             end
 
 
