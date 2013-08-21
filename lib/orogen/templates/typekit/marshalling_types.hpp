@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/typekit/marshalling_types.hpp */
 
-#ifndef _OROGEN_M_TYPES_<%= type.method_name(false).upcase %>_HPP
-#define _OROGEN_M_TYPES_<%= type.method_name(false).upcase %>_HPP
+#ifndef _OROGEN_M_TYPES_<%= type.method_name(true).upcase %>_HPP
+#define _OROGEN_M_TYPES_<%= type.method_name(true).upcase %>_HPP
 
 #include <boost/cstdint.hpp>
 <% all_includes = needed_type_definitions.inject(Set.new) do |all, needed_type| %>
