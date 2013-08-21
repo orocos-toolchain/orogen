@@ -59,8 +59,13 @@ end
 %>
 
 <h2>General Info</h2>
-<% typekit = Orocos.load_typekit_for(type, false) %>
-<% if typekit.interface_type?(type.name) %>
+<% typekit = begin Orocos.load_typekit_for(type, false)
+             rescue Orocos::TypekitTypeNotFound
+             end
+%>
+<% if !typekit %>
+This type is not part of a typekit
+<% elsif typekit.interface_type?(type.name) %>
 This type is <b>exported</b> by the <%= typekit.name %> typekit
 <ul>
     <li>it <b>can</b> be used in task interfaces</li>

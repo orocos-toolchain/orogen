@@ -6,7 +6,7 @@
 
 <% if type < Typelib::OpaqueType %>
 Unknown to oroGen (this is an opaque type)
-<% elsif type < Typelib::NumericType %>
+<% elsif type < Typelib::NumericType || type < Typelib::NullType %>
 <ul class="body-header-list">
 <%= page.render_item(type.name) %>
 </ul>

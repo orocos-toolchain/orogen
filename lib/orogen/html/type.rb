@@ -48,7 +48,7 @@ module Orocos
                 elsif type.respond_to?(:deference)
                     return has_convertions?(type.deference, false)
                 else
-                    raise NotImplementedError
+                    false
                 end
             end
 
@@ -120,7 +120,9 @@ module Orocos
                 _, push_options = Kernel.filter_options options, :external_objects => nil
                 @type = type
                 base = self.type
-                typekit = Orocos.load_typekit_for(base, false)
+                typekit = begin Orocos.load_typekit_for(base, false)
+                          rescue Orocos::TypekitTypeNotFound
+                          end
 
                 if base.contains_opaques?
                     @intermediate_type = typekit.intermediate_type_for(type)
