@@ -20,6 +20,9 @@
 
 <% current_namespace = '/' %>
 <% classes.sort_by(&:name).each do |type| %>
+<% while type.respond_to?(:deference) %>
+<%     type = type.deference %>
+<% end %>
 <%= Orocos::Generation.adapt_namespace(current_namespace, type.namespace) %>
 <%     current_namespace = type.namespace %>
 class <%= type.basename %>;
