@@ -94,7 +94,7 @@ This type is <b>not</b> exported by the <%= typekit.name %> typekit
    <% header = ["Logging"]
       header << "Ruby" if !ruby_type %>
    <h2><%= header.join(",") %></h2>
-   <p>This type cannot be logged directly. It is first converted to the <%= Rock::Doc::HTML.escape_html(intermediate_type.name) %> type, whose definition follows</p>
+   <p>This type cannot be logged directly. It is first converted to the <%= MetaRuby::GUI::HTML.escape_html(intermediate_type.name) %> type, whose definition follows</p>
    <%= render_type_definition_fragment(intermediate_type) %>
 <% end %>
 <% if ruby_type %>
