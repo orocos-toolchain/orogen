@@ -20,6 +20,7 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
+add_definitions(-DRTT_COMPONENT)
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if component.typekit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
