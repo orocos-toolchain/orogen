@@ -35,12 +35,7 @@ module Orocos
             def name; interface_object.name end
         end
         class PortDeployment     < GenericObjectDeployment; end
-        class PropertyDeployment < GenericObjectDeployment
-            attr_reader :value
-            def set(value)
-                @value = value
-            end
-        end
+        class PropertyDeployment < GenericObjectDeployment; end
         class OperationDeployment   < GenericObjectDeployment; end
 
         # Representation of a RTT connection policy
@@ -319,7 +314,7 @@ module Orocos
     #{rtt_scheduler},
     #{rtt_priority},
     #{period},
-    task_#{name}.engine(),
+    task_#{name}->engine(),
     "#{name}");
 RTT::os::Thread* thread_#{name} =
     dynamic_cast<RTT::os::Thread*>(activity_#{name}->thread());
@@ -350,7 +345,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
     #{rtt_scheduler},
     #{rtt_priority},
     0,
-    task_#{name}.engine(),
+    task_#{name}->engine(),
     "#{name}");
                    EOD
                 end
@@ -375,7 +370,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 activity_type 'Sequential', 'RTT::extras::SequentialActivity', 'rtt/extras/SequentialActivity.hpp'
                 activity_setup do
                     result = <<-EOD
-#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}.engine());
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}->engine());
                     EOD
                 end
                 activity_xml do
@@ -692,7 +687,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 master.slaves << slave
                 slave.activity_setup do
                     result = <<-EOD
-#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}.engine());
+#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}->engine());
                     EOD
                 end
                 slave.activity_xml do
@@ -705,68 +700,12 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @main_task = task
             end
 
-            class Logger
-                attr_reader :component, :task, :config
-                def initialize(component, task)
-                    @component, @task, @config = component, task, Array.new
-                end
-
-                def report(object)
-                    method = case object
-                             when TaskDeployment then ["Component", object, [object.name]]
-                             when PortDeployment then ["Port",     object.activity, [object.activity.name, object.name]]
-                             when PropertyDeployment then ["Data", object.activity, [object.activity.name, object.name]]
-                             else raise ArgumentError, "cannot report #{object}"
-                             end
-
-                    task = if object.kind_of?(TaskDeployment)
-                               object
-                           else object.activity
-                           end
-                    component.add_peers self.task, task
-
-                    config << method
-                    self
-                end
-
-                def method_missing(*args)
-                    task.send(*args)
-                end
-            end
-
-            # Common code for reporting definitions
-            def logger_for(collection, key) # :nodoc:
-                collection[key] ||= Logger.new(self, yield)
-            end
-
-            attr_reader :loggers
-
             def add_default_logger
-                task = logger(nil, "#{name}_Logger")
-                task_activities.each do |act|
-                    add_peers task, act
-                end
-                task
-            end
-
-            # Gets a data logger object, defined from the logger component, for
-            # the given file
-            def logger(file_name = nil, task_name = nil)
-                file_name ||= name + '.log'
-                file_name = file_name.to_str
-
                 if !project.used_task_libraries.find { |t| t.name == "logger" }
                     project.using_task_library "logger"
                 end
 
-                logger_for(loggers, file_name) do
-                    task_name ||= "#{name}_DataLogger#{loggers.size}"
-                    task_name = task_name.to_str
-
-                    logger = task(task_name, "logger::Logger")
-                    logger.file = file_name
-                    logger
-                end
+                task("#{name}_Logger", 'logger::Logger')
             end
 
             # The set of peer pairs set up for this deployment. This is a set

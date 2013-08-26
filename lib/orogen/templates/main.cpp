@@ -35,9 +35,6 @@
 <% end %>
 
 <% task_activities = deployer.task_activities.sort_by(&:name) %>
-<% task_activities.each do |task| %>
-#include <<%= task.context.header_file %>>
-<% end %>
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
 #include <rtt/transports/corba/TaskContextServer.hpp>
@@ -62,6 +59,8 @@
 <% end %>
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
+
+extern "C" RTT::TaskContext* createComponentType(std::string instance_name, std::string type_name);
 
 namespace po = boost::program_options;
 
@@ -234,21 +233,14 @@ int ORO_main(int argc, char* argv[])
     else
         task_name = prefix + task_name;
     
-    <%= task.context.class_name %> task_<%= task.name%>(task_name);
-    <% task.properties.sort_by { |prop| prop.name }.each do |prop|
-        if prop.value %>
-    dynamic_cast< RTT::Property<  <%= prop.interface_object.type.cxx_name %> >*>(
-            task_<%= task.name %>.properties()->getProperty("<%= prop.name %>"))
-        ->set(<%= prop.value.inspect %>);
-        <% end %>
-    <% end %>
+    std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(createComponentType(task_name, "<%= task.name %>"));
 
     <% if deployer.corba_enabled? %>
-    RTT::corba::TaskContextServer::Create( &task_<%= task.name%> );
+    RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
     <% if task.realtime? %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
     <% else %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
     <% end %>
     <% end %>
 
@@ -265,7 +257,7 @@ int ORO_main(int argc, char* argv[])
             thread->setStopTimeout(<%= timeout %>);
     }
     <% end %>
-    task_<%= task.name %>.setActivity(activity_<%= task.name %>);
+    task_<%= task.name %>->setActivity(activity_<%= task.name %>);
 <% end %>
 
 
@@ -276,8 +268,8 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>.getName(), vm["sd-domain"].as<std::string>());
-    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
+    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
+    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
     servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
     deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
@@ -286,32 +278,22 @@ int ORO_main(int argc, char* argv[])
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
-<% if !deployer.loggers.empty?
-        deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
-            logger.config.each do |type, reported_activity, args| %>
-                task_<%= logger.task.name %>.connectPeers(&task_<%= reported_activity.name %>);
-                task_<%= logger.task.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>);
-            <% end %>
-        <% end %>
-<% end %>
-
-
 <% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
-    task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
+    task_<%= a.name %>->connectPeers(&task_<%= b.name %>);
 <% end %>
 
 <% deployer.connections.
     sort_by { |src, dst, policy| [src.name, dst.name] }.
     each do |src, dst, policy|
         if src.kind_of?(TaskDeployment) %>
-            task_<%= src.activity.name %>.connectPorts(&task_<%= dst.activity.name %>);
+            task_<%= src.activity.name %>->connectPorts(task_<%= dst.activity.name %>.get());
         <% else %>
         {
             <%= policy.to_code("policy") %>
             RTT::base::OutputPortInterface* src = dynamic_cast<RTT::base::OutputPortInterface*>(
-                    task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
+                    task_<%= src.activity.name %>->ports()->getPort("<%= src.name %>"));
             RTT::base::InputPortInterface* dst = dynamic_cast<RTT::base::InputPortInterface*>(
-                    task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
+                    task_<%= dst.activity.name %>->ports()->getPort("<%= dst.name %>"));
             src->createConnection(*dst, policy);
         }
         <% end %>
@@ -323,13 +305,13 @@ int ORO_main(int argc, char* argv[])
 
     <% if task.start?
         if task.context.needs_configuration? %>
-    if (!task_<%= task.name %>.configure())
+    if (!task_<%= task.name %>->configure())
     {
         RTT::log(RTT::Error) << "cannot configure <%= task.name %>" << RTT::endlog();
         return -1;
     }
         <% end %>
-    if (!task_<%= task.name %>.start())
+    if (!task_<%= task.name %>->start())
     {
         RTT::log(RTT::Error) << "cannot start <%= task.name %>" << RTT::endlog();
         return -1;
@@ -394,7 +376,7 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::TaskContextServer::ShutdownOrb();
     RTT::corba::TaskContextServer::DestroyOrb();
 <% elsif deployer.browse %>
-    OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
+    OCL::TaskBrowser browser(task_<%= deployer.browse.name %>.get());
     browser.loop();
 <% end %>
 
