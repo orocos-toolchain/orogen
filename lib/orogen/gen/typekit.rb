@@ -2045,6 +2045,11 @@ module Orocos
 
                 public_header_files, plugin_header_files, implementation_files = [], [], []
 
+                # For backward compatibility
+                if File.symlink?(old_symlink = File.join(automatic_dir, 'Opaques.hpp'))
+                    FileUtils.rm_f old_symlink
+                end
+
 		type_header = Generation.render_template('typekit/Types.hpp', binding)
 		public_header_files << save_automatic_public_header("Types.hpp", type_header)
 		type_header = Generation.render_template('typekit/TypesDeprecated.hpp', binding)
