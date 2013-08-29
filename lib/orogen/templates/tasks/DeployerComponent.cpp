@@ -10,3 +10,12 @@ ORO_CREATE_COMPONENT_TYPE();
 ORO_LIST_COMPONENT_TYPE( <%= task.name %> );
 <% end %>
 
+namespace orogen
+{
+<% deployable_tasks.each do |task| %>
+    RTT::TaskContext* create_<%= task.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name)
+    {
+        return new <%= task.name %>(instance_name);
+    }
+<% end %>
+}
