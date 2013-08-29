@@ -60,7 +60,12 @@
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
 
-extern "C" RTT::TaskContext* createComponentType(std::string instance_name, std::string type_name);
+namespace orogen
+{
+<% task_activities.each do |task| %>
+    extern RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name);
+<% end %>
+}
 
 namespace po = boost::program_options;
 
@@ -233,7 +238,8 @@ int ORO_main(int argc, char* argv[])
     else
         task_name = prefix + task_name;
     
-    std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(createComponentType(task_name, "<%= task.task_model.name %>"));
+    std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(
+            orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
 
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
