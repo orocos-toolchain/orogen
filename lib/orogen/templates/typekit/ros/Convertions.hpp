@@ -35,6 +35,7 @@ namespace ros_convertions {
     <% end %>
     /** Array types: */
     <% convert_array_types.each do |type, ros_type| %>
+    <%   next if type <= Typelib::NumericType  %>
     void toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length );
     void fromROS( <%= type.cxx_name %>* value, std::vector< <%= ros_cxx_type(ros_type) %> > const& ros, int length );
     <% end %>

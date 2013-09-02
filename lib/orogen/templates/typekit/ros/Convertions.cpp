@@ -54,6 +54,7 @@ void ros_convertions::fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_
 <% end %>
 
 <% convert_array_types.each do |type, ros_type| %>
+<%   next if type <= Typelib::NumericType  %>
 void ros_convertions::toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length )
 {
     ros.resize(length);
