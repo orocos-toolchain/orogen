@@ -35,9 +35,9 @@ module Orocos
 
 
                 if dynamic? && (setter_operation.task == task)
-                    task.add_code_to_base_method_before "updateDynamicProperties","\tif(!set#{name.capitalize}(_#{name}.get())) return false;\n"
-                    setter_operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
-                    setter_operation.body = "\t//TODO Add your code here \n\n  \t//Call the base function, DO-NOT Remove\n\treturn(#{task.name}Base::set#{name.capitalize}(value));"
+                    task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
+                    setter_operation.base_body = "    //Update the RTT value of this property\n    _#{name}.set(value); \n    return true;"
+                    setter_operation.body = "    //TODO Add your code here \n\n    //Call the base function, DO-NOT remove\n    return(#{task.name}Base::set#{name.capitalize}(value));"
                 end
 
             end
@@ -59,6 +59,12 @@ module Orocos
                     "RTT::Attribute< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\")").
                     constructor(constructor.join("\n"))
+                
+                if dynamic? && (setter_operation.task == task)
+                    task.add_code_to_base_method_before "updateDynamicAttributes","    if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
+                    setter_operation.base_body = "    //Update the RTT value of this attribute\n    _#{name}.set(value); \n    return true;"
+                    setter_operation.body = "    //TODO Add your code here \n\n    //Call the base function, DO-NOT remove\n    return(#{task.name}Base::set#{name.capitalize}(value));"
+                end
             end
         end
 
@@ -468,6 +474,20 @@ module Orocos
                 end
             end
 
+            def create_dynamic_updater(name, superclass_has_dynamic)
+                add_base_method("bool",name)
+
+                if superclass_has_dynamic
+                    #Call the superclass method if needed, returning false if it fail. Otherwise check our dynamic properties
+                    #they are generated in register_for_generation, or returning true in the end
+                    add_code_to_base_method_after name,"        return #{superclass.name}::#{name}();\n"
+                else                
+                    #No superclass code, so return simply true
+                    add_code_to_base_method_after name,"        return true;\n"
+                end
+            end
+
+
 	    # Generate the code files for this task. This builds to classes:
 	    #
 	    # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
@@ -493,25 +513,18 @@ module Orocos
                         body("    return \"#{name}\";")
                 end
 
-                
-                if has_dynamic_properties?
-                    add_base_method("bool","updateDynamicProperties")
-
-                    if superclass.has_dynamic_properties?
-                        #call the superclass method if needed, returning false if they failed. Otherwise check our dynamic properties
-                        #they are generated in register_for_generation, or returning true in the end
-                        add_code_to_base_method_after "updateDynamicProperties","\tif(!#{superclass.name}::updateDynamicProperties()) return false;\n"
-                    end
-                    
-                    #Add the return true in any case
-                    add_code_to_base_method_after "updateDynamicProperties","\treturn true;\n"
+            
+                if(has_dynamic_properties?)
+                    create_dynamic_updater("updateDynamicProperties",superclass.has_dynamic_properties?)
                 end
 
-
+                if(has_dynamic_attributes?)
+                    create_dynamic_updater("updateDynamicAttributes",superclass.has_dynamic_attributes?)
+                end
 
                 self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
-                new_operations.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
+                new_operations.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
                 extensions.each do |ext|
                     if ext.respond_to?(:register_for_generation)
