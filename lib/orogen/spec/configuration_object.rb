@@ -73,10 +73,16 @@ module Orocos
                               ", default: #{value}"
                           end
 
-                pp.text "#{name}:#{type.name}#{default}"
                 if doc
-                    pp.text ", doc: #{doc}"
+                    first_line = true
+                    doc.split("\n").each do |line|
+                        pp.breakable if !first_line
+                        first_line = false
+                        pp.text "# #{line}"
+                    end
+                    pp.breakable
                 end
+                pp.text "#{name}:#{type.name}#{default}"
             end
 
 	    # call-seq:

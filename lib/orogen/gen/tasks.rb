@@ -8,6 +8,13 @@ module Orocos
     end
 
     module Generation
+        def self.multiline_string_to_cxx(str)
+            if str
+                "\"#{str.split("\n").join("\\n").gsub('"', '\\"')}\""
+            else "\"\""
+            end
+        end
+
         # Module that is used to add code generation functionality to
         # Spec::Property
         module PropertyGeneration
@@ -23,7 +30,7 @@ module Orocos
 
                 task.add_base_member("property", "_#{name}",
                     "RTT::Property< #{type.cxx_name} >").
-                    initializer("_#{name}(\"#{name}\", \"#{doc}\")").
+                    initializer("_#{name}(\"#{name}\", #{Generation.multiline_string_to_cxx(doc)})").
                     constructor(constructor.join("\n"))
 
 
@@ -73,7 +80,7 @@ module Orocos
                 constructor = []
                 constructor << "ports()->#{add}(_#{name})"
                 if doc
-                    constructor << "  .doc(\"#{doc}\")"
+                    constructor << "  .doc(#{Generation.multiline_string_to_cxx(doc)})"
                 end
                 constructor.last << ';'
 
@@ -185,7 +192,7 @@ module Orocos
                     end
 
                 constructor = "provides()->addOperation( _#{name})\n" +
-                    "    .doc(\"#{doc}\")"
+                    "    .doc(#{Generation.multiline_string_to_cxx(doc)})"
                 if !arguments.empty?
                     constructor += "\n" + arguments.map { |n, _, d| "    .arg(\"#{n}\", \"#{d}\")" }.join("\n")
                 end

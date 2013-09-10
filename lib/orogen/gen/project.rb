@@ -1,6 +1,7 @@
 require 'pathname'
 require 'utilrb/pkgconfig'
 require 'utilrb/kernel/load_dsl_file'
+require 'metaruby/dsls/doc'
 
 module Orocos
     module Generation
@@ -1019,6 +1020,7 @@ module Orocos
                     :class => Orocos::Spec::TaskContext
 
 		new_task = options[:class].new(self, "#{self.name}::#{name}")
+                Spec.load_documentation(new_task, /^task_context/)
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
                 self_tasks << new_task

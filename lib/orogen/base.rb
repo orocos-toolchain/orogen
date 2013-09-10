@@ -111,13 +111,15 @@ module Orocos
 	    if template = templates[path]
 		template
 	    else
-		template_data   = begin
-				      File.open(template_path(*path))
+		template_file   = begin
+				      template_path(*path)
 				  rescue Errno::ENOENT
 				      raise ArgumentError, "template #{File.join(*path)} does not exist"
 				  end
 
-		templates[path] = ERB.new(template_data.read, nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
+		templates[path] = ERB.new(File.read(template_file), nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
+                templates[path].filename = template_file
+                templates[path]
 	    end
 	end
 
