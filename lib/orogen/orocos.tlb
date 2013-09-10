@@ -1,99 +1,13 @@
 <?xml version="1.0"?>
 <typelib>
-  <numeric name="/bool" category="uint" size="1" >  
-  </numeric>
-  <numeric name="/double" category="float" size="8" >  
-  </numeric>
-  <numeric name="/float" category="float" size="4" >  
-  </numeric>
-  <numeric name="/int16_t" category="sint" size="2" >  
-  </numeric>
-  <numeric name="/int32_t" category="sint" size="4" >  
-  </numeric>
-  <numeric name="/int64_t" category="sint" size="8" >  
-  </numeric>
-  <numeric name="/int8_t" category="sint" size="1" >  
-  </numeric>
-  <null  name="/nil" >  
-  </null>
-  <numeric name="/uint16_t" category="uint" size="2" >  
-  </numeric>
-  <numeric name="/uint32_t" category="uint" size="4" >  
-  </numeric>
-  <numeric name="/uint64_t" category="uint" size="8" >  
-  </numeric>
-  <numeric name="/uint8_t" category="uint" size="1" >  
-  </numeric>
-  <alias name="/char" source="/int8_t"/>
-  <alias name="/int" source="/int32_t"/>
-  <alias name="/int long long" source="/int64_t"/>
-  <alias name="/int long unsigned" source="/uint64_t"/>
-  <alias name="/int short unsigned" source="/uint16_t"/>
-  <alias name="/int signed" source="/int32_t"/>
-  <alias name="/int signed long" source="/int64_t"/>
-  <alias name="/int signed long long" source="/int64_t"/>
-  <alias name="/int signed short" source="/int16_t"/>
-  <alias name="/int unsigned" source="/uint32_t"/>
-  <alias name="/int unsigned long long" source="/uint64_t"/>
+  <numeric name="/int8_t" category="sint" size="1" />
+  <numeric name="/int64_t" category="sint" size="8" />
+  <numeric name="/uint64_t" category="uint" size="8" />
+  <null name="/nil" />
   <alias name="/int64" source="/int64_t"/>
-  <alias name="/long" source="/int64_t"/>
-  <alias name="/long int" source="/int64_t"/>
-  <alias name="/long int long" source="/int64_t"/>
-  <alias name="/long int unsigned" source="/uint64_t"/>
-  <alias name="/long long" source="/int64_t"/>
-  <alias name="/long long int" source="/int64_t"/>
-  <alias name="/long long int signed" source="/int64_t"/>
-  <alias name="/long long int unsigned" source="/uint64_t"/>
-  <alias name="/long long signed" source="/int64_t"/>
-  <alias name="/long long signed int" source="/int64_t"/>
-  <alias name="/long long unsigned" source="/uint64_t"/>
-  <alias name="/long long unsigned int" source="/uint64_t"/>
-  <alias name="/long signed" source="/int64_t"/>
-  <alias name="/long signed int" source="/int64_t"/>
-  <alias name="/long signed long" source="/int64_t"/>
-  <alias name="/long signed long int" source="/int64_t"/>
-  <alias name="/long unsigned" source="/uint64_t"/>
-  <alias name="/long unsigned int" source="/uint64_t"/>
-  <alias name="/long unsigned long" source="/uint64_t"/>
-  <alias name="/long unsigned long int" source="/uint64_t"/>
-  <alias name="/short" source="/int16_t"/>
-  <alias name="/short int" source="/int16_t"/>
-  <alias name="/short int unsigned" source="/uint16_t"/>
-  <alias name="/short signed" source="/int16_t"/>
-  <alias name="/short signed int" source="/int16_t"/>
-  <alias name="/short unsigned" source="/uint16_t"/>
-  <alias name="/short unsigned int" source="/uint16_t"/>
-  <alias name="/signed" source="/int32_t"/>
-  <alias name="/signed char" source="/int8_t"/>
-  <alias name="/signed int" source="/int32_t"/>
-  <alias name="/signed int long" source="/int64_t"/>
-  <alias name="/signed int long long" source="/int64_t"/>
-  <alias name="/signed int short" source="/int16_t"/>
-  <alias name="/signed long" source="/int64_t"/>
-  <alias name="/signed long int" source="/int64_t"/>
-  <alias name="/signed long int long" source="/int64_t"/>
-  <alias name="/signed long long" source="/int64_t"/>
-  <alias name="/signed long long int" source="/int64_t"/>
-  <alias name="/signed short" source="/int16_t"/>
-  <alias name="/signed short int" source="/int16_t"/>
-  <alias name="/uint" source="/uint32_t"/>
-  <alias name="/uint32" source="/uint32_t"/>
   <alias name="/uint64" source="/uint64_t"/>
-  <alias name="/unsigned" source="/uint32_t"/>
-  <alias name="/unsigned char" source="/uint8_t"/>
-  <alias name="/unsigned int" source="/uint32_t"/>
-  <alias name="/unsigned int long long" source="/uint64_t"/>
-  <alias name="/unsigned long" source="/uint64_t"/>
-  <alias name="/unsigned long int" source="/uint64_t"/>
-  <alias name="/unsigned long int long" source="/uint64_t"/>
-  <alias name="/unsigned long long" source="/uint64_t"/>
-  <alias name="/unsigned long long int" source="/uint64_t"/>
-  <alias name="/unsigned short" source="/uint16_t"/>
-  <alias name="/unsigned short int" source="/uint16_t"/>
-  <alias name="/void" source="/nil"/>
   <container  name="/std/string" of="/int8_t" size="0" kind="/std/string" >
   <metadata key="orogen_include"><![CDATA[:string]]></metadata>
-
   </container>
   <alias name="/string" source="/std/string"/>
 </typelib>
