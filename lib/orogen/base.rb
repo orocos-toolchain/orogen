@@ -11,7 +11,7 @@ require 'find'
 
 class Module
     def enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
-	class_eval <<-EOD
+	class_eval <<-EOD, __FILE__, __LINE__
 	def find_#{attribute_name}(name) 
             each_#{each_name} do |n|
                 return n if n.name == name
@@ -33,7 +33,7 @@ class Module
     end
 
     def enumerate_inherited_map(each_name, attribute_name = each_name) # :nodoc:
-	class_eval <<-EOD
+	class_eval <<-EOD, __FILE__, __LINE__
         attr_reader :#{attribute_name}
 	def all_#{attribute_name}; each_#{each_name}.to_a end
 	def self_#{attribute_name}; @#{attribute_name}.values end
