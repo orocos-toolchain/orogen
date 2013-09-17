@@ -1057,6 +1057,14 @@ module Orocos
                 end
                 return false
             end
+            
+            # Return true if this task interface has an dynamic property.
+            def has_dynamic_attributes?
+                self_attributes.each do |p|
+                    return true if p.dynamic?
+                end
+                return false
+            end
 
             # call-seq:
             #   dynamic_input_port name_regex, typename

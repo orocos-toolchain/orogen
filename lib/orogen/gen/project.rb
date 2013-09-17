@@ -857,8 +857,12 @@ module Orocos
                 end
 
                 pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
-                loaded_typekits[name] = ImportedTypekit.
-                    from_raw_data(self, name, pkg, registry_xml, typelist_txt)
+                begin
+                    loaded_typekits[name] = ImportedTypekit.
+                        from_raw_data(self, name, pkg, registry_xml, typelist_txt)
+                rescue Exception => e
+                    raise e, "failed to import typekit #{name}: #{e.message}", e.backtrace
+                end
             end
 
 	    def register_typekit(name, registry_xml, typelist)
