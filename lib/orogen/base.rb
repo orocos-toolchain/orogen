@@ -40,6 +40,7 @@ class Module
 	def has_#{attribute_name}?(name); !!find_#{each_name}(name) end
 
 	def find_#{each_name}(name)
+            name = name.to_str
 	    if v = @#{attribute_name}[name]
 		v
 	    elsif superclass
@@ -368,6 +369,7 @@ module Orocos
 
         def self.verify_valid_identifier(name)
             name = name.to_s if name.respond_to?(:to_sym)
+            name = name.to_str
             if name !~ /^[a-zA-Z0-9_][a-zA-Z0-9_]*$/
                 raise ArgumentError, "task name '#{name}' invalid: it can contain only alphanumeric characters and '_', and cannot start with a number"
             end

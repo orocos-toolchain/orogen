@@ -397,7 +397,7 @@ module Orocos
                 other_model.each_port do |p|
                     if target_name = name_mappings[p.name]
                         p = p.dup
-                        p.instance_variable_set(:@name, target_name)
+                        p.instance_variable_set(:@name, target_name.to_str)
                     end
 
                     if has_port?(p.name)
