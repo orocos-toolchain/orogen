@@ -149,6 +149,9 @@ int ORO_main(int argc, char* argv[])
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
 <% end %>
+<% if deployer.transports.include? 'ros' %>
+        ("with-ros", po::value<bool>()->default_value(false), "also publish the task as ROS node, default is false")
+<% end %>
         ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
@@ -197,6 +200,13 @@ int ORO_main(int argc, char* argv[])
 
     if( vm.count("prefix")) 
         prefix = vm["prefix"].as<std::string>();
+
+<% if deployer.transports.include? 'ros' %>
+    bool with_ros = false;
+
+    if( vm.count("with-ros"))
+	with_ros = vm["with-ros"].as<bool>();
+<% end %>
 
     std::string task_name;
 
@@ -338,21 +348,23 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% if deployer.transports.include? 'ros' %>
-    RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
-    if(!ros::isInitialized()){
-        int argc =__os_main_argc();
-        char ** argv = __os_main_argv();
-        ros::init(argc,argv,prefix + "<%= deployer.name %>");
-      if(ros::master::check())
-          ros::start();
-      else{
-          RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
-          return false;
-      }   
+    if(with_ros){
+        RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
+        if(!ros::isInitialized()){
+            int argc =__os_main_argc();
+            char ** argv = __os_main_argv();
+            ros::init(argc,argv,prefix + "<%= deployer.name %>");
+          if(ros::master::check())
+              ros::start();
+          else{
+              RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
+              return false;
+          }
+        }
+        static ros::AsyncSpinner spinner(1); // Use 1 threads
+        spinner.start();
+        RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
     }
-    static ros::AsyncSpinner spinner(1); // Use 1 threads
-    spinner.start();
-    RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
 <% end %>
 
 <% if deployer.corba_enabled? %>
