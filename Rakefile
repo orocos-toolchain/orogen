@@ -18,8 +18,6 @@ task :setup do
     end
 end
 
-task :default => :setup
-
 begin
     require 'hoe'
     Hoe::plugin :yard
@@ -63,6 +61,9 @@ rescue Exception => e
         STDERR.puts "WARN: error message is: #{e.message}"
     end
 end
+
+Rake.clear_tasks(/^default$/)
+task :default => :setup
 
 require 'utilrb/doc/rake'
 Utilrb.doc :include => ['lib/**/*.rb'],
