@@ -28,6 +28,7 @@ begin
         self.summary = 'Component generation for Orocos::RTT'
         self.description = paragraphs_of('README.markdown', 3..6).join("\n\n")
         self.changes     = paragraphs_of('History.txt', 0..1).join("\n\n")
+        licenses << "GPLv2 or later"
 
         extra_deps <<
             ['utilrb',   '>= 1.3.4'] <<
