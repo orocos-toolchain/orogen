@@ -46,7 +46,7 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 include(OrogenPkgCheckModules)
 orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4")
 
-ADD_CUSTOM_TARGET(regen
+ADD_CUSTOM_TARGET(<%= typekit.name %>-regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        typegen_bin = 'typegen' %>
     <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
@@ -154,8 +154,8 @@ add_custom_command(
 	    extloads << typekit.cmake_relative_path(file)
         end
         extloads.join(" ") %>
-    COMMENT "Typekit input changed. Run make regen in your build directory first"
+    COMMENT "Typekit input changed. Run make <%= typekit.name %>-regen in your build directory first"
     COMMAND /bin/false)
-add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
-add_dependencies(${libname} check-typekit-uptodate)
+add_custom_target(<%= typekit.name %>-check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
+add_dependencies(${libname} <%= typekit.name %>-check-typekit-uptodate)
 
