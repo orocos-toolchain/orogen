@@ -1,6 +1,6 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/Type.cpp */
 
-#include "Types.hpp"
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
 #include "transports/corba/Registration.hpp"
 #include "transports/corba/Convertions.hpp"
 #include <rtt/transports/corba/CorbaTemplateProtocol.hpp>

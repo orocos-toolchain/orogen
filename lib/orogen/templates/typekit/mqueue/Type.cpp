@@ -1,6 +1,6 @@
 /* Generated from orogen/lib/orogen/templates/typekit/mqueue/Type.cpp */
 
-#include "Types.hpp"
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
 #include "transports/mqueue/Registration.hpp"
 
 <% use_plain_mempcy = type.compatible_with_memcpy? %>

@@ -3,7 +3,7 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_BOOST_SERIALIZATION_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_BOOST_SERIALIZATION_HPP
 
-#include <<%= typekit.name %>/Types.hpp>
+#include <<%= typekit.name %>/typekit/Types.hpp>
 
 #include <boost/cstdint.hpp>
 #include <boost/serialization/serialization.hpp>

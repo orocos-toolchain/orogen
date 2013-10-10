@@ -111,28 +111,34 @@ set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OR
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
-install(FILES
-    Types.hpp
-    <% if typekit.has_opaques_with_templates? %>
-    Opaques.hpp
-    <% end %>
+install(FILES Types.hpp Opaques.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
+    <% if typekit.has_opaques_with_templates? %>
+    ${PROJECT_SOURCE_DIR}/typekit/Opaques.hpp
+    <% end %>
     <%= relatives = []
-        public_header_files.each do |file|
+        plugin_header_files.each do |file|
 	    relatives << typekit.cmake_relative_path(file)
 	end
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
-<% typekit.local_headers(false).each do |path, dest_path| %>
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= (Pathname.new( typekit.base_dir ) + path).relative_path_from(Pathname.new(typekit.automatic_dir)) %>
-    DESTINATION include/orocos/<%= typekit.name %>/types/<%= typekit.name %>/<%= File.dirname(dest_path) %>)
+<% (public_header_files + typekit.included_files).each do |inc|
+    full_path = Pathname.new(typekit.automatic_dir).join('types', inc)
+    next if !full_path.exist?
+    target_dir = File.dirname(inc)
+    if full_path.symlink?
+       full_path = full_path.readlink
+    end
+    source_file = full_path.relative_path_from(Pathname.new(typekit.automatic_dir)) %>
+install(FILES <%= source_file.to_path %>
+    DESTINATION include/orocos/<%= target_dir %>)
 <% end %>
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.tlb
-    ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>.typelist
+install(FILES <%= typekit.name %>.tlb
+    <%= typekit.name %>.typelist
     DESTINATION share/orogen)
 
 <% typekit.each_plugin do |plg|
@@ -143,17 +149,15 @@ end %>
 
 # Force the user to regenerate its typekit if the inputs changed
 set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
+get_directory_property(include_path INCLUDE_DIRECTORIES)
+foreach(dep <%= typekit.included_files.to_set.sort.join(" ") %>)
+    find_file(dep_full_path ${dep} PATHS ${include_path})
+    list(APPEND TYPEKIT_SOURCE_HEADERS ${dep_full_path})
+    unset(dep_full_path CACHE)
+endforeach()
 add_custom_command(
     OUTPUT "${TK_STAMP}"
-    DEPENDS <%= loads = []
-        typekit.loads.each do |file| 
-	    loads << typekit.cmake_relative_path(file)
-        end
-        loads.join(" ") %> <%= extloads = []
-        typekit.external_loads.each do |file| 
-	    extloads << typekit.cmake_relative_path(file)
-        end
-        extloads.join(" ") %>
+    DEPENDS ${TYPEKIT_SOURCE_HEADERS}
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")

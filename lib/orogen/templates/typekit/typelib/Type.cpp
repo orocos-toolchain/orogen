@@ -1,6 +1,6 @@
 /* Generated from orogen/lib/orogen/templates/typekit/typelib/Type.cpp */
 
-#include "Types.hpp"
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
 #include <rtt/typelib/TypelibMarshaller.hpp>
 #include "transports/typelib/Registration.hpp"
 

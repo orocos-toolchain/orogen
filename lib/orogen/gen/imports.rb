@@ -38,7 +38,6 @@ module Orocos
 
             def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(typekit_registry)
                 typekit_registry.merge_xml(registry_xml)
 
                 typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
@@ -57,7 +56,7 @@ module Orocos
                     spec = OpaqueDefinition.new(
                         typekit_registry.get(base_type_name),
                         inter_type_name,
-                        { :includes => includes.split(':'), :needs_copy => (needs_copy == '1') },
+                        { :include => includes.split(':'), :needs_copy => (needs_copy == '1') },
                         nil)
 
                     typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))
@@ -131,6 +130,14 @@ module Orocos
                 main_project.m_type?(*args)
             end
 
+            def defines_array_of?(type)
+                typename = if type.respond_to?(:name) then type.name
+                           else type.to_str
+                           end
+
+                typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
+            end
+
             def using_library(*args); end
             def using_typekit(*args); end
 
@@ -166,6 +173,10 @@ module Orocos
             def include_dirs; Set.new end
             def types_dir; nil end
             def virtual?; true end
+
+            def defines_array_of?(*args)
+                false
+            end
         end
 
         # Instances of this class represent a task library loaded in a

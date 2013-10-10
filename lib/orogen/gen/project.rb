@@ -658,7 +658,7 @@ module Orocos
                     state_types = Generation.render_template(
                         "tasks", "TaskStates.hpp", binding)
                     header = Generation.save_automatic(
-                        "#{project.name}TaskStates.hpp", state_types)
+                        'typekit', 'types', project.name, "TaskStates.hpp", state_types)
                     typekit(true).load(header)
                 end
 
@@ -1145,7 +1145,7 @@ module Orocos
             def has_task_library?(name)
                 orogen_project_description(name)
                 true
-            rescue ConfigError
+            rescue Orocos::Generation::Project::MissingTaskLibrary
                 false
             end
 

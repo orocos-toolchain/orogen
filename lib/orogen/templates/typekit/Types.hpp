@@ -3,18 +3,12 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
 
-<%= typekit.opaques.map { |opaque_def| opaque_def.includes }.
-    flatten.map { |p| "#include <#{p}>" }.join("\n") %>
-
-<% typekit.external_loads.each do |file| %>
+<% typekit.included_files.to_set.sort.each do |file| %>
 #include <<%= file %>>
-<% end %>
-<% typekit.local_headers(false).each do |path, dest_path| %>
-#include "<%= typekit.name %>/types/<%= typekit.name %>/<%= dest_path %>"
 <% end %>
 <% typekit.used_typekits.each do |tk| %>
 <% next if tk.virtual? %>
-#include <<%= tk.name %>/Types.hpp>
+#include <<%= tk.name %>/typekit/Types.hpp>
 <% end %>
 
 // This is a hack. We include it unconditionally as it may be required by some
@@ -22,8 +16,6 @@
 // some of the types need std::vector.
 #include <vector>
 #include <boost/cstdint.hpp>
-
-<%= typekit.m_types_code %>
 
 <% interface_types.each do |type| %>
 #ifdef ORO_CHANNEL_ELEMENT_HPP
@@ -35,8 +27,6 @@
 #endif
 #ifdef ORO_CORELIB_DATASOURCES_HPP
     extern template class RTT::internal::ValueDataSource< <%= type.cxx_name %> >;
-    extern template class RTT::internal::ConstantDataSource< <%= type.cxx_name %> >;
-    extern template class RTT::internal::ReferenceDataSource< <%= type.cxx_name %> >;
 #endif
 #ifdef ORO_INPUT_PORT_HPP
     extern template class RTT::OutputPort< <%= type.cxx_name %> >;
