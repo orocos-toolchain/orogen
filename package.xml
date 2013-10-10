@@ -11,6 +11,8 @@
   <license>GPL v2 or later</license>
 
   <buildtool_depend>cmake</buildtool_depend>
+  <run_depend>catkin</run_depend>
+
   <export>
     <build_type>
       cmake
