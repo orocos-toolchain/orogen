@@ -6,6 +6,10 @@ module Orocos::ROS
             #   {name} returns the node-local name (the "port" name)
             attr_accessor :ros_name
 
+            # @return [String] the actual name of the package this node is
+            #   part of
+            attr_accessor :ros_package
+
             # Declares that this node produces data on a specific topic
             #
             # @param [String] topic_name the topic name
