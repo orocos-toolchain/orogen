@@ -1,0 +1,84 @@
+module Orocos::ROS
+    module Generation
+        class Project < Orocos::Generation::Project
+            extend Logger::Hierarchy
+
+            # @return [Array] array of ros nodes defined in this project
+            attr_reader :ros_nodes
+
+            # @return [Array] array of ros launch descriptions defined in this project
+            attr_reader :ros_launchers
+
+            def initialize
+                super
+
+                @ros_nodes = []
+                @ros_launchers = []
+            end
+
+            # Declares a ros node that exists within the package
+            # define by the project name
+            #
+            # name "ros_package"
+            # ros_node "ros_node" do
+            #   .. node specification ..
+            # end
+            #
+            # defines a <tt> ros_package::ros_node</tt> class.
+            #
+            # Nodes are represented as instances of RosNode. See
+            # the documentation of that class for more details
+            def ros_node(name, options = Hash.new, &block)
+                options[:class] = Orocos::ROS::Spec::Node
+                node = task_context(name, options, &block)
+                @ros_nodes << node
+                node.ros_name = name
+                node.ros_package = self.name
+                node
+            end
+
+            # Declares a ros launcher that exists within the package
+            # defined by the project name
+            #
+            # ros_launcher "test"
+            #     use_existing
+            # end
+            #
+            # If use existing is given it will search for "test.lauch" in 
+            # the ros package and extract the nodes started by the launch-
+            # file
+            def ros_launcher(name, &block)
+                begin
+                    launcher = Spec::Launcher.new(self, name, &block)
+                    @ros_launchers << launcher
+                    launcher
+                rescue Exception => e
+                    raise RuntimeError, "Defining ROS Launcher failed. #{e}"
+                end
+            end
+
+            def orogen_project?
+                false
+            end
+
+            # Allow ROS specs to be loaded from the default search spec directories
+            # for ROS
+            #
+            # see Orocos::ROS.spec_search_directories
+            def orogen_project_description(name)
+                result = nil
+                begin
+                    result = super
+                rescue ::Orocos::Generation::Project::MissingTaskLibrary => e
+                    Orocos::ROS.spec_search_directories.each do |dir|
+                        path = File.join(dir, "#{name}#{Orocos::ROS.spec_file_suffix}")
+                        if File.exists?(path)
+                            return register_orogen_file(path)
+                        end
+                    end
+                    raise
+                end
+            end
+        end
+    end
+end
