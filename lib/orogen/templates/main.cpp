@@ -295,7 +295,7 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
 <% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
-    task_<%= a.name %>->connectPeers(&task_<%= b.name %>);
+    task_<%= a.name %>->connectPeers(task_<%= b.name %>.get());
 <% end %>
 
 <% deployer.connections.
