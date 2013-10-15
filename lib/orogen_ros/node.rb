@@ -19,8 +19,9 @@ module Orocos::ROS
             #   ROS mapping must exist for it
             # @return [OutputTopic]
             def output_topic(topic_name, name, message_type)
-                data_type = project.map_message_type_to_orogen(message_type)
-                topic = super(name, data_type, :class => OutputTopic)
+                data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
+                puts "DATA_TYPE: #{data_type}"
+                topic = output_port(name, data_type, :class => OutputTopic)
                 topic.ros_name = topic_name
                 topic
             end
@@ -34,8 +35,8 @@ module Orocos::ROS
             #   ROS mapping must exist for it
             # @return [InputTopic]
             def input_topic(topic_name, name, message_type)
-                data_type = project.map_message_type_to_orogen(message_type)
-                topic = super(name, data_type, :class => InputTopic)
+                data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
+                topic = input_port(name, data_type, :class => InputTopic)
                 topic.ros_name = topic_name
                 topic
             end

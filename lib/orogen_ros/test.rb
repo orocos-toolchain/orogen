@@ -13,9 +13,12 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
 end
 
 require 'orogen_ros'
+require 'test/unit'
 ## Uncomment this to enable flexmock
 # require 'flexmock/test_unit'
 require 'minitest/spec'
+
+include Test::Unit::Assertions
 
 if ENV['TEST_ENABLE_PRY'] != '0'
     begin
@@ -32,11 +35,12 @@ module Orocos::ROS
     #
     # @example
     #   require 'orogen_ros/test'
-    #   describe Orogen::ROS do
-    #     include Orogen::ROS::SelfTest
+    #   describe Orocos::ROS do
+    #     include Orocos::ROS::SelfTest
     #   end
     #
     module SelfTest
+
         if defined? FlexMock
             include FlexMock::ArgumentTypes
             include FlexMock::MockContainer

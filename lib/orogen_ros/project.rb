@@ -1,6 +1,7 @@
 module Orocos::ROS
     module Generation
         class Project < Orocos::Generation::Project
+            include Spec::Package
             extend Logger::Hierarchy
 
             # @return [Array] array of ros nodes defined in this project
@@ -10,11 +11,12 @@ module Orocos::ROS
             attr_reader :ros_launchers
 
             def initialize
-                super
+                super 
 
                 @ros_nodes = []
                 @ros_launchers = []
             end
+
 
             # Declares a ros node that exists within the package
             # define by the project name
@@ -28,10 +30,12 @@ module Orocos::ROS
             #
             # Nodes are represented as instances of RosNode. See
             # the documentation of that class for more details
+            # @return [Node]
             def ros_node(name, options = Hash.new, &block)
-                options[:class] = Orocos::ROS::Spec::Node
+                options[:class] = Spec::Node
+                options[:skip_name_check] = true
                 node = task_context(name, options, &block)
-                @ros_nodes << node
+                ros_nodes << node
                 node.ros_name = name
                 node.ros_package = self.name
                 node
@@ -50,7 +54,7 @@ module Orocos::ROS
             def ros_launcher(name, &block)
                 begin
                     launcher = Spec::Launcher.new(self, name, &block)
-                    @ros_launchers << launcher
+                    ros_launchers << launcher
                     launcher
                 rescue Exception => e
                     raise RuntimeError, "Defining ROS Launcher failed. #{e}"
@@ -78,6 +82,14 @@ module Orocos::ROS
                     end
                     raise
                 end
+            end
+
+            def define_default_deployments?
+                false
+            end
+
+            def simple_deployment(name,klass)
+                # n/a for ros nodes
             end
         end
     end

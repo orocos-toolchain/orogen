@@ -1,7 +1,7 @@
 require 'orogen'
 require 'orogen_ros/tools'
-require 'orogen_ros/project'
 require 'orogen_ros/package'
+require 'orogen_ros/project'
 require 'orogen_ros/input_topic'
 require 'orogen_ros/output_topic'
 require 'orogen_ros/node'

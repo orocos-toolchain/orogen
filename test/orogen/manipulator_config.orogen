@@ -1,0 +1,13 @@
+name "manipulator_config"
+
+using_task_library 'artemis_state_publisher'
+
+# Deployment would correspond to launch file (for the moment)
+# --> maps to test.launch
+ros_launcher "test" do
+    #reuse_existing
+
+    #node("state_publisher", "artemis_state_publisher::artemis_state_publisher_node")
+    node("artemis_motionPlanner", "ros::manipulator_motionplanner")
+    #task("artemis_rock_ros_wrapper_node", "ros::manipulator_motionplanner")
+end

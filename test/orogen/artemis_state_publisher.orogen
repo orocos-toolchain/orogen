@@ -1,0 +1,8 @@
+name "artemis_state_publisher"
+
+ros_node "state_publisher" do
+   
+    output_topic 'joint_state', 'joint_states', 'sensor_msgs/JointState'
+
+    input_topic  'artemis_joint_states', 'artemis_joint_states', 'sensor_msgs/JointState'
+end

@@ -87,7 +87,11 @@ module Orocos::ROS
             end
 
             def reuse_existing
-                @reuse_existing = true
+                @reuse_existing = true 
+            end
+
+            def reuse_existing?
+                @reuse_existing
             end
 
             def kill
@@ -109,7 +113,7 @@ module Orocos::ROS
 
                 launch_name = launch_name.gsub(/\.launch$/,"")
                 launch_name += ".launch"
-                if reuse_existing
+                if reuse_existing?
                     launch_path = File.join(launch_path, launch_name)
                     if !File.file?(launch_path)
                         raise ArgumentError, "there is no launch_file called #{launch_name} in #{package_name} (looked in #{launch_path})"
