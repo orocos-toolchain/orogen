@@ -61,7 +61,7 @@ module Orocos
             # True if this is a dynamic port model, false otherwise
             def dynamic?; false end
 
-	    def initialize(task, name, type)
+	    def initialize(task, name, type, options = Hash.new)
                 if !name.kind_of?(Regexp)
                     name = name.to_s
                     if name !~ /^\w+$/

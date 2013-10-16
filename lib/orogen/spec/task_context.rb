@@ -984,7 +984,7 @@ module Orocos
             # corresponding InputPort object.
 	    #
 	    # See also #output_port
-	    def input_port(name, type)
+	    def input_port(name, type, options = Hash.new)
                 name = Generation.verify_valid_identifier(name)
                 check_uniqueness(name)
                 options = Kernel.validate_options options,
