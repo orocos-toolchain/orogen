@@ -1,5 +1,6 @@
-set(PROJECT_NAME <%= typekit.name %>_msgs)
-set(<%= typekit.name %>_msgs_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+<% ros_pkg_name = typekit.plugin('ros').ros_package_name_for_typekit(typekit) %>
+set(PROJECT_NAME <%= ros_pkg_name %>)
+set(<%= ros_pkg_name %>_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 <% typekit_deps = typekit.plugin('ros').dependencies %>
 
 find_package(catkin REQUIRED)
@@ -19,7 +20,7 @@ msg_deps = typekit.used_typekits.map do |tk|
     # Don't depend on transports that actually don't define any messages
     pkg_rosmap = Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(tk.name)
     next if pkg_rosmap.empty?
-    "#{tk.name}_msgs"
+    "orogen_#{tk.name}_msgs"
 end.compact.to_set
 user_converted_types.each do |type, ros_type|
     msg = type_to_msg[ros_type.name]
@@ -98,11 +99,11 @@ SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transpor
 configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
 
 # Needed to generate the config.cmake file
-configure_file(<%= typekit.name %>_msgs-config.cmake.in <%= typekit.name %>_msgs-config.cmake @ONLY)
+configure_file(<%= ros_pkg_name %>-config.cmake.in <%= ros_pkg_name %>-config.cmake @ONLY)
 install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
 install(FILES <%= rosmap %> DESTINATION share/orogen/)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>_msgs-config.cmake DESTINATION share/<%= typekit.name %>_msgs/cmake)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= ros_pkg_name %>-config.cmake DESTINATION share/<%= ros_pkg_name %>/cmake)
 install(FILES
     <%= headers.join("\n   ") %>
     Convertions.hpp

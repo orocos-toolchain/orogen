@@ -194,6 +194,17 @@ module Orocos
                     end
                 end
 
+                # Returns the ROS package name generated for a given typekit
+                #
+                # @param [#name,#to_str] the typekit or typekit name
+                # @return [String] the corresponding ROS package name
+                def ros_package_name_for_typekit(typekit)
+                    if typekit.respond_to?(:name)
+                        typekit = typekit.name
+                    end
+                    "orogen_#{typekit}_msgs"
+                end
+
                 # Returns the ROS message name for +type+
                 #
                 # @param [TypeClass] type the type as a typelib Type class
@@ -211,7 +222,7 @@ module Orocos
                     else
                         source_typekit = typekit.imported_typekits_for(type.name).first
                         if source_typekit || absolute
-                            prefix = "#{(source_typekit || typekit).name}_msgs/"
+                            prefix = "#{ros_package_name_for_typekit(source_typekit || typekit)}/"
                         end
                         "#{prefix}" + type.name.
                             split("/").
@@ -432,7 +443,7 @@ module Orocos
                     end.sort
 
                     cmake_config = Generation.render_template "typekit", "ros", "config.cmake.in", binding
-                    typekit.save_automatic("transports", "ros", "#{typekit.name}_msgs-config.cmake.in", cmake_config)
+                    typekit.save_automatic("transports", "ros", "orogen_#{typekit.name}_msgs-config.cmake.in", cmake_config)
 
                     rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
                     rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
