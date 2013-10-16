@@ -91,7 +91,7 @@
   <alias name="/unsigned short" source="/uint16_t"/>
   <alias name="/unsigned short int" source="/uint16_t"/>
   <alias name="/void" source="/nil"/>
-  <container  name="/std/string" of="/int8_t" size="8" kind="/std/string" >
+  <container  name="/std/string" of="/int8_t" size="0" kind="/std/string" >
   <metadata key="orogen_include"><![CDATA[:string]]></metadata>
 
   </container>
