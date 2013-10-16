@@ -979,7 +979,7 @@ module Orocos
             # the documentation of that class for more details.
 	    def task_context(name, options = Hash.new, &block)
                 if name == self.name
-                    raise ArgumentError, "a task cannot have the same name that the project"
+                    raise ArgumentError, "a task cannot have the same name as the project"
                 elsif name !~ /^(\w+::)*\w+$/
                     raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
