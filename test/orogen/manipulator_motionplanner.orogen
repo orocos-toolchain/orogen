@@ -1,0 +1,9 @@
+name "manipulator_motionplanner"
+
+ros_node "manipulator_motionplanner" do
+end
+
+ros_node "rock_ros_wrapper" do
+end
+
+

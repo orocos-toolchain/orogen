@@ -1,9 +1,0 @@
-name "manipulator_motionplanner"
-
-ros_node "artemis_motionPlanner" do
-end
-
-ros_node "artemis_rock_ros_wrapper_node" do
-end
-
-

@@ -1,6 +1,8 @@
 name "artemis_state_publisher"
 
-ros_node "state_publisher" do
+import_types_from 'base'
+
+ros_node "artemis_state_publisher_node" do
    
     output_topic 'joint_state', 'joint_states', 'sensor_msgs/JointState'
 
