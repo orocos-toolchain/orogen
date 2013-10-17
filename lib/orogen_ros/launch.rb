@@ -63,55 +63,36 @@ module Orocos::ROS
         class Launcher < Orocos::Spec::Deployment
             extend ::Logger::Root("Orocos::ROS::Launcher", ::Logger::WARN)
 
+            # Project this launcher is part of
             attr_reader :project
+
+            # Name of the launcher
             attr_reader :name
             alias :nodes :task_activities
 
             attr_reader :reuse_existing
             attr_reader :launch_file
 
-            attr_reader :pid
-        
             def initialize(project = nil, name = nil)
                 @project = project
                 @name = name
                 @nodes = []
                 @task_activities = []
-                @reuse_existing = false
+                @reuse_existing = nil
                 @launch_file = nil
-
-                @pid = nil
-
-                # search for name.launch, project.name == ros package name
-                filename = roslaunch_find(project.name, name)
             end
 
             def reuse_existing
-                @reuse_existing = true 
+                if !@reuse_existing
+                    @reuse_existing = true
+                    # search for name.launch, project.name == ros package name
+                    @launch_file = Orocos::ROS.roslaunch_find(project.name, name)
+                    parse(@launch_file)
+                end
             end
 
             def reuse_existing?
-                @reuse_existing
-            end
-
-            # Locate the launch file in a given ros package 
-            # @return [String] absolute path to the launch file
-            # @throws [ArgumentError] if the launch file cannot be found in the ros package
-            def roslaunch_find(package_name, launch_name)
-                package_path = Orocos::ROS.rospack_find(package_name)
-                launch_path = File.join(package_path, "launch")
-
-                launch_name = launch_name.gsub(/\.launch$/,"")
-                launch_name += ".launch"
-                if reuse_existing?
-                    launch_path = File.join(launch_path, launch_name)
-                    if !File.file?(launch_path)
-                        raise ArgumentError, "there is no launch_file called #{launch_name} in #{package_name} (looked in #{launch_path})"
-                    end
-                    launch_path
-
-                    @launch_file = parse(launch_path)
-                end
+                !!@reuse_existing
             end
 
             # Parse the launch file
@@ -119,7 +100,6 @@ module Orocos::ROS
                 if File.exists?(path)
                     @node_descriptors = Launcher.parse(path)
                     @node_descriptors.each do |d|
-                        puts "NODE #{d}"
                         node(d.name, "#{d.package}::#{d.type}")
                     end
                 else
@@ -129,21 +109,14 @@ module Orocos::ROS
             end
 
             def node(name, klass)
-                task_deployment = nil
-                begin 
-                    task_deployment = task(name, klass)
-                    Launcher.warn "Orocos::ROS: found task: '#{name}' => '#{klass}' from using statement."
-                rescue Exception => e
-                    if reuse_existing
-                        Launcher.warn "Orocos::ROS: using ros node definition from launch file: '#{name}' => '#{klass}' from launch file."
-                        task_context = Node.new(name, klass)
-                        task_deployment = Orocos::Spec::TaskDeployment.new(name, task_context)
-                        @task_activities << task_deployment
-                    else
-                        raise
-                    end
-                end
-                @nodes << task_context
+                task_deployment = task(name, klass)
+
+                # Update with ros information
+                node = task_deployment.task_model
+                node.ros_name = node.name.split("::")[1]
+                node.ros_package = node.project.name
+                @nodes << node
+
                 task_deployment
             end
         
