@@ -94,16 +94,6 @@ module Orocos::ROS
                 @reuse_existing
             end
 
-            def kill
-                ::Process.kill('INT', @pid)
-            end
-
-            # Spawn the launch file
-            # @return [int] pid of the launch process
-            def spawn
-                @pid = Orocos::ROS.roslaunch(project.name, "#{name}.launch")
-            end
-
             # Locate the launch file in a given ros package 
             # @return [String] absolute path to the launch file
             # @throws [ArgumentError] if the launch file cannot be found in the ros package
@@ -171,10 +161,6 @@ module Orocos::ROS
                     end
                 end
                 nodes
-            end
-
-            def run
-                spawn
             end
 
             def self.load_specs(*args)
