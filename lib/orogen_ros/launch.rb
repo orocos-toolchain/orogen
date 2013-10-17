@@ -65,7 +65,7 @@ module Orocos::ROS
 
             attr_reader :project
             attr_reader :name
-            attr_reader :nodes
+            alias :nodes :task_activities
 
             attr_reader :reuse_existing
             attr_reader :launch_file
