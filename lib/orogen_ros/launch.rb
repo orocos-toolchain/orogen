@@ -167,7 +167,7 @@ module Orocos::ROS
             end
 
             def to_s
-                "Launcher: #{name}, use_existing: #{reuse_existing}, #{launch_file}"
+                "Launcher: #{name}, use_existing: #{@reuse_existing}, #{@launch_file}"
             end
         end # Launch
     end # Spec
