@@ -54,6 +54,7 @@ module Orocos::ROS
             def ros_launcher(name, &block)
                 begin
                     launcher = Spec::Launcher.new(self, name, &block)
+                    launcher.instance_eval(&block) if block_given?
                     ros_launchers << launcher
                     launcher
                 rescue Exception => e
