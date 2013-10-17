@@ -58,7 +58,7 @@ module Orocos::ROS
                     ros_launchers << launcher
                     launcher
                 rescue Exception => e
-                    raise RuntimeError, "Defining ROS Launcher failed. #{e}"
+                    raise RuntimeError, "Defining ROS Launcher failed -- #{e}"
                 end
             end
 
