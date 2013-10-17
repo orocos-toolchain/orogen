@@ -75,11 +75,9 @@ module Orocos::ROS
                 begin
                     result = super
                 rescue ::Orocos::Generation::Project::MissingTaskLibrary => e
-                    Orocos::ROS.spec_search_directories.each do |dir|
-                        path = File.join(dir, "#{name}#{Orocos::ROS.spec_file_suffix}")
-                        if File.exists?(path)
-                            return register_orogen_file(path)
-                        end
+                    if p = Orocos::ROS.available_projects[name]
+                        _, path = p
+                        return register_orogen_file(path)
                     end
                     raise
                 end
