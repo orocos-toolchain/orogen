@@ -34,9 +34,9 @@ module Orocos::ROS
                 end
             
                 def self.from_xml_node(node)
-                    name = node.attribute("name")
-                    package = node.attribute("pkg")
-                    type = node.attribute("type")
+                    name = node.attribute("name").to_s
+                    package = node.attribute("pkg").to_s
+                    type = node.attribute("type").to_s
             
                     nd = NodeDescription.new(name, package, type)
             
