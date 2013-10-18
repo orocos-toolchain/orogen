@@ -203,8 +203,7 @@ module Orocos
                 @available_launchers = Hash.new
 
                 available_ros_projects.each do |pkg, pkg_desc|
-                    _, deffile = pkg_desc
-                    project = Orocos::ROS::Generation::Project.load(deffile)
+                    project,_ = pkg_desc
                     project.ros_launchers.each do |l|
                         @available_launchers[l.name] = l
                     end
@@ -256,11 +255,17 @@ module Orocos
 
             # If Orocos is in use, hook into the Orocos.master_project instead of maintaining
             # a separated version in Orocos::ROS.master_project
+            Orocos::ROS.warn "Orocos.master_project will not be used" unless Orocos.master_project
             @master_project = Orocos.master_project || Orocos::Generation::Component.new
             @registry = master_project.registry
 
             available_types
-            available_ros_projects
+            # resolve project after first getting all paths
+            available_ros_projects.each do |name, pkg_desc|
+                _, path = pkg_desc
+                project = Orocos::ROS::Generation::Project.load(path)
+                pkg_desc[0] = project
+            end
         end
 
         def self.add_project_from(pkg) # :nodoc:
