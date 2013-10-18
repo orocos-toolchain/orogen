@@ -126,9 +126,29 @@ module Orocos
             launch_path
         end
 
-        def self.roscore(*args)
-            pid = Utilrb.spawn "roscore", *args
-            pid
+        # Get the roscore process id
+        # @return [Int] Pid of the roscore process, if it has been started by this Ruby process,
+        #     false otherwise
+        def self.roscore_pid
+            @roscore_pid || 0
+        end
+
+        # Start the roscore process
+        # @return[INT] Pid of the roscore process see #roscore_pid
+        def self.roscore_start(*args)
+            if rosnode_list.empty?
+                @roscore_pid = Utilrb.spawn "roscore", *args
+            else
+                Orocos::ROS.info "roscore is already running: pid: '#{roscore_pid}'"
+            end
+            roscore_pid
+        end
+
+        # Shutdown roscore 
+        # This will only work if roscore has been started by the same ruby process
+        def self.roscore_shutdown
+            Orocos::ROS.info "roscore will be shutdown"
+            ::Process.kill('INT',@roscore_pid) if roscore_pid
         end
 
         # @return [String] the type name that should be used on the oroGen
