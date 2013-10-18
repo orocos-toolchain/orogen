@@ -9,9 +9,13 @@ module Orocos
 
         # This class wraps ros tooling and set some default configurations
         class << self
+            # [String] Specification file suffix for ROS projects
             attr_reader :spec_file_suffix
+            # [Array] Specification search directories
             attr_accessor :spec_search_directories
 
+            # Master project which loads all available projects
+            # If Orocos.master_project is available it will map to it
             attr_reader :master_project
 
             # [Hash<String,Array<String>>] mappings from ROS message types to
@@ -33,11 +37,15 @@ module Orocos
             # attr_reader :available_typekits
         end
 
+        # Suffix a specification file if not already suffixed
+        # @return [String] suffixed filename
         def self.suffix(filename)
             filename = filename.gsub(/\.#{spec_file_suffix}/,'')
             "#{filename}.#{spec_file_suffix}"
         end
 
+        # Extract the project name as basename of a specification file
+        # @return [String] project name
         def self.project_name_from_file(filename)
             File.basename(filename).gsub(/\.#{spec_file_suffix}/,'')
         end
@@ -54,7 +62,6 @@ module Orocos
 
         # Find the path of a rosnode binary
         # @return [String] Path to the rosnode binary
-        #
         def self.rosnode_find(package_name, binary_name)
             package_path = rospack_find(package_name)
 
@@ -64,12 +71,14 @@ module Orocos
             end
             bin_path
         end
-        
+       
+        # List running ROS nodes using the ROS tooling
         # @return [Array] List of running ros nodes 
         def self.rosnode_list
             running_nodes = (`rosnode list` || []).split("\n")
         end
 
+        # Test whether a ROS node of the given name is running
         # @return [Bool] True if a ros node of given name is currenlty running
         def self.rosnode_running?(node_name)
              # making sure node name conform to 
@@ -77,7 +86,9 @@ module Orocos
              rosnode_list.include?(rosnode_normalize_name(node_name))
         end
 
-        # @
+        # Normalize the rosnode name, i.e. make sure the 
+        # name is prefixed with a '/'
+        # @return [String] (prefixed) node name
         def self.rosnode_normalize_name(node_name)
              "/#{node_name}".sub(/^\/\//,'/')
         end
@@ -186,6 +197,7 @@ module Orocos
 
         # Find all available launchers defined
         # in ros specification files
+        # @return [Hash<String,Orocos::ROS::Spec::Launcher>] All launchers known
         def self.available_launchers
             if !@available_launchers
                 @available_launchers = Hash.new
@@ -202,6 +214,8 @@ module Orocos
         end
 
         # Retrieve the list of available ros projects
+        #
+        # @return [Hash<String,Array<Orocos::ROS::Spec::Project,path>>]
         def self.available_ros_projects
             if !@available_ros_projects
                 @available_ros_projects = Hash.new
