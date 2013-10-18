@@ -2,6 +2,7 @@ require 'utilrb'
 
 module Orocos
     module ROS
+        extend Logger::Root("Orocos::ROS",Logger::INFO)
 
         @spec_file_suffix = "orogen"
         @spec_search_directories = ["."]
