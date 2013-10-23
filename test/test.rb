@@ -60,6 +60,13 @@ describe Orocos::ROS::Generation::Project do
         end
     end # describe 
 
+    describe "rosnode_findpackage" do
+        Orocos::ROS.load
+
+        package = Orocos::ROS.rosnode_findpackage("state_publisher")
+        assert package.name == "artemis_state_publisher", "Find package of node #{package}"
+    end
+
     describe "simple functions" do
         assert_equal "/test", Orocos::ROS.rosnode_normalize_name("test"), "Node name normalization"
     end
