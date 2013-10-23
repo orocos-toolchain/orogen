@@ -9,6 +9,16 @@ module Orocos::ROS
             #   part of
             attr_accessor :ros_package
 
+            def initialize(project = nil, name = nil)
+                super
+
+                # Try to infer ros_package from ros_name
+                if name
+                    @ros_name = name
+                    @ros_package = Orocos::ROS.rosnode_findpackage(name)
+                end
+            end
+
             # Declares that this node produces data on a specific topic
             #
             # @param [String] topic_name the topic name

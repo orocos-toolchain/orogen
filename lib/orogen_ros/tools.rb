@@ -71,6 +71,20 @@ module Orocos
             end
             bin_path
         end
+
+        # Find the package of the rosnode with the given name.
+        # Will only be useful after a call to Orocos::ROS#load
+        # @return [Orocos::ROS::Spec::Project] The package (project) or nil if the package could not be found
+        def self.rosnode_findpackage(name)
+            return nil if !loaded?
+
+            available_nodes.each do |node_name, node|
+                if name == node_name
+                    return node.project
+                end
+            end
+            nil
+        end
        
         # List running ROS nodes using the ROS tooling
         # @return [Array] List of running ros nodes 
@@ -251,6 +265,21 @@ module Orocos
             @available_ros_projects
         end
 
+        # Retrieve the list of available nodes
+        # @return [Hash<String, Orocos::ROS::Spec::Node>]
+        def self.available_nodes
+            if !@available_nodes
+                @available_nodes = Hash.new
+
+                available_launchers.each do |name, launcher|
+                    launcher.nodes.each do |n|
+                        @available_nodes[n.name] = n
+                    end
+                end
+            end
+            @available_nodes
+        end
+
         ##################################################################
         # BEGIN
         #
@@ -286,7 +315,10 @@ module Orocos
                 project = Orocos::ROS::Generation::Project.load(path)
                 pkg_desc[0] = project
             end
+            @loaded = true
         end
+
+        def self.loaded?; !!@loaded end
 
         def self.add_project_from(pkg) # :nodoc:
             project = pkg.project_name
