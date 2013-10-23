@@ -63,5 +63,13 @@ describe Orocos::ROS::Generation::Project do
     describe "simple functions" do
         assert_equal "/test", Orocos::ROS.rosnode_normalize_name("test"), "Node name normalization"
     end
+
+    describe "equality" do
+        n1 = Orocos::ROS::Spec::Node.new(nil, "test")
+        n2 = Orocos::ROS::Spec::Node.new(nil, "test")
+
+        assert_equal n1,n1, "Node equality"
+        assert_equal n1,n2, "Node equality"
+    end
 end
 

@@ -42,6 +42,18 @@ module Orocos::ROS
             def to_s
                 "#{self.class} ros_name: #{ros_name}, ros_package: #{ros_package}"
             end
+
+            def ==(other)
+                if other.respond_to?(:ros_name)
+                    if ros_name.empty? || other.ros_name.empty?
+                        raise ArgumentError, "Cannot compare ROS Spec node with empty ros_name: #{self} vs. #{other}"
+                    end
+                    return ros_name == other.ros_name && ros_package == other.ros_package
+                end
+                false
+            end
+
+            def eql?(other); self == other end
         end
     end
 end
