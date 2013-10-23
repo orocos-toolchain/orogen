@@ -76,10 +76,11 @@ module Orocos
         # Will only be useful after a call to Orocos::ROS#load
         # @return [Orocos::ROS::Spec::Project] The package (project) or nil if the package could not be found
         def self.rosnode_findpackage(name)
+            # see description, a call to this function is only useful after call to #load
             return nil if !loaded?
 
             available_nodes.each do |node_name, node|
-                if name == node_name
+                if rosnode_normalize_name(name) == rosnode_normalize_name(node_name)
                     return node.project
                 end
             end
