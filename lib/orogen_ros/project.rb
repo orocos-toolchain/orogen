@@ -33,8 +33,7 @@ module Orocos::ROS
             # @return [Node]
             def ros_node(name, options = Hash.new, &block)
                 options[:class] = Spec::Node
-                options[:skip_name_equality_check] = true
-                node = task_context(name, options, &block)
+                node = external_task_context(name, options, &block)
                 node.ros_name = name
                 node.ros_package = self.name
                 ros_nodes << node
