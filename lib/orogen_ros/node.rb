@@ -53,6 +53,8 @@ module Orocos::ROS
                 "#{self.class} ros_name: #{ros_name}, ros_package: #{ros_package}"
             end
 
+            # Equals operator
+            # @return [Boolean] True, if ros node and package name equal equal, False otherwise
             def ==(other)
                 if other.respond_to?(:ros_name)
                     if ros_name.empty? || other.ros_name.empty?
