@@ -61,7 +61,7 @@ module Orocos::ROS
 
         # Launch specification
         class Launcher < Orocos::Spec::Deployment
-            extend ::Logger::Root("Orocos::ROS::Launcher", ::Logger::WARN)
+            extend Logger::Hierarchy
 
             # Project this launcher is part of
             attr_reader :project
