@@ -248,10 +248,10 @@ module Orocos
         end
 
         # Retrieve the list of available ros projects
-        #
+        # @argument [Boolean] reload Flag whether to reload or not, default is false
         # @return [Hash<String,Array<Orocos::ROS::Spec::Project,path>>]
-        def self.available_ros_projects
-            if !@available_ros_projects
+        def self.available_ros_projects(reload = false)
+            if !@available_ros_projects || reload
                 @available_ros_projects = Hash.new
 
                 spec_search_directories.each do |dir|
@@ -320,16 +320,23 @@ module Orocos
             @registry = master_project.registry
 
             available_types
-            # resolve project after first getting all paths
-            available_ros_projects.each do |name, pkg_desc|
-                _, path = pkg_desc
-                project = Orocos::ROS::Generation::Project.load(path)
-                pkg_desc[0] = project
-            end
+            reload_projects
+
             @loaded = true
         end
 
         def self.loaded?; !!@loaded end
+
+        # Reload all known projects
+        #
+        def self.reload_projects
+            # resolve project after first getting all paths
+            available_ros_projects(true).each do |name, pkg_desc|
+                project, path = pkg_desc
+                project = Orocos::ROS::Generation::Project.load(path) if !project
+                pkg_desc[0] = project
+            end
+        end
 
         def self.add_project_from(pkg) # :nodoc:
             project = pkg.project_name
@@ -362,6 +369,16 @@ module Orocos
             @available_projects
         end
 
+        # Test whether a project specification is available
+        # @return [Boolean] True, if the spec is available, False otherwise
+        def self.available_ros_project_spec?(project_name)
+            available_projects.each do |name,_|
+                if project_name == name
+                    return true
+                end
+            end
+            false
+        end
 
         def self.available_typekits
             if !@available_typekits
