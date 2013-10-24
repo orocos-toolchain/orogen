@@ -91,6 +91,10 @@ module Orocos::ROS
                 end
             end
 
+            def using_ros_package(name)
+                using_task_library(name)
+            end
+
             def define_default_deployments?
                 false
             end

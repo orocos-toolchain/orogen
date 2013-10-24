@@ -1,9 +1,9 @@
 name "manipulator_config"
 
-using_task_library 'artemis_state_publisher'
-using_task_library 'joint_state_publisher'
-using_task_library 'manipulator_motionplanner'
-using_task_library 'robot_state_publisher'
+using_ros_package 'artemis_state_publisher'
+using_ros_package 'joint_state_publisher'
+using_ros_package 'manipulator_motionplanner'
+using_ros_package 'robot_state_publisher'
 
 # Deployment would correspond to launch file (for the moment)
 # --> maps to test.launch
