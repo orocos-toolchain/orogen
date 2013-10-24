@@ -44,6 +44,12 @@ module Orocos::ROS
                 options[:class] = Spec::Node
                 node = external_task_context(name, options, &block)
                 node.ros_name = name
+                begin
+                    Orocos::ROS.rospack_find(self.name)
+                rescue ArgumentError => e
+                    Orocos::ROS.warn "could not find a ros package of name '#{self.name}'. Please check if you set the project name to a known ROS package"
+                    raise
+                end
                 node.ros_package = self.name
                 ros_nodes << node
                 node
