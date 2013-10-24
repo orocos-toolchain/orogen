@@ -17,6 +17,15 @@ module Orocos::ROS
                 @ros_launchers = []
             end
 
+            def typekit(create = nil, &block)
+                if create.nil?
+                    create = block_given?
+                end
+                if create
+                    raise NotImplementedError, "ROS nodes do not have a typekit"
+                end
+                nil
+            end
 
             # Declares a ros node that exists within the package
             # define by the project name
