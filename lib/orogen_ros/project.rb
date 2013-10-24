@@ -99,8 +99,8 @@ module Orocos::ROS
                 false
             end
 
-            def simple_deployment(name,klass)
-                # n/a for ros nodes
+            def simple_deployment
+                raise NotImplementedError, "cannot create a simple deployment from a Orocos::Spec::ROS::Project"
             end
         end
     end
