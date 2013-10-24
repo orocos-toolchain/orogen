@@ -64,6 +64,17 @@ module Orocos::ROS
             end
 
             def eql?(other); self == other end
+
+            # Test if there is a specification available for this node
+            #
+            # @return [Boolean] True if this object has been generated from spec, False
+            #   otherwise
+            def spec_available?
+                if !@spec_available and ros_name
+                    @spec_available = Orocos::ROS.available_node_spec?(ros_name)
+                end
+                @spec_available
+            end
         end
     end
 end

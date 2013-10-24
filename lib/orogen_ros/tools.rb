@@ -281,6 +281,16 @@ module Orocos
             @available_nodes
         end
 
+        # Test whether a node specification has been found during Orocos.load
+        # @return [Boolean] True, if specification is available, false otherwise
+        def self.available_node_spec?(node_name)
+            available_nodes.each do |name, node|
+                if rosnode_normalize_name(name) == rosnode_normalize_name(node_name)
+                    return true
+                end
+            end
+            false
+        end
         ##################################################################
         # BEGIN
         #
