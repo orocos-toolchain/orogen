@@ -8,7 +8,7 @@ using_task_library 'robot_state_publisher'
 # Deployment would correspond to launch file (for the moment)
 # --> maps to test.launch
 ros_launcher "test" do
-    reuse_existing
+    load_launch_file
 
     #node("state_publisher", "artemis_state_publisher::artemis_state_publisher_node")
     #node("artemis_motionPlanner", "ros::manipulator_motionplanner")

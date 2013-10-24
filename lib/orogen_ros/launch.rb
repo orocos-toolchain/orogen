@@ -70,7 +70,7 @@ module Orocos::ROS
             attr_reader :name
             alias :nodes :task_activities
 
-            attr_reader :reuse_existing
+            attr_reader :load_launch_file
             attr_reader :launch_file
 
             def initialize(project = nil, name = nil)
@@ -78,21 +78,21 @@ module Orocos::ROS
                 @name = name
                 @nodes = []
                 @task_activities = []
-                @reuse_existing = nil
-                @launch_file = nil
+                @load_launch_file = nil
+
+                # search for launch file where project.name == ros package name
+                @launch_file = Orocos::ROS.roslaunch_find(project.name, name)
             end
 
-            def reuse_existing
-                if !@reuse_existing
-                    @reuse_existing = true
-                    # search for name.launch, project.name == ros package name
-                    @launch_file = Orocos::ROS.roslaunch_find(project.name, name)
+            def load_launch_file
+                if !@load_launch_file
+                    @load_launch_file = true
                     parse(@launch_file)
                 end
             end
 
-            def reuse_existing?
-                !!@reuse_existing
+            def load_launch_file?
+                !!@load_launch_file
             end
 
             # Parse the launch file
@@ -140,7 +140,7 @@ module Orocos::ROS
             end
 
             def to_s
-                "Launcher: #{name}, use_existing: #{@reuse_existing}, #{@launch_file}"
+                "Launcher: #{name}, load_launch_file: #{@load_launch_file}, #{@launch_file}"
             end
         end # Launch
     end # Spec
