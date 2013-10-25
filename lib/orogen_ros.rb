@@ -1,5 +1,9 @@
 require 'orogen'
 require 'orogen_ros/base'
+
+# Add standard task specification for ros
+Orocos::Generation::Project.add_standard_task_spec("ros.orogen",Orocos::ROS::OROGEN_ROS_LIB_DIR)
+
 require 'orogen_ros/package'
 require 'orogen_ros/project'
 require 'orogen_ros/input_topic'

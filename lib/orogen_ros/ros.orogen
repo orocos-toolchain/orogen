@@ -1,0 +1,8 @@
+name "ROS"
+
+external_task_context "Node" do
+    subclasses "RTT::TaskContext"
+
+    abstract
+end
+

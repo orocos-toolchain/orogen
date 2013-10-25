@@ -2,6 +2,8 @@ require 'utilrb'
 
 module Orocos
     module ROS
+        OROGEN_ROS_LIB_DIR = File.expand_path(File.dirname(__FILE__))
+
         extend Logger::Root("Orocos::ROS",Logger::INFO)
 
         @spec_file_suffix = "orogen"

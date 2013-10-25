@@ -17,6 +17,10 @@ module Orocos::ROS
                 @ros_launchers = []
             end
 
+            def default_node_superclass
+                find_task_context OROGEN_ROS_NODE_NAME
+            end
+
             def typekit(create = nil, &block)
                 if create.nil?
                     create = block_given?
