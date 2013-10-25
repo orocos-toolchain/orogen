@@ -206,6 +206,11 @@ module Orocos
             end
 
             @@standard_tasks = nil
+            @@standard_task_specs = { "rtt.orogen" => OROGEN_LIB_DIR, "ocl.orogen" => OROGEN_LIB_DIR }
+
+            def self.add_standard_task_spec(filename, directory)
+                @@standard_task_specs[filename] = directory
+            end
 
             # The set of standard project defined by RTT and OCL. They are
             # defined as orogen-specification in the <tt>rtt.orogen</tt> and
@@ -215,8 +220,8 @@ module Orocos
                     @@standard_tasks
                 else
                     @@standard_tasks = []
-                    ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, OROGEN_LIB_DIR))
+                    @@standard_task_specs.each do |orogen, dir|
+                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, dir))
                         project.orogen_project = false
                         @@standard_tasks.concat project.tasks.values
                     end
