@@ -338,6 +338,21 @@ module Orocos
             end
         end
 
+        # Loading an orogen project description which defines
+        # a ros project
+        def self.load_ros_project(name)
+            # At this stage the ROS projects should be known
+            # to the Orocos.master_project and
+            # will be loaded from cache
+            if !Orocos::ROS.available_ros_project_spec?(name)
+                Orocos::ROS.reload_projects
+            end
+
+            if !Orocos::ROS.available_ros_project_spec?(name)
+                raise ArgumentError, "specification for ros project '#{name}' could not be loaded"
+            end
+        end
+
         def self.add_project_from(pkg) # :nodoc:
             project = pkg.project_name
             if project.empty?
