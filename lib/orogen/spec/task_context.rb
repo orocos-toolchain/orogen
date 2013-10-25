@@ -150,6 +150,12 @@ module Orocos
                 end
             end
 
+            # Declares that this task context is a root model and
+            # does not have a superclass
+            def root_model
+                @superclass = nil
+            end
+
             # Declares that this task context is also a subclass of the
             # following class. +name+ does not have to be a task context class.
             def implements(name, include_file = nil)
@@ -261,9 +267,7 @@ module Orocos
 	    def initialize(project = nil, name = nil)
                 @project  = project
 
-                if !name || (name != "RTT::TaskContext")
-                    @superclass = TaskContext.orogen_rtt_task_context
-                end
+                @superclass = TaskContext.orogen_rtt_task_context
                 @implemented_classes = []
 		@name = name
                 # This is an array, as we don't want to have it reordered
