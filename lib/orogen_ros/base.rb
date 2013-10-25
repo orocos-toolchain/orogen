@@ -151,19 +151,42 @@ module Orocos
         # Start the roscore process
         # @return[INT] Pid of the roscore process see #roscore_pid
         def self.roscore_start(*args)
+            options = args.last.kind_of?(Hash) ? args.pop : Hash.new
+            options, unknown_options = Kernel.filter_options options,
+                :redirect => File.join("/var/tmp/roscore.log")
+
+            args << options
+
             if rosnode_list.empty?
                 @roscore_pid = Utilrb.spawn "roscore", *args
+                ::Process.detach(@roscore_pid)
+                @roscore_pid
+            elsif !@roscore_pid
+                Orocos::ROS.warn "roscore is already running, but is not controlled by this process"
             else
-                Orocos::ROS.info "roscore is already running: pid: '#{roscore_pid}'"
+                Orocos::ROS.info "roscore is already running, pid '#{@roscore_pid}'"
             end
-            roscore_pid
         end
 
-        # Shutdown roscore 
+        # Shutdown roscore if controlled by this process, otherwise
+        # calls to this function will return false
         # This will only work if roscore has been started by the same ruby process
+        # @throw [ArgumentError] if trying to shutdown an already dead roscore
+        # @return [Boolean] True if roscore has been shutdown, false if not
         def self.roscore_shutdown
-            Orocos::ROS.info "roscore will be shutdown"
-            ::Process.kill('INT',@roscore_pid) if roscore_pid
+            begin
+                if @roscore_pid
+                    Orocos::ROS.info "roscore will be shutdown"
+                    status = ::Process.kill('INT',@roscore_pid)
+                    @roscore_pid = nil
+                    return status
+                end
+            rescue Errno::ESRCH
+                raise ArgumentError, "trying to shutdown roscore, which is not running anymore with pid '#{@roscore_pid}'"
+            end
+
+            Orocos::ROS.warn "roscore is not controlled by this process; no shutdown will be performed"
+            false
         end
 
         # @return [String] the type name that should be used on the oroGen
