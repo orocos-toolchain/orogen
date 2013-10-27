@@ -9,7 +9,7 @@ require 'orogen_ros/project'
 require 'orogen_ros/input_topic'
 require 'orogen_ros/output_topic'
 require 'orogen_ros/node'
-require 'orogen_ros/launch'
+require 'orogen_ros/launcher'
 
 # The toplevel namespace for orogen_ros
 #

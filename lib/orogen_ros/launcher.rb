@@ -6,40 +6,40 @@ module Orocos::ROS
         # Namespace containing functionality to parse XML based
         # information from ROS
         module XML
-            # This class represents the node description 
+            # This class represents the node description
             # which can be extracted from a launch file
             class NodeDescription
                 attr_reader :package
                 attr_reader :type
                 attr_reader :name
-            
+
                 # Define optional attributes -- based on the ROS Spec
                 @optional_attr = { :respawn => false, :output => nil }
                 @optional_attr.each do |attr_name,_|
                     attr_reader attr_name
                 end
-            
+
                 def self.optional_attr
                     @optional_attr
                 end
-            
+
                 def initialize(name, package, type)
                     @name = name
                     @package = package
                     @type = type
-            
+
                     NodeDescription.optional_attr.each do |op, val|
                         self.instance_variable_set "@#{op}", val
                     end
                 end
-            
+
                 def self.from_xml_node(node)
                     name = node.attribute("name").to_s
                     package = node.attribute("pkg").to_s
                     type = node.attribute("type").to_s
-            
+
                     nd = NodeDescription.new(name, package, type)
-            
+
                     NodeDescription.optional_attr.each do |o,_|
                         if attr = node.attribute("#{o}")
                             nd.instance_variable_set("@#{o}",attr)
@@ -47,7 +47,7 @@ module Orocos::ROS
                     end
                     nd
                 end
-            
+
                 def to_s
                     desc = "NodeDescription: name: #{name}, package: #{package}, type: #{type}"
                     NodeDescription.optional_attr.each do |o,_|
@@ -119,13 +119,13 @@ module Orocos::ROS
 
                 task_deployment
             end
-        
+
             # Parses a given launch file and extracts the launch information
             def self.parse(filename)
                 if not File.exists?(filename)
                     raise ArgumentError, "#{self}: could not find file '#{filename}'"
                 end
-        
+
                 nodes = []
                 File.open(filename) do |f|
                     doc = Nokogiri::XML(f)
