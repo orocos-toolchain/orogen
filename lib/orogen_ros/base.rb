@@ -103,11 +103,24 @@ module Orocos
              rosnode_list.include?(rosnode_normalize_name(node_name))
         end
 
-        # Normalize the rosnode name, i.e. make sure the 
-        # name is prefixed with a '/'
+        # Normalize the rosnode name
+        # see #normalize_name
         # @return [String] (prefixed) node name
         def self.rosnode_normalize_name(node_name)
-             "/#{node_name}".sub(/^\/\//,'/')
+            normalize_name(node_name)
+        end
+
+        # Normalize the topic name (to match port names)
+        # see #normalize_name
+        # @return [String] (prefixed) node name
+        def self.normalize_topic_name(topic_name)
+            normalize_name(topic_name)
+        end
+
+        # Normalize the name, i.e. make sure the
+        # name is(!) prefixed with a '/'
+        def self.normalize_name(name)
+             "/#{name}".sub(/^\/+/,'/')
         end
 
         # Run the launch from the package +package_name+ given by +launch_name+

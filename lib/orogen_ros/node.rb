@@ -39,7 +39,7 @@ module Orocos::ROS
             def output_topic(topic_name, name, message_type)
                 data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
                 topic = output_port(name, data_type, :class => OutputTopic)
-                topic.ros_name = topic_name
+                topic.ros_name = ::Orocos::ROS.normalize_topic_name(topic_name)
                 topic
             end
 
@@ -54,7 +54,7 @@ module Orocos::ROS
             def input_topic(topic_name, name, message_type)
                 data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
                 topic = input_port(name, data_type, :class => InputTopic)
-                topic.ros_name = topic_name
+                topic.ros_name = ::Orocos::ROS.normalize_topic_name(topic_name)
                 topic
             end
 
