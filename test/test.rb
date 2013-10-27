@@ -69,6 +69,9 @@ describe Orocos::ROS::Generation::Project do
 
     describe "simple functions" do
         assert_equal "/test", Orocos::ROS.rosnode_normalize_name("test"), "Node name normalization"
+        assert_equal "/test", Orocos::ROS.rosnode_normalize_name("//test"), "Node name normalization"
+        assert_equal "/test", Orocos::ROS.normalize_topic_name("////test"), "Topic name normalization"
+        assert_equal "/test", Orocos::ROS.normalize_topic_name("test"), "Topic name normalization"
     end
 
     describe "equality" do
@@ -77,6 +80,11 @@ describe Orocos::ROS::Generation::Project do
 
         assert_equal n1,n1, "Node equality"
         assert_equal n1,n2, "Node equality"
+    end
+
+    describe "node superclass" do
+        n1 = Orocos::ROS::Spec::Node.new(nil, "test")
+        assert_equal n1.superclass.name, "ROS::Node", "Node superclass should be ROS::Node, but was #{n1.superclass.name}"
     end
 end
 
