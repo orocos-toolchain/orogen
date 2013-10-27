@@ -19,10 +19,16 @@ module Orocos::ROS
                     attr_reader attr_name
                 end
 
+                # Optional attributes in the ROS launcher specification
+                # @return [Hash] Hash of optional attributed along with the default value
                 def self.optional_attr
                     @optional_attr
                 end
 
+                # Initialize the node description
+                # @argument name Name of the node
+                # @argument package Package name of the node
+                # @argument type ROS node type of this node
                 def initialize(name, package, type)
                     @name = name
                     @package = package
@@ -33,6 +39,8 @@ module Orocos::ROS
                     end
                 end
 
+                # Create a node description from a nokogiri xml node
+                # @return [Orocos::ROS::Spec::XML::NodeDescription] Node description object
                 def self.from_xml_node(node)
                     name = node.attribute("name").to_s
                     package = node.attribute("pkg").to_s
@@ -48,6 +56,8 @@ module Orocos::ROS
                     nd
                 end
 
+                # String description of this object
+                # @return [String] 
                 def to_s
                     desc = "NodeDescription: name: #{name}, package: #{package}, type: #{type}"
                     NodeDescription.optional_attr.each do |o,_|
@@ -59,20 +69,37 @@ module Orocos::ROS
             end
         end
 
-        # Launch specification
+        # Launcher specification
+        # ROS allows to define launch files in order to handle 
+        # the startup of multiple nodes or network of nodes
+        #
+        # This class allows to store the information contained in
+        # a ROS launcher specification in an equivalent to
+        # Orocos' deployments
+        #
         class Launcher < Orocos::Spec::Deployment
             extend Logger::Hierarchy
 
-            # Project this launcher is part of
+            # [Orocos::ROS::Spec::Project] Project this launcher is part of
             attr_reader :project
 
-            # Name of the launcher
+            # [String] Name of the launcher
             attr_reader :name
             alias :nodes :task_activities
 
+            # [Boolean] Flag if the launch file content should be loaded
+            # to extract node definitions
             attr_reader :load_launch_file
+
+            # [String] Path to the launch file that is or has been loaded if
+            # #load_launch_file is set
             attr_reader :launch_file
 
+            # Initialize the project
+            #
+            # Automatically tries to resolve the corresponding launch
+            # files in the file systems
+            # @throw [ArgumentError] Raises if a corresponding launch file could not be found
             def initialize(project = nil, name = nil)
                 @project = project
                 @name = name
@@ -84,18 +111,23 @@ module Orocos::ROS
                 @launch_file = Orocos::ROS.roslaunch_find(project.name, name)
             end
 
+            # Loads the launch file if not already loaded
             def load_launch_file
-                if !@load_launch_file
-                    @load_launch_file = true
+                if !@loaded_launch_file
+                    @loaded_launch_file = true
                     parse(@launch_file)
                 end
             end
 
-            def load_launch_file?
-                !!@load_launch_file
+            # Test whether the launch file has been automatically loaded
+            def loaded_launch_file?
+                !!@loaded_launch_file
             end
 
             # Parse the launch file
+            # @return [String] Absolute path to the lauch file that has been
+            #     loaded
+            #
             def parse(path)
                 if File.exists?(path)
                     @node_descriptors = Launcher.parse(path)
@@ -108,6 +140,11 @@ module Orocos::ROS
                 File.absolute_path(path)
             end
 
+            # Declares a node in a ROS launcher
+            #
+            # This is equivalently to declaring a task in an Orocos deployment
+            #
+            # @return [Orocos::Spec::TaskDeployment] A task deployment
             def node(name, klass)
                 task_deployment = task(name, klass)
 
@@ -121,6 +158,7 @@ module Orocos::ROS
             end
 
             # Parses a given launch file and extracts the launch information
+            # @return [Set<Orocos::ROS::Spec::XML::NodeDescription>] Extract all nodes from a launch file
             def self.parse(filename)
                 if not File.exists?(filename)
                     raise ArgumentError, "#{self}: could not find file '#{filename}'"
@@ -136,13 +174,11 @@ module Orocos::ROS
                 nodes
             end
 
-            def self.load_specs(*args)
-            end
-
+            # String representaiton of this launcher 
             def to_s
-                "Launcher: #{name}, load_launch_file: #{@load_launch_file}, #{@launch_file}"
+                "Launcher: #{name}, launch_file: #{@launch_file}, loaded: #{loaded_launch_file?}"
             end
-        end # Launch
+        end # Launcher
     end # Spec
 end # Orocos::ROS
 
