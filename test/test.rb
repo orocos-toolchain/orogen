@@ -86,5 +86,16 @@ describe Orocos::ROS::Generation::Project do
         n1 = Orocos::ROS::Spec::Node.new(nil, "test")
         assert_equal n1.superclass.name, "ROS::Node", "Node superclass should be ROS::Node, but was #{n1.superclass.name}"
     end
+
+    describe "node spec" do
+
+        assert Orocos::ROS.node_spec_available?("artemis_motionPlanner"), "Node spec available"
+
+        spec = Orocos::ROS.node_spec_by_node_name("artemis_motionPlanner")
+        assert spec.has_port?("status")
+        assert spec.has_port?("target_trajectory")
+
+        assert spec.find_output_port("status")
+    end
 end
 
