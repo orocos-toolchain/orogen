@@ -82,7 +82,7 @@ module Orocos::ROS
             #   otherwise
             def spec_available?
                 if !@spec_available and ros_name
-                    @spec_available = Orocos::ROS.available_node_spec?(ros_name)
+                    @spec_available = Orocos::ROS.node_spec_available?(ros_name)
                 end
                 @spec_available
             end

@@ -304,8 +304,9 @@ module Orocos
             @available_ros_projects
         end
 
-        # Retrieve the list of available nodes
-        # @return [Hash<String, Orocos::ROS::Spec::Node>]
+        # Retrieve the list of available nodes which are part of
+        # launchers
+        # @return [Hash<String, Orocos::Spec::TaskDeployment>]
         def self.available_nodes
             if !@available_nodes
                 @available_nodes = Hash.new
@@ -319,15 +320,20 @@ module Orocos
             @available_nodes
         end
 
-        # Test whether a node specification has been found during Orocos.load
-        # @return [Boolean] True, if specification is available, false otherwise
-        def self.available_node_spec?(node_name)
+        # Retrieve the node specification for a given node name
+        # @return [Orocos::ROS::Spec::Node>]
+        def self.node_spec_by_node_name(node_name)
             available_nodes.each do |name, node|
                 if rosnode_normalize_name(name) == rosnode_normalize_name(node_name)
-                    return true
+                    return node.task_model
                 end
             end
-            false
+        end
+
+        # Test whether a node specification has been found during Orocos.load
+        # @return [Boolean] True, if specification is available, false otherwise
+        def self.node_spec_available?(node_name)
+            !!node_spec_by_node_name(node_name)
         end
         ##################################################################
         # BEGIN
