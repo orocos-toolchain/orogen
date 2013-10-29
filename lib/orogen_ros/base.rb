@@ -383,7 +383,7 @@ module Orocos
 
             # If Orocos is in use, hook into the Orocos.master_project instead of maintaining
             # a separated version in Orocos::ROS.master_project
-            Orocos::ROS.warn "Orocos.master_project will not be used" unless Orocos.master_project
+            Orocos::ROS.info "Orocos.master_project will not be used" unless Orocos.master_project
             @master_project = Orocos.master_project || Orocos::Generation::Component.new
             @registry = master_project.registry
 
