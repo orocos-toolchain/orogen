@@ -92,7 +92,15 @@ module Orocos
         # List running ROS nodes using the ROS tooling
         # @return [Array] List of running ros nodes 
         def self.rosnode_list
-            running_nodes = (`rosnode list` || []).split("\n")
+            # Redirect error to stdout, since rosnode does not support
+            # proper error reporting
+            running_nodes = (`rosnode list 2>&1` || []).split("\n")
+
+            # Handle ROS error message
+            if running_nodes.size == 1 && running_nodes.first =~ /ERROR/
+                raise InternalError, "cannot query node list. Master node is not available."
+            end
+            running_nodes
         end
 
         # Test whether a ROS node of the given name is running
@@ -163,6 +171,16 @@ module Orocos
             @roscore_pid || 0
         end
 
+        # Test whether roscore is available or not
+        # @return [Boolean] True if roscore is available, false otherwise
+        def self.roscore_available?
+            begin
+                !rosnode_list.empty?
+            rescue InternalError => e
+                false
+            end
+        end
+
         # Start the roscore process
         # @return[INT] Pid of the roscore process see #roscore_pid
         def self.roscore_start(*args)
@@ -172,7 +190,7 @@ module Orocos
 
             args << options
 
-            if rosnode_list.empty?
+            if !roscore_available?
                 @roscore_pid = Utilrb.spawn "roscore", *args
                 ::Process.detach(@roscore_pid)
                 @roscore_pid
@@ -180,6 +198,12 @@ module Orocos
                 Orocos::ROS.warn "roscore is already running, but is not controlled by this process"
             else
                 Orocos::ROS.info "roscore is already running, pid '#{@roscore_pid}'"
+            end
+
+            if unknown_options[:wait]
+                while !roscore_available?
+                    sleep 0.1
+                end
             end
         end
 
