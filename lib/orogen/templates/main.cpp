@@ -153,9 +153,7 @@ int ORO_main(int argc, char* argv[])
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
 <% end %>
-<% if deployer.transports.include? 'ros' %>
         ("with-ros", po::value<bool>()->default_value(false), "also publish the task as ROS node, default is false")
-<% end %>
         ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
@@ -205,12 +203,10 @@ int ORO_main(int argc, char* argv[])
     if( vm.count("prefix")) 
         prefix = vm["prefix"].as<std::string>();
 
-<% if deployer.transports.include? 'ros' %>
     bool with_ros = false;
 
     if( vm.count("with-ros"))
 	with_ros = vm["with-ros"].as<bool>();
-<% end %>
 
     std::string task_name;
 
@@ -335,8 +331,8 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
-<% if deployer.transports.include? 'ros' %>
     if(with_ros){
+<% if deployer.transports.include? 'ros' %>
         RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
         if(!ros::isInitialized()){
             int argc =__os_main_argc();
@@ -352,8 +348,10 @@ int ORO_main(int argc, char* argv[])
         static ros::AsyncSpinner spinner(1); // Use 1 threads
         spinner.start();
         RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
-    }
+<% else %>
+        throw std::runtime_error("Requesting to start as ROS node, but the support for 'ros' transport is not available. Recompile with 'ros' transport option!");
 <% end %>
+    }
 
 <% if deployer.corba_enabled? %>
     /** Setup shutdown procedure on SIGINT. We use a pipe-based channel to do
