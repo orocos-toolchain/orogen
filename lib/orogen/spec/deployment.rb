@@ -621,6 +621,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 else task_context = klass
                 end
 
+                if task_context.abstract?
+                    raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
+                end
+
                 name = Generation.verify_valid_identifier(name)
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
