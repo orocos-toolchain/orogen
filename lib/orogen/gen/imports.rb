@@ -192,8 +192,12 @@ module Orocos
             # The pkg-config file defining this oroGen project
             attr_reader :pkg
             # The pkg-config file for the task library of this oroGen project
+            def tasklib_pkg_name
+                "#{name}-tasks-#{Orocos::Generation.orocos_target}"
+            end
+
             def tasklib_pkg
-                @tasklib_pkg ||= Utilrb::PkgConfig.new("#{name}-tasks-#{Orocos::Generation.orocos_target}")
+                @tasklib_pkg ||= Utilrb::PkgConfig.new(tasklib_pkg_name)
             end
 
             def imported?

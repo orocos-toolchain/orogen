@@ -1197,7 +1197,7 @@ module Orocos
                 end
                 used_task_libraries << tasklib
                 if self.typekit
-                    typekit.using_library(tasklib.tasklib_pkg, :link => false)
+                    typekit.using_library(tasklib.tasklib_pkg_name, :link => false)
                 end
 
                 max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|
