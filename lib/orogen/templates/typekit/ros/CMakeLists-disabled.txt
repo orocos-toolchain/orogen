@@ -1,0 +1,9 @@
+<% ros_pkg_name = typekit.plugin('ros').ros_package_name_for_typekit(typekit) %>
+SET(PKG_CONFIG_FILE_ROS ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-ros-${OROCOS_TARGET}.pc)
+configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @ONLY)
+install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
+install(FILES <%= rosmap %> DESTINATION share/orogen/)
+
+# Install the messages in the "ROS place"
+install(DIRECTORY msg DESTINATION share/<%= ros_pkg_name %>)
+

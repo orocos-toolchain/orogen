@@ -5,8 +5,8 @@ module Orocos
                 def ros_mappings(mappings)
                     plugin = find_plugin('ros')
                     if !plugin
-                        Orocos.info "ignoring ros_mappings(#{mappings}) call: the ROS plugin is not enabled"
-                        return self
+                        plugin = enable_plugin('ros')
+                        plugin.enabled = false
                     end
 
                     plugin.ros_mappings(mappings)
@@ -74,6 +74,7 @@ module Orocos
                     @typekit = typekit
                     @type_to_msg = DEFAULT_TYPE_TO_MSG.dup
                     @boxed_msg_mappings = DEFAULT_BOXED_MSG_MAPPINGS.dup
+                    self.enabled = true
 
                     Typelib::Type.extend TypeExtension
                     Typelib::OpaqueType.extend OpaqueTypeExtension
@@ -81,6 +82,10 @@ module Orocos
                     Typelib::ArrayType.extend ArrayTypeExtension
                     Typelib::CompoundType.extend CompoundTypeExtension
                 end
+
+                # @return [Boolean] true if the plugin is enabled, i.e. if the
+                #   transport should be generated
+                attr_predicate :enabled?, true
 
                 # Mappings from oroGen types to ROS message names
                 #
@@ -336,12 +341,23 @@ module Orocos
                     convert_types.to_set.to_a.sort_by { |t0, t1| [t0.name, t1.name] }
                 end
 
+                def generate_disabled(typesets, convert_types, convert_array_types, user_converted_types)
+                    rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
+                    rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
+
+                    pkg_config = Generation.render_template "typekit", "ros", "transport-ros-disabled.pc", binding
+                    typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
+
+                    cmake = Generation.render_template "typekit", "ros", "CMakeLists-disabled.txt", binding
+                    typekit.save_automatic("transports", "ros", "CMakeLists.txt", cmake)
+                    return [], []
+                end
+
                 # Do the code generation for this ROS transport
                 def generate(typesets)
                     load_ros_mappings
 
                     @typekit = typekit
-                    headers, impl = Array.new, Array.new
 
                     rosmsg_registry = typesets.minimal_registry.dup
 
@@ -380,6 +396,10 @@ module Orocos
                         ros_cxx_type(type) == type.cxx_name.gsub(/^::/, '')
                     end
 
+                    if !enabled?
+                        return generate_disabled(typesets, convert_types, convert_array_types, user_converted_types)
+                    end
+
                     # Have a look the user_converted_types whether we need to
                     # generate some unboxing functions automatically
                     convert_boxed_types = user_converted_types.find_all do |type, ros_type|
@@ -399,6 +419,8 @@ module Orocos
                         code  = Generation.render_template "typekit", "ros", "Type.cpp", binding
                         [type, code]
                     end.compact
+
+                    headers, impl = Array.new, Array.new
 
                     convert_boxed_types = convert_boxed_types.sort_by { |t1, t2| [t1.name, t2.name] }
                     code  = Generation.render_template "typekit", "ros", "Convertions.hpp", binding

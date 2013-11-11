@@ -977,6 +977,8 @@ module Orocos
             end
 
             # Add a generation plugin to the generation stage
+            #
+            # @return [Object] the newly created plugin
             def enable_plugin(name)
                 if plugins.any? { |plg| plg.name == name }
                     # It is already there
@@ -986,7 +988,9 @@ module Orocos
                 if !(plugin = Typekit.plugins[name])
                     raise ArgumentError, "there is not typekit plugin called #{name}"
                 end
-                plugins << plugin.new(self)
+                p = plugin.new(self)
+                plugins << p
+                p
             end
 
 
