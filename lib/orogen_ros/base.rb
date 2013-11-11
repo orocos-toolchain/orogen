@@ -7,7 +7,11 @@ module Orocos
         extend Logger::Root("Orocos::ROS",Logger::INFO)
 
         @spec_file_suffix = "orogen"
-        @spec_search_directories = ["."]
+        @spec_search_directories = []
+        @package_paths = Hash.new
+        @pack_paths = Array.new
+        @ros_to_orogen_mappings = Hash.new
+        @orogen_to_ros_mappings = Hash.new
 
         # This class wraps ros tooling and set some default configurations
         class << self
@@ -30,13 +34,17 @@ module Orocos
             #   the first time Orocos::ROS.find_all_types_for is called
             attr_reader :orogen_to_ros_mappings
 
-            # The set of orogen projects that are available, as a mapping from a
-            # name into the project's orogen description file
-            # attr_reader :available_projects
+            # @return [Hash<String,String>] mapping from a package name to its
+            #   full path. This is used as both a cache for {ROS.rospack_find},
+            #   and as a way to register paths for launchfiles on systems that
+            #   do not have ROS installed
+            attr_reader :package_paths
 
-            # The set of available typekits, as a mapping from the typekit name to a
-            # PkgConfig object
-            # attr_reader :available_typekits
+            # @return [Array<String>] list of full paths of model pack
+            #   directories. Subdirectories in there are interpreted as package
+            #   paths, in which the launchfiles from the actual packages have
+            #   been copied
+            attr_reader :pack_paths
         end
 
         # Suffix a specification file if not already suffixed
@@ -52,14 +60,25 @@ module Orocos
             File.basename(filename).gsub(/\.#{spec_file_suffix}/,'')
         end
 
+        # Manually registers the path to a package
+        #
+        # @return [void]
+        def self.register_package_path(package_name, path)
+            package_paths[package_name] = path
+        end
+
         # Find the path of a ros package
         # @return [String] Path to the rospackage
         def self.rospack_find(package_name)
+            if path = package_paths[package_name]
+                return path
+            end
+
             package_path = (`rospack find #{package_name}` || '').strip
             if package_path.empty?
                 raise ArgumentError, "rospack cannot find package #{package_name}"
             end
-            package_path
+            package_paths[package_name] = package_path
         end
 
         # Find the path of a rosnode binary
@@ -240,21 +259,43 @@ module Orocos
             orogen_types.first
         end
 
+        def self.find_rosmap_by_package_name(name)
+            Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(name)
+        rescue ArgumentError => e
+            return
+        rescue Utilrb::PkgConfig::NotFound => e
+            # Nothing installed, look into the pack_paths
+            pack_paths.each do |dir|
+                rosmap_path = File.join(dir, "#{name}.rosmap")
+                if File.file?(rosmap_path)
+                    return Orocos::TypekitMarshallers::ROS.load_rosmap(rosmap_path)
+                end
+            end
+            nil
+        end
+
+        def self.load_rosmap_by_package_name(name)
+            rosmaps = find_rosmap_by_package_name(name)
+            return if !rosmaps
+
+            rosmaps = [rosmaps,Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG]
+            rosmaps.each do |rosmap|
+                orogen_to_ros_mappings.merge! rosmap
+                rosmap.each do |type_name, ros_name, _|
+                    set = (ros_to_orogen_mappings[ros_name] ||= Set.new)
+                    set << type_name
+                end
+            end
+        end
+
         # Loads all known mappings from the oroGen types to the ROS messages.
         # Builds a reverse mapping as well
         def self.load_all_rosmaps
-            @ros_to_orogen_mappings = Hash.new
-            @orogen_to_ros_mappings = Hash.new
+            orogen_to_ros_mappings.clear
+            ros_to_orogen_mappings.clear
+
             rosmaps = available_typekits.map do |name, pkg|
-                begin
-                    Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(name)
-                rescue ArgumentError => e
-                    Orocos::ROS.warn e
-                    next
-	        rescue Utilrb::PkgConfig::NotFound => e
-	            Orocos::ROS.warn e
-	            next
-                end
+                find_rosmap_by_package_name(name)
             end.compact
             rosmaps << Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG
 
@@ -299,8 +340,8 @@ module Orocos
             if !@available_launchers
                 @available_launchers = Hash.new
 
-                available_ros_projects.each do |pkg, pkg_desc|
-                    project,_ = pkg_desc
+                available_ros_projects.each do |pkg, (project, _)|
+                    next if !project
                     project.ros_launchers.each do |l|
                         @available_launchers[l.name] = l
                     end
@@ -372,7 +413,7 @@ module Orocos
             args.each do |path|
                 spec_search_directories << File.absolute_path(path) if File.exists?(path)
             end
-
+ 
             if @available_projects && !@available_projects.empty?
                 return
             end
@@ -383,26 +424,33 @@ module Orocos
 
             # If Orocos is in use, hook into the Orocos.master_project instead of maintaining
             # a separated version in Orocos::ROS.master_project
-            Orocos::ROS.info "Orocos.master_project will not be used" unless Orocos.master_project
-            @master_project = Orocos.master_project || Orocos::Generation::Component.new
+            @master_project = Orocos::ROS::Generation::Project.new(nil)
             @registry = master_project.registry
 
             available_types
-            reload_projects
-
             @loaded = true
         end
 
         def self.loaded?; !!@loaded end
 
-        # Reload all known projects
-        #
-        def self.reload_projects
-            # resolve project after first getting all paths
-            available_ros_projects(true).each do |name, pkg_desc|
-                project, path = pkg_desc
-                project = Orocos::ROS::Generation::Project.load(path) if !project
-                pkg_desc[0] = project
+        # Registers the paths for the packages found in {pack_paths}
+        def self.register_ros_models
+            package_paths.clear
+
+            pack_paths.each do |dir|
+                Dir.new(dir).each do |file|
+                    next if file !~ /^\w+$/
+                    package_name = file
+                    package_path = File.join(dir, package_name)
+
+                    if File.directory?(package_path)
+                        register_package_path(package_name, package_path)
+                    end
+                end
+            end
+
+            available_ros_projects(true).each do |name, (_, orogen_path)|
+                master_project.register_orogen_file(name, orogen_path)
             end
         end
 
@@ -413,12 +461,18 @@ module Orocos
             # to the Orocos.master_project and
             # will be loaded from cache
             if !Orocos::ROS.available_ros_project_spec?(name)
-                Orocos::ROS.reload_projects
+                available_ros_projects(true)
+                if !Orocos::ROS.available_ros_project_spec?(name)
+                    raise ArgumentError, "specification for ros project '#{name}' could not be loaded"
+                end
             end
 
-            if !Orocos::ROS.available_ros_project_spec?(name)
-                raise ArgumentError, "specification for ros project '#{name}' could not be loaded"
+            project, path = available_ros_projects[name]
+            if !project
+                project = Orocos::ROS::Generation::Project.load(master_project, nil, path)
             end
+            available_ros_projects[name] = [project, path]
+            project
         end
 
         def self.add_project_from(pkg) # :nodoc:

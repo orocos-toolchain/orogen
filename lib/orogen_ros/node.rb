@@ -12,20 +12,22 @@ module Orocos::ROS
             # @return [String] the name on the ROS side
             attr_accessor :ros_name
 
+            def ros_package
+                if @ros_package then @ros_package
+                elsif name then @ros_package = Orocos::ROS.rosnode_findpackage(name)
+                end
+            end
+
             # @return [String] the actual name of the package this node is
             #   part of
-            attr_accessor :ros_package
+            attr_writer :ros_package
 
             def initialize(project = nil, name = nil)
                 super
 
                 subclasses(Orocos::ROS::Spec.orogen_ros_node)
 
-                # Try to infer ros_package from ros_name
-                if name
-                    @ros_name = name
-                    @ros_package = Orocos::ROS.rosnode_findpackage(name)
-                end
+                @ros_name = name
             end
 
             # Declares that this node produces data on a specific topic

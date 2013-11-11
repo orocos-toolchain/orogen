@@ -1,6 +1,6 @@
 module Orocos::ROS
     module Generation
-        class Project < Orocos::Generation::Project
+        class Project < Orocos::Generation::ImportedProject
             include Spec::Package
             extend Logger::Hierarchy
 
@@ -10,7 +10,7 @@ module Orocos::ROS
             # @return [Array] array of ros launch descriptions defined in this project
             attr_reader :ros_launchers
 
-            def initialize
+            def initialize(main_project, pkg = nil)
                 super 
 
                 @ros_nodes = []
@@ -70,14 +70,12 @@ module Orocos::ROS
             # the ros package and extract the nodes started by the launch-
             # file
             def ros_launcher(name, &block)
-                begin
-                    launcher = Spec::Launcher.new(self, name, &block)
-                    launcher.instance_eval(&block) if block_given?
-                    ros_launchers << launcher
-                    launcher
-                rescue Exception => e
-                    raise RuntimeError, "Defining ROS Launcher failed -- #{e}"
-                end
+                launcher = Spec::Launcher.new(self, name, &block)
+                launcher.instance_eval(&block) if block_given?
+                ros_launchers << launcher
+                launcher
+            rescue Exception => e
+                raise RuntimeError, "Defining ROS Launcher failed -- #{e}", e.backtrace
             end
 
             def orogen_project?
@@ -99,6 +97,12 @@ module Orocos::ROS
                     end
                     raise
                 end
+            end
+
+            def using_typekit(typekit)
+                typekit = super(typekit)
+                Orocos::ROS.load_rosmap_by_package_name(typekit.name)
+                typekit
             end
 
             def using_ros_package(name)
