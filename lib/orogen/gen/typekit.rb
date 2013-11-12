@@ -818,6 +818,10 @@ module Orocos
             end
 
             def using_library(library, options = Hash.new)
+                if library.respond_to?(:to_str)
+                    library = Utilrb::PkgConfig.new(library)
+                end
+
                 options = Kernel.validate_options options, :link => true
                 self.used_libraries << library
                 self.include_dirs |= library.include_dirs.to_set
