@@ -294,7 +294,7 @@ module Orocos
 	    # in the context of the newly created TaskContext object.
 	    #
 	    # TaskContext objects should not be created directly. You should
-	    # use Component#task_context for that.
+	    # use {Project#task_context} for that.
 	    def initialize(project = nil, name = nil)
                 @project  = project
 
