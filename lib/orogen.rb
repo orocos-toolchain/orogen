@@ -11,7 +11,14 @@ rescue LoadError
     exit 1
 end
 
-require 'logger'
+require 'utilrb/logger'
+
+module OroGen
+    OROGEN_LIB_DIR = File.expand_path('orogen', File.dirname(__FILE__))
+    extend Logger::Root("OroGen", Logger::WARN)
+end
+Orocos = OroGen
+
 require 'orogen/version'
 require 'orogen/base'
 

@@ -63,9 +63,6 @@ end
 
 
 module Orocos
-    OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__))
-
-    extend Logger::Root("Orocos", Logger::WARN)
 
     module Generation
         class InternalError < RuntimeError; end
