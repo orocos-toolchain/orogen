@@ -1,6 +1,4 @@
-require 'orogen'
-require 'minitest/spec'
-require 'flexmock'
+require 'orogen/test'
 
 describe OroGen::Loaders::PkgConfig do
     include FlexMock::ArgumentTypes
