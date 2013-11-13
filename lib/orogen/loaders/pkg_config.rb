@@ -79,6 +79,13 @@ module OroGen
             # Returns the project model corresponding to the given name
             #
             # @param [String] the project name
+            # @option options [Boolean] :define_dummy_types (false) if true,
+            #   unknown types will be automatically created as null types on the
+            #   underlying typekit. If false, they will generate a
+            #   Typekit::NotFound exception
+            # @raise [OroGen::NotFound] if there is no task library with that
+            #   name. This does including having a project with that name if the
+            #   project defines no tasks.
             # @return [OroGen::Spec::Project]
             def project_model_from_name(name, options = Hash.new)
                 name = name.to_str
