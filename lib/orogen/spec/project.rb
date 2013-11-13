@@ -7,9 +7,12 @@ module OroGen
             # This project's typekit
             # @return [Typekit,nil]
             attr_accessor :typekit
-            # This project's tasks
+            # The tasks known to this project
             # @return [Hash<String,OroGen::Spec::TaskContext>]
             attr_reader :tasks
+            # The tasks defined by this project
+            # @return [Hash<String,OroGen::Spec::TaskContext>]
+            attr_reader :self_tasks
             # This project's deployments
             # @return [Hash<String,OroGen::Spec::Deployment>]
             attr_reader :deployers
@@ -23,6 +26,7 @@ module OroGen
             def initialize(loader)
                 @loader = loader
                 @tasks = Hash.new
+                @self_tasks = Hash.new
                 @deployers = Hash.new
                 @define_default_deployments = true
                 @enabled_transports = Set.new
@@ -85,6 +89,19 @@ module OroGen
                 end
             end
 
+            # Makes the tasks defined by the given task library known to this
+            # project
+            #
+            # @param [String,Project] tasklib the task library, or its name
+            # @return [Project] the task library
+            def using_task_library(tasklib)
+                if tasklib.respond_to?(:to_str)
+                    tasklib = loader.task_library_model_from_name(tasklib)
+                end
+                tasks.merge! tasklib.self_tasks
+                tasklib
+            end
+
             @@standard_tasks = nil
             @@standard_task_specs = { "rtt.orogen" => OROGEN_LIB_DIR, "ocl.orogen" => OROGEN_LIB_DIR }
 
@@ -139,6 +156,7 @@ module OroGen
 
                 task = external_task_context(name, options, &block)
                 task.extended_state_support
+                self_tasks[task.name] = task
 
                 if !task.abstract? && define_default_deployments?
                     simple_deployment(Generation.default_deployment_name(task.name), task.name)

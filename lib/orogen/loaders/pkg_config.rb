@@ -100,6 +100,18 @@ module OroGen
                 lib
             end
 
+            # Returns the task library model corresponding to the given name
+            # @param (see project_model_from_name)
+            # @raise (see project_model_from_name)
+            # @return (see project_model_from_name)
+            def task_library_model_from_name(name, options = Hash.new)
+                project = project_model_from_name(name, options)
+                if project.self_tasks.empty?
+                    raise OroGen::NotFound, "there is an oroGen project called #{name}, but it defines no tasks"
+                end
+                project
+            end
+
             # Returns the task model object corresponding to a model name
             #
             # @raise OroGen::NotFound if there are no such model
