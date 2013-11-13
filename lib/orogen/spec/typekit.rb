@@ -36,13 +36,13 @@ module OroGen
                 return typekit_typelist, typekit_interface_typelist
             end
 
-            def self.from_raw_data(main, name, pkg, registry_xml, typelist_txt)
+            def self.from_raw_data(name, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
                 typekit_registry.merge_xml(registry_xml)
 
                 typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
-                typekit = self.new(main, name,
-                              pkg, typekit_registry,
+                typekit = self.new(name,
+                              typekit_registry,
                               typekit_typelist,
                               typekit_interface_typelist)
 

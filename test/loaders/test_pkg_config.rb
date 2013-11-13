@@ -75,6 +75,7 @@ describe OroGen::Loaders::PkgConfig do
         pkg = stub_orogen_pkgconfig 'base'
         stub_orogen_pkgconfig_final
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        assert loader.has_typekit?('base')
         assert(typekit = loader.available_types['/base/JointLimits'])
         assert_equal 'base', typekit.name
         assert typekit.exported
@@ -95,6 +96,7 @@ describe OroGen::Loaders::PkgConfig do
         stub_pkgconfig_package("base-typekit-oroarch", pkg)
         stub_orogen_pkgconfig_final
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        assert !loader.has_typekit?('base')
         assert !loader.available_typekits['base']
         assert !loader.available_types['/base/JointLimits']
     end
@@ -110,6 +112,7 @@ describe OroGen::Loaders::PkgConfig do
         stub_pkgconfig_package("base-typekit-oroarch", pkg)
         stub_orogen_pkgconfig_final
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        assert !loader.has_typekit?('base')
         assert !loader.available_typekits['base']
         assert !loader.available_types['/base/JointLimits']
     end
@@ -119,7 +122,7 @@ describe OroGen::Loaders::PkgConfig do
         stub_orogen_pkgconfig_final
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
         assert_equal pkg, loader.available_task_libraries['base']
-        assert_equal 'base', loader.available_task_models['base::Task']
+        assert_equal 'base', loader.find_task_library_from_task_model_name('base::Task')
     end
 
     it "should not register the type library if the corresponding project does not exist" do
@@ -141,9 +144,9 @@ describe OroGen::Loaders::PkgConfig do
         pkg = stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", "deployment2"]
         stub_orogen_pkgconfig_final
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
-        assert_equal pkg, loader.available_deployments['base']
-        assert_equal ['base'].to_set, loader.available_deployed_tasks['deployment1']
-        assert_equal ['base'].to_set, loader.available_deployed_tasks['deployment2']
+        assert_equal 'base', loader.find_project_from_deployment_name('base')
+        assert_equal ['base'].to_set, loader.find_deployments_from_deployed_task_name('deployment1')
+        assert_equal ['base'].to_set, loader.find_deployments_from_deployed_task_name('deployment2')
     end
 
     it "should not register the deployments if the corresponding project does not exist" do
@@ -159,6 +162,38 @@ describe OroGen::Loaders::PkgConfig do
         loader = OroGen::Loaders::PkgConfig.new('oroarch')
         assert !loader.available_deployments['base']
         assert !loader.available_deployed_tasks['deployment1']
+    end
+
+    describe "#project_model_text_from_name" do
+        it "should return the model content and path from the project name" do
+            pkg = stub_orogen_pkgconfig 'base'
+            stub_orogen_pkgconfig_final
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            assert_equal [File.read(pkg.deffile), pkg.deffile],
+                loader.project_model_text_from_name('base')
+        end
+        it "should raise OroGen::NotFound for unknown projects" do
+            stub_orogen_pkgconfig_final
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            assert_raises(OroGen::NotFound) { loader.project_model_text_from_name('base') }
+        end
+    end
+
+    describe "#typekit_model_text_from_name" do
+        it "should return the typekit tlb and typelist" do
+            pkg = stub_orogen_pkgconfig 'base'
+            stub_orogen_pkgconfig_final
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            tlb = File.read(File.join(fixtures_prefix, "typekit", "base.tlb"))
+            typelist = File.read(File.join(fixtures_prefix, "typekit", "base.typelist"))
+            assert_equal [tlb, typelist],
+                loader.typekit_model_text_from_name('base')
+        end
+        it "should raise OroGen::NotFound for unknown projects" do
+            stub_orogen_pkgconfig_final
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            assert_raises(OroGen::NotFound) { loader.typekit_model_text_from_name('base') }
+        end
     end
 end
 

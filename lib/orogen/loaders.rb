@@ -4,5 +4,6 @@ module Orogen
     end
 end
 
+require 'orogen/loaders/base'
 require 'orogen/loaders/pkg_config'
 require 'orogen/loaders/project'

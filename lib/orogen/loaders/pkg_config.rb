@@ -8,7 +8,7 @@ module OroGen
         # that the set of installed orogen projects is self-consistent.
         #
         # It accesses the local file system
-        class PkgConfig
+        class PkgConfig < Base
             Project = Struct.new :pkg, :orogen_path
             TaskLibrary = Struct.new :pkg
             Type = Struct.new :name, :exported
@@ -76,134 +76,62 @@ module OroGen
                 available_typekits.has_key?(name)
             end
 
-            # Returns the project model corresponding to the given name
+            # Returns the textual representation of a project model
             #
             # @param [String] the project name
-            # @option options [Boolean] :define_dummy_types (false) if true,
-            #   unknown types will be automatically created as null types on the
-            #   underlying typekit. If false, they will generate a
-            #   Typekit::NotFound exception
-            # @raise [OroGen::NotFound] if there is no task library with that
-            #   name. This does including having a project with that name if the
-            #   project defines no tasks.
-            # @return [OroGen::Spec::Project]
-            def project_model_from_name(name, options = Hash.new)
+            # @raise [OroGen::NotFound] if there is no project with that
+            #   name.
+            # @return [(String,String)] the model as text, as well as a path to
+            #   the model file (or nil if there is no such file)
+            def project_model_text_from_name(name)
                 name = name.to_str
-                options = Kernel.validate_options options,
-                    :define_dummy_types => false
-
-                if !(project = available_projects[name])
+                if !(pkg = available_projects[name])
                     raise OroGen::NotFound, "cannot find an installed oroGen project called #{name}"
                 end
-
-                OroGen.info "loading oroGen project #{name} on #{self.name}"
-                lib = Spec::Project.new(self)
-                if has_typekit?(name)
-                    lib.typekit = typekit_from_name(name)
-                else lib.typekit = Spec::Typekit.new(lib.name)
-                end
-                lib.typekit.define_dummy_types = options[:define_dummy_types]
-                lib.__load__(project.orogen_path)
-                lib
+                return File.read(pkg.orogen_path), pkg.orogen_path
             end
 
-            # Returns the task library model corresponding to the given name
-            # @param (see project_model_from_name)
-            # @raise (see project_model_from_name)
-            # @return (see project_model_from_name)
-            def task_library_model_from_name(name, options = Hash.new)
-                project = project_model_from_name(name, options)
-                if project.self_tasks.empty?
-                    raise OroGen::NotFound, "there is an oroGen project called #{name}, but it defines no tasks"
-                end
-                project
-            end
-
-            # Returns the task model object corresponding to a model name
+            # Returns the textual representation of a typekit
             #
-            # @raise OroGen::NotFound if there are no such model
-            def task_model_from_name(name)
-                tasklib_name = available_task_models[name]
-                if !tasklib_name
-                    raise OroGen::NotFound, "no task model #{name} is registered"
-                end
-
-                tasklib = project_model_from_name(tasklib_name)
-                result = tasklib.tasks[name]
-                if !result
-                    raise InternalError, "while looking up model of #{name}: found project #{tasklib_name}, but this project does not actually have a task model called #{name}"
-                end
-
-                result
-            end
-
-            # Returns the deployment model for the given deployment name
-            #
-            # @return [OroGen::Spec::Deployment] the deployment model
-            # @raise [OroGen::NotFound] if no deployment with that name exists
-            def deployment_model_from_name(name)
-                pkg = available_deployments[name]
-                if !pkg
-                    raise OroGen::NotFound, "there is no deployment called #{name}"
-                end
-
-                project = project_model_from_name(name)
-                deployment = project.deployers.find { |d| d.name == name }
-                if !deployment
-                    raise InternalError, "cannot find the deployment called #{name} in #{project.name}. Candidates were #{project.deployers.map(&:name).sort.join(", ")}"
-                end
-                deployment
-            end
-
-            # Returns the deployed task model for the given name
-            #
-            # @param [String] name the deployed task name
-            # @param [String] deployment_name () the name of the deployment in which the
-            #   task is defined. It must be given only when more than one deployment
-            #   defines a task with the requested name
-            # @return [OroGen::Spec::TaskDeployment] the deployed task model
-            # @raise [OroGen::NotFound] if no deployed tasks with that name exists
-            # @raise [OroGen::NotFound] if deployment_name was given, but the requested
-            #   task is not defined in this deployment
-            # @raise [OroGen::AmbiguousName] if more than one task exists with that
-            #   name. In that case, you will have to provide the deployment name
-            #   explicitly using the second argument
-            def deployed_task_model_from_name(name, deployment_name = nil)
-                if deployment_name
-                    deployment = deployment_model_from_name(deployment_name)
-                else
-                    deployment_names = available_deployed_tasks[name]
-                    if !deployment_names
-                        raise OroGen::NotFound, "cannot find a deployed task called #{name}"
-                    elsif deployment_names.size > 1
-                        raise OroGen::AmbiguousName, "more than one deployment defines a deployed task called #{name}: #{deployment_names.map(&:name).sort.join(", ")}"
-                    end
-                    deployment = deployment_model_from_name(deployment_names.first)
-                end
-
-                if !(task = deployment.find_task_by_name(name))
-                    if deployment_name
-                        raise OroGen::NotFound, "deployment #{deployment_name} does not have a task called #{name}"
-                    else
-                        raise InternalError, "deployment #{deployment_name} was supposed to have a task called #{name} but does not"
-                    end
-                end
-                task
-            end
-
-            # Loads a typekit from its name
-            #
-            # @param [String] name the typekit name
-            # @raise [OroGen::NotFound] if the typekit cannot be found
-            def typekit_from_name(name)
+            # @param [String] the typekit name
+            # @raise [OroGen::NotFound] if there is no typekit with that name
+            # @return [(String,String)] the typekit registry as XML and the
+            #   typekit's typelist
+            def typekit_model_text_from_name(name)
                 if !(pkg = available_typekits[name])
                     raise OroGen::NotFound, "cannot find an installed typekit called #{name}"
                 end
+
                 registry = File.read(pkg.type_registry)
                 typelist = File.join(File.dirname(pkg.type_registry), "#{name}.typelist")
                 typelist = File.read(typelist)
+                return registry, typelist
+            end
 
-                Spec::Typekit.from_raw_data(self, name, pkg, registry_xml, typelist_txt)
+            # Returns the task library name in which a task model is defined
+            #
+            # @param [String] model_name the name of the task model to look for
+            # @return [String,nil]
+            def find_task_library_from_task_model_name(model_name)
+                available_task_models[model_name]
+            end
+
+            # Returns the project that defines the given deployment
+            #
+            # @param [String] deployment_name the deployment we are looking for
+            # @return [String,nil]
+            def find_project_from_deployment_name(deployment_name)
+                if pkg = available_deployments[deployment_name]
+                    pkg.project_name
+                end
+            end
+
+            # Returns the set of deployments that contain a certain task
+            #
+            # @param [String] name
+            # @return [Set<String>]
+            def find_deployments_from_deployed_task_name(name)
+                available_deployed_tasks[name] || Set.new
             end
 
             def update
