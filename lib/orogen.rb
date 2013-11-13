@@ -20,8 +20,10 @@ end
 Orocos = OroGen
 
 require 'orogen/version'
+require 'orogen/exceptions'
 require 'orogen/base'
 
+require 'orogen/loaders'
 require 'orogen/spec'
 require 'orogen/gen'
 

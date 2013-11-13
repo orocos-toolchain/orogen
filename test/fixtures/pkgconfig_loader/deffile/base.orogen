@@ -1,0 +1,151 @@
+enable_transports('corba', 'mqueue', 'typelib')
+self.extended_states = true
+
+using_typekit "std"
+
+name 'base'
+version '0.1'
+
+using_library 'base-types'
+
+# Common types that are not opaques
+import_types_from "base/Temperature.hpp"
+import_types_from "base/Time.hpp"
+import_types_from "base/Trajectory.hpp"
+import_types_from "base/commands/AUVMotion.hpp"
+import_types_from "base/commands/Motion2D.hpp"
+import_types_from "base/commands/AUVPosition.hpp"
+import_types_from "base/commands/Speed6D.hpp"
+import_types_from "base/commands/Joints.hpp"
+import_types_from "base/samples/Frame.hpp"
+import_types_from "base/samples/LaserScan.hpp"
+import_types_from "base/samples/SonarBeam.hpp"
+import_types_from "base/samples/SonarScan.hpp"
+import_types_from "base/samples/Pointcloud.hpp"
+import_types_from "base/samples/DistanceImage.hpp"
+import_types_from "base/samples/Joints.hpp"
+import_types_from "base/JointLimits.hpp"
+import_types_from "base/JointTransform.hpp"
+import_types_from "base/JointsTrajectory.hpp"
+import_types_from "base/backward/base/actuators/status.h"
+import_types_from "base/backward/base/actuators/commands.h"
+import_types_from "base/backward/base/actuators/vehicles.h"
+import_types_from "base/backward/base/motion_command.h"
+
+
+if has_library?('base-lib')
+    using_library 'base-lib'
+    # Opaque wrappers for Spline types
+    import_types_from 'base/wrappers/geometry/Spline.hpp'
+end
+
+# Opaque wrappers for Eigen types
+import_types_from "base/wrappers/Eigen.hpp"
+
+if has_library?('base-lib')
+    typekit.opaque_type '/base/geometry/Spline<3>', '/wrappers/geometry/Spline'
+    typekit.opaque_type '/base/geometry/Spline<1>', '/wrappers/geometry/Spline'
+end
+typekit.opaque_type '/base/Vector2d', 'wrappers/Vector2d'
+typekit.opaque_type '/base/Vector3d', 'wrappers/Vector3d'
+typekit.opaque_type '/base/Vector4d', 'wrappers/Vector4d'
+typekit.opaque_type '/base/Vector6d', 'wrappers/Vector6d'
+typekit.opaque_type '/base/Quaterniond', 'wrappers/Quaterniond'
+typekit.opaque_type '/base/Matrix2d', 'wrappers/Matrix2d'
+typekit.opaque_type '/base/Matrix3d', 'wrappers/Matrix3d'
+typekit.opaque_type '/base/Matrix4d', 'wrappers/Matrix4d'
+typekit.opaque_type '/base/Matrix6d', 'wrappers/Matrix6d'
+typekit.opaque_type '/base/MatrixXd', 'wrappers/MatrixXd'
+typekit.opaque_type '/base/VectorXd', 'wrappers/VectorXd'
+if has_library?('base-lib')
+    import_types_from "base/geometry/Spline.hpp"
+end
+import_types_from "base/Pose.hpp"
+import_types_from "base/Waypoint.hpp"
+import_types_from "base/samples/IMUSensors.hpp"
+import_types_from "base/samples/RigidBodyState.hpp"
+import_types_from "base/samples/RigidBodyAcceleration.hpp"
+
+import_types_from "base/samples/CommandSamples.hpp"
+
+max_sizes '/base/samples/RigidBodyState', 'sourceFrame' => 32, 'targetFrame' => 32
+
+# Explicitely intanciate ro_ptr wrappers for Frame and FramePair as it is the
+# standard way to push this kind of types on ports
+typekit do
+    roptr_frame_t     = ro_ptr('/base/samples/frame/Frame')
+    roptr_framepair_t = ro_ptr('/base/samples/frame/FramePair')
+
+    if type_export_policy == :used
+        # We assume that, if the caller wants a 'used' type policy, it means he
+        # wants partial exports. Move to 'selected'. oroGen would have changed
+        # it to 'all'
+        type_export_policy :selected
+    end
+
+    export_types roptr_frame_t,
+        roptr_framepair_t,
+        '/base/Pose',
+        '/base/commands/Motion2D',
+        '/base/commands/Speed6D',
+        '/base/commands/AUVMotion',
+        '/base/commands/AUVPosition',
+        '/base/commands/Joints',
+        '/base/JointState',
+        '/base/JointLimits',
+        '/base/JointTransform',
+        '/base/JointTransformVector',
+        '/base/JointsTrajectory',
+        '/base/Trajectory',
+        '/std/vector</base/Trajectory>',
+        '/base/samples/Joints',
+        '/base/samples/Pointcloud',
+        '/base/samples/DistanceImage',
+        '/base/samples/LaserScan',
+        '/base/samples/SonarBeam',
+        '/base/samples/SonarScan',
+        '/base/samples/frame/FramePair',
+        '/base/samples/frame/frame_mode_t',
+        '/base/samples/frame/Frame',
+        '/base/samples/RigidBodyState',
+        '/base/samples/RigidBodyAcceleration',
+        '/base/samples/IMUSensors',
+        '/base/samples/Motion2D',
+        '/base/actuators/Status',
+        '/base/actuators/Command',
+        '/base/geometry/Spline<1>',
+        '/base/geometry/Spline<3>',
+        '/base/Time',
+        '/base/Position',
+        '/std/vector</base/Vector3d>',
+        '/std/vector</double>',
+        '/base/Waypoint',
+        '/std/vector</base/Waypoint>',
+        '/std/vector</uint32_t>',
+        '/base/Vector2d',
+        '/base/Vector3d',
+        '/base/Vector4d',
+        '/base/Vector6d',
+        '/base/VectorXd',
+        '/base/Matrix3d',
+        '/base/Matrix4d',
+        '/base/Matrix6d',
+        '/base/MatrixXd',
+        '/base/Quaterniond',
+        '/std/string',
+        '/base/Angle',
+        '/base/Temperature',
+        '/std/vector</std/string>'
+
+    ros_mappings \
+        '/std/string' => 'std_msgs/String',
+        '/base/Time' => 'std_msgs/Time',
+        '/base/samples/frame/Frame' => 'sensor_msgs/Image',
+        roptr_frame_t => 'sensor_msgs/Image',        
+        '/base/samples/Joints' => 'sensor_msgs/JointState',
+        '/base/JointsTrajectory' => 'trajectory_msgs/JointTrajectory',
+        '/base/samples/RigidBodyState' => 'geometry_msgs/PoseStamped',
+        '/base/Pose' => 'geometry_msgs/Pose',
+        '/base/samples/Pointcloud' => 'sensor_msgs/PointCloud2'
+end
+
