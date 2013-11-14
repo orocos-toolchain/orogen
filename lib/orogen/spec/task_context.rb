@@ -25,6 +25,12 @@ module Orocos
                     default
                 end
             end
+
+            # Called at registration time so that the extension can apply some default stuff
+            #
+            # @param [TaskContext]
+            def registered_on(task_context)
+            end
         end
 
         # Model of a task context, i.e. a component interface
@@ -42,6 +48,30 @@ module Orocos
             #   
             # Gets or sets the documentation string for this task context
             dsl_attribute :doc
+
+            class << self
+                # @return [Symbol] set of method names that should be called on
+                #   the newly created task at creation time. This is meant to
+                #   register some default extensions automatically
+                attr_reader :default_extensions
+                attr_reader :extensions_disabled
+
+                def disable_default_extensions
+                    @extensions_disabled = true
+                end
+                
+                def apply_default_extensions(task_context)
+                    if !extensions_disabled
+                        default_extensions.each do |ext|
+                            task_context.send(ext)
+                        end
+                    end
+                end
+            end
+            @extensions_disabled = false
+            @default_extensions = Array.new
+
+            enumerate_inherited_map 'default_extension', 'default_extensions'
 
             # Set of extensions registered for this task
             #
@@ -62,6 +92,7 @@ module Orocos
                     raise ArgumentError, "there is already an extension called #{name}: #{old}"
                 else
                     extensions << obj
+                    obj.registered_on(self)
                 end
             end
 
@@ -283,7 +314,7 @@ module Orocos
                 @dynamic_ports = Array.new
                 @event_ports = Hash.new
                 @initial_state = 'Stopped'
-
+                @default_extensions = Array.new
                 @fixed_initial_state = false
                 @needs_configuration = false
 

@@ -996,7 +996,11 @@ module Orocos
                     typekit.perform_pending_loads
                 end
 
-                task = external_task_context(name, options, &block)
+
+                task = external_task_context(name, options) do
+                    Orocos::Spec::TaskContext.apply_default_extensions(self)
+                    instance_eval(&block)
+                end
                 if extended_states?
                     task.extended_state_support
                 end
@@ -1366,6 +1370,14 @@ module Orocos
                 end
                 @enabled_transports |= transport_names.to_set
             end
+
+            # Enable the given transports
+            def enable_extension(extensions)
+                extensions.each do |ext|
+                    Orocos::Spec::TaskContext.default_extensions << ext
+                end
+            end
+
 	end
 
         Component = Project
