@@ -4,6 +4,7 @@ prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos/types
 includedir=${prefix}/include/orocos
+disabled=true
 
 project_name=<%= typekit.name %>
 <% if typekit.component %>
