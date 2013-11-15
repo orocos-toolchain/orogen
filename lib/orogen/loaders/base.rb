@@ -2,6 +2,21 @@ module OroGen
     module Loaders
         # Definition of the base loader API
         class Base
+            # Set of projects loaded so far
+            #
+            # @return [Hash<String,Spec::Project>]
+            attr_reader :loaded_projects
+
+            # Set of typekits loaded so far
+            #
+            # @return [Hash<String,Spec::Typekit>]
+            attr_reader :loaded_typekits
+
+            def initialize
+                @loaded_projects = Hash.new
+                @loaded_typekits = Hash.new
+            end
+
             # Returns the project model corresponding to the given name
             #
             # @param [String] the project name
@@ -13,6 +28,10 @@ module OroGen
             #   name.
             # @return [OroGen::Spec::Project]
             def project_model_from_name(name, options = Hash.new)
+                if project = loaded_projects[name]
+                    return project
+                end
+
                 name = name.to_str
                 options = Kernel.validate_options options,
                     :define_dummy_types => false
@@ -27,7 +46,7 @@ module OroGen
                 end
                 project.typekit.define_dummy_types = options[:define_dummy_types]
                 Loaders::Project.new(project).__eval__(text, path)
-                project
+                loaded_projects[name] = project
             end
 
             # Returns the task library model corresponding to the given name
@@ -125,8 +144,12 @@ module OroGen
             # @return [Spec::Typekit] the typekit
             # @raise [OroGen::NotFound] if the typekit cannot be found
             def typekit_from_name(name)
+                if typekit = loaded_typekits[name]
+                    return typekit
+                end
+
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
-                Spec::Typekit.from_raw_data(name, registry_xml, typelist_txt)
+                loaded_typekits[name] = Spec::Typekit.from_raw_data(name, registry_xml, typelist_txt)
             end
 
             def project_model_text_from_name(name)

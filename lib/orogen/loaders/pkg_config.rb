@@ -45,6 +45,7 @@ module OroGen
             def initialize(orocos_target, root_loader = nil)
                 @orocos_target = orocos_target
                 update
+                super()
             end
 
             # Registers a project from its pkg-config object
