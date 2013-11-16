@@ -296,7 +296,7 @@ module Orocos
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
             def default_task_superclass
-                find_task_context "RTT::TaskContext"
+                Orocos::Generation::Project.standard_tasks.find { |t| t.name == "RTT::TaskContext" }
             end
 
             # Returns the typekit object that corresponds to +typekit_name+, or

@@ -166,7 +166,7 @@ module Orocos
             # it, or imported by a Component#using_task_library call.
             def subclasses(task_context)
                 if task_context.respond_to?(:to_str)
-                    if @superclass != TaskContext.orogen_rtt_task_context
+                    if @superclass != project.default_task_superclass
                         raise Orocos::Generation::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
@@ -285,10 +285,6 @@ module Orocos
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
-            def self.orogen_rtt_task_context
-                Orocos::Generation::Project.standard_tasks.find { |t| t.name == "RTT::TaskContext" }
-            end
-
 	    # Create a new task context in the given component and with
 	    # the given name. If a block is given, it is evaluated
 	    # in the context of the newly created TaskContext object.
@@ -298,7 +294,7 @@ module Orocos
 	    def initialize(project = nil, name = nil)
                 @project  = project
 
-                @superclass = TaskContext.orogen_rtt_task_context
+                @superclass = project.default_task_superclass
                 @implemented_classes = []
 		@name = name
                 # This is an array, as we don't want to have it reordered
