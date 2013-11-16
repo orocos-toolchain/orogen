@@ -7,6 +7,9 @@ module OroGen
             # @return [Hash<String,Spec::Project>]
             attr_reader :loaded_projects
 
+            # Set of task models that are known to us
+            attr_reader :loaded_task_models
+
             # Set of typekits loaded so far
             #
             # @return [Hash<String,Spec::Typekit>]
@@ -15,6 +18,7 @@ module OroGen
             def initialize
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
+                @loaded_task_models = Hash.new
             end
 
             # Returns the project model corresponding to the given name
@@ -46,6 +50,7 @@ module OroGen
                 end
                 project.typekit.define_dummy_types = options[:define_dummy_types]
                 Loaders::Project.new(project).__eval__(text, path)
+                register_project_info(project)
                 loaded_projects[name] = project
             end
 
@@ -150,6 +155,11 @@ module OroGen
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
                 loaded_typekits[name] = Spec::Typekit.from_raw_data(name, registry_xml, typelist_txt)
+            end
+
+            # Registers this project's subobjects
+            def register_project_info(project)
+                loaded_task_models.merge! project.tasks
             end
 
             def project_model_text_from_name(name)
