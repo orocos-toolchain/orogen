@@ -11,20 +11,22 @@ module OroGen
             end
 
             def method_missing(m, *args, &block)
-                if spec.respond_to?(m)
-                    spec.send(m, *args, &block)
+                if @spec.respond_to?(m)
+                    @spec.send(m, *args, &block)
                 end
             end
 
             def __load__(file, verbose = true)
-                self.deffile = File.expand_path(file)
-                Kernel.eval_dsl_file(deffile, self, [], verbose)
+                deffile = File.expand_path(file)
+                deftext = File.read(deffile)
+                ::Kernel.eval_dsl_file_content(deffile, deftext, self, [], verbose)
                 self
             end
 
             def __eval__(name, file_contents, verbose = true)
-                self.deffile = "#{name}.orogen"
-                Kernel.eval_dsl_file_content(deffile, file_contents, self, [], verbose)
+                deffile = "#{name}.orogen"
+                deftext = file_contents
+                ::Kernel.eval_dsl_file_content(deffile, deftext, self, [], verbose)
                 self
             end
         end
