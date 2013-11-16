@@ -53,7 +53,7 @@ module OroGen
                 else project.typekit = Spec::Typekit.new(name)
                 end
                 project.typekit.define_dummy_types = options[:define_dummy_types]
-                Loaders::Project.new(project).__eval__(text, path)
+                Loaders::Project.new(project).__eval__(name, text, path)
                 register_project_info(project)
                 loaded_projects[name] = project
             end
