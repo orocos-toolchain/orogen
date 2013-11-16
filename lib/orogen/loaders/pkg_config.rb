@@ -69,21 +69,10 @@ module OroGen
                 end
             end
 
-            # Tests if a typekit with that name exists
-            #
-            # @param [String] the typekit name
-            # @return [Boolean]
             def has_typekit?(name)
                 available_typekits.has_key?(name)
             end
 
-            # Returns the textual representation of a project model
-            #
-            # @param [String] the project name
-            # @raise [OroGen::NotFound] if there is no project with that
-            #   name.
-            # @return [(String,String)] the model as text, as well as a path to
-            #   the model file (or nil if there is no such file)
             def project_model_text_from_name(name)
                 name = name.to_str
                 if !(pkg = available_projects[name])
@@ -92,12 +81,6 @@ module OroGen
                 return File.read(pkg.orogen_path), pkg.orogen_path
             end
 
-            # Returns the textual representation of a typekit
-            #
-            # @param [String] the typekit name
-            # @raise [OroGen::NotFound] if there is no typekit with that name
-            # @return [(String,String)] the typekit registry as XML and the
-            #   typekit's typelist
             def typekit_model_text_from_name(name)
                 if !(pkg = available_typekits[name])
                     raise OroGen::NotFound, "cannot find an installed typekit called #{name}"
@@ -109,28 +92,16 @@ module OroGen
                 return registry, typelist
             end
 
-            # Returns the task library name in which a task model is defined
-            #
-            # @param [String] model_name the name of the task model to look for
-            # @return [String,nil]
             def find_task_library_from_task_model_name(model_name)
                 available_task_models[model_name]
             end
 
-            # Returns the project that defines the given deployment
-            #
-            # @param [String] deployment_name the deployment we are looking for
-            # @return [String,nil]
             def find_project_from_deployment_name(deployment_name)
                 if pkg = available_deployments[deployment_name]
                     pkg.project_name
                 end
             end
 
-            # Returns the set of deployments that contain a certain task
-            #
-            # @param [String] name
-            # @return [Set<String>]
             def find_deployments_from_deployed_task_name(name)
                 available_deployed_tasks[name] || Set.new
             end
