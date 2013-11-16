@@ -614,10 +614,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # activity). See TaskDeployment documentation for available options.
             def task(name, klass)
                 if klass.respond_to?(:to_str)
-                    begin task_context = project.find_task_context(klass)
-                    rescue ArgumentError
-                        raise ArgumentError, "#{klass} is not a known task context model"
-                    end
+                    task_context = project.task_model_from_name(klass)
                 else task_context = klass
                 end
 

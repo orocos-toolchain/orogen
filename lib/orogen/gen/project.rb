@@ -398,6 +398,10 @@ module Orocos
                 task_model
             end
 
+            def task_model_from_name(name)
+                find_task_context(name)
+            end
+
             # Returns true if there is a registered task context with the given
             # name, and false otherwise
             def has_task_context?(name)

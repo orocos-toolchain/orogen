@@ -3,6 +3,7 @@ module OroGen
         # Instances of this class represent a typekit that has been imported
         # using Component#using_typekit.
         class Typekit
+            attr_reader :loader
             attr_reader :name
             attr_reader :registry
             attr_reader :typelist
@@ -10,6 +11,8 @@ module OroGen
 
             attr_reader :opaques
             attr_reader :opaque_registry
+
+            attr_reader :imported_typekits
 
             attr_predicate :define_dummy_types?, true
 
@@ -36,12 +39,13 @@ module OroGen
                 return typekit_typelist, typekit_interface_typelist
             end
 
-            def self.from_raw_data(name, registry_xml, typelist_txt)
+            def self.from_raw_data(loader, name, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
+                Typelib::Registry.add_standard_cxx_types(typekit_registry)
                 typekit_registry.merge_xml(registry_xml)
 
                 typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
-                typekit = self.new(name,
+                typekit = self.new(loader, name,
                               typekit_registry,
                               typekit_typelist,
                               typekit_interface_typelist)
@@ -66,28 +70,24 @@ module OroGen
                 typekit
             end
 
-            def export_types(*args); end
-
-            def has_opaques?
-                registry.any? { |t| includes?(t) && t.contains_opaques? }
-            end
-
             def interface_type?(typename)
                 typename = typename.name if typename.respond_to?(:name)
                 interface_typelist.include?(typename)
             end
 
-            def initialize(name, registry = Typelib::Registry.new, typelist = [], interface_typelist = [])
+            def initialize(loader, name, registry = Typelib::Registry.new, typelist = [], interface_typelist = [])
+                @loader = loader
                 @name, @registry = name, registry
                 @typelist = typelist.to_set
                 @interface_typelist = interface_typelist.to_set
                 @opaques = Array.new
                 @opaque_registry = Typelib::Registry.new
+                @imported_typekits = Set.new
             end
 
             def has_opaques?
                 if @has_opaques.nil?
-                    @has_opaques = registry.any? { |t| t.opaque? }
+                    @has_opaques = registry.any? { |t| includes?(t) && t.opaque? }
                 end
                 @has_opaques
             end
@@ -104,8 +104,21 @@ module OroGen
                 typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
             end
 
-            def using_library(*args); end
-            def using_typekit(*args); end
+            def import_types_from(typekit)
+                if typekit.respond_to?(:to_str)
+                    typekit = loader.typekit_model_from_name(typekit)
+                end
+                using_typekit(typekit)
+            end
+
+            def using_typekit(typekit)
+                if !imported_typekits.include?(typekit)
+                    registry.merge(typekit.registry)
+                    opaques.concat(typekit.opaques)
+                    @interface_typelist |= typekit.interface_typelist
+                    imported_typekits << typekit
+                end
+            end
 
 	    def find_type(type)
 		if type.respond_to?(:name)
@@ -120,26 +133,36 @@ module OroGen
                 end
 	    end
 
+            # Returns the typekit object that defines this type
+            def imported_typekits_for(typename)
+		if typename.respond_to?(:name)
+		    typename = typename.name
+		end
+                return imported_typekits.find_all { |tk| tk.includes?(typename) }
+            end
+
             # Returns the type object for +typename+, validating that we can use
             # it in a task interface, i.e. that it will be registered in the
             # RTT's typeinfo system
             def find_interface_type(typename)
                 type = find_type(typename)
+                if !type
+                    raise OroGen::NotFound, "there is no type #{typename} on #{self}"
+                end
+
                 if type < Typelib::NullType && define_dummy_types?
                     return type
                 end
 
                 if type < Typelib::ArrayType
-                    raise ConfigError, "static arrays are not valid interface types. Use an array in a structure or a std::vector"
+                    raise InvalidInterfaceType.new(type), "static arrays are not valid interface types. Use an array in a structure or a std::vector"
                 end
-
-                typekits   = imported_typekits_for(type.name)
-                if !typekits.empty?
-                    Orocos::Generation.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
-                end
-
-                if !typekits.empty? && !typekits.any? { |tk| tk.interface_type?(type.name) }
-                    raise ConfigError, "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
+                if !interface_type?(type)
+                    typekits = imported_typekits_for(type.name)
+                    if includes?(type)
+                        typekits << self
+                    end
+                    raise NotExportedType.new(type, typekits), "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
                 end
                 type
             end
@@ -264,6 +287,10 @@ module OroGen
                 else
                     false
                 end
+            end
+
+            def to_s
+                "#<OroGen::Spec::Typekit #{name}>"
             end
         end
     end

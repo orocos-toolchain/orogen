@@ -6,7 +6,10 @@ module OroGen
             attr_reader :loader
             # This project's typekit
             # @return [Typekit,nil]
-            attr_accessor :typekit
+            attr_writer :typekit
+            def typekit(create = nil)
+                @typekit
+            end
             # The tasks known to this project
             # @return [Hash<String,OroGen::Spec::TaskContext>]
             attr_reader :tasks
@@ -102,35 +105,15 @@ module OroGen
                 tasklib
             end
 
-            @@standard_tasks = nil
-            @@standard_task_specs = { "rtt.orogen" => OROGEN_LIB_DIR, "ocl.orogen" => OROGEN_LIB_DIR }
-
-            def self.add_standard_task_spec(filename, directory)
-                @@standard_task_specs[filename] = directory
-            end
-
-            # The set of standard project defined by RTT and OCL. They are
-            # defined as orogen-specification in the <tt>rtt.orogen</tt> and
-            # <tt>ocl.orogen</tt>, present in orogen source code.
-            def self.standard_tasks
-                if @@standard_tasks
-                    @@standard_tasks
-                else
-                    @@standard_tasks = []
-                    @@standard_task_specs.each do |orogen, dir|
-                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, dir))
-                        project.orogen_project = false
-                        @@standard_tasks.concat project.tasks.values
-                    end
-                end
-
-                @@standard_tasks
-            end
+            attr_writer :default_task_superclass
 
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
             def default_task_superclass
-                loader.task_model_from_name "RTT::TaskContext"
+                if @default_task_superclass.nil?
+                    loader.task_model_from_name "RTT::TaskContext"
+                else @default_task_superclass
+                end
             end
 
             # Creates a new task context class of this name. The generated
@@ -174,10 +157,26 @@ module OroGen
                     :class => Orocos::Spec::TaskContext
 
 		new_task = options[:class].new(self, "#{self.name}::#{name}")
-                Spec.load_documentation(new_task, /^task_context/)
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
+                loader.loaded_task_models[new_task.name] = new_task
 		new_task
+            end
+
+            def using_typekit(typekit)
+                self.typekit.using_typekit(typekit)
+            end
+
+            def import_types_from(typekit)
+                self.typekit.import_types_from(typekit)
+            end
+
+            # (see Loaders::Base#task_model_from_name)
+            def task_model_from_name(name)
+                if name !~ /::/
+                    name = "#{self.name}::#{name}"
+                end
+                loader.task_model_from_name(name)
             end
 
             # True if there is a deployment with the given name in this oroGen
@@ -233,16 +232,15 @@ module OroGen
             #   simple_deployment("task", "Task").
             #       periodic(0.001)
             def simple_deployment(name, klass)
-                if has_task_library?('logger')
+                has_logger = loader.has_project?('logger')
+                if has_logger
                     using_task_library "logger"
                 end
-
-                project = self.project
 
                 result = nil
                 deployment name do
                     result = task name, klass
-                    if project.has_task_library?('logger')
+                    if has_logger
                         add_default_logger
                     end
                 end

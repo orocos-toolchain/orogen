@@ -170,7 +170,7 @@ module Orocos
                         raise Orocos::Generation::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
-                    @superclass = project.find_task_context task_context
+                    @superclass = project.task_model_from_name task_context
                 else
                     @superclass = task_context
                 end

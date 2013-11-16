@@ -18,7 +18,7 @@ module OroGen
             # The loader that should be used to resolve dependencies
             attr_reader :root_loader
 
-            def initialize(root_loader)
+            def initialize(root_loader = self)
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
@@ -50,7 +50,12 @@ module OroGen
                 project = Spec::Project.new(root_loader)
                 if has_typekit?(name)
                     project.typekit = typekit_from_name(name)
-                else project.typekit = Spec::Typekit.new(name)
+                else
+                    project.typekit = Spec::Typekit.new(root_loader, name)
+                end
+
+                RTT.standard_typekits.each do |tk|
+                    project.using_typekit tk
                 end
                 project.typekit.define_dummy_types = options[:define_dummy_types]
                 Loaders::Project.new(project).__eval__(name, text, path)
@@ -78,6 +83,10 @@ module OroGen
             # @return [Spec::TaskContext]
             # @raise [OroGen::NotFound] if there are no such model
             def task_model_from_name(name)
+                if model = loaded_task_models[name]
+                    return model
+                end
+
                 tasklib_name = find_task_library_from_task_model_name(name)
                 if !tasklib_name
                     raise OroGen::NotFound, "no task model #{name} is registered"
@@ -152,13 +161,13 @@ module OroGen
             # @param [String] name the typekit name
             # @return [Spec::Typekit] the typekit
             # @raise [OroGen::NotFound] if the typekit cannot be found
-            def typekit_from_name(name)
+            def typekit_model_from_name(name)
                 if typekit = loaded_typekits[name]
                     return typekit
                 end
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
-                loaded_typekits[name] = Spec::Typekit.from_raw_data(name, registry_xml, typelist_txt)
+                loaded_typekits[name] = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
             end
 
             # Registers this project's subobjects
