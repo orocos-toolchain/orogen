@@ -15,10 +15,14 @@ module OroGen
             # @return [Hash<String,Spec::Typekit>]
             attr_reader :loaded_typekits
 
-            def initialize
+            # The loader that should be used to resolve dependencies
+            attr_reader :root_loader
+
+            def initialize(root_loader)
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
+                @root_loader = root_loader
             end
 
             # Returns the project model corresponding to the given name
@@ -43,7 +47,7 @@ module OroGen
                 text, path = project_model_text_from_name(name)
 
                 OroGen.info "loading oroGen project #{name}"
-                project = Spec::Project.new(self)
+                project = Spec::Project.new(root_loader)
                 if has_typekit?(name)
                     project.typekit = typekit_from_name(name)
                 else project.typekit = Spec::Typekit.new(name)
