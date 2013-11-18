@@ -153,7 +153,7 @@ begin
     filename  = files.first
     Orocos.beautify_loading_errors(filename) do
         component.enable_transports(*transports)
-        component.load(filename, verbosity > 1)
+        component.enable_extension(extensions)
         imported_typekits.each do |tk_name|
             begin
                 component.using_typekit tk_name
@@ -161,7 +161,7 @@ begin
                 raise ArgumentError, "#{tk_name}, which was given to the --import option, does not seem to be a typekit name"
             end
         end
-        component.enable_extension(extensions)
+        component.load(filename, verbosity > 1)
     end
 
     component.generate
