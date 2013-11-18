@@ -18,11 +18,17 @@ module OroGen
             # The loader that should be used to resolve dependencies
             attr_reader :root_loader
 
+            # Set of typekits that should be loaded on every project
+            #
+            # @return [Set<Spec::Typekit>]
+            attr_reader :default_typekits
+
             def initialize(root_loader = self)
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
                 @root_loader = root_loader
+                @default_typekits = Set.new
             end
 
             # Returns the project model corresponding to the given name
@@ -48,17 +54,16 @@ module OroGen
 
                 OroGen.info "loading oroGen project #{name}"
                 project = Spec::Project.new(root_loader)
-                if has_typekit?(name)
-                    project.typekit = typekit_from_name(name)
-                else
-                    project.typekit = Spec::Typekit.new(root_loader, name)
-                end
-
-                RTT.standard_typekits.each do |tk|
+                project.typekit = Spec::Typekit.new(root_loader, name)
+                default_typekits.each do |tk|
                     project.using_typekit tk
                 end
+                if has_typekit?(name)
+                    project.using_typekit typekit_model_from_name(name)
+                end
+
                 project.typekit.define_dummy_types = options[:define_dummy_types]
-                Loaders::Project.new(project).__eval__(name, text, path)
+                Loaders::Project.new(project).__eval__(path, text)
                 register_project_info(project)
                 loaded_projects[name] = project
             end
