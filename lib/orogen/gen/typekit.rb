@@ -261,54 +261,6 @@ struct #{target_basename}
     end
 
     class Registry
-        # Returns true if +type+ is handled by the typekit that is included in
-        # the RTT itself, and false otherwise.
-        #
-        # This is used in property bags and in the interface definition, as --
-        # among the simple types -- only these can be used directly in
-        # interfaces.
-        def self.base_rtt_type?(type)
-            if type.name == "/std/string"
-                return true
-            elsif !(type <= Typelib::NumericType)
-                return false
-            end
-
-            if type.integer?
-                type.name == "/bool" || type.size == 4
-            else
-                type.name == "/double"
-            end
-        end
-
-        # Returns the typename used by RTT to register the given type
-        def self.rtt_typename(type)
-            if !@typelib_to_rtt_mappings
-                cxx_types = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(cxx_types)
-                @typelib_to_rtt_mappings = {
-                    cxx_types.get('bool') => 'bool',
-                    cxx_types.get('int') => 'int',
-                    cxx_types.get('unsigned int') => 'uint',
-                    cxx_types.get('float') => 'float',
-                    cxx_types.get('double') => 'double',
-                    cxx_types.get('char') => 'char'
-                }
-            end
-
-            if type.name == "/std/string"
-                return "string"
-            elsif !(type <= Typelib::NumericType)
-                return type.name
-            end
-
-            if type.name == "/bool" then return 'bool'
-            elsif mapped = @typelib_to_rtt_mappings.find { |typelib, rtt| typelib == type }
-                return mapped[1]
-            else
-                raise ArgumentError, "#{type.name} is (probably) not registered on the RTT type system"
-            end
-        end
     end
 end
 
