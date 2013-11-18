@@ -211,7 +211,8 @@ module OroGen
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
                 typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
-                register_typekit_objects(typekit)
+                register_typekit_model(typekit)
+                typekit
             end
 
             # Registers information from this typekit
