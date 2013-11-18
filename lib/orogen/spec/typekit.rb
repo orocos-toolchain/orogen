@@ -153,7 +153,7 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate, true) == type }
+                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate) == type }
                     opaque_def.type
                 end
             end
