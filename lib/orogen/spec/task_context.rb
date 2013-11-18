@@ -291,7 +291,7 @@ module OroGen
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use {Project#task_context} for that.
-	    def initialize(project = nil, name = nil)
+	    def initialize(project, name = nil)
                 @project  = project
 
                 @superclass = project.default_task_superclass
