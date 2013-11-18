@@ -29,12 +29,6 @@ module OroGen
             # The set of transport names that are enabled in this project
             # @return [Set<String>]
             attr_reader :enabled_transports
-            # Project-level specification of max vector sizes
-            #
-            # It applies on every usage of the given types inside this project
-            #
-            # @return [Hash]
-            attr_reader :max_sizes
 
             def initialize(loader)
                 @loader = loader
@@ -84,7 +78,7 @@ module OroGen
             # of the provided type
             def max_sizes(typename = nil, *values, &block)
                 if !typename && values.empty?
-                    return max_sizes
+                    return @max_sizes
                 end
 
                 type  = find_type(typename)
@@ -92,15 +86,16 @@ module OroGen
                 # the m-types. Do what we can, we'll do full blown validation
                 # later
                 sizes = Orocos::Spec::Port.validate_max_sizes_spec(nil, values)
-                max_sizes[type.name] ||= Hash.new
-                max_sizes[type.name].merge!(sizes, &block)
+                @max_sizes[type.name] ||= Hash.new
+                @max_sizes[type.name].merge!(sizes, &block)
             end
 
             def validate_max_sizes_spec
-                max_sizes.dup.each do |type, sizes|
+                @max_sizes.dup.each do |type, sizes|
                     type = intermediate_type_for(type)
                     sizes = Orocos::Spec::Port.validate_max_sizes_spec(type, sizes)
-                    max_sizes[type.name].merge!(sizes)
+                    @max_sizes[type.name] ||= Hash.new
+                    @max_sizes[type.name].merge!(sizes)
                 end
             end
 
