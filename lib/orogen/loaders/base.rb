@@ -269,7 +269,10 @@ module OroGen
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
-                typekits_by_type_name[typename]
+                if typekits = typekits_by_type_name[typename]
+                    typekits
+                else raise ArgumentError, "#{typename} is not an imported type"
+                end
             end
 
             # Returns the type object for +typename+, validating that we can use
