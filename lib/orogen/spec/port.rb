@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         # Generic representation of ports. The actual ports are either
         # instance of InputPort or OutputPort
@@ -73,7 +73,7 @@ module Orocos
 
                 if type
                     type = task.project.find_interface_type(type)
-                    Orocos.validate_toplevel_type(type)
+                    OroGen.validate_toplevel_type(type)
                     if type.name == "/std/vector<double>"
                         Spec.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
                     end

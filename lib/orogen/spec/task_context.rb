@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         ACTIVITY_TYPES = {
             :fd_driven    => 'FileDescriptorActivity',
@@ -507,7 +507,7 @@ module Orocos
                 begin
                     type = project.find_interface_type(type)
                 rescue Typelib::NotFound => e
-                    raise Orocos::ConfigError, "invalid type #{type}: #{e.message}", e.backtrace
+                    raise ConfigError, "invalid type #{type}: #{e.message}", e.backtrace
                 end
 
                 if default_value
@@ -1005,7 +1005,7 @@ module Orocos
                 Spec.load_documentation(port, /output_port/)
                 port
             rescue Typelib::NotFound
-                raise Orocos::ConfigError, "type #{type} is not declared", e.backtrace
+                raise ConfigError, "type #{type} is not declared", e.backtrace
 	    end
 
 	    # call-seq:
@@ -1026,7 +1026,7 @@ module Orocos
                 port
 
             rescue Typelib::NotFound => e
-                raise Orocos::ConfigError, "type #{type} is not declared", e.backtrace
+                raise ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             # This method is an easier way use boost::shared_ptr in a task

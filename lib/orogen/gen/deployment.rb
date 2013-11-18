@@ -60,6 +60,27 @@ module Orocos
         end
 
         module DeploymentGeneration
+            # Returns the scheduler constant name for this task's scheduler
+            # class. Call #realtime and #non_realtime to change the task
+            # scheduling class
+	    def rtt_scheduler
+		if @realtime then 'ORO_SCHED_RT'
+		else 'ORO_SCHED_OTHER'
+		end
+	    end
+
+	    # Returns the Orocos value for this task's priority
+	    def rtt_priority
+		case @priority
+		when :highest
+		    'RTT::os::HighestPriority'
+		when :lowest
+		    'RTT::os::LowestPriority'
+		when Integer
+		    @priority
+		end
+	    end
+
             def dependencies
                 result = []
                 result << BuildDependency.new(

@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
     
         class << self
@@ -160,9 +160,9 @@ module Orocos
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    Orocos::Spec::default_rt_minimal_trigger_latency
+                    Spec::default_rt_minimal_trigger_latency
                 else
-                    Orocos::Spec::default_nonrt_minimal_trigger_latency
+                    Spec::default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -182,9 +182,9 @@ module Orocos
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        Orocos::Spec::default_rt_worstcase_trigger_latency
+                        Spec::default_rt_worstcase_trigger_latency
                     else
-                        Orocos::Spec::default_nonrt_worstcase_trigger_latency
+                        Spec::default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
@@ -417,32 +417,11 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # True if this task should be deployed using a realtime scheduler,
             # and false otherwise
             def realtime?; @realtime end
-
-	    # Returns the Orocos scheduler constant name for this task's
-	    # scheduler class. Call #realtime and #non_realtime to change the
-	    # task scheduling class
-	    def rtt_scheduler
-		if @realtime then 'ORO_SCHED_RT'
-		else 'ORO_SCHED_OTHER'
-		end
-	    end
 	    # Marks this task as being part of the realtime scheduling class
 	    def realtime; @realtime = true; self end
 	    # Marks this task as being part of the non-realtime scheduling
 	    # class (the default)
 	    def non_realtime; @realtime = false; self end
-
-	    # Returns the Orocos value for this task's priority
-	    def rtt_priority
-		case @priority
-		when :highest
-		    'RTT::os::HighestPriority'
-		when :lowest
-		    'RTT::os::LowestPriority'
-		when Integer
-		    @priority
-		end
-	    end
 
             def pretty_print(pp) # :nodoc:
                 pp.text "#{name}[#{task_model.name}]"

@@ -1,7 +1,7 @@
 require 'utilrb/module/attr_predicate'
 require 'utilrb/value_set'
 
-module Orocos
+module OroGen
     module Spec
         # Representation of a task's attribute or property
 	class ConfigurationObject
@@ -20,7 +20,7 @@ module Orocos
             # An operation that can be used to set the property. This is non-nil
             # only for dynamic properties
             #
-            # @return [Orocos::Spec::Operation]
+            # @return [Operation]
             attr_accessor :setter_operation
 
             # The name of the type this property is using, for consistency with
@@ -50,7 +50,7 @@ module Orocos
 		end
 
                 type = task.project.find_interface_type(type)
-                Orocos.validate_toplevel_type(type)
+                OroGen.validate_toplevel_type(type)
                 @dynamic = false
 		@task, @name, @type, @default_value = task, name, type, default_value
                 @setter_operation = nil

@@ -16,8 +16,19 @@ require 'utilrb/logger'
 module OroGen
     OROGEN_LIB_DIR = File.expand_path('orogen', File.dirname(__FILE__))
     extend Logger::Root("OroGen", Logger::WARN)
+
+    module Spec
+    end
+    module Gen
+        module RTT_CPP
+        end
+    end
 end
-Orocos = OroGen
+
+module Orocos
+    Spec = OroGen::Spec
+    Generation = OroGen::Gen::RTT_CPP
+end
 
 require 'utilrb/pkgconfig'
 require 'nokogiri'
@@ -31,4 +42,4 @@ require 'orogen/plugins'
 require 'orogen/loaders'
 require 'orogen/spec'
 
-Orocos.load_orogen_plugins
+OroGen.load_orogen_plugins

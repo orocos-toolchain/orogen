@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         # Representation of a RTT operation. Instances of this object are
         # usually created through TaskContext#operation. The generated code will
@@ -96,7 +96,7 @@ module Orocos
                 type_name = OroGen.unqualified_cxx_type(qualified_type)
                 typelib_type_name = ::Typelib::GCCXMLLoader.cxx_to_typelib(type_name)
 		type      = task.project.find_interface_type(typelib_type_name)
-                Orocos.validate_toplevel_type(type)
+                OroGen.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end
 
