@@ -213,6 +213,17 @@ module OroGen
                 return resolve_type(typename)
             end
 
+            # Gets the opaque type for a given type
+            #
+            # @param [#name,String] type the type or type name
+            # @return [Model<Typelib::Type>] the type of the opaque, or the
+            #   given type if it is not an intermediate type
+            # @raises Typelib::NotFound if the expected intermediate type cannot
+            #   be found
+            def opaque_type_for(type)
+                find_opaque_for_intermediate(type) || resolve_type(type)
+            end
+
             # Checks if a type is used as an intermediate
             def intermediate_type?(type)
                 !!find_opaque_for_intermediate(type)

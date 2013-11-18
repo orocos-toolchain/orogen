@@ -299,6 +299,14 @@ module OroGen
                 interface_typelist.include?(typename)
             end
 
+            # Returns the opaque type that is paired with the given type
+            #
+            # @param [#name,String] type the type to be resolved
+            # @return [Model<Typelib::Type>]
+            def opaque_type_for(type)
+                imported_typekits_for(type).first.opaque_type_for(type)
+            end
+
             # Returns the intermediate type that is paired with the given type
             #
             # @param [#name,String] type the type to be resolved
