@@ -37,6 +37,18 @@ module OroGen
             # @return [Boolean]
             attr_predicate :define_dummy_types?, true
 
+            # Set of callbacks that are called whenever a new typekit gets
+            # loaded
+            #
+            # @return [Array<#call>]
+            attr_reader :typekit_load_callbacks
+
+            # Set of callbacks that are called whenever a new typekit gets
+            # loaded
+            #
+            # @return [Array<#call>]
+            attr_reader :project_load_callbacks
+
             def initialize(root_loader = self)
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
@@ -46,6 +58,8 @@ module OroGen
                 @typekits_by_type_name = Hash.new
                 @registry = Typelib::Registry.new
                 @interface_typelist = Set.new
+                @typekit_load_callbacks = Array.new
+                @project_load_callbacks = Array.new
             end
 
             # Returns the project model corresponding to the given name
@@ -73,8 +87,23 @@ module OroGen
                     end
 
                 Loaders::Project.new(project).__eval__(path, text)
-                register_project_info(project)
-                loaded_projects[name] = project
+                register_project_model(project)
+                project
+            end
+            
+            # Registers a callback that should be called with newly registered
+            # projects
+            #
+            # @param [Boolean] initial_events if true, the callbacks will be
+            #   called instantly with the projects that have already been loaded
+            def on_project_load(initial_events = true, &block)
+                project_load_callbacks << block
+                if initial_events
+                    current_set = loaded_projects.values.dup
+                    current_set.each do |p|
+                        block.call(p)
+                    end
+                end
             end
 
             # Returns the task library model corresponding to the given name
@@ -186,7 +215,10 @@ module OroGen
             end
 
             # Registers information from this typekit
-            def register_typekit_objects(typekit)
+            #
+            # Callbacks registered by {#on_typekit_load} gets called with the
+            # new typekit as argument
+            def register_typekit_model(typekit)
                 registry.merge typekit.registry
                 @interface_typelist |= typekit.interface_typelist
                 typekit.typelist.each do |typename|
@@ -194,6 +226,24 @@ module OroGen
                     typekits_by_type_name[typename] << typekit
                 end
                 loaded_typekits[typekit.name] = typekit
+                typekit_load_callbacks.each do |callback|
+                    callback.call(typekit)
+                end
+            end
+            
+            # Registers a callback that should be called with newly registered
+            # typekits
+            #
+            # @param [Boolean] initial_events if true, the callbacks will be
+            #   called instantly with the typekits that have already been loaded
+            def on_typekit_load(initial_events = true, &block)
+                typekit_load_callbacks << block
+                if initial_events
+                    current_set = loaded_typekits.values.dup
+                    current_set.each do |tk|
+                        block.call(tk)
+                    end
+                end
             end
 
             # Resolves a type object
@@ -254,8 +304,12 @@ module OroGen
             end
 
             # Registers this project's subobjects
-            def register_project_info(project)
+            def register_project_model(project)
                 loaded_task_models.merge! project.tasks
+                loaded_projects[project.name] = project
+                project_load_callbacks.each do |callback|
+                    callback.call(project)
+                end
             end
 
             # Returns the textual representation of a project model
