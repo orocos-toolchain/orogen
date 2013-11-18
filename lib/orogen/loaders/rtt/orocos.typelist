@@ -3,3 +3,8 @@
 /int64 1
 /uint64 1
 /int32_t 1
+int 1
+uint 1
+string 1
+void 0
+/nil 0

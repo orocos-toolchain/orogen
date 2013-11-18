@@ -10,4 +10,5 @@
   <metadata key="orogen_include"><![CDATA[:string]]></metadata>
   </container>
   <alias name="/string" source="/std/string"/>
+  <null name="/void"/>
 </typelib>
