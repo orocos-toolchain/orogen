@@ -2,11 +2,11 @@ module OroGen
     module Loaders
         module RTT
             DIR = File.join(File.expand_path(File.dirname(__FILE__)), 'rtt')
-            STANDARD_TASK_SPECS = { "rtt" => DIR, "ocl" => DIR }
+            STANDARD_PROJECT_SPECS = { "rtt" => DIR, "ocl" => DIR }
             STANDARD_TYPEKIT_SPECS = { "orocos" => DIR }
             def self.loader
                 loader = Files.new
-                STANDARD_TASK_SPECS.each do |name, dir|
+                STANDARD_PROJECT_SPECS.each do |name, dir|
                     loader.register_orogen_file(File.join(dir, "#{name}.orogen"), name)
                 end
                 STANDARD_TYPEKIT_SPECS.each do |name, dir|
@@ -15,15 +15,14 @@ module OroGen
                 loader
             end
 
-            def self.standard_tasks
-                if !@standard_tasks
+            def self.standard_projects
+                if !@standard_projects
                     loader = self.loader
-                    STANDARD_TASK_SPECS.each do |name, dir|
+                    @standard_projects = STANDARD_PROJECT_SPECS.map do |name, dir|
                         loader.project_model_from_name(name)
                     end
-                    @standard_tasks = loader.loaded_task_models
                 end
-                @standard_tasks
+                @standard_projects
             end
 
             def self.standard_typekits
@@ -38,9 +37,11 @@ module OroGen
 
             def self.setup_loader(loader)
                 standard_typekits.each do |tk|
-                    loader.register_typekit_objects(tk)
+                    loader.register_typekit_model(tk)
                 end
-                loader.loaded_task_models.merge!(standard_tasks)
+                standard_projects.each do |proj|
+                    loader.register_project_model(proj)
+                end
             end
         end
     end
