@@ -60,6 +60,8 @@ add_dependencies(<%= deployer.name %>
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)
+<% if deployer.install? %>
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= deployer.name %>.pc
     DESTINATION lib/pkgconfig)
+<% end %>
 
