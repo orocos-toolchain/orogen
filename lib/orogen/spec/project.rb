@@ -29,6 +29,12 @@ module OroGen
             # The set of transport names that are enabled in this project
             # @return [Set<String>]
             attr_reader :enabled_transports
+            # Project-level specification of max vector sizes
+            #
+            # It applies on every usage of the given types inside this project
+            #
+            # @return [Hash]
+            attr_reader :max_sizes
 
             def initialize(loader)
                 @loader = loader
@@ -37,6 +43,7 @@ module OroGen
                 @deployers = Hash.new
                 @define_default_deployments = true
                 @enabled_transports = Set.new
+                @max_sizes = Hash.new
             end
 
 	    # Gets or sets the project's name
@@ -77,7 +84,7 @@ module OroGen
             # of the provided type
             def max_sizes(typename = nil, *values, &block)
                 if !typename && values.empty?
-                    return @max_sizes
+                    return max_sizes
                 end
 
                 type  = find_type(typename)
@@ -85,7 +92,8 @@ module OroGen
                 # the m-types. Do what we can, we'll do full blown validation
                 # later
                 sizes = Orocos::Spec::Port.validate_max_sizes_spec(nil, values)
-                @max_sizes[type.name].merge!(sizes, &block)
+                max_sizes[type.name] ||= Hash.new
+                max_sizes[type.name].merge!(sizes, &block)
             end
 
             def validate_max_sizes_spec
@@ -139,14 +147,14 @@ module OroGen
                     raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
 
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
 
                 task = external_task_context(name, options, &block)
                 task.extended_state_support
                 self_tasks[task.name] = task
 
                 if !task.abstract? && define_default_deployments?
-                    simple_deployment(Generation.default_deployment_name(task.name), task.name)
+                    simple_deployment(Project.default_deployment_name(task.name), task.name)
                 end
 
                 task
@@ -187,6 +195,14 @@ module OroGen
             # project
             def has_deployment?(name)
                 deployers.has_key?(name)
+            end
+
+            def resolve_type(type)
+                typekit.resolve_type(type)
+            end
+
+            def resolve_interface_type(type)
+                typekit.resolve_interface_type(type)
             end
 
             def find_type(name)
@@ -257,7 +273,7 @@ module OroGen
                     pp.text "  Task Contexts:"
                     pp.nest(4) do
                         pp.breakable
-                        pp.seplist(self_tasks) do |t|
+                        pp.seplist(self_tasks.values.sort_by(&:name)) do |t|
                             t.pretty_print(pp)
                         end
                     end
@@ -268,7 +284,7 @@ module OroGen
                     pp.text "  Deployers:"
                     pp.nest(4) do
                         pp.breakable
-                        pp.seplist(deployers) do |d|
+                        pp.seplist(deployers.values.sort_by(&:name)) do |d|
                             d.pretty_print(pp)
                         end
                     end
@@ -288,6 +304,10 @@ module OroGen
                     end
                 end
                 new_transports
+            end
+
+            def intermediate_type_for(type)
+                typekit.intermediate_type_for(type)
             end
         end
     end

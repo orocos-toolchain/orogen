@@ -69,6 +69,10 @@ module OroGen
                 end
             end
 
+            def has_project?(name)
+                available_projects.has_key?(name)
+            end
+
             def has_typekit?(name)
                 available_typekits.has_key?(name)
             end

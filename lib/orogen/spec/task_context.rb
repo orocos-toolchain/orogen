@@ -139,7 +139,7 @@ module Orocos
                 project
             end
 
-            def to_s; "#<#<Orocos::Generation::TaskContext>: #{name}>" end
+            def to_s; "#<OroGen::Spec::TaskContext: #{name}>" end
             def inspect; to_s end
 
 	    # The task name

@@ -8,6 +8,7 @@ end
 require 'orogen/spec/configuration_object'
 require 'orogen/spec/property'
 require 'orogen/spec/attribute'
+require 'orogen/spec/opaque_definition'
 
 require 'orogen/spec/operation'
 

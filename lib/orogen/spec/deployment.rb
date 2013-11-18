@@ -702,10 +702,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             def add_default_logger
-                if !project.used_task_libraries.find { |t| t.name == "logger" }
-                    project.using_task_library "logger"
-                end
-
+                project.using_task_library "logger"
                 task("#{name}_Logger", 'logger::Logger')
             end
 
