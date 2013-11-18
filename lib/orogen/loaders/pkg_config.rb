@@ -197,6 +197,42 @@ module OroGen
                     end
                 end
             end
+
+            # Exception raised when a typekit is required for a requested type, but the
+            # type is not exported.
+            class TypekitTypeNotExported < ArgumentError
+                attr_reader :typename
+                def initialize(typename)
+                    @typename = typename
+                end
+            end
+
+            # Exception raised when a typekit is required for a type, but that
+            # particular type is not registered on any typekit.
+            class TypekitTypeNotFound < ArgumentError
+                attr_reader :typename
+                def initialize(typename)
+                    @typename = typename
+                end
+            end
+
+            # Returns the typekit that defines the given type
+            #
+            # @param [#name,String] type the type name
+            # @param [Boolean] exported if true, the method will raise if the
+            #   type is defined but not exported.
+            # @return [Spec::Typekit]
+            def typekit_for(type, exported = true)
+                typekit_name, is_exported = available_types[typename]
+
+                if !typekit_name
+                    raise TypekitTypeNotFound.new(typename), "no type #{typename} has been registered in oroGen components"
+                elsif exported && !is_exported
+                    raise TypekitTypeNotExported.new(typename), "the type #{typename} is registered, but is not exported to the RTT type system"
+                else
+                    typekit_model_from_name(typekit_name)
+                end
+            end
         end
     end
 end

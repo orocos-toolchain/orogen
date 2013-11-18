@@ -70,11 +70,6 @@ module OroGen
                 typekit
             end
 
-            def interface_type?(typename)
-                typename = typename.name if typename.respond_to?(:name)
-                interface_typelist.include?(typename)
-            end
-
             def initialize(loader, name, registry = Typelib::Registry.new, typelist = [], interface_typelist = [])
                 @loader = loader
                 @name, @registry = name, registry
@@ -104,73 +99,6 @@ module OroGen
                 typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
             end
 
-            def import_types_from(typekit)
-                if typekit.respond_to?(:to_str)
-                    typekit = loader.typekit_model_from_name(typekit)
-                end
-                using_typekit(typekit)
-            end
-
-            def using_typekit(typekit)
-                if !imported_typekits.include?(typekit)
-                    registry.merge(typekit.registry)
-                    opaques.concat(typekit.opaques)
-                    @interface_typelist |= typekit.interface_typelist
-                    imported_typekits << typekit
-                end
-            end
-
-	    def find_type(type)
-                resolve_type(type)
-            rescue Typelib::NotFound
-	    end
-
-            def resolve_type(type)
-		if type.respond_to?(:name)
-		    registry.get(type.name)
-		else
-		    registry.get(type)
-		end
-            rescue Typelib::NotFound
-                if define_dummy_types?
-                    return registry.create_null(typename)
-                else raise
-                end
-            end
-
-            # Returns the typekit object that defines this type
-            def imported_typekits_for(typename)
-		if typename.respond_to?(:name)
-		    typename = typename.name
-		end
-                return imported_typekits.find_all { |tk| tk.includes?(typename) }
-            end
-
-            # Returns the type object for +typename+, validating that we can use
-            # it in a task interface, i.e. that it will be registered in the
-            # RTT's typeinfo system
-            def find_interface_type(typename)
-                type = find_type(typename)
-                if !type
-                    raise OroGen::NotFound, "there is no type #{typename} on #{self}"
-                end
-
-                if type < Typelib::NullType && define_dummy_types?
-                    return type
-                end
-
-                if type < Typelib::ArrayType
-                    raise InvalidInterfaceType.new(type), "static arrays are not valid interface types. Use an array in a structure or a std::vector"
-                end
-                if !interface_type?(type)
-                    typekits = imported_typekits_for(type.name)
-                    if includes?(type)
-                        typekits << self
-                    end
-                    raise NotExportedType.new(type, typekits), "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
-                end
-                type
-            end
 
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
@@ -185,7 +113,7 @@ module OroGen
             # @param [Type,String] the type or type name
             # @return [OpaqueDefinition]
             def opaque_specification(type_def)
-                type = find_type(type_def)
+                type = resolve_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
                 if result = opaques.find { |opaque_def| opaque_def.type == type }
@@ -201,14 +129,14 @@ module OroGen
             # @return [Type,nil] the type, or nil if 'type' is not used as an
             #   intermediate
             def find_opaque_for_intermediate(type)
-                type = find_type(type.name)
+                type = resolve_type(type.name)
                 if m_type?(type)
                     # Yuk
                     begin
                         if @intermediate_to_opaque && (result = @intermediate_to_opaque[type.name])
                             result
                         elsif type.name =~ /_m$/
-                            find_type(type.name.gsub(/_m$/, ''))
+                            resolve_type(type.name.gsub(/_m$/, ''))
                         else raise Typelib::NotFound
                         end
                     rescue Typelib::NotFound
@@ -224,9 +152,12 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate, true) == type }
                     opaque_def.type
                 end
+            end
+
+            def resolve_type(typename)
             end
 
             # Computes the name of the type that should be used as an
@@ -240,7 +171,7 @@ module OroGen
             # @return [String] the normalized name of the intermediate type, or
             #   the type's name if 'type' is not an opaque
             def intermediate_type_name_for(type_def)
-                type = find_type(type_def)
+                type = resolve_type(type_def)
                 if type.opaque?
                     opaque_specification(type_def).intermediate
                 elsif type.contains_opaques?
@@ -259,6 +190,16 @@ module OroGen
                 end
             end
 
+            # Returns a matching type in {#registry}
+            #
+            # @param [#name,String] type
+            # @return [Model<Typelib::Type>]
+            # @raise Typelib::NotFound
+            def resolve_type(type)
+                type = type.name if type.respond_to?(:name)
+                registry.get(type)
+            end
+
             # Gets the intermediate type for a given type
             #
             # @param [Type,String] type_def the type or type name
@@ -268,7 +209,7 @@ module OroGen
             #   be found
             def intermediate_type_for(type_def)
                 typename = intermediate_type_name_for(type_def)
-                return find_type(typename)
+                return resolve_type(typename)
             end
 
             # Checks if a type is used as an intermediate

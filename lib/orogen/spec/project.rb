@@ -171,11 +171,17 @@ module OroGen
             end
 
             def using_typekit(typekit)
-                self.typekit.using_typekit(typekit)
+                if typekit.respond_to?(:to_str)
+                    loader.typekit_model_from_name(typekit)
+                else loader.register_typekit_objects(typekit)
+                end
             end
 
             def import_types_from(typekit)
-                self.typekit.import_types_from(typekit)
+                if typekit.respond_to?(:to_str) && !loader.has_typekit?(typekit)
+                    return
+                end
+                using_typekit(typekit)
             end
 
             # (see Loaders::Base#task_model_from_name)
@@ -193,19 +199,23 @@ module OroGen
             end
 
             def resolve_type(type)
-                typekit.resolve_type(type)
+                loader.resolve_type(type)
             end
 
             def resolve_interface_type(type)
-                typekit.resolve_interface_type(type)
+                loader.resolve_interface_type(type)
             end
 
             def find_type(name)
-                typekit.find_type(name)
+                loader.resolve_type(name)
             end
 
             def find_interface_type(name)
-                typekit.find_interface_type(name)
+                loader.resolve_interface_type(name)
+            end
+
+            def intermediate_type_for(type)
+                loader.intermediate_type_for(type)
             end
 
             # Returns the deployment model with the given name
@@ -299,10 +309,6 @@ module OroGen
                     end
                 end
                 new_transports
-            end
-
-            def intermediate_type_for(type)
-                typekit.intermediate_type_for(type)
             end
         end
     end

@@ -37,10 +37,10 @@ module OroGen
             end
 
             def self.setup_loader(loader)
-                loader.loaded_task_models.merge!(standard_tasks)
                 standard_typekits.each do |tk|
-                    loader.default_typekits << tk
+                    loader.register_typekit_objects(tk)
                 end
+                loader.loaded_task_models.merge!(standard_tasks)
             end
         end
     end

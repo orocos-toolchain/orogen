@@ -10,6 +10,15 @@ module OroGen
             # Set of task models that are known to us
             attr_reader :loaded_task_models
 
+            # The registry that includes types from all loaded typekits
+            attr_reader :registry
+
+            # The list of types that can be used on an oroGen interface
+            attr_reader :interface_typelist
+
+            # A mapping from type names to the typekits that define them
+            attr_reader :typekits_by_type_name
+
             # Set of typekits loaded so far
             #
             # @return [Hash<String,Spec::Typekit>]
@@ -23,46 +32,46 @@ module OroGen
             # @return [Set<Spec::Typekit>]
             attr_reader :default_typekits
 
+            # Sets the behaviour of the type resolution on unknown types
+            #
+            # @return [Boolean]
+            attr_predicate :define_dummy_types?, true
+
             def initialize(root_loader = self)
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
                 @root_loader = root_loader
                 @default_typekits = Set.new
+                @typekits_by_type_name = Hash.new
+                @registry = Typelib::Registry.new
+                @interface_typelist = Set.new
             end
 
             # Returns the project model corresponding to the given name
             #
             # @param [String] the project name
-            # @option options [Boolean] :define_dummy_types (false) if true,
-            #   unknown types will be automatically created as null types on the
-            #   underlying typekit. If false, they will generate a
-            #   Typekit::NotFound exception
             # @raise [OroGen::NotFound] if there is no project with that
             #   name.
             # @return [OroGen::Spec::Project]
-            def project_model_from_name(name, options = Hash.new)
+            def project_model_from_name(name)
                 if project = loaded_projects[name]
                     return project
                 end
 
                 name = name.to_str
-                options = Kernel.validate_options options,
-                    :define_dummy_types => false
 
                 text, path = project_model_text_from_name(name)
 
                 OroGen.info "loading oroGen project #{name}"
                 project = Spec::Project.new(root_loader)
-                project.typekit = Spec::Typekit.new(root_loader, name)
-                default_typekits.each do |tk|
-                    project.using_typekit tk
-                end
-                if has_typekit?(name)
-                    project.using_typekit typekit_model_from_name(name)
-                end
+                project.typekit =
+                    if has_typekit?(name)
+                        typekit_model_from_name(name)
+                    else
+                        Spec::Typekit.new(root_loader, name)
+                    end
 
-                project.typekit.define_dummy_types = options[:define_dummy_types]
                 Loaders::Project.new(project).__eval__(path, text)
                 register_project_info(project)
                 loaded_projects[name] = project
@@ -74,8 +83,8 @@ module OroGen
             #   name. This does including having a project with that name if the
             #   project defines no tasks.
             # @return (see project_model_from_name)
-            def task_library_model_from_name(name, options = Hash.new)
-                project = project_model_from_name(name, options)
+            def task_library_model_from_name(name)
+                project = project_model_from_name(name)
                 if project.self_tasks.empty?
                     raise OroGen::NotFound, "there is an oroGen project called #{name}, but it defines no tasks"
                 end
@@ -172,7 +181,76 @@ module OroGen
                 end
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
-                loaded_typekits[name] = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
+                typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
+                register_typekit_objects(typekit)
+            end
+
+            # Registers information from this typekit
+            def register_typekit_objects(typekit)
+                registry.merge typekit.registry
+                @interface_typelist |= typekit.interface_typelist
+                typekit.typelist.each do |typename|
+                    typekits_by_type_name[typename] ||= Set.new
+                    typekits_by_type_name[typename] << typekit
+                end
+                loaded_typekits[typekit.name] = typekit
+            end
+
+            # Resolves a type object
+            #
+            # @param [#name,String] type the type to be resolved
+            # @return [Model<Typelib::Type>] the corresponding type in
+            #   {#registry}
+            # @raise Typelib::NotFound if the type cannot be found
+            def resolve_type(type)
+                type = type.name if type.respond_to?(:name)
+                registry.get(type)
+            rescue Typelib::NotFound
+                if define_dummy_types?
+                    type = registry.create_null(typename)
+                    interface_typelist << typename
+                    return type
+                else raise
+                end
+            end
+
+            # Returns the typekit object that defines this type
+            def imported_typekits_for(typename)
+		if typename.respond_to?(:name)
+		    typename = typename.name
+		end
+                typekits_by_type_name[typename]
+            end
+
+            # Returns the type object for +typename+, validating that we can use
+            # it in a task interface, i.e. that it will be registered in the
+            # RTT's typeinfo system
+            def resolve_interface_type(typename)
+                type = resolve_type(typename)
+                if type < Typelib::ArrayType
+                    raise InvalidInterfaceType.new(type), "static arrays are not valid interface types. Use an array in a structure or a std::vector"
+                elsif !interface_type?(type)
+                    typekits = imported_typekits_for(type.name)
+                    raise NotExportedType.new(type, typekits), "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
+                end
+                type
+            end
+
+            # Tests whether the given type can be used on an interface
+            #
+            # @param [#name,String] typename the type
+            # @return [Boolean]
+            def interface_type?(typename)
+                typename = typename.name if typename.respond_to?(:name)
+                interface_typelist.include?(typename)
+            end
+
+            # Returns the intermediate type that is paired with the given type
+            #
+            # @param [#name,String] type the type to be resolved
+            # @return [Model<Typelib::Type>]
+            def intermediate_type_for(type)
+                imported_typekits_for(type).first.intermediate_type_for(type)
             end
 
             # Registers this project's subobjects

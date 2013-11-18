@@ -132,11 +132,16 @@ module OroGen
             end
 
             def __eval__(deffile, deftext, verbose = (::OroGen.logger.level == ::Logger::DEBUG))
-                @load_doc = ::File.file?(deffile)
-                instance_eval deftext, deffile, 1
+                if !deffile
+                    @load_doc = false
+                    instance_eval deftext
+                else
+                    @load_doc = ::File.file?(deffile)
+                    instance_eval deftext, deffile, 1
+                end
                 self
             rescue ::Exception => e
-                if verbose then ::Kernel.raise
+                if true || verbose then ::Kernel.raise
                 else
                     this_level = ::Kernel.caller.size
                     until_here = e.backtrace[-(this_level-1)..-1] || []
