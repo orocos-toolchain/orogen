@@ -29,7 +29,9 @@ module OroGen
                 if !@standard_typekits
                     loader = self.loader
                     @standard_typekits = STANDARD_TYPEKIT_SPECS.map do |name, _|
-                        loader.typekit_model_from_name(name)
+                        typekit = loader.typekit_model_from_name(name)
+                        typekit.virtual = true
+                        typekit
                     end
                 end
                 return @standard_typekits

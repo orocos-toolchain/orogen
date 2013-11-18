@@ -16,6 +16,8 @@ module OroGen
 
             attr_predicate :define_dummy_types?, true
 
+            attr_predicate :virtual?, true
+
             def self.parse_typelist(typelist_txt)
                 raw_typelist = typelist_txt.split("\n").map(&:strip)
                 typekit_typelist, typekit_interface_typelist = [], []
@@ -106,7 +108,6 @@ module OroGen
                            end
                 typelist.include?(typename)
             end
-            def virtual?; false end
 
             # Get the opaque definition for a given type
             #
