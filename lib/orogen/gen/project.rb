@@ -549,6 +549,10 @@ module Orocos
                 end
                 type
             end
+
+            def resolve_type(typename)
+                find_type(typename)
+            end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
@@ -993,7 +997,7 @@ module Orocos
                     raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
 
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
 
                 # If we have a typekit, resolve all pending loads
                 if typekit

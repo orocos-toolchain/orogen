@@ -55,7 +55,7 @@ module Orocos
                 @in_caller_thread = false
                 @doc = ""
 
-                super if defined? super
+                super()
 	    end
 
             # Declares that the C++ method associated with this operation should
@@ -93,8 +93,9 @@ module Orocos
             # a normalized version for +name+. It does accept const and
             # reference qualifiers in +name+.
             def find_interface_type(qualified_type)
-                type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
-		type      = task.project.find_interface_type(type_name)
+                type_name = OroGen.unqualified_cxx_type(qualified_type)
+                typelib_type_name = ::Typelib::GCCXMLLoader.cxx_to_typelib(type_name)
+		type      = task.project.find_interface_type(typelib_type_name)
                 Orocos.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end
@@ -151,21 +152,8 @@ module Orocos
                 !!@return_type.first
             end
 
-            # Returns the C++ signature for this operation. Used in code
-            # generation only.
-	    def signature(with_names = true)
-		result = return_type[1].dup
-                if with_names
-                    result << " " <<
-                        if block_given? then yield
-                        else method_name
-                        end
-                end
-		result << "(" << argument_signature(with_names) << ")"
-	    end
-
             def pretty_print(pp)
-                pp.text signature(true)
+                pp.text name
                 pp.nest(2) do
                     if !self.doc.empty?
                         pp.breakable

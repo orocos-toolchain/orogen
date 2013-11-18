@@ -1,6 +1,8 @@
 #! /usr/bin/env ruby
 
 require 'orogen'
+require 'orogen/gen'
+OroGen::Gen::RTT_CPP.enable
 require 'optparse'
 
 # Disable typelib plugin loading

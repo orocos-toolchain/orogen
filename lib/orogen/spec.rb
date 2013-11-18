@@ -1,5 +1,5 @@
 require 'utilrb/logger'
-module Orocos
+module OroGen
     module Spec
         extend Logger::Hierarchy
     end

@@ -1,8 +1,6 @@
-module Orocos
-    module Generation
-        if !defined? Orocos::Generation::VERSION
-            VERSION = "1.1"
-        end
+module OroGen
+    if !defined? ::OroGen::VERSION
+        VERSION = "1.1"
     end
 end
 

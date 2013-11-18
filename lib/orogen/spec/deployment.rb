@@ -622,7 +622,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
                 end
 
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment

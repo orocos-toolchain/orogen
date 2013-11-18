@@ -8,86 +8,6 @@ require 'nokogiri'
 
 module Typelib
     class Type
-        def self.normalize_typename(name)
-            "/" + Typelib.split_typename(name).map do |part|
-                normalize_typename_part(part)
-            end.join("/")
-        end
-
-        def self.normalize_typename_part(name)
-            # Remove all trailing array modifiers first
-            if name =~ /(.*)(\[\d+\]+)$/
-                name, array_modifiers = $1, $2
-            end
-
-            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
-            template_arguments.map! do |arg|
-                arg =
-                    if arg !~ /^\d+$/ && arg[0, 1] != "/"
-                        "/#{arg}"
-                    else arg
-                    end
-            end
-
-            if !template_arguments.empty?
-                "#{name}<#{template_arguments.join(",")}>#{array_modifiers}"
-            else
-                "#{name}#{array_modifiers}"
-            end
-        end
-
-        def self.normalize_cxxname(name)
-            if name =~ /::/
-                raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
-            end
-
-            if name =~ /(.*)((?:\[\d+\])+)$/
-                name = $1
-                suffix = $2
-            else
-                suffix = ''
-            end
-
-            converted = Typelib.split_typename(name).map do |p|
-                normalize_cxxname_part(p)
-            end
-            if converted.size == 1
-                "#{converted.first}#{suffix}"
-            else
-                "::" + converted.join("::") + suffix
-            end
-        end
-
-        def self.normalize_cxxname_part(name)
-            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
-
-            name = name.gsub('/', '::')
-            if name =~ /^::(.*)/
-                name = $1
-            end
-
-            if !template_arguments.empty?
-                template_arguments.map! do |arg|
-                    if arg !~ /^\d+$/
-                        normalize_cxxname(arg)
-                    else arg
-                    end
-                end
-
-                "#{name}< #{template_arguments.join(", ")} >"
-            else name
-            end
-        end
-
-        def self.cxx_name
-            normalize_cxxname(name)
-        end
-        def self.cxx_basename
-            normalize_cxxname(basename)
-        end
-        def self.cxx_namespace
-            namespace('::')
-        end
         def self.name_as_word
             cxx_name.gsub(/[^\w+]/, '_')
         end
@@ -104,12 +24,6 @@ module Typelib
 
 	def self.contains_int64?
             dependencies.any? { |t| t.contains_int64? }
-        end
-        def self.contains_opaques?
-            if @contains_opaques.nil?
-                @contains_opaques = contains?(Typelib::OpaqueType)
-            end
-            @contains_opaques
         end
 
         @@index_var_stack = Array.new
@@ -133,22 +47,6 @@ module Typelib
             integer? && size == 8
         end
 
-	def self.cxx_name
-	    if integer?
-		if name == "/bool"
-		    "bool"
-                elsif name == "/char"
-                    "char"
-                elsif name == "/unsigned char"
-                    "unsigned char"
-		else
-		    "boost::#{'u' if unsigned?}int#{size * 8}_t"
-		end
-	    else
-		basename
-	    end
-	end
-
         def self.inlines_code?; superclass.eql?(NumericType) end
     end
 
@@ -163,14 +61,6 @@ module Typelib
             normalize_cxxname(container_kind)
         end
 
-
-        def self.cxx_name
-            if name =~ /</
-                normalize_cxxname(container_kind) + "< " + deference.cxx_name + " >"
-            else
-                normalize_cxxname(container_kind)
-            end
-        end
 
         def self.code_copy(typekit, result, indent, dest, src, method, src_type, dest_type)
             collection_name, element_type = container_kind, deference.name
@@ -417,28 +307,6 @@ struct #{target_basename}
                 return mapped[1]
             else
                 raise ArgumentError, "#{type.name} is (probably) not registered on the RTT type system"
-            end
-        end
-
-        # Returns the RTT type that we should use to handle +type+.
-        #
-        # This is used in property bag marshalling/demarshalling to convert to
-        # the corresponding property type.
-        def base_rtt_type_for(type)
-	    if Registry.base_rtt_type?(type)
-		type
-            elsif type < Typelib::NumericType
-                if type.integer?
-                    if type.size == 8
-                        raise NotImplementedError, "there is no RTT type for 64bit integers, sorry"
-                    elsif type.unsigned? then get("/unsigned int")
-                    else get("/int")
-                    end
-                else
-                    get("/double")
-                end
-            else
-                raise ArgumentError, "no type equivalent for #{type.name} in Orocos"
             end
         end
     end

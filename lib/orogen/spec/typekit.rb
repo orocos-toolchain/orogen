@@ -121,17 +121,22 @@ module OroGen
             end
 
 	    def find_type(type)
+                resolve_type(type)
+            rescue Typelib::NotFound
+	    end
+
+            def resolve_type(type)
 		if type.respond_to?(:name)
 		    registry.get(type.name)
 		else
 		    registry.get(type)
 		end
-
             rescue Typelib::NotFound
                 if define_dummy_types?
                     return registry.create_null(typename)
+                else raise
                 end
-	    end
+            end
 
             # Returns the typekit object that defines this type
             def imported_typekits_for(typename)
@@ -234,8 +239,8 @@ module OroGen
             #   registry
             # @return [String] the normalized name of the intermediate type, or
             #   the type's name if 'type' is not an opaque
-            def intermediate_type_name_for(type_def, is_normalized = false)
-                type = find_type(type_def, is_normalized)
+            def intermediate_type_name_for(type_def)
+                type = find_type(type_def)
                 if type.opaque?
                     opaque_specification(type_def).intermediate
                 elsif type.contains_opaques?
@@ -263,7 +268,7 @@ module OroGen
             #   be found
             def intermediate_type_for(type_def)
                 typename = intermediate_type_name_for(type_def)
-                return find_type(typename, true)
+                return find_type(typename)
             end
 
             # Checks if a type is used as an intermediate

@@ -2,6 +2,10 @@ module OroGen
     module Spec
         # Representation of an oroGen project
         class Project
+            def self.default_deployment_name(task_model_name)
+                "orogen_default_#{task_model_name.gsub(/[^\w]/, '_')}"
+            end
+
             # The loader that should be used to get our dependencies
             attr_reader :loader
             # This project's typekit

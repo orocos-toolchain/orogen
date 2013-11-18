@@ -318,7 +318,7 @@ module Orocos
                 ## WARN: is deterministic
                 @extensions = Array.new
 
-                super if defined? super
+                super()
 
                 if block_given?
                     instance_eval(&proc)
@@ -501,7 +501,7 @@ module Orocos
 	    end
 
             def configuration_object(klass, name, type, default_value)
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
                 check_uniqueness(name)
 
                 begin
@@ -771,7 +771,7 @@ module Orocos
             # interface. The operation can then be called by other components
             # remotely or locally, and synchronoulsy as well as asynchronously.
 	    def operation(name)
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
 		@operations[name] = op = Operation.new(self, name)
                 Spec.load_documentation(op, /operation/)
                 op
@@ -996,7 +996,7 @@ module Orocos
 	    #
 	    # See also #input_port
 	    def output_port(name, type, options = Hash.new)
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
                 check_uniqueness(name)
                 options = Kernel.validate_options options,
                     :class => OutputPort
@@ -1016,7 +1016,7 @@ module Orocos
 	    #
 	    # See also #output_port
 	    def input_port(name, type, options = Hash.new)
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
                 check_uniqueness(name)
                 options = Kernel.validate_options options,
                     :class => InputPort
@@ -1027,6 +1027,63 @@ module Orocos
 
             rescue Typelib::NotFound => e
                 raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
+            end
+
+            # This method is an easier way use boost::shared_ptr in a task
+            # context interface. For instance, instead of writing
+            #
+            #   input_port 'image', '/boost/shared_ptr</Image>'
+            #
+            # you can write
+            #
+            #   input_port 'image', shared_ptr('/Image')
+            #
+            # Additionally, this method makes sure that the corresponding type
+            # is actually defined on the project's typekit.
+            def shared_ptr(name)
+                base_type = project.resolve_type(name)
+                full_name = "/boost/shared_ptr<#{base_type.name}>"
+                begin
+                    project.resolve_type(full_name)
+                rescue Typelib::NotFound
+                    # HACK: this is needed for the codegen part. Will have to go
+                    # HACK: away once we migrate the codegen part to the
+                    # HACK: loading infrastructure
+                    if project.typekit(true).respond_to?(:shared_ptr)
+                        project.typekit(true).shared_ptr(name)
+                        project.resolve_type(full_name)
+                    else raise
+                    end
+                end
+            end
+
+            # This method is an easier way use boost::shared_ptr in a task
+            # context interface. For instance, instead of writing
+            #
+            #   input_port 'image', '/RTT/ReadOnlyPointer</Image>'
+            #
+            # you can write
+            #
+            #   input_port 'image', ro_ptr('/Image')
+            #
+            # Additionally, this method makes sure that the corresponding type
+            # is actually defined on the project's typekit.
+            def ro_ptr(name)
+                base_type = project.resolve_type(name)
+
+                full_name = "/RTT/extras/ReadOnlyPointer<#{base_type.name}>"
+                begin
+                    project.resolve_type(full_name)
+                rescue Typelib::NotFound
+                    # HACK: this is needed for the codegen part. Will have to go
+                    # HACK: away once we migrate the codegen part to the
+                    # HACK: loading infrastructure
+                    if project.typekit(true).respond_to?(:ro_ptr)
+                        project.typekit(true).ro_ptr(name)
+                        project.resolve_type(full_name)
+                    else raise
+                    end
+                end
             end
 
             def all_ports
@@ -1269,6 +1326,21 @@ module Orocos
                 result << "  t#{object_id} [label=<#{label}>]"
                 result
             end
+
+            # If true, then the initial state of this class cannot be specified.
+            # For orogen-declared tasks, it is the same as
+            # #needs_configuration?. This mechanism is here for classes that
+            # have not been generated by orogen and either have a no way to
+            # specify the initial state, or a non-standard one.
+            def fixed_initial_state?; @fixed_initial_state || needs_configuration? || (superclass.fixed_initial_state? if superclass) end
+
+            # Declares that the initial state of this class cannot be specified.
+            # For orogen-declared tasks, it is the same as
+            # #needs_configuration?. This mechanism is here for classes that
+            # have not been generated by orogen and either have a no way to
+            # specify the initial state, or a non-standard one.
+            def fixed_initial_state; @fixed_initial_state = true end
+
 	end
     end
 end

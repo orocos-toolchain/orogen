@@ -19,12 +19,16 @@ module OroGen
 end
 Orocos = OroGen
 
+require 'utilrb/pkgconfig'
+require 'nokogiri'
+require 'metaruby/dsls/doc'
+require 'orogen/typenames'
+
 require 'orogen/version'
 require 'orogen/exceptions'
 require 'orogen/base'
-
+require 'orogen/plugins'
 require 'orogen/loaders'
 require 'orogen/spec'
-require 'orogen/gen'
 
 Orocos.load_orogen_plugins
