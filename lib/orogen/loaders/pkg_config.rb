@@ -145,6 +145,13 @@ module OroGen
                     if !available_projects.has_key?(pkg.project_name)
                         OroGen.warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
+                    elsif !pkg.deployed_tasks
+                        # oroGen has a bug, in which it installed the pkg-config
+                        # file for deployments that were not meant to be
+                        # installed.
+                        #
+                        # Workaround
+                        next
                     end
 
                     available_deployments[deployment_name] = pkg
