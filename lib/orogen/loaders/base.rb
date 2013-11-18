@@ -150,13 +150,13 @@ module OroGen
             # @return [OroGen::Spec::Deployment] the deployment model
             # @raise [OroGen::NotFound] if no deployment with that name exists
             def deployment_model_from_name(name)
-                pkg = find_project_from_deployment_name(name)
-                if !pkg
+                project_name = find_project_from_deployment_name(name)
+                if !project_name
                     raise OroGen::NotFound, "there is no deployment called #{name}"
                 end
 
-                project = project_model_from_name(pkg.project_name)
-                deployment = project.deployers.find { |d| d.name == name }
+                project = project_model_from_name(project_name)
+                deployment = project.deployers[name]
                 if !deployment
                     raise InternalError, "cannot find the deployment called #{name} in #{project.name}. Candidates were #{project.deployers.map(&:name).sort.join(", ")}"
                 end
