@@ -1,10 +1,6 @@
 module OroGen
     module Gen
         module RTT_CPP
-
-        class InternalError < RuntimeError; end
-
-        class ConfigError < Exception; end
 	AUTOMATIC_AREA_NAME = '.orogen'
 
 	extend Logger::Hierarchy

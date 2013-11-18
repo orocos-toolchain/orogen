@@ -541,7 +541,7 @@ module Orocos
 
                 typekits   = imported_typekits_for(type.name)
                 if !typekits.empty?
-                    Orocos::Generation.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
+                    Generation.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
                 end
 
                 if !typekits.empty? && !typekits.any? { |tk| tk.interface_type?(type.name) }

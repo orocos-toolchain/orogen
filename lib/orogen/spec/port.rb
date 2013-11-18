@@ -75,7 +75,7 @@ module Orocos
                     type = task.project.find_interface_type(type)
                     Orocos.validate_toplevel_type(type)
                     if type.name == "/std/vector<double>"
-                        Orocos::Generation.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
+                        Spec.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
                     end
                 end
 		@task, @name, @type = task, name, type

@@ -17,4 +17,10 @@ module OroGen
             super(type)
         end
     end
+
+    class ConfigError < RuntimeError
+    end
+
+    class InternalError < RuntimeError
+    end
 end

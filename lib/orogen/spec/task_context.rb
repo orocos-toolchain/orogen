@@ -167,7 +167,7 @@ module Orocos
             def subclasses(task_context)
                 if task_context.respond_to?(:to_str)
                     if @superclass != project.default_task_superclass
-                        raise Orocos::Generation::ConfigError, "#{@name} tries to subclass #{task_context} "+
+                        raise OroGen::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
                     @superclass = project.task_model_from_name task_context
@@ -507,7 +507,7 @@ module Orocos
                 begin
                     type = project.find_interface_type(type)
                 rescue Typelib::NotFound => e
-                    raise Orocos::Generation::ConfigError, "invalid type #{type}: #{e.message}"
+                    raise Orocos::ConfigError, "invalid type #{type}: #{e.message}", e.backtrace
                 end
 
                 if default_value
@@ -1005,7 +1005,7 @@ module Orocos
                 Spec.load_documentation(port, /output_port/)
                 port
             rescue Typelib::NotFound
-                raise Orocos::Generation::ConfigError, "type #{type} is not declared"
+                raise Orocos::ConfigError, "type #{type} is not declared", e.backtrace
 	    end
 
 	    # call-seq:
@@ -1026,7 +1026,7 @@ module Orocos
                 port
 
             rescue Typelib::NotFound => e
-                raise Orocos::Generation::ConfigError, "type #{type} is not declared", e.backtrace
+                raise Orocos::ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             # This method is an easier way use boost::shared_ptr in a task
