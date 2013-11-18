@@ -223,14 +223,23 @@ module OroGen
             #   type is defined but not exported.
             # @return [Spec::Typekit]
             def typekit_for(type, exported = true)
-                typekit_name, is_exported = available_types[typename]
+                typename = if type.respond_to?(:name)
+                               type.name
+                           else type
+                           end
 
-                if !typekit_name
+                if typekit = typekits_by_type_name[typename]
+                    return typekit.first
+                end
+
+                typekit = available_types[typename]
+
+                if !typekit
                     raise TypekitTypeNotFound.new(typename), "no type #{typename} has been registered in oroGen components"
-                elsif exported && !is_exported
+                elsif exported && !typekit.exported
                     raise TypekitTypeNotExported.new(typename), "the type #{typename} is registered, but is not exported to the RTT type system"
                 else
-                    typekit_model_from_name(typekit_name)
+                    typekit_model_from_name(typekit.name)
                 end
             end
         end
