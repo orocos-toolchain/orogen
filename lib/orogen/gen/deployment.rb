@@ -57,9 +57,7 @@ module Orocos
                     end
                 end
             end
-        end
 
-        module DeploymentGeneration
             # Returns the scheduler constant name for this task's scheduler
             # class. Call #realtime and #non_realtime to change the task
             # scheduling class
@@ -80,7 +78,9 @@ module Orocos
 		    @priority
 		end
 	    end
+        end
 
+        module DeploymentGeneration
             def dependencies
                 result = []
                 result << BuildDependency.new(
