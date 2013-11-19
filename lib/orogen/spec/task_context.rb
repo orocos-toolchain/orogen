@@ -197,7 +197,7 @@ module OroGen
             # +name+. +name+ can either be a string or a regular expression.
             def implements?(name)
                 ancestor_names = ancestors.map(&:name)
-                class_name == name ||
+                self.name == name ||
                     ancestor_names.include?(name)
             end
 
