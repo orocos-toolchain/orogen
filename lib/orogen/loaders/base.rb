@@ -322,6 +322,12 @@ module OroGen
                 imported_typekits_for(type).first.intermediate_type_for(type)
             end
 
+            # Returns whether this type is a m-type (intermediate type generated
+            # by oroGen)
+            def m_type?(type)
+                imported_typekits_for(type).first.m_type?(type)
+            end
+
             # Registers this project's subobjects
             def register_project_model(project)
                 loaded_task_models.merge! project.tasks
