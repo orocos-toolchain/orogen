@@ -4,7 +4,7 @@ require 'utilrb/kernel/load_dsl_file'
 require 'metaruby/dsls/doc'
 
 module Orocos
-    OROGEN_LIB_DIR = File.expand_path(File.dirname(__FILE__), '..')
+    OROGEN_LIB_DIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
     module Generation
 
         def self.extended_states=(value);  @extended_states = value end
@@ -285,8 +285,8 @@ module Orocos
 
             def self.using_rtt_typekit(obj)
                 if !@rtt_typekit
-                    rtt_tlb = File.expand_path('orocos.tlb', Orocos::OROGEN_LIB_DIR)
-                    rtt_typelist = File.expand_path('orocos.typelist', Orocos::OROGEN_LIB_DIR)
+                    rtt_tlb = File.expand_path('orocos.tlb', OROGEN_LIB_DIR)
+                    rtt_typelist = File.expand_path('orocos.typelist', OROGEN_LIB_DIR)
                     @rtt_typekit = RTTTypekit.from_raw_data(
                         nil, 'rtt', nil,
                         File.read(rtt_tlb),
