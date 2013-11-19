@@ -1,6 +1,8 @@
 module Orocos
     module TypekitMarshallers
         module ROS
+            extend Logger::Hierarchy
+
             class Orocos::Generation::Typekit
                 def ros_mappings(mappings)
                     plugin = find_plugin('ros')
@@ -451,7 +453,7 @@ module Orocos
                     impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "ros")
 
                     if !rejected.empty?
-                        Orocos.warn "(ROS) #{rejected.size} types cannot be exported to ROS, you will not able to publish/subscribe ports of these types to/from ROS: #{rejected.map(&:name).sort.join(", ")}"
+                        ROS.warn "#{rejected.size} types cannot be exported to ROS, you will not able to publish/subscribe ports of these types to/from ROS: #{rejected.map(&:name).sort.join(", ")}"
                     end
 
                     code  = Generation.render_template "typekit", "ros", "Registration.hpp", binding

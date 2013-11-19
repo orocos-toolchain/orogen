@@ -9,6 +9,8 @@ module OroGen
         #
         # It accesses the local file system
         class PkgConfig < Base
+            include Logger::Hierarchy
+
             Project = Struct.new :pkg, :orogen_path
             TaskLibrary = Struct.new :pkg
             Type = Struct.new :name, :exported
@@ -56,14 +58,14 @@ module OroGen
             def add_project_from(pkg)
                 project = pkg.project_name
                 if project.empty?
-                    OroGen.warn "#{pkg.name}.pc does not have a project_name field"
+                    warn "#{pkg.name}.pc does not have a project_name field"
                 end
                 if description = available_projects[project]
                     return description
                 end
 
                 if pkg.deffile.empty?
-                    OroGen.warn "#{pkg.name}.pc does not have a deffile field"
+                    warn "#{pkg.name}.pc does not have a deffile field"
                 else
                     available_projects[pkg.project_name] = Project.new(pkg, pkg.deffile)
                 end
@@ -147,7 +149,7 @@ module OroGen
                     # Verify that the corresponding orogen project is indeed
                     # available. If not, just ignore the library
                     if !available_projects.has_key?(pkg.project_name)
-                        OroGen.warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                        warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
                     elsif !pkg.deployed_tasks
                         # oroGen has a bug, in which it installed the pkg-config
@@ -170,10 +172,10 @@ module OroGen
                     typekit_name = pkg_name.gsub(/-typekit-#{orocos_target}$/, '')
 
                     if !available_projects.has_key?(pkg.project_name)
-                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                        warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
                     elsif !available_projects[pkg.project_name].pkg.type_registry
-                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
+                        warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
                         next
                     end
                     available_typekits[typekit_name] = pkg
@@ -184,14 +186,14 @@ module OroGen
                     typelist = typelist - typelist_exported
                     typelist.compact.each do |typename|
                         if existing = available_types[typename]
-                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}"
+                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}, registering #{existing[0]} as the responsible typekit"
                         else
                             available_types[typename] = Type.new(typekit_name, false)
                         end
                     end
                     typelist_exported.compact.each do |typename|
                         if existing = available_types[typename]
-                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}"
+                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}, registering #{typekit_name} as it exports the type but #{existing[0]} does not"
                         end
                         available_types[typename] = Type.new(typekit_name, true)
                     end

@@ -543,7 +543,7 @@ module Orocos
 
                 typekits   = imported_typekits_for(type.name)
                 if !typekits.empty?
-                    Generation.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
+                    OroGen.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
                 end
 
                 if !typekits.empty? && !typekits.any? { |tk| tk.interface_type?(type.name) }
@@ -620,7 +620,7 @@ module Orocos
                     raise ArgumentError, "there is no orogen file for this project, cannot generate"
                 end
                 if !File.file?(deffile)
-                    Orocos::Generation.warn "#{deffile} does not exist, assuming that we are generating a stub project"
+                    OroGen::Gen::RTT_CPP.warn "#{deffile} does not exist, assuming that we are generating a stub project"
                 end
 
 		# For consistency in templates
@@ -1059,7 +1059,7 @@ module Orocos
 
                 pkg, description = orogen_project_description(name)
 
-                Orocos.info "loading oroGen project #{name} on #{self.name}"
+                OroGen.info "loading oroGen project #{name} on #{self.name}"
                 lib = ImportedProject.new(self, pkg)
                 lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
@@ -1094,7 +1094,7 @@ module Orocos
             
             # Called to store a loaded project for reuse later
             def register_loaded_project(name, obj)
-                Orocos.info "registering oroGen project #{name}" 
+                OroGen.info "registering oroGen project #{name}" 
                 loaded_orogen_projects[name] = obj
             end
 
@@ -1231,8 +1231,8 @@ module Orocos
 
 	    # DEPRECATED. Use #deployment instead
             def static_deployment(&block)
-                Orocos.warn "WARN: static_deployment is deprecated, use #deployment(name) instead"
-                Orocos.warn "WARN: static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
+                OroGen::Gen::RTT_CPP.warn "static_deployment is deprecated, use #deployment(name) instead"
+                OroGen::Gen::RTT_CPP.warn "static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
 		deployment = deployment("test_#{name}", &block)
 		deployment.do_not_install
 		deployment

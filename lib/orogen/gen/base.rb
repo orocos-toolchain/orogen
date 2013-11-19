@@ -3,8 +3,6 @@ module OroGen
         module RTT_CPP
 	AUTOMATIC_AREA_NAME = '.orogen'
 
-	extend Logger::Hierarchy
- 
 	@templates = Hash.new
 	class << self
 	    # The set of templates already loaded as a path => ERB object hash
@@ -62,7 +60,7 @@ module OroGen
 	def self.render_template(*args)
 	    binding = args.pop
 	    template = load_template(*args)
-	    logger.debug "rendering #{File.join(*args)}"
+	    debug "rendering #{File.join(*args)}"
 	    template.result(binding)
         rescue Exception => e
             raise e, "while rendering #{File.join(*args)}: #{e.message}", e.backtrace
@@ -88,17 +86,17 @@ module OroGen
 	    if File.exists?(file_path)
 		if File.read(file_path) != data
 		    if overwrite
-			logger.info "  overwriting #{file_path}"
+			info "  overwriting #{file_path}"
 		    else
-			logger.info "  will not overwrite #{file_path}"
+			info "  will not overwrite #{file_path}"
 			return file_path
 		    end
 		else
-		    logger.debug "  #{file_path} has not changed"
+		    debug "  #{file_path} has not changed"
 		    return file_path
 		end
 	    else
-		logger.info "  creating #{file_path}"
+		info "  creating #{file_path}"
 	    end
 
 	    File.open(file_path, 'w') do |io|
@@ -117,7 +115,7 @@ module OroGen
                     Find.prune
                 
                 elsif File.file?(file) && !File.symlink?(file) && !generated_files.include?(file)
-                    logger.info "   removing #{file}"
+                    info "   removing #{file}"
                     FileUtils.rm_f file
                 end
             end
@@ -209,7 +207,7 @@ module OroGen
 		if relative.file?
 		    user_data = File.read(relative.to_s)
 		    if user_data == template_data
-			Generation.logger.info "removing #{relative} as it is the same than in template"
+			logger.info "removing #{relative} as it is the same than in template"
 			FileUtils.rm_f relative.to_s
 		    end
 		end

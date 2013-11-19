@@ -37,7 +37,7 @@ module OroGen
         each_orogen_plugin_dir do |dir|
             path = File.join(dir, path)
             if File.file?(path)
-                logger.info "loading plugin #{path}"
+                info "loading plugin #{path}"
                 require path
                 return
             end
@@ -58,13 +58,13 @@ module OroGen
             $LOAD_PATH << dir
         end
         each_orogen_plugin_file(type) do |file|
-            logger.info "loading plugin #{file}"
+            info "loading plugin #{file}"
             begin
                 require file
             rescue Exception => e
-                logger.warn "could not load plugin #{file}: #{e.message}"
+                warn "could not load plugin #{file}: #{e.message}"
                 e.backtrace.each do |line|
-                    logger.warn "  #{line}"
+                    warn "  #{line}"
                 end
             end
         end

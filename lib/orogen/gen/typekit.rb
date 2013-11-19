@@ -1594,7 +1594,7 @@ module Orocos
 	    def issue_warnings(generated_types, registry)
 		generated_types.each do |type|
 		    if type.contains_int64?
-			Orocos::Generation.info "you will not be able to marshal #{type.name} as XML, it contains 64bit integers"
+			OroGen::Gen::RTT_CPP.info "you will not be able to marshal #{type.name} as XML, it contains 64bit integers"
 		    end
 		end
 	    end
@@ -2039,8 +2039,3 @@ module Orocos
     end
 end
 
-require 'orogen/marshallers/typelib'
-require 'orogen/marshallers/corba'
-require 'orogen/marshallers/type_info'
-require 'orogen/marshallers/mqueue'
-require 'orogen/marshallers/ros'
