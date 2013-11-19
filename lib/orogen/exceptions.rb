@@ -9,12 +9,21 @@ module OroGen
         end
     end
     
+    # Exception thrown when a type will be used on a component interface (to
+    # create a port, property, ...), but it is exported by no typekit
     class NotExportedType < InvalidInterfaceType
         attr_reader :typekits
-
         def initialize(type, typekits)
             @typekits = typekits
             super(type)
+        end
+    end
+
+    # Exception thrown when a type is needed but we can't find a typekit for it
+    class NotTypekitType < RuntimeError
+        attr_reader :type_name
+        def initialize(type_name)
+            @type_name = type_name
         end
     end
 
