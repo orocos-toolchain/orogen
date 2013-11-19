@@ -463,7 +463,7 @@ module Orocos
             end
 
             def using_plugin(name)
-                Orocos.load_plugin(name)
+                OroGen.load_orogen_plugin(name)
             end
 
             # Import an orogen-generated typekit to be used by this project.
