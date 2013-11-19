@@ -231,6 +231,13 @@ module OroGen
                     callback.call(typekit)
                 end
             end
+
+            def register_type_model(type, interface = true)
+                registry.merge type.registry.minimal(type.name)
+                if interface
+                    interface_typelist << type.name
+                end
+            end
             
             # Registers a callback that should be called with newly registered
             # typekits
