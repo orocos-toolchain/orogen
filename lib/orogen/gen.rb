@@ -27,6 +27,7 @@ end
 
 require 'orogen/gen/enable'
 require 'orogen/gen/base'
+require 'orogen/gen/templates'
 require 'orogen/gen/typekit'
 require 'orogen/marshallers'
 require 'orogen/gen/deployment'
