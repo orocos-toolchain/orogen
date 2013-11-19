@@ -19,3 +19,5 @@ using_typekit "<%= tk.name %>"
 find_task_context("<%= task_context.name %>").<%= ext %>
 <%    end %>
 <% end %>
+
+Orocos::Spec::TaskContext.enable_default_extensions
