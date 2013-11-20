@@ -57,7 +57,7 @@ module Orocos
         # Extract the project name as basename of a specification file
         # @return [String] project name
         def self.project_name_from_file(filename)
-            File.basename(filename).gsub(/\.#{spec_file_suffix}/,'')
+            File.basename(filename, ".#{spec_file_suffix}")
         end
 
         # Manually registers the path to a package
@@ -170,7 +170,7 @@ module Orocos
         # @return [String] absolute path to the launch file
         # @throws [ArgumentError] if the launch file cannot be found in the ros package
         def self.roslaunch_find(package_name, launch_name)
-            package_path = Orocos::ROS.rospack_find(package_name)
+            package_path = rospack_find(package_name)
             launch_path = File.join(package_path, "launch")
 
             launch_name = launch_name.gsub(/\.launch$/,"")
@@ -214,9 +214,9 @@ module Orocos
                 ::Process.detach(@roscore_pid)
                 @roscore_pid
             elsif !@roscore_pid
-                Orocos::ROS.warn "roscore is already running, but is not controlled by this process"
+                warn "roscore is already running, but is not controlled by this process"
             else
-                Orocos::ROS.info "roscore is already running, pid '#{@roscore_pid}'"
+                info "roscore is already running, pid '#{@roscore_pid}'"
             end
 
             if unknown_options[:wait]
@@ -234,7 +234,7 @@ module Orocos
         def self.roscore_shutdown
             begin
                 if @roscore_pid
-                    Orocos::ROS.info "roscore will be shutdown"
+                    info "roscore will be shutdown"
                     status = ::Process.kill('INT',@roscore_pid)
                     @roscore_pid = nil
                     return status
@@ -243,7 +243,7 @@ module Orocos
                 raise ArgumentError, "trying to shutdown roscore, which is not running anymore with pid '#{@roscore_pid}'"
             end
 
-            Orocos::ROS.warn "roscore is not controlled by this process; no shutdown will be performed"
+            warn "roscore is not controlled by this process; no shutdown will be performed"
             false
         end
 
@@ -259,42 +259,13 @@ module Orocos
             orogen_types.first
         end
 
-        def self.find_rosmap_by_package_name(name)
-            Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(name)
-        rescue ArgumentError => e
-            return
-        rescue Utilrb::PkgConfig::NotFound => e
-            # Nothing installed, look into the pack_paths
-            pack_paths.each do |dir|
-                rosmap_path = File.join(dir, "#{name}.rosmap")
-                if File.file?(rosmap_path)
-                    return Orocos::TypekitMarshallers::ROS.load_rosmap(rosmap_path)
-                end
-            end
-            nil
-        end
-
-        def self.load_rosmap_by_package_name(name)
-            rosmaps = find_rosmap_by_package_name(name)
-            return if !rosmaps
-
-            rosmaps = [rosmaps,Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG]
-            rosmaps.each do |rosmap|
-                orogen_to_ros_mappings.merge! rosmap
-                rosmap.each do |type_name, ros_name, _|
-                    set = (ros_to_orogen_mappings[ros_name] ||= Set.new)
-                    set << type_name
-                end
-            end
-        end
-
         # Loads all known mappings from the oroGen types to the ROS messages.
         # Builds a reverse mapping as well
         def self.load_all_rosmaps
             orogen_to_ros_mappings.clear
             ros_to_orogen_mappings.clear
 
-            rosmaps = available_typekits.map do |name, pkg|
+            rosmaps = Orocos.default_pkgconfig_loader.available_typekits.map do |name, pkg|
                 find_rosmap_by_package_name(name)
             end.compact
             rosmaps << Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG
@@ -315,11 +286,11 @@ module Orocos
         # At first call, it calls load_all_rosmaps to load all the known
         # mappings
         def self.find_all_types_for(message_name)
-            if !ROS.ros_to_orogen_mappings
+            if !ros_to_orogen_mappings
                 load_all_rosmaps
             end
 
-            ROS.ros_to_orogen_mappings[message_name] || Set.new
+            ros_to_orogen_mappings[message_name] || Set.new
         end
 
         # Check if a given ROS message type can be accessed on this side
@@ -327,252 +298,26 @@ module Orocos
         # At first call, it calls load_all_rosmaps to load all the known
         # mappings
         def self.compatible_message_type?(message_type)
-            if !ROS.ros_to_orogen_mappings
+            if !ros_to_orogen_mappings
                 load_all_rosmaps
             end
-            ROS.ros_to_orogen_mappings.has_key?(message_type)
+            ros_to_orogen_mappings.has_key?(message_type)
         end
 
-        # Find all available launchers defined
-        # in ros specification files
-        # @return [Hash<String,Orocos::ROS::Spec::Launcher>] All launchers known
-        def self.available_launchers
-            if !@available_launchers
-                @available_launchers = Hash.new
-
-                available_ros_projects.each do |pkg, (project, _)|
-                    next if !project
-                    project.ros_launchers.each do |l|
-                        @available_launchers[l.name] = l
-                    end
-                end
-            end
-            @available_launchers
+        def self.default_loader
+            @default_loader ||= Loader.new(Orocos.default_loader)
         end
-
-        # Retrieve the list of available ros projects
-        # @argument [Boolean] reload Flag whether to reload or not, default is false
-        # @return [Hash<String,Array<Orocos::ROS::Spec::Project,path>>]
-        def self.available_ros_projects(reload = false)
-            if !@available_ros_projects || reload
-                @available_ros_projects = Hash.new
-
-                spec_search_directories.each do |dir|
-                    specs = Dir.glob(File.join(dir, suffix("*")))
-                    specs.each do |path|
-                        project_name = project_name_from_file(path)
-                        @available_ros_projects[project_name] = [nil, File.absolute_path(path)]
-                    end
-                end
-                available_projects.merge!(@available_ros_projects)
-            end
-            @available_ros_projects
-        end
-
-        # Retrieve the list of available nodes which are part of
-        # launchers
-        # @return [Hash<String, Orocos::Spec::TaskDeployment>]
-        def self.available_nodes
-            if !@available_nodes
-                @available_nodes = Hash.new
-
-                available_launchers.each do |name, launcher|
-                    launcher.nodes.each do |n|
-                        @available_nodes[n.name] = n
-                    end
-                end
-            end
-            @available_nodes
-        end
-
-        # Retrieve the node specification for a given node name
-        # @return [Orocos::ROS::Spec::Node>]
-        def self.node_spec_by_node_name(node_name)
-            available_nodes.each do |name, node|
-                if rosnode_normalize_name(name) == rosnode_normalize_name(node_name)
-                    return node.task_model
-                end
-            end
-        end
-
-        # Test whether a node specification has been found during Orocos.load
-        # @return [Boolean] True, if specification is available, false otherwise
-        def self.node_spec_available?(node_name)
-            !!node_spec_by_node_name(node_name)
-        end
-        ##################################################################
-        # BEGIN
-        #
-        # Functionality extracted from orocos.rb with modifications to allow for ROS 
-        # loading
-        # Future cleanup should consider moving Orocos.load functionality to orogen 
-        # and then cleanup this functionality and reuse Orocos.available_projects
 
         # Helper method for initialize
-        def self.load(*args)
-            args.each do |path|
-                spec_search_directories << File.absolute_path(path) if File.exists?(path)
-            end
- 
-            if @available_projects && !@available_projects.empty?
-                return
-            end
-
-            if @registry
-                raise ArgumentError, "you must call Orocos.clear before calling Orocos.load again"
-            end
-
-            # If Orocos is in use, hook into the Orocos.master_project instead of maintaining
-            # a separated version in Orocos::ROS.master_project
-            @master_project = Orocos::ROS::Generation::Project.new(nil)
-            @registry = master_project.registry
-
-            available_types
+        def self.load
             @loaded = true
         end
 
         def self.loaded?; !!@loaded end
-
-        # Registers the paths for the packages found in {pack_paths}
-        def self.register_ros_models
-            package_paths.clear
-
-            pack_paths.each do |dir|
-                Dir.new(dir).each do |file|
-                    next if file !~ /^\w+$/
-                    package_name = file
-                    package_path = File.join(dir, package_name)
-
-                    if File.directory?(package_path)
-                        register_package_path(package_name, package_path)
-                    end
-                end
-            end
-
-            available_ros_projects(true).each do |name, (_, orogen_path)|
-                master_project.register_orogen_file(name, orogen_path)
-            end
+        
+        def self.clear
+            @default_loader = nil
+            @loaded = false
         end
-
-        # Loading an orogen project description which defines
-        # a ros project
-        def self.load_ros_project(name)
-            # At this stage the ROS projects should be known
-            # to the Orocos.master_project and
-            # will be loaded from cache
-            if !Orocos::ROS.available_ros_project_spec?(name)
-                available_ros_projects(true)
-                if !Orocos::ROS.available_ros_project_spec?(name)
-                    raise ArgumentError, "specification for ros project '#{name}' could not be loaded"
-                end
-            end
-
-            project, path = available_ros_projects[name]
-            if !project
-                project = Orocos::ROS::Generation::Project.load(master_project, nil, path)
-            end
-            available_ros_projects[name] = [project, path]
-            project
-        end
-
-        def self.add_project_from(pkg) # :nodoc:
-            project = pkg.project_name
-            if project.empty?
-                Orocos.warn "#{pkg.name}.pc does not have a project_name field"
-            end
-            if description = available_projects[project]
-                return description
-            end
-
-            if pkg.deffile.empty?
-                Orocos.warn "#{pkg.name}.pc does not have a deffile field"
-            else
-                @available_projects[pkg.project_name] = [pkg, pkg.deffile]
-            end
-        end
-
-        def self.available_projects
-            if !@available_projects
-                @available_projects = Hash.new
-
-                # Finally, update the set of available projects
-                Utilrb::PkgConfig.each_package(/^orogen-project-/) do |pkg_name|
-                    if !available_projects.has_key?(pkg_name)
-                        pkg = Utilrb::PkgConfig.new(pkg_name)
-                        add_project_from(pkg)
-                    end
-                end
-            end
-            @available_projects
-        end
-
-        # Test whether a project specification is available
-        # @return [Boolean] True, if the spec is available, False otherwise
-        def self.available_ros_project_spec?(project_name)
-            available_projects.each do |name,_|
-                if project_name == name
-                    return true
-                end
-            end
-            false
-        end
-
-        def self.available_typekits
-            if !@available_typekits
-
-                @available_typekits = Hash.new
-                Utilrb::PkgConfig.each_package(/-typekit-/) do |pkg_name|
-                    pkg = Utilrb::PkgConfig.new(pkg_name)
-
-                    # If Orocos is not loaded try without Orocos.orocos_target
-                    if !Orocos.orocos_target 
-                        typekit_name = pkg_name.gsub(/-typekit-\w+$/, '')
-                    else
-                        typekit_name = pkg_name.gsub(/-typekit-#{Orocos.orocos_target}$/, '')
-                    end
-
-                    if available_projects.has_key?(pkg.project_name)
-                        if available_projects[pkg.project_name][0].type_registry
-                            available_typekits[typekit_name] = pkg
-                        else
-                            Orocos.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
-                        end
-                    else
-                        Orocos.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
-                    end 
-                end
-                @available_typekits
-            else
-                @available_typekits
-            end
-        end
-
-        def self.available_types
-            if !@available_types = Hash.new
-                available_typekits.each do |typekit_name, typekit_pkg|
-                    typelist = typekit_pkg.type_registry.gsub(/tlb$/, 'typelist')
-                    typelist, typelist_exported =
-                        Orocos::Generation::ImportedTypekit.parse_typelist(File.read(typelist))
-                    typelist = typelist - typelist_exported
-                    typelist.compact.each do |typename|
-                        if existing = @available_types[typename]
-                            Orocos.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}"
-                        else
-                            @available_types[typename] = [typekit_name, false]
-                        end
-                    end
-                    typelist_exported.compact.each do |typename|
-                        if existing = @available_types[typename]
-                            Orocos.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}"
-                        end
-                        @available_types[typename] = [typekit_name, true]
-                    end
-                end
-            end
-            nil
-        end
-        #
-        # END
-        ######################################################################
     end
 end

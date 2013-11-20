@@ -5,11 +5,11 @@ require 'orogen_ros/base'
 Orocos::Generation::Project.add_standard_task_spec("ros.orogen",Orocos::ROS::OROGEN_ROS_LIB_DIR)
 
 require 'orogen_ros/package'
-require 'orogen_ros/project'
 require 'orogen_ros/input_topic'
 require 'orogen_ros/output_topic'
 require 'orogen_ros/node'
 require 'orogen_ros/launcher'
+require 'orogen_ros/loader'
 
 # The toplevel namespace for orogen_ros
 #
