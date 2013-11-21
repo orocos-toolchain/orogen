@@ -1,5 +1,13 @@
 module OroGen
     class NotFound < RuntimeError; end
+
+    class ProjectNotFound < NotFound; end
+    class TypekitNotFound < NotFound; end
+    class TaskModelNotFound < NotFound; end
+    class TaskLibraryNotFound < NotFound; end
+    class DeploymentModelNotFound < NotFound; end
+    class DeployedTaskModelNotFound < NotFound; end
+    class TypeNotFound < Typelib::NotFound; end
     
     class InvalidInterfaceType < RuntimeError
         attr_reader :type

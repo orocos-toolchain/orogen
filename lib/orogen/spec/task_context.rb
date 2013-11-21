@@ -1004,8 +1004,6 @@ module OroGen
                 @output_ports[name] = port = options[:class].new(self, name, type)
                 Spec.load_documentation(port, /output_port/)
                 port
-            rescue Typelib::NotFound
-                raise ConfigError, "type #{type} is not declared", e.backtrace
 	    end
 
 	    # call-seq:
@@ -1024,9 +1022,6 @@ module OroGen
                 @input_ports[name] = port = options[:class].new(self, name, type)
                 Spec.load_documentation(port, /input_port/)
                 port
-
-            rescue Typelib::NotFound => e
-                raise ConfigError, "type #{type} is not declared", e.backtrace
             end
 
             # This method is an easier way use boost::shared_ptr in a task

@@ -82,14 +82,14 @@ module OroGen
             def project_model_text_from_name(name)
                 name = name.to_str
                 if !(pkg = available_projects[name])
-                    raise OroGen::NotFound, "cannot find an installed oroGen project called #{name}"
+                    raise ProjectNotFound, "cannot find an installed oroGen project called #{name}"
                 end
                 return File.read(pkg.orogen_path), pkg.orogen_path
             end
 
             def typekit_model_text_from_name(name)
                 if !(pkg = available_typekits[name])
-                    raise OroGen::NotFound, "cannot find an installed typekit called #{name}"
+                    raise TypekitNotFound, "cannot find an installed typekit called #{name}"
                 end
 
                 registry = File.read(pkg.type_registry)
@@ -206,6 +206,7 @@ module OroGen
             # @param [Boolean] exported if true, the method will raise if the
             #   type is defined but not exported.
             # @return [Spec::Typekit]
+            # @raise NotTypekitType, NotExportedType
             def typekit_for(type, exported = true)
                 typename = if type.respond_to?(:name)
                                type.name

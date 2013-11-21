@@ -18,7 +18,7 @@ module OroGen
             def project_model_text_from_name(name)
                 path = available_projects[name]
                 if !path
-                    raise OroGen::NotFound, "no project called #{name} on #{self}"
+                    raise ProjectNotFound, "no project called #{name} on #{self}"
                 end
 
                 return File.read(path), path
@@ -33,7 +33,7 @@ module OroGen
             def typekit_model_text_from_name(name)
                 typelist, tlb = available_typekits[name]
                 if !typelist
-                    raise OroGen::NotFound, "#{self} has not typekit named #{name}"
+                    raise TypekitNotFound, "#{self} has not typekit named #{name}"
                 end
                 return File.read(tlb), File.read(typelist)
             end

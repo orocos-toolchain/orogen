@@ -65,7 +65,7 @@ module OroGen
             # Returns the project model corresponding to the given name
             #
             # @param [String] the project name
-            # @raise [OroGen::NotFound] if there is no project with that
+            # @raise [ProjectNotFound] if there is no project with that
             #   name.
             # @return [OroGen::Spec::Project]
             def project_model_from_name(name)
@@ -108,14 +108,14 @@ module OroGen
 
             # Returns the task library model corresponding to the given name
             # @param (see project_model_from_name)
-            # @raise [OroGen::NotFound] if there is no task library with that
+            # @raise [ProjectNotFound] if there is no task library with that
             #   name. This does including having a project with that name if the
             #   project defines no tasks.
             # @return (see project_model_from_name)
             def task_library_model_from_name(name)
                 project = project_model_from_name(name)
                 if project.self_tasks.empty?
-                    raise OroGen::NotFound, "there is an oroGen project called #{name}, but it defines no tasks"
+                    raise ProjectNotFound, "there is an oroGen project called #{name}, but it defines no tasks"
                 end
                 project
             end
@@ -124,7 +124,8 @@ module OroGen
             #
             # @param [String] name the task model name
             # @return [Spec::TaskContext]
-            # @raise [OroGen::NotFound] if there are no such model
+            # @raise [TaskModelNotFound] if there are no such model
+            # @raise (see project_model_from_name)
             def task_model_from_name(name)
                 if model = loaded_task_models[name]
                     return model
@@ -132,7 +133,7 @@ module OroGen
 
                 tasklib_name = find_task_library_from_task_model_name(name)
                 if !tasklib_name
-                    raise OroGen::NotFound, "no task model #{name} is registered"
+                    raise TaskModelNotFound, "no task model #{name} is registered"
                 end
 
                 tasklib = project_model_from_name(tasklib_name)
@@ -148,11 +149,11 @@ module OroGen
             #
             # @param [String] name the deployment name
             # @return [OroGen::Spec::Deployment] the deployment model
-            # @raise [OroGen::NotFound] if no deployment with that name exists
+            # @raise [DeploymentModelNotFound] if no deployment with that name exists
             def deployment_model_from_name(name)
                 project_name = find_project_from_deployment_name(name)
                 if !project_name
-                    raise OroGen::NotFound, "there is no deployment called #{name}"
+                    raise DeploymentModelNotFound, "there is no deployment called #{name}"
                 end
 
                 project = project_model_from_name(project_name)
@@ -170,8 +171,8 @@ module OroGen
             #   task is defined. It must be given only when more than one deployment
             #   defines a task with the requested name
             # @return [OroGen::Spec::TaskDeployment] the deployed task model
-            # @raise [OroGen::NotFound] if no deployed tasks with that name exists
-            # @raise [OroGen::NotFound] if deployment_name was given, but the requested
+            # @raise [DeployedTaskModelNotFound] if no deployed tasks with that name exists
+            # @raise [DeployedTaskModelNotFound] if deployment_name was given, but the requested
             #   task is not defined in this deployment
             # @raise [OroGen::AmbiguousName] if more than one task exists with that
             #   name. In that case, you will have to provide the deployment name
@@ -182,7 +183,7 @@ module OroGen
                 else
                     deployment_names = find_deployments_from_deployed_task_name(name)
                     if deployment_names.empty?
-                        raise OroGen::NotFound, "cannot find a deployed task called #{name}"
+                        raise DeployedTaskModelNotFound, "cannot find a deployed task called #{name}"
                     elsif deployment_names.size > 1
                         raise OroGen::AmbiguousName, "more than one deployment defines a deployed task called #{name}: #{deployment_names.map(&:name).sort.join(", ")}"
                     end
@@ -191,7 +192,7 @@ module OroGen
 
                 if !(task = deployment.find_task_by_name(name))
                     if deployment_name
-                        raise OroGen::NotFound, "deployment #{deployment_name} does not have a task called #{name}"
+                        raise DeployedTaskModelNotFound, "deployment #{deployment_name} does not have a task called #{name}"
                     else
                         raise InternalError, "deployment #{deployment_name} was supposed to have a task called #{name} but does not"
                     end
@@ -203,7 +204,7 @@ module OroGen
             #
             # @param [String] name the typekit name
             # @return [Spec::Typekit] the typekit
-            # @raise [OroGen::NotFound] if the typekit cannot be found
+            # @raise [TypekitNotFound] if the typekit cannot be found
             def typekit_model_from_name(name)
                 if typekit = loaded_typekits[name]
                     return typekit
@@ -340,7 +341,7 @@ module OroGen
             # Returns the textual representation of a project model
             #
             # @param [String] the project name
-            # @raise [OroGen::NotFound] if there is no project with that
+            # @raise [ProjectNotFound] if there is no project with that
             #   name.
             # @return [(String,String)] the model as text, as well as a path to
             #   the model file (or nil if there is no such file)
@@ -351,7 +352,7 @@ module OroGen
             # Returns the textual representation of a typekit
             #
             # @param [String] the typekit name
-            # @raise [OroGen::NotFound] if there is no typekit with that name
+            # @raise [TypekitNotFound] if there is no typekit with that name
             # @return [(String,String)] the typekit registry as XML and the
             #   typekit's typelist
             def typekit_model_text_from_name(name)
