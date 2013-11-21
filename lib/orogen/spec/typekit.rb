@@ -158,9 +158,6 @@ module OroGen
                 end
             end
 
-            def resolve_type(typename)
-            end
-
             # Computes the name of the type that should be used as an
             # intermediate for the given type
             #
