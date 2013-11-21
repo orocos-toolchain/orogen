@@ -15,6 +15,8 @@ module OroGen
             TaskLibrary = Struct.new :pkg
             Type = Struct.new :name, :exported
 
+            def to_s; "#<OroGen::Loaders::PkgConfig #{orocos_target}>" end
+
             # @return [String] the name of the orocos target we are looking for
             attr_reader :orocos_target
             # @return [Hash<String,Project>] the set of known projects
@@ -44,10 +46,10 @@ module OroGen
             #   pkg-config loader assumes that we have a self-consistent set of
             #   packages on disk (since it is installed packages), and therefore
             #   does not use it.
-            def initialize(orocos_target, root_loader = nil)
+            def initialize(orocos_target, root_loader = self)
                 @orocos_target = orocos_target
                 update
-                super()
+                super(root_loader)
             end
 
             # Registers a project from its pkg-config object

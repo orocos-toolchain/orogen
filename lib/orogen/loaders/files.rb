@@ -41,6 +41,8 @@ module OroGen
             def has_typekit?(name)
                 available_typekits.has_key?(name)
             end
+
+            def to_s; "#<OroGen::Loaders::Files projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>" end
         end
     end
 end
