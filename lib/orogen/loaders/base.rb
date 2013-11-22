@@ -433,7 +433,6 @@ module OroGen
             # @param [String] model_name the name of the task model to look for
             # @return [String,nil]
             def find_task_library_from_task_model_name(name)
-                raise NotImplementedError
             end
 
             # Returns the project that defines the given deployment
@@ -441,7 +440,6 @@ module OroGen
             # @param [String] deployment_name the deployment we are looking for
             # @return [String,nil]
             def find_project_from_deployment_name(name)
-                raise NotImplementedError
             end
 
             # Returns the set of deployments that contain a certain task
@@ -449,7 +447,6 @@ module OroGen
             # @param [String] name
             # @return [Set<String>]
             def find_deployments_from_deployed_task_name(name)
-                raise NotImplementedError
             end
         end
     end
