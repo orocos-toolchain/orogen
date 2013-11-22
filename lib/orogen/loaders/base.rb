@@ -337,6 +337,15 @@ module OroGen
                 interface_typelist.include?(typename)
             end
 
+            # Tests whether the given type can be used on an interface
+            #
+            # @param (see Spec::Typekit#intermediate_type?)
+            # @return (see Spec::Typekit#intermediate_type?)
+            def intermediate_type?(type)
+                imported_typekits_for(type, :definition_typekits => false).
+                    any? { |tk| tk.intermediate_type?(type) }
+            end
+
             # Returns the opaque type that is paired with the given type
             #
             # @param (see Spec::Typekit#opaque_type_for)
