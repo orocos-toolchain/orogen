@@ -1,0 +1,15 @@
+#name "ros"
+name "artemis_state_publisher"
+
+ros_node "artemis_state_publisher_node" do
+end
+
+#node_type "joint_state_publisher", "joint_state_publisher" do
+#end
+#
+#node_type "manipulator_motionplanner", "manipulator_motionplanner" do
+#end
+#
+#node_type "manipulator_motionplanner", "rock_ros_wrapper" do
+#end
+

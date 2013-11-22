@@ -1,0 +1,4 @@
+name "robot_state_publisher"
+
+ros_node "robot_state_publisher" do
+end
