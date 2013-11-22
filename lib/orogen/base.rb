@@ -111,5 +111,21 @@ module OroGen
             gsub(/&/, '').
             strip
     end
+
+    def self.orocos_target=(target)
+        @orocos_target = target.to_s
+    end
+
+    @orocos_target = nil
+    def self.orocos_target
+        user_target = ENV['OROCOS_TARGET']
+        if @orocos_target
+            @orocos_target.dup
+        elsif user_target && !user_target.empty?
+            user_target
+        else
+            'gnulinux'
+        end
+    end
 end
 

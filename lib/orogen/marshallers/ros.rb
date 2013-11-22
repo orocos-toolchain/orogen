@@ -41,7 +41,7 @@ module Orocos
             end
 
             def self.load_rosmap_by_package_name(name)
-                pkg = Utilrb::PkgConfig.new("#{name}-transport-ros-#{Orocos::Generation.orocos_target}")
+                pkg = Utilrb::PkgConfig.new("#{name}-transport-ros-#{OroGen.orocos_target}")
                 if pkg.rosmap
                     load_rosmap(pkg.rosmap)
                 else raise ArgumentError, "the oroGen project #{name} does not have a rosmap"
