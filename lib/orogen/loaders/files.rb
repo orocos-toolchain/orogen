@@ -24,6 +24,14 @@ module OroGen
                 return File.read(path), path
             end
 
+            def has_project?(name)
+                available_projects.has_key?(name)
+            end
+
+            def has_typekit?(name)
+                available_typekits.has_key?(name)
+            end
+
             def register_typekit(path, name)
                 typelist = File.join(path, "#{name}.typelist")
                 tlb      = File.join(path, "#{name}.tlb")
