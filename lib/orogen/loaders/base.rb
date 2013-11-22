@@ -236,7 +236,7 @@ module OroGen
 
                 registry.merge typekit.registry
                 @interface_typelist |= typekit.interface_typelist
-                typekit.typelist.each do |typename|
+                typekit.registry.each(:with_aliases => true) do |typename, _|
                     typekits_by_type_name[typename] ||= Set.new
                     typekits_by_type_name[typename] << typekit
                 end
@@ -286,14 +286,32 @@ module OroGen
             end
 
             # Returns the typekit object that defines this type
-            def imported_typekits_for(typename)
+            #
+            # @option options [Boolean] :definition_typekits (true) if true,
+            #   only the typekits that actually have the type in their typelist
+            #   are returned. Otherwise, every typekit that have it in their
+            #   registry are returned.
+            #
+            # @return [Array<Spec::Typekit>] the list of typekits
+            # @raise [ArgumentError] if no typekits define this type
+            def imported_typekits_for(typename, options = Hash.new)
+                options = Kernel.validate_options options,
+                    :definition_typekits => true
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
                 if typekits = typekits_by_type_name[typename]
-                    typekits
-                else raise ArgumentError, "#{typename} is not an imported type"
+                    if options[:definition_typekits]
+                        definition_typekits = typekits.find_all { |tk| tk.typelist.include?(typename) }
+                        if definition_typekits.empty?
+                            raise ArgumentError, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and :definition_typekits is true"
+                        end
+                        return definition_typekits
+                    else
+                        return typekits
+                    end
                 end
+                raise ArgumentError, "#{typename} is not defined by any typekits loaded so far"
             end
 
             # Returns the type object for +typename+, validating that we can use
@@ -321,24 +339,33 @@ module OroGen
 
             # Returns the opaque type that is paired with the given type
             #
-            # @param [#name,String] type the type to be resolved
-            # @return [Model<Typelib::Type>]
+            # @param (see Spec::Typekit#opaque_type_for)
+            # @raise (see Spec::Typekit#opaque_type_for)
+            # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
-                imported_typekits_for(type).first.opaque_type_for(type)
+                imported_typekits_for(type, :definition_typekits => false).
+                    first.opaque_type_for(type)
             end
 
             # Returns the intermediate type that is paired with the given type
             #
-            # @param [#name,String] type the type to be resolved
-            # @return [Model<Typelib::Type>]
+            # @param (see Spec::Typekit#opaque_type_for)
+            # @raise (see Spec::Typekit#opaque_type_for)
+            # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
-                imported_typekits_for(type).first.intermediate_type_for(type)
+                imported_typekits_for(type, :definition_typekits => false).
+                    first.intermediate_type_for(type)
             end
 
             # Returns whether this type is a m-type (intermediate type generated
             # by oroGen)
+            #
+            # @param (see Spec::Typekit#m_type?)
+            # @raise (see Spec::Typekit#m_type?)
+            # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
-                imported_typekits_for(type).first.m_type?(type)
+                imported_typekits_for(type, :definition_typekits => false).
+                    first.m_type?(type)
             end
 
             # Registers this project's subobjects
