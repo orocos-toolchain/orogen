@@ -1,85 +1,6 @@
-require 'utilrb'
-
-module Orocos
+module OroGen
     module ROS
         OROGEN_ROS_LIB_DIR = File.expand_path(File.dirname(__FILE__))
-
-        extend Logger::Root("Orocos::ROS",Logger::INFO)
-
-        @spec_file_suffix = "orogen"
-        @spec_search_directories = []
-        @package_paths = Hash.new
-        @pack_paths = Array.new
-        @ros_to_orogen_mappings = Hash.new
-        @orogen_to_ros_mappings = Hash.new
-
-        # This class wraps ros tooling and set some default configurations
-        class << self
-            # [String] Specification file suffix for ROS projects
-            attr_reader :spec_file_suffix
-            # [Array] Specification search directories
-            attr_accessor :spec_search_directories
-
-            # Master project which loads all available projects
-            # If Orocos.master_project is available it will map to it
-            attr_reader :master_project
-
-            # [Hash<String,Array<String>>] mappings from ROS message types to
-            #   oroGen types. It is filled by Orocos::ROS.load_all_rosmaps,
-            #   which is called the first time
-            #   Orocos::ROS.find_all_types_for is called
-            attr_reader :ros_to_orogen_mappings
-            # [Hash<String,String>] mappings from oroGen types to ROS message types.
-            #   It is filled by Orocos::ROS.load_all_rosmaps, which is called
-            #   the first time Orocos::ROS.find_all_types_for is called
-            attr_reader :orogen_to_ros_mappings
-
-            # @return [Hash<String,String>] mapping from a package name to its
-            #   full path. This is used as both a cache for {ROS.rospack_find},
-            #   and as a way to register paths for launchfiles on systems that
-            #   do not have ROS installed
-            attr_reader :package_paths
-
-            # @return [Array<String>] list of full paths of model pack
-            #   directories. Subdirectories in there are interpreted as package
-            #   paths, in which the launchfiles from the actual packages have
-            #   been copied
-            attr_reader :pack_paths
-        end
-
-        # Suffix a specification file if not already suffixed
-        # @return [String] suffixed filename
-        def self.suffix(filename)
-            filename = filename.gsub(/\.#{spec_file_suffix}/,'')
-            "#{filename}.#{spec_file_suffix}"
-        end
-
-        # Extract the project name as basename of a specification file
-        # @return [String] project name
-        def self.project_name_from_file(filename)
-            File.basename(filename, ".#{spec_file_suffix}")
-        end
-
-        # Manually registers the path to a package
-        #
-        # @return [void]
-        def self.register_package_path(package_name, path)
-            package_paths[package_name] = path
-        end
-
-        # Find the path of a ros package
-        # @return [String] Path to the rospackage
-        def self.rospack_find(package_name)
-            if path = package_paths[package_name]
-                return path
-            end
-
-            package_path = (`rospack find #{package_name}` || '').strip
-            if package_path.empty?
-                raise ArgumentError, "rospack cannot find package #{package_name}"
-            end
-            package_paths[package_name] = package_path
-        end
 
         # Find the path of a rosnode binary
         # @return [String] Path to the rosnode binary
@@ -125,9 +46,9 @@ module Orocos
         # Test whether a ROS node of the given name is running
         # @return [Bool] True if a ros node of given name is currenlty running
         def self.rosnode_running?(node_name)
-             # making sure node name conform to 
-             # pattern "/nodename"
-             rosnode_list.include?(rosnode_normalize_name(node_name))
+            # making sure node name conform to 
+            # pattern "/nodename"
+            rosnode_list.include?(rosnode_normalize_name(node_name))
         end
 
         # Normalize the rosnode name
@@ -252,60 +173,17 @@ module Orocos
         #
         # @param [String] message_type the ROS message type name
         def self.map_message_type_to_orogen(message_type)
-            orogen_types = find_all_types_for(message_type)
-            if orogen_types.empty?
-                raise ArgumentError, "there are not oroGen equivalent for #{message_type}"
-            end
-            orogen_types.first
-        end
-
-        # Loads all known mappings from the oroGen types to the ROS messages.
-        # Builds a reverse mapping as well
-        def self.load_all_rosmaps
-            orogen_to_ros_mappings.clear
-            ros_to_orogen_mappings.clear
-
-            rosmaps = Orocos.default_pkgconfig_loader.available_typekits.map do |name, pkg|
-                find_rosmap_by_package_name(name)
-            end.compact
-            rosmaps << Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG
-
-            rosmaps.each do |rosmap|
-                orogen_to_ros_mappings.merge! rosmap
-                rosmap.each do |type_name, ros_name, _|
-                    set = (ros_to_orogen_mappings[ros_name] ||= Set.new)
-                    set << type_name
-                end
-            end
-            nil
-        end
-
-        # Get the list of oroGen types that can be used to communicate with a
-        # given ROS message name
-        #
-        # At first call, it calls load_all_rosmaps to load all the known
-        # mappings
-        def self.find_all_types_for(message_name)
-            if !ros_to_orogen_mappings
-                load_all_rosmaps
-            end
-
-            ros_to_orogen_mappings[message_name] || Set.new
-        end
-
-        # Check if a given ROS message type can be accessed on this side
-        #
-        # At first call, it calls load_all_rosmaps to load all the known
-        # mappings
-        def self.compatible_message_type?(message_type)
-            if !ros_to_orogen_mappings
-                load_all_rosmaps
-            end
-            ros_to_orogen_mappings.has_key?(message_type)
+            default_loader.map_message_type_to_orogen(message_type)
         end
 
         def self.default_loader
-            @default_loader ||= Loader.new(Orocos.default_loader)
+            if !@default_loader
+                loader = Loader.new(Orocos.default_loader)
+                loader.search_path << Orocos::ROS::OROGEN_ROS_LIB_DIR
+                loader.project_model_from_name 'ros'
+                @default_loader = loader
+            end
+            @default_loader
         end
 
         # Helper method for initialize

@@ -1,6 +1,6 @@
-module Orocos::ROS
-    module Spec
-        class InputTopic < Orocos::Spec::InputPort
+module OroGen
+    module ROS
+        class OutputTopic < Orocos::Spec::OutputPort
             # @return [String] the actual name on the ROS side
             #   {name} returns the node-local name (the "port" name)
             attr_accessor :ros_name

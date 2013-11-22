@@ -1,33 +1,18 @@
 module Orocos::ROS
     module Spec
-        OROGEN_ROS_NODE_NAME = "ROS::Node"
-
-        def self.orogen_ros_node
-            Orocos::Generation::Project.standard_tasks.find { |t| t.name == OROGEN_ROS_NODE_NAME }
-        end
-
         # Representation of a ROS node as an oroGen model
         class Node < Orocos::Spec::TaskContext
 
             # @return [String] the name on the ROS side
             attr_accessor :ros_name
+            # @return [String] the name of the ROS package
+            attr_accessor :ros_package
 
-            def ros_package
-                if @ros_package then @ros_package
-                elsif name then @ros_package = Orocos::ROS.rosnode_findpackage(name)
-                end
-            end
-
-            # @return [String] the actual name of the package this node is
-            #   part of
-            attr_writer :ros_package
-
-            def initialize(project = nil, name = nil)
+            def initialize(project, name = nil)
                 super
 
-                subclasses(Orocos::ROS::Spec.orogen_ros_node)
-
                 @ros_name = name
+                @ros_package = project.name
             end
 
             # Declares that this node produces data on a specific topic

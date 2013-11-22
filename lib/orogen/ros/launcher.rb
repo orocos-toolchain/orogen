@@ -1,8 +1,5 @@
-require 'nokogiri'
-require 'utilrb'
-
-module Orocos::ROS
-    module Spec
+module OroGen
+    module ROS
         # Namespace containing functionality to parse XML based
         # information from ROS
         module XML
