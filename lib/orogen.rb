@@ -23,11 +23,15 @@ module OroGen
         module RTT_CPP
         end
     end
+    module TypekitMarshallers
+        extend Logger::Hierarchy
+    end
 end
 
 module Orocos
     Spec = OroGen::Spec
     Generation = OroGen::Gen::RTT_CPP
+    TypekitMarshallers = OroGen::TypekitMarshallers
 end
 
 require 'utilrb/pkgconfig'
