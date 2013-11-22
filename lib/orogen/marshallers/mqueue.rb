@@ -109,7 +109,6 @@ module Orocos
 
     module ArrayType
     end
-    Orocos::Generation::Typekit.register_plugin(Plugin)
 
     end
     end

@@ -34,3 +34,8 @@ require 'orogen/gen/deployment'
 require 'orogen/gen/tasks'
 require 'orogen/gen/project'
 require 'orogen/gen/imports'
+OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::ROS::Plugin)
+OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::Corba::Plugin)
+OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::MQueue::Plugin)
+OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::TypeInfo::Plugin)
+OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::TypelibMarshaller::Plugin)

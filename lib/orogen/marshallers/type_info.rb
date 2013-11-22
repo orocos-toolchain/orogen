@@ -156,7 +156,6 @@ module Orocos
                 "RTT::types::CArrayTypeInfo"
             end
         end
-        Orocos::Generation::Typekit.register_plugin(Plugin)
     end
     end
 end

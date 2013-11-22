@@ -481,7 +481,6 @@ module Orocos
                     return [], []
                 end
             end
-            Orocos::Generation::Typekit.register_plugin(Plugin)
 
             module TypeExtension
                 # Call to generate the C++ call required to convert this type

@@ -416,8 +416,6 @@ if (!fromCORBA(*intermediate, corba))
         end
     end
 
-    Orocos::Generation::Typekit.register_plugin(Plugin)
-
     end
     end
 end
