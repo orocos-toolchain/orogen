@@ -10,6 +10,9 @@ module OroGen
             # Set of task models that are known to us
             attr_reader :loaded_task_models
 
+            # Set of deployment models that are known to us
+            attr_reader :loaded_deployment_models
+
             # The registry that includes types from all loaded typekits
             attr_reader :registry
 
@@ -53,6 +56,7 @@ module OroGen
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
+                @loaded_deployment_models = Hash.new
                 @root_loader = root_loader
                 @default_typekits = Set.new
                 @typekits_by_type_name = Hash.new
@@ -151,6 +155,10 @@ module OroGen
             # @return [OroGen::Spec::Deployment] the deployment model
             # @raise [DeploymentModelNotFound] if no deployment with that name exists
             def deployment_model_from_name(name)
+                if model = loaded_deployment_models[name]
+                    return model
+                end
+
                 project_name = find_project_from_deployment_name(name)
                 if !project_name
                     raise DeploymentModelNotFound, "there is no deployment called #{name}"
@@ -341,6 +349,7 @@ module OroGen
                 end
 
                 loaded_task_models.merge! project.tasks
+                loaded_deployment_models.merge! project.deployers
                 project_load_callbacks.each do |callback|
                     callback.call(project)
                 end
