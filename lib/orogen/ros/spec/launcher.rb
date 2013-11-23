@@ -1,5 +1,6 @@
 module OroGen
     module ROS
+    module Spec
         # Namespace containing functionality to parse XML based
         # information from ROS
         module XML
@@ -37,7 +38,7 @@ module OroGen
                 end
 
                 # Create a node description from a nokogiri xml node
-                # @return [Orocos::ROS::Spec::XML::NodeDescription] Node description object
+                # @return [OroGen::ROS::Spec::XML::NodeDescription] Node description object
                 def self.from_xml_node(node)
                     name = node.attribute("name").to_s
                     package = node.attribute("pkg").to_s
@@ -74,10 +75,10 @@ module OroGen
         # a ROS launcher specification in an equivalent to
         # Orocos' deployments
         #
-        class Launcher < Orocos::Spec::Deployment
+        class Launcher < OroGen::Spec::Deployment
             extend Logger::Hierarchy
 
-            # [Orocos::ROS::Spec::Project] Project this launcher is part of
+            # [Package] Project this launcher is part of
             attr_reader :project
 
             # [String] Name of the launcher
@@ -86,7 +87,7 @@ module OroGen
 
             # [Boolean] Flag if the launch file content should be loaded
             # to extract node definitions
-            attr_reader :load_launch_file
+            attr_reader :loaded_launch_file
 
             # [String] Path to the launch file that is or has been loaded if
             # #load_launch_file is set
@@ -97,7 +98,7 @@ module OroGen
             # Automatically tries to resolve the corresponding launch
             # files in the file systems
             # @throw [ArgumentError] Raises if a corresponding launch file could not be found
-            def initialize(project = nil, name = nil)
+            def initialize(project, name = nil)
                 @project = project
                 @name = name
                 @nodes = []
@@ -105,14 +106,14 @@ module OroGen
                 @load_launch_file = nil
 
                 # search for launch file where project.name == ros package name
-                @launch_file = Orocos::ROS.roslaunch_find(project.name, name)
+                @launch_file = project.ros_loader.roslaunch_find(project.name, name)
             end
 
             # Loads the launch file if not already loaded
             def load_launch_file
-                if !@loaded_launch_file
+                if !loaded_launch_file?
                     @loaded_launch_file = true
-                    parse(@launch_file)
+                    parse(launch_file)
                 end
             end
 
@@ -177,5 +178,6 @@ module OroGen
             end
         end # Launcher
     end # Spec
-end # Orocos::ROS
+    end
+end # Orocos
 

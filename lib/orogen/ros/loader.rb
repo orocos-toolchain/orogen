@@ -33,7 +33,7 @@ module OroGen
                 end
             end
 
-            def to_s; "#<Orocos::ROS::Loader packs=#{packs.inspect} search_path=#{search_path.inspect}>" end
+            def to_s; "#<#{self.class.name} packs=#{packs.inspect} search_path=#{search_path.inspect}>" end
 
             def find_rosmap_by_package_name(name)
                 OroGen::TypekitMarshallers::ROS.load_rosmap_by_package_name(name)
@@ -43,7 +43,7 @@ module OroGen
                 packs.each do |dir|
                     rosmap_path = File.join(dir, "#{name}.rosmap")
                     if File.file?(rosmap_path)
-                        return Orocos::TypekitMarshallers::ROS.load_rosmap(rosmap_path)
+                        return OroGen::TypekitMarshallers::ROS.load_rosmap(rosmap_path)
                     end
                 end
                 nil
@@ -53,7 +53,7 @@ module OroGen
                 rosmaps = find_rosmap_by_package_name(name)
                 return if !rosmaps
 
-                rosmaps = [rosmaps, Orocos::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG]
+                rosmaps = [rosmaps, OroGen::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG]
                 rosmaps.each do |rosmap|
                     orogen_to_ros_mappings.merge! rosmap
                     rosmap.each do |type_name, ros_name, _|
@@ -96,8 +96,8 @@ module OroGen
 
                 text, path = project_model_text_from_name(name)
 
-                OroGen.info "loading model for ROS package #{name}"
-                project = Package.new(root_loader)
+                ROS.info "loading model for ROS package #{name}"
+                project = Spec::Package.new(root_loader, self)
                 project.typekit = OroGen::Spec::Typekit.new(root_loader, name)
 
                 # ROS packages don't have the same issue than oroGen, namely
@@ -139,6 +139,17 @@ module OroGen
                     raise ArgumentError, "rospack cannot find package #{package_name}"
                 end
                 package_paths[package_name] = package_path
+            end
+
+            # Finds the path to a given ROS launch file
+            # @return [String]
+            def roslaunch_find(package_name, launchfile_name)
+                package_path = rospack_find(package_name)
+                path = File.join(package_path, "launchers", launchfile_name)
+                if File.file?(path)
+                    return path
+                else raise ArgumentError, "package #{package_name} has no launch file #{launchfile_name} (looked in #{path})"
+                end
             end
 
             def map_message_type_to_orogen(message_type)

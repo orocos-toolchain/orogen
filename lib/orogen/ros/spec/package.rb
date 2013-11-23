@@ -1,13 +1,19 @@
 module OroGen
     module ROS
+    module Spec
         class Package < OroGen::Spec::Project
             extend Logger::Hierarchy
+
+            # The loader that should be used for ROS-specific stuff
+            # @return [Loader]
+            attr_reader :ros_loader
 
             # The name of the root model for all ROS nodes
             OROGEN_ROS_NODE_NAME = "ROS::Node"
             
-            def initialize(loader)
-                super
+            def initialize(root_loader, ros_loader = root_loader)
+                super(root_loader)
+                @ros_loader = ros_loader
                 self.define_default_deployments = false
             end
 
@@ -60,7 +66,7 @@ module OroGen
             end
 
             def simple_deployment
-                raise NotImplementedError, "cannot create a simple deployment from a Orocos::Spec::ROS::Project"
+                raise NotImplementedError, "cannot create simple deployments on #{self.class}"
             end
 
             def __eval__(deffile, deftext, verbose = (::OroGen.logger.level == ::Logger::DEBUG))
@@ -85,5 +91,6 @@ module OroGen
             end
 
         end
+    end
     end
 end

@@ -1,8 +1,8 @@
-module Orocos::ROS
+module OroGen
+    module ROS
     module Spec
         # Representation of a ROS node as an oroGen model
-        class Node < Orocos::Spec::TaskContext
-
+        class Node < OroGen::Spec::TaskContext
             # @return [String] the name on the ROS side
             attr_accessor :ros_name
             # @return [String] the name of the ROS package
@@ -24,9 +24,9 @@ module Orocos::ROS
             #   ROS mapping must exist for it
             # @return [OutputTopic]
             def output_topic(topic_name, name, message_type)
-                data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
+                data_type = project.ros_loader.map_message_type_to_orogen(message_type)
                 topic = output_port(name, data_type, :class => OutputTopic)
-                topic.ros_name = ::Orocos::ROS.normalize_topic_name(topic_name)
+                topic.ros_name = ROS.normalize_topic_name(topic_name)
                 topic
             end
 
@@ -39,9 +39,9 @@ module Orocos::ROS
             #   ROS mapping must exist for it
             # @return [InputTopic]
             def input_topic(topic_name, name, message_type)
-                data_type = ::Orocos::ROS.map_message_type_to_orogen(message_type)
+                data_type = project.ros_loader.map_message_type_to_orogen(message_type)
                 topic = input_port(name, data_type, :class => InputTopic)
-                topic.ros_name = ::Orocos::ROS.normalize_topic_name(topic_name)
+                topic.ros_name = ROS.normalize_topic_name(topic_name)
                 topic
             end
 
@@ -62,17 +62,7 @@ module Orocos::ROS
             end
 
             def eql?(other); self == other end
-
-            # Test if there is a specification available for this node
-            #
-            # @return [Boolean] True if this object has been generated from spec, False
-            #   otherwise
-            def spec_available?
-                if !@spec_available and ros_name
-                    @spec_available = Orocos::ROS.node_spec_available?(ros_name)
-                end
-                @spec_available
-            end
         end
+    end
     end
 end

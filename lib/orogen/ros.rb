@@ -6,11 +6,8 @@ module OroGen
     end
 end
 
+require 'orogen/marshallers/ros'
 require 'orogen/ros/base'
-require 'orogen/ros/package'
-require 'orogen/ros/input_topic'
-require 'orogen/ros/output_topic'
-require 'orogen/ros/node'
-require 'orogen/ros/launcher'
 require 'orogen/ros/loader'
+require 'orogen/ros/spec'
 
