@@ -22,6 +22,7 @@ module OroGen
             def initialize(root_loader = self)
                 @search_path = Array.new
                 @packs = Array.new
+                @package_paths = Hash.new
                 @spec_file_suffix = ".orogen"
                 @orogen_to_ros_mappings = Hash.new
                 @ros_to_orogen_mappings = Hash.new
@@ -134,6 +135,15 @@ module OroGen
                     return path
                 end
 
+                # Look for it in the packs
+                packs.each do |pack_dir|
+                    pkg_dir = File.join(pack_dir, package_name)
+                    if File.directory?(pkg_dir)
+                        package_paths[package_name] = pkg_dir
+                        return pkg_dir
+                    end
+                end
+
                 package_path = (`rospack find #{package_name}` || '').strip
                 if package_path.empty?
                     raise ArgumentError, "rospack cannot find package #{package_name}"
@@ -143,12 +153,16 @@ module OroGen
 
             # Finds the path to a given ROS launch file
             # @return [String]
-            def roslaunch_find(package_name, launchfile_name)
+            def roslaunch_find(package_name, name)
                 package_path = rospack_find(package_name)
-                path = File.join(package_path, "launchers", launchfile_name)
+                launchfile_name = "#{name}.launch"
+                path = File.join(package_path, "launch", launchfile_name)
+                alternative_path = File.join(package_path, launchfile_name)
                 if File.file?(path)
                     return path
-                else raise ArgumentError, "package #{package_name} has no launch file #{launchfile_name} (looked in #{path})"
+                elsif File.file?(alternative_path)
+                    return alternative_path
+                else raise ArgumentError, "package #{package_name} has no launch file #{launchfile_name} (looked for #{path} and #{alternative_path})"
                 end
             end
 

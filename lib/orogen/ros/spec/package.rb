@@ -55,7 +55,7 @@ module OroGen
             def ros_launcher(name, &block)
                 launcher = Spec::Launcher.new(self, name)
                 launcher.instance_eval(&block) if block_given?
-                deployers << launcher
+                deployers[launcher.name] = launcher
                 launcher
             rescue Exception => e
                 raise e, "defining ROS launcher #{name} on #{self} failed: #{e.message}", e.backtrace
