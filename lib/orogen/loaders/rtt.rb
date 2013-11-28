@@ -40,6 +40,13 @@ module OroGen
             def self.setup_loader(loader)
                 standard_typekits.each do |tk|
                     loader.register_typekit_model(tk)
+                    # One additional step for us: register the types in
+                    # tk.typelist manually. This is needed as we use the
+                    # typelist to register non-normalized names
+                    tk.typelist.each do |typename|
+                        loader.typekits_by_type_name[typename] ||= Array.new
+                        loader.typekits_by_type_name[typename] << tk
+                    end
                 end
                 standard_projects.each do |proj|
                     loader.register_project_model(proj)
