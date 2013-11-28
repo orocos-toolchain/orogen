@@ -126,6 +126,15 @@ module OroGen
                 ::Kernel.const_get(m)
             end
 
+            def find_task_context(name)
+                @spec.loader.task_model_from_name(name)
+            rescue OroGen::TaskModelNotFound
+            end
+
+            def has_typekit?(name)
+                @spec.loader.has_typekit?(name)
+            end
+
             def __load__(file, verbose = (::OroGen.logger.level == ::Logger::DEBUG))
                 deffile = ::File.expand_path(file)
                 __eval__(deffile, File.read(deffile), verbose)
