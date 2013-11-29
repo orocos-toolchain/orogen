@@ -51,6 +51,10 @@ module OroGen
             end
 
             def to_s; "#<OroGen::Loaders::Files projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>" end
+
+            def each_available_project_name(&block)
+                return available_projects.each_key(&block)
+            end
         end
     end
 end

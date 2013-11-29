@@ -230,6 +230,10 @@ module OroGen
                     typekit_model_from_name(typekit.name)
                 end
             end
+
+            def each_available_project_name(&block)
+                return available_projects.each_key(&block)
+            end
         end
     end
 end

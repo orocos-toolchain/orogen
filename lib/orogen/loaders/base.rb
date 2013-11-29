@@ -448,6 +448,14 @@ module OroGen
             # @return [Set<String>]
             def find_deployments_from_deployed_task_name(name)
             end
+
+            # Enumerates the names of all available projects
+            #
+            # @yieldparam [String] project_name
+            def each_available_project_name
+                return enum_for(__method__) if !block_given?
+                nil
+            end
         end
     end
 end

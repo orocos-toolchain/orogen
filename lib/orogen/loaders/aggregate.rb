@@ -112,6 +112,22 @@ module OroGen
                 loaders.any? { |l| l.has_project?(name) }
             end
 
+            # Enumerates the names of all available projects
+            #
+            # @yieldparam [String] project_name
+            def each_available_project_name
+                return enum_for(__method__) if !block_given?
+                seen = Set.new
+                loaders.each do |l|
+                    l.each_available_project_name do |name|
+                        if !seen.include?(name)
+                            seen << name
+                            yield(name)
+                        end
+                    end
+                end
+                nil
+            end
         end
     end
 end
