@@ -128,6 +128,29 @@ module OroGen
                 end
                 nil
             end
+
+            def deployment_model_from_name(name)
+                if deployment = loaded_deployment_models[name]
+                    return deployment
+                end
+
+                OroGen::Loaders.debug "Aggregate: resolving deployment #{name} on #{loaders.map(&:to_s).join(",")}"
+                loaders.each do |l|
+                    begin
+                        # We assume that the sub-loaders are created with self
+                        # as root loader. They will therefore register
+                        # themselves on self
+                        return l.deployment_model_from_name(name)
+                    rescue DeploymentModelNotFound => e
+                        Loaders.debug "  not available on #{l}: #{e}"
+                    end
+                end
+                raise DeploymentModelNotFound, "there is no deployment named #{name} on #{self}"
+            end
+
+            def to_s
+                "#<#{self.class.name}: #{loaders.map(&:to_s).join(",")}>"
+            end
         end
     end
 end

@@ -161,7 +161,7 @@ module OroGen
 
                 project_name = find_project_from_deployment_name(name)
                 if !project_name
-                    raise DeploymentModelNotFound, "there is no deployment called #{name}"
+                    raise DeploymentModelNotFound, "there is no deployment called #{name} on #{self}"
                 end
 
                 project = project_model_from_name(project_name)
