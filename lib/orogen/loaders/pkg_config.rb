@@ -215,8 +215,14 @@ module OroGen
                            else type
                            end
 
-                if typekit = typekits_by_type_name[typename]
-                    return typekit.first
+                if typekits = typekits_by_type_name[typename]
+                    if exported
+                        if export_tk = typekits.find_all { |tk| tk.interface_type?(typename) }.first
+                            return export_tk
+                        end
+                    else
+                        return typekits.first
+                    end
                 end
 
                 typekit = available_types[typename]

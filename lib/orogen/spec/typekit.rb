@@ -109,6 +109,13 @@ module OroGen
                 typelist.include?(typename)
             end
 
+            def interface_type?(type)
+                typename = if type.respond_to?(:name) then type.name
+                           else type.to_str
+                           end
+                interface_typelist.include?(typename)
+            end
+
             # Get the opaque definition for a given type
             #
             # @param [Type,String] the type or type name
