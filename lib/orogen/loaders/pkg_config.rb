@@ -52,6 +52,11 @@ module OroGen
                 super(root_loader)
             end
 
+            def clear
+                super
+                update
+            end
+
             # Registers a project from its pkg-config object
             #
             # @param [Utilrb::PkgConfig] the pkg-config from the project

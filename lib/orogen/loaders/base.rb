@@ -53,17 +53,21 @@ module OroGen
             attr_reader :project_load_callbacks
 
             def initialize(root_loader = self)
+                @root_loader = root_loader
+                @typekit_load_callbacks = Array.new
+                @project_load_callbacks = Array.new
+                clear
+            end
+
+            def clear
                 @loaded_projects = Hash.new
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
                 @loaded_deployment_models = Hash.new
-                @root_loader = root_loader
                 @default_typekits = Set.new
                 @typekits_by_type_name = Hash.new
                 @registry = Typelib::Registry.new
                 @interface_typelist = Set.new
-                @typekit_load_callbacks = Array.new
-                @project_load_callbacks = Array.new
             end
 
             # Returns the project model corresponding to the given name

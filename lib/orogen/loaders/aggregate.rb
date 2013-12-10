@@ -10,6 +10,13 @@ module OroGen
                 super(root_loader)
             end
 
+            def clear
+                super
+                loaders.each do |l|
+                    l.clear
+                end
+            end
+
             def add(launcher)
                 @loaders << launcher
             end

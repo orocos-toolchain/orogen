@@ -24,14 +24,18 @@ module OroGen
                 @packs = Array.new
                 @package_paths = Hash.new
                 @spec_file_suffix = ".orogen"
-                @orogen_to_ros_mappings = Hash.new
-                @ros_to_orogen_mappings = Hash.new
 
                 super(root_loader)
 
                 root_loader.on_typekit_load do |tk|
                     load_rosmap_by_package_name(tk.name)
                 end
+            end
+
+            def clear
+                super
+                @orogen_to_ros_mappings = Hash.new
+                @ros_to_orogen_mappings = Hash.new
             end
 
             def to_s; "#<#{self.class.name} packs=#{packs.inspect} search_path=#{search_path.inspect}>" end
