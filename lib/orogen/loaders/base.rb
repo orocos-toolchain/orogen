@@ -280,12 +280,12 @@ module OroGen
             def resolve_type(type)
                 type = type.name if type.respond_to?(:name)
                 registry.get(type)
-            rescue Typelib::NotFound
+            rescue Typelib::NotFound => e
                 if define_dummy_types?
                     type = registry.create_null(typename)
                     interface_typelist << typename
                     return type
-                else raise
+                else raise e, "#{e.message} using #{self}", e.backtrace
                 end
             end
 
