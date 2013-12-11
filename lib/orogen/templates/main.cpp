@@ -297,7 +297,7 @@ int ORO_main(int argc, char* argv[])
 <% deployer.connections.
     sort_by { |src, dst, policy| [src.name, dst.name] }.
     each do |src, dst, policy|
-        if src.kind_of?(TaskDeployment) %>
+        if src.kind_of?(Spec::TaskDeployment) %>
             task_<%= src.activity.name %>->connectPorts(task_<%= dst.activity.name %>.get());
         <% else %>
         {
