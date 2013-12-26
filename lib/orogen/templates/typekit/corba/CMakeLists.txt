@@ -2,12 +2,15 @@
 
 <% typekit_deps = typekit.plugin('corba').dependencies(typekit); %>
 
-find_package(Orocos-RTT 2 REQUIRED)
+find_package(OrocosCORBA REQUIRED COMPONENTS Typekit)
+add_definitions(${OrocosCORBA_DEFINES})
+include_directories(${OrocosCORBA_INCLUDE_DIRS})
 
-if(NOT OROCOS-RTT_CORBA_FOUND)
-       message(FATAL "Could not find Orocos RTT Corba bindings")
-endif()
 <%= Generation.cmake_pkgconfig_require(typekit_deps, 'corba') %>
+
+IF (NOT OrocosCORBA_Typekit_FOUND)
+    MESSAGE(FATAL_ERROR "could not find development files for Orocos/CORBA")
+ENDIF(NOT OrocosCORBA_Typekit_FOUND)
 
 set(CORBA_FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>TypesC.cpp)
 if(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
@@ -20,6 +23,9 @@ add_custom_command(OUTPUT ${CORBA_FILES}
         ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>Types.idl
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>Types.idl)
 
+add_definitions(${OrocosCORBA_Typekit_DEFINES})
+include_directories(${OrocosCORBA_Typekit_INCLUDE_DIRS})
+
 # Generate the CORBA transport
 set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
 orocos_typekit(${libname_corba}
@@ -27,12 +33,6 @@ orocos_typekit(${libname_corba}
     ${CORBA_FILES})
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET} ${OROCOS-RTT_CORBA_LIBRARIES})
-
-if(WITH_RPATH AND APPLE)
-  set_target_properties( ${libname_corba} PROPERTIES
-    INSTALL_NAME_DIR "@rpath"
-    LINK_FLAGS "-Wl,-rpath ${CMAKE_INSTALL_PREFIX}/lib -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
-endif()
 
 <%= Generation.cmake_pkgconfig_link('corba', '${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_CORBA_LIBRARIES})
