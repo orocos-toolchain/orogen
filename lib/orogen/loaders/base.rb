@@ -30,11 +30,6 @@ module OroGen
             # The loader that should be used to resolve dependencies
             attr_reader :root_loader
 
-            # Set of typekits that should be loaded on every project
-            #
-            # @return [Set<Spec::Typekit>]
-            attr_reader :default_typekits
-
             # Sets the behaviour of the type resolution on unknown types
             #
             # @return [Boolean]
@@ -64,7 +59,6 @@ module OroGen
                 @loaded_typekits = Hash.new
                 @loaded_task_models = Hash.new
                 @loaded_deployment_models = Hash.new
-                @default_typekits = Set.new
                 @typekits_by_type_name = Hash.new
                 @registry = Typelib::Registry.new
                 @interface_typelist = Set.new
