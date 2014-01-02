@@ -254,6 +254,35 @@ module OroGen
             def to_s
                 "#<OroGen::Spec::Typekit #{name}>"
             end
+
+            def respond_to_missing?(m, include_private = false)
+                if super then return super
+                elsif m.to_s =~ /^create_(interface_)?(\w+)$/
+                    registry.respond_to?("create_#{$2}")
+                end
+            end
+
+            # Adds to the API of self the create_* methods on Typelib::Registry.
+            # All create_ methods are available, as well as the corresponding
+            # create_interface_XXX which both creates the type and declares it
+            # as a valid interface type
+            #
+            # @example create a null type
+            #   typekit.create_interface_null('/NewType')
+            def method_missing(m, *args, &block)
+                case m.to_s
+                when /^create_(interface_)?(\w+)$/
+                    interface = !!$1
+                    category  = $2
+                    type = registry.send("create_#{category}", *args, &block)
+                    typelist << type.name
+                    if interface
+                        interface_typelist << type.name
+                    end
+                    type
+                else raise
+                end
+            end
         end
     end
 end
