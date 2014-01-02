@@ -27,12 +27,12 @@ add_definitions(${OrocosCORBA_Typekit_DEFINES})
 include_directories(${OrocosCORBA_Typekit_INCLUDE_DIRS})
 
 # Generate the CORBA transport
-set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
+set(libname_corba <%= typekit.name %>-transport-corba)
 orocos_typekit(${libname_corba}
     <%= impl.join("\n    ") %>
     ${CORBA_FILES})
 target_link_libraries(${libname_corba}
-    <%= typekit.name %>-typekit-${OROCOS_TARGET} ${OROCOS-RTT_CORBA_LIBRARIES})
+    <%= typekit.name %>-typekit ${OROCOS-RTT_CORBA_LIBRARIES})
 
 <%= Generation.cmake_pkgconfig_link('corba', '${libname_corba}', typekit_deps) %>
 target_link_libraries(${libname_corba} LINK_INTERFACE_LIBRARIES ${OROCOS-RTT_CORBA_LIBRARIES})

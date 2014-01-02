@@ -4,8 +4,10 @@
 # Header for typegen-generated typekits
 #
 <% if typekit.standalone? %>
-project("<%= typekit.name %>-typekit")
-cmake_minimum_required(VERSION 2.6)
+if(NOT ${PROJECT_NAME} STREQUAL "<%= typekit.name %>")
+  project("<%= typekit.name %>-typekit")
+  cmake_minimum_required(VERSION 2.6)
+endif()
 
 SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
 include(OrogenPkgCheckModules)
@@ -80,7 +82,7 @@ set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
 string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 
 # Generate the base typekit shared library
-set(libname <%= typekit.name %>-typekit-${OROCOS_TARGET})
+set(libname <%= typekit.name %>-typekit)
 orocos_typekit(${libname}
     <%= relatives = []
         implementation_files.each do |file| 
@@ -92,7 +94,7 @@ orocos_typekit(${libname}
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
-target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
+target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES)
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
@@ -101,7 +103,7 @@ install(FILES
     <% if typekit.has_opaques_with_templates? %>
     Opaques.hpp
     <% end %>
-    DESTINATION include/orocos/<%= typekit.name %>)
+    DESTINATION include/orocos/<%= typekit.name %>/typekit)
 install(FILES
     <%= relatives = []
         public_header_files.each do |file|
