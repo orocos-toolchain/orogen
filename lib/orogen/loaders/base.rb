@@ -106,6 +106,15 @@ module OroGen
                         block.call(p)
                     end
                 end
+                block
+            end
+
+            # Removes the given callback from the listeners to {on_project_load}
+            #
+            # @param [Object] callback the value returned by {on_project_load}
+            #   for the callback that should be removed
+            def remove_project_load_callback(callback)
+                project_load_callbacks.delete(callback)
             end
 
             # Returns the task library model corresponding to the given name
