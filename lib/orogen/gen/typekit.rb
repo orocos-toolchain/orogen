@@ -1280,11 +1280,11 @@ module Orocos
                     # TODO: work around this in Typelib and oroGen by emitting a
                     # TODO: single-dimension array of the right size
                     if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
-                        STDERR.puts "WARN: ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        Orocos::Generation.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
                         to_delete << type
 
                     elsif type < Typelib::PointerType
-                        STDERR.puts "WARN: ignoring #{type.name} as pointers are not allowed"
+                        Orocos::Generation.warn "ignoring #{type.name} as pointers are not allowed"
                         to_delete << type
 
                     elsif type.name == "/std/vector</bool>"
@@ -1294,7 +1294,7 @@ module Orocos
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
-                                STDERR.puts "WARN: ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
+                                Orocos::Generation.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
                                 to_delete << type
                                 break
                             end
@@ -1307,7 +1307,7 @@ module Orocos
                     deleted_types = registry.remove(type)
                     deleted_types.each do |dep_type|
                         next if to_delete.include?(dep_type)
-                        STDERR.puts "WARN: ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                        Orocos::Generation.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
                     end
                 end
             end
