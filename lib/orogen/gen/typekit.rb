@@ -1302,7 +1302,6 @@ module Orocos
                     end
                 end
 
-                already_deleted = to_delete.dup
                 to_delete.each do |type|
                     deleted_types = registry.remove(type)
                     deleted_types.each do |dep_type|
