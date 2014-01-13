@@ -1287,6 +1287,10 @@ module Orocos
                         STDERR.puts "WARN: ignoring #{type.name} as pointers are not allowed"
                         to_delete << type
 
+                    elsif type.name == "/std/vector</bool>"
+                        Orocos::Generation.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
+                        to_delete << type
+
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
