@@ -2,6 +2,7 @@
 
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <rtt/internal/GlobalEngine.hpp>
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
@@ -236,6 +237,15 @@ int ORO_main(int argc, char* argv[])
     RTT::os::Thread::setLockTimeoutPeriodFactor(<%= lock_factor %>);
 <% end %>
 
+// Initialize some global threads so that we can properly setup their threading
+// parameters
+<% has_realtime = task_activities.all? { |t| t.realtime? } %>
+<% if has_realtime %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
+<% else %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
+<% end %>
+
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
@@ -380,7 +390,11 @@ int ORO_main(int argc, char* argv[])
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
-    RTT::corba::TaskContextServer::ThreadOrb();
+    <% if has_realtime %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
+    <% else %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
+    <% end %>
     while (true)
     {
         uint8_t dummy;
