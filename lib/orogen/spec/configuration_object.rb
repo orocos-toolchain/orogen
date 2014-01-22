@@ -18,8 +18,8 @@ module Orocos
             def dynamic?; !!@setter_operation end
 
             # An operation that can be used to set the property. This is non-nil
-            # only for dynamic properties
-            #
+            # only for dynamic properties. 
+            # 
             # @return [Orocos::Spec::Operation]
             attr_accessor :setter_operation
 
@@ -57,9 +57,9 @@ module Orocos
 	    end
 
             def dynamic
-                @setter_operation = task.find_operation("set#{name.capitalize}")
+                @setter_operation = task.find_operation("__orogen_set#{name.capitalize}")
                 if !@setter_operation
-                    @setter_operation = task.operation("set#{name.capitalize}").
+                    @setter_operation = task.operation("__orogen_set#{name.capitalize}").
                         returns("bool").
                         argument("value", type_name).
                         doc("Dynamic Property setter of #{name}")
