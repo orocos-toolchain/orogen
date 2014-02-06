@@ -292,6 +292,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 <% task_activities.each do |task| %>
     servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
+    sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
     servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
     deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
