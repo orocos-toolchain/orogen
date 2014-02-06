@@ -6,7 +6,7 @@
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-#include <service_discovery/service_discovery.h>
+#include <service_discovery/ServiceDiscovery.hpp>
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
@@ -78,9 +78,9 @@ class Deinitializer
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-    friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
+    friend Deinitializer& operator << (Deinitializer&, servicediscovery::avahi::ServiceDiscovery&);
 
-    std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
+    std::vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
 #endif
 <% end %>
 
@@ -96,7 +96,7 @@ public:
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-        for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+        for(std::vector<servicediscovery::avahi::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
                 sit != m_service_discoveries.end(); ++sit)
         {
             (*sit)->stop();
@@ -115,7 +115,7 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
+Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::ServiceDiscovery& service_discovery)
 {
     deinit.m_service_discoveries.push_back(&service_discovery);
     return deinit;
@@ -290,9 +290,9 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
+    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
-    servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
     deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
 <% end %>
