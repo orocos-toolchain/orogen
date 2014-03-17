@@ -9,6 +9,10 @@ module Orocos
 	    attr_reader :name
 	    # The port type. It can be nil for dynamic ports
 	    attr_reader :type
+            # The port which get's depriated by this, nil otherwise
+            attr_reader :deprecated_port
+            # Returns the parent object if this port-type should be replaced_by
+            attr_accessor :replaced_by
             # The port type name
             def type_name; type.name end
             # The port name as it is registered on RTT
@@ -269,6 +273,34 @@ module Orocos
                 resolved_type = task.project.intermediate_type_for(type)
                 OutputPort.compute_max_marshalling_size(resolved_type, max_sizes)
             end
+
+            def each_deprecated_port(&block)
+                p = deprecated_port
+                while p
+                    yield p
+                    p = p.deprecated_port
+                end
+            end
+
+            # this function marks that this port depricates another port
+            # This is used for backward_compability. If this port depricates
+            # another port, the connection to the right datatype is automaticly
+            # established.
+            #
+            # pass "type" as the old datatype which should be still handled by the component
+            def deprecates(type)
+                STDOUT.puts "Meine klasse is: #{self.class.name}"
+                if self.class == Orocos::Spec::InputPort
+                    @deprecated_port = task.input_port("depricated_#{self.name}",type)
+                elsif self.class == Orocos::Spec::OutputPort
+                    @deprecated_port = task.output_port("depricated_#{self.name}",type)
+                else
+                    raise ArgumentError, "Could not create deprication of #{name}, #{self} is neither a Input nor Output Port"
+                end
+                @deprecated_port.replaced_by = self
+                @deprecated_port
+            end
+
 	end
     end
 end

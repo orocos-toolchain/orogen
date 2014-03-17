@@ -1168,6 +1168,22 @@ module Orocos
                 !find_dynamic_output_ports(name, type).empty?
             end
 
+            # Returns each deprecated type the ports of this task supports
+            def deprecated_types
+                arr = Set.new
+                each_port do |port|
+                    port.each_deprecated_port do |dep_port|
+                        arr << dep_port.type
+                    end
+                end
+                arr
+            end
+
+            def has_deprecated_ports?
+                input_ports.values.any?{|p| p.deprecated_port} ||
+                output_ports.values.any?{|p| p.deprecated_port}
+            end
+
             # A set of ports that will trigger this task when they get updated.
             enumerate_inherited_map 'event_port', 'event_ports'
 
