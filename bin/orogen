@@ -169,8 +169,8 @@ rescue LoadError, Orocos::Generation::ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
-    error_line = e.backtrace.find { |line| line =~ file_pattern }
-    STDERR.puts "#{error_line}: #{e.message}"
+    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
+    STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
     exit 1
 rescue Exception => e
     STDERR.puts "===== Internal error ======="
