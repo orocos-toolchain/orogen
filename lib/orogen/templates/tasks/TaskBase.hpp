@@ -62,17 +62,6 @@ namespace <%= component.name %> {
     map { |m| m.with_indent(8, :declaration) }.
     compact.join("\n") %>
 
-<% if task.has_deprecated_ports? %>
-        template<typename T>
-        RTT::InputPort<T>* findDeprecatedInputPort(const std::string &name){
-           return 0;
-        }
-        template<typename T>
-        RTT::OutputPort<T>* findDeprecatedOutputPort(const std::string &name){
-           return 0;
-        }
-<% end %>
-
     public:
         <% if extended_state_support? %>
         enum States
@@ -118,13 +107,6 @@ namespace <%= component.name %> {
         <%= (is_boolean ? 'bool' : 'void') %> <%= hook_name %>Hook();
 <% end %>
     };
-
-<% task.deprecated_types.each do |type| %>
-        template<>
-        RTT::InputPort< <%= type.cxx_name %> >* <%= task.basename %>Base::findDeprecatedInputPort< <%= type.cxx_name %> >(const std::string &name);
-        template<>
-        RTT::OutputPort< <%= type.cxx_name %> >* <%= task.basename %>Base::findDeprecatedOutputPort< <%= type.cxx_name %> >(const std::string &name);
-<% end %>
 }
 
 <%= code_after.sort.join("\n") %>

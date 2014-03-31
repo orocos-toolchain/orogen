@@ -76,40 +76,6 @@ void <%= task.basename %>Base::setupComponentInterface()
         map { |m| m.with_indent(0, :definition) }.
         compact.join("\n") %>
 
-
-<% task.deprecated_types.each do |type| %>
-
-        template<> RTT::OutputPort< <%= type.cxx_name %> >* <%= task.basename %>Base::findDeprecatedOutputPort< <%=type.cxx_name %> >(const std::string &name){
-<% task.each_output_port do |port| %>
-<% next if port.replaced_by %>
-<% port.each_deprecated_port do |dep_port| %>
-<% if dep_port.type == type %>
-            if(name == std::string("<%= port.name %>"))
-            {
-                return &_<%= dep_port.name %>;
-            }
-<% end %>
-<% end %>
-<% end %>
-            return NULL;
-        }
-
-        template<> RTT::InputPort< <%= type.cxx_name %> >* <%= task.basename %>Base::findDeprecatedInputPort< <%=type.cxx_name %> >(const std::string &name){
-<% task.each_input_port do |port| %>
-<% next if port.replaced_by %>
-<% port.each_deprecated_port do |dep_port| %>
-<% if dep_port.type == type %>
-            if(name == std::string("<%= port.name %>"))
-            {
-                return &_<%= dep_port.name %>;
-            }
-<% end %>
-<% end %>
-<% end %>
-            return NULL;
-        }
-<% end %>
-
 <% if task.extended_state_support? %>
 void <%= task.basename %>Base::report(States state)
 {
