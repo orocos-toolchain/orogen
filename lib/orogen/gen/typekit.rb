@@ -2190,14 +2190,16 @@ module Orocos
                 includes = type.metadata.get('orogen_include')
                 if !includes.empty?
                     return includes.map { |s| s.split(':').last }
-                elsif type <= Typelib::NumericType
-                    return []
                 elsif imported_types.include?(type.name)
                     import = imported_types.get(type.name)
                     includes = import.metadata.get('orogen_include')
                     if !includes.empty?
                         return includes.map { |s| s.split(':').last }
                     end
+                end
+
+                if type <= Typelib::NumericType
+                    return []
                 end
 
                 if type.opaque?
