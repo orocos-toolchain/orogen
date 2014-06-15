@@ -1,7 +1,5 @@
-require 'test/unit'
-require 'minitest/spec'
-require 'fileutils'
 require 'orogen'
+require 'fileutils'
 require 'flexmock'
 
 module Orocos

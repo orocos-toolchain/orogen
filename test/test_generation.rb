@@ -1,7 +1,7 @@
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'orogen/test'
 
-class TC_GenerationErrorCases < Test::Unit::TestCase
+class TC_GenerationErrorCases < Minitest::Test
     include Orocos::Generation::Test
     TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
 

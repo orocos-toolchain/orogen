@@ -1,7 +1,7 @@
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'orogen/test'
 
-class TC_GenerationTasks < Test::Unit::TestCase
+class TC_GenerationTasks < Minitest::Test
     include Orocos::Generation::Test
 
     # Orogen should refuse to create a task context which has the same name than

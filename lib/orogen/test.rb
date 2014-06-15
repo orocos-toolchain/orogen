@@ -13,29 +13,21 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
 end
 
 require 'orogen'
-## Uncomment this to enable flexmock
 require 'flexmock/test_unit'
 require 'minitest/spec'
 
 if ENV['TEST_ENABLE_PRY'] != '0'
     begin
         require 'pry'
+        if ENV['TEST_DEBUG'] == '1'
+            require 'pry-rescue/minitest'
+        end
     rescue Exception
         OroGen.warn "debugging is disabled because the 'pry' gem cannot be loaded"
     end
 end
 
 module OroGen
-    # This module is the common setup for all tests
-    #
-    # It should be included in the toplevel describe blocks
-    #
-    # @example
-    #   require 'dummyproject/test'
-    #   describe OroGen do
-    #     include OroGen::SelfTest
-    #   end
-    #
     module SelfTest
         if defined? FlexMock
             include FlexMock::ArgumentTypes
@@ -51,6 +43,25 @@ module OroGen
         end
     end
 end
+
+# Workaround a problem with flexmock and minitest not being compatible with each
+# other (currently). See github.com/jimweirich/flexmock/issues/15.
+if defined?(FlexMock) && !FlexMock::TestUnitFrameworkAdapter.method_defined?(:assertions)
+    class FlexMock::TestUnitFrameworkAdapter
+        attr_accessor :assertions
+    end
+    FlexMock.framework_adapter.assertions = 0
+end
+
+module Minitest
+    class Spec
+        include OroGen::SelfTest
+    end
+    class Test
+        include OroGen::SelfTest
+    end
+end
+
 
 # Old testing infrastructure
 require 'orogen/gen/test'

@@ -1,7 +1,7 @@
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'orogen/test'
 
-class TC_GenerationTypekit < Test::Unit::TestCase
+class TC_GenerationTypekit < Minitest::Test
     include Orocos::Generation::Test
 
     TRANSPORTS = ['corba', 'typelib', ['typelib', 'mqueue']]
