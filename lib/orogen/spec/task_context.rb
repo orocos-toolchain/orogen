@@ -59,7 +59,11 @@ module OroGen
                 def disable_default_extensions
                     @extensions_disabled = true
                 end
-                
+
+                def enable_default_extensions
+                    @extensions_disabled = false
+                end
+
                 def apply_default_extensions(task_context)
                     if !extensions_disabled
                         default_extensions.each do |ext|

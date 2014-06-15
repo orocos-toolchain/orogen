@@ -155,7 +155,7 @@ begin
     filename  = files.first
     OroGen.beautify_loading_errors(filename) do
         component.enable_transports(*transports)
-        component.load(filename, verbosity > 1)
+        component.enable_extension(extensions)
         imported_typekits.each do |tk_name|
             begin
                 component.using_typekit tk_name
@@ -163,7 +163,7 @@ begin
                 raise ArgumentError, "#{tk_name}, which was given to the --import option, does not seem to be a typekit name"
             end
         end
-        component.enable_extension(extensions)
+        component.load(filename, verbosity > 1)
     end
 
     component.generate
@@ -171,8 +171,8 @@ rescue LoadError, ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
-    error_line = e.backtrace.find { |line| line =~ file_pattern }
-    STDERR.puts "#{error_line}: #{e.message}"
+    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
+    STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
     exit 1
 rescue Exception => e
     STDERR.puts "===== Internal error ======="

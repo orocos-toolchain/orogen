@@ -7,9 +7,40 @@ module Orocos
             end
         end
 
+        module ConfigurationObjectGeneration
+            def gen_dynamic_setter
+                if dynamic? && (setter_operation.task == task)
+                    #Adding user method
+                    task.add_base_method("bool", "set#{name.capitalize}",setter_operation.argument_signature).
+                        body("  return true;")
+                    task.add_user_method("bool", "set#{name.capitalize}",setter_operation.argument_signature).
+                        body( " return(#{task.name}Base::set#{name.capitalize}(value));")
+
+                    #Adding user method cal to updateDynamicProperties
+                    task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
+
+                    setter_operation.base_body= <<EOF
+//      The following steps happen within the base Implementation:
+//       if the task is not configured yet, update the classical property and return true
+//       if the task is configured OR running so far, call the user method to update the value
+//         if the user method return false, we return false too and do NOT update the classical value
+        if(isConfigured()){
+            if(!set#{name.capitalize}(#{setter_operation.argument_signature(true,false)})){
+                return false;
+            }
+        }
+        _#{name}.set(value);
+        return true;
+EOF
+                    setter_operation.hidden = true
+                end
+            end
+        end
+
         # Module that is used to add code generation functionality to
         # Spec::Property
         module PropertyGeneration
+            include ConfigurationObjectGeneration
 
             def used_types; [type] end
 
@@ -26,11 +57,7 @@ module Orocos
                     constructor(constructor.join("\n"))
 
 
-                if dynamic? && (setter_operation.task == task)
-                    task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
-                    setter_operation.base_body = "    //Update the RTT value of this property\n    _#{name}.set(value); \n    return true;"
-                    setter_operation.body = "    //TODO Add your code here \n\n    //Call the base function, DO-NOT remove\n    return(#{task.name}Base::set#{name.capitalize}(value));"
-                end
+                gen_dynamic_setter
 
             end
         end
@@ -38,6 +65,8 @@ module Orocos
         # Module that is used to add code generation functionality to
         # Spec::Attribute
         module AttributeGeneration
+            include ConfigurationObjectGeneration
+
             def used_types; [type] end
 
             def register_for_generation
@@ -52,11 +81,7 @@ module Orocos
                     initializer("_#{name}(\"#{name}\")").
                     constructor(constructor.join("\n"))
                 
-                if dynamic? && (setter_operation.task == task)
-                    task.add_code_to_base_method_before "updateDynamicAttributes","    if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
-                    setter_operation.base_body = "    //Update the RTT value of this attribute\n    _#{name}.set(value); \n    return true;"
-                    setter_operation.body = "    //TODO Add your code here \n\n    //Call the base function, DO-NOT remove\n    return(#{task.name}Base::set#{name.capitalize}(value));"
-                end
+                gen_dynamic_setter
             end
         end
 
@@ -165,7 +190,7 @@ module Orocos
             end
 
 	    # Returns the argument part of the C++ signature for this callable
-	    def argument_signature(with_names = true)
+	    def argument_signature(with_names = true, with_types = true)
 		arglist = arguments.map do |name, type, doc, qualified_type|
                     # Auto-add const-ref for non-trivial types
                     arg =
@@ -175,9 +200,7 @@ module Orocos
                             qualified_type
                         end
 
-		    if with_names then "#{arg} #{name}"
-		    else arg
-		    end
+		    ("#{arg if with_types} #{name if with_names}").strip
 		end
 
 		arglist.join(", ")
@@ -404,10 +427,15 @@ module Orocos
                     begin
                         while true
                             line = file.readline
-                            if Regexp.new(taskname + "\(.*\)").match(line)
-                                if $1 =~ /TaskCore::TaskState/
-                                    puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                            begin
+                                if Regexp.new(taskname + "\(.*\)").match(line)
+                                    if $1 =~ /TaskCore::TaskState/
+                                        puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                                    end
                                 end
+                            rescue ArgumentError => e 
+                                STDERR.puts "[CRITICAL] Could not parse \'#{line}\' maybe it contains invalid chars?"
+                                raise e
                             end
                         end
                     rescue EOFError
@@ -804,7 +832,6 @@ module Orocos
             def has_base_method?(name)
                 all_base_methods.any? { |m| m.name == name }
             end
-
 
             # This function adds @param code [String] AFTER the already defined code on the 
             # @param name [String] given method

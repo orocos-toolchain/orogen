@@ -1100,17 +1100,21 @@ module Orocos
                     # TODO: work around this in Typelib and oroGen by emitting a
                     # TODO: single-dimension array of the right size
                     if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
-                        STDERR.puts "WARN: ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        Orocos::Generation.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
                         to_delete << type
 
                     elsif type < Typelib::PointerType
-                        STDERR.puts "WARN: ignoring #{type.name} as pointers are not allowed"
+                        Orocos::Generation.warn "ignoring #{type.name} as pointers are not allowed"
+                        to_delete << type
+
+                    elsif type.name == "/std/vector</bool>"
+                        Orocos::Generation.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
                         to_delete << type
 
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
-                                STDERR.puts "WARN: ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
+                                Orocos::Generation.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
                                 to_delete << type
                                 break
                             end
@@ -1118,12 +1122,11 @@ module Orocos
                     end
                 end
 
-                already_deleted = to_delete.dup
                 to_delete.each do |type|
                     deleted_types = registry.remove(type)
                     deleted_types.each do |dep_type|
                         next if to_delete.include?(dep_type)
-                        STDERR.puts "WARN: ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                        Orocos::Generation.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
                     end
                 end
             end
@@ -2007,14 +2010,16 @@ module Orocos
                 includes = type.metadata.get('orogen_include')
                 if !includes.empty?
                     return includes.map { |s| s.split(':').last }
-                elsif type <= Typelib::NumericType
-                    return []
                 elsif imported_types.include?(type.name)
                     import = imported_types.get(type.name)
                     includes = import.metadata.get('orogen_include')
                     if !includes.empty?
                         return includes.map { |s| s.split(':').last }
                     end
+                end
+
+                if type <= Typelib::NumericType
+                    return []
                 end
 
                 if type.opaque?

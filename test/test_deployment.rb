@@ -143,6 +143,10 @@ class TC_GenerationDeployment < Test::Unit::TestCase
         end
     end
 
+    def test_deployment_with_connection(*transports)
+        build_test_component("modules/deployment_with_connection", transports)
+    end
+
     def test_cross_dependencies(*transports)
         # Generate and build all the modules that are needed ...
         typekit_opaque = build_test_component("modules/typekit_opaque", transports)

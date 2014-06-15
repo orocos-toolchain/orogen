@@ -35,6 +35,7 @@ test/data/modules/with_configuration/tasks/Configurable.cpp
 test/data/modules/with_configuration/tasks/Configurable.hpp
 test/data/modules/with_configuration/with_configuration.orogen
 test/data/modules/typekit_dependencies_lib/tkdeps_lib.h
+test/data/modules/deployment_with_connection/deployment_with_connections.orogen
 test/data/modules/simple/simple_component.orogen
 test/data/modules/cross_consumer/consumer.orogen
 test/data/modules/cross_consumer/tasks/Consumer.cpp
@@ -79,7 +80,13 @@ test/data/modules/typekit_simple/simple.h
 test/data/modules/typekit_simple/complex_array.xml
 test/data/modules/typekit_simple/test.cpp
 test/data/opaque_invalid.h
+test/data/typekit/std_vector_bool.h
+test/data/typekit/pointer.h
+test/data/typekit/multi_dimensional_array.h
+test/data/typekit/compound_with_field_not_starting_with_alphanumeric_character.h
+test/data/typekit/rejected_dependencies.h
 test/spec/test_task_context.rb
+test/gen/test_typekit.rb
 test/test_build.rb
 test/test_tasks.rb
 test/test_deployment.rb
@@ -131,8 +138,10 @@ lib/orogen/templates/tasks/TaskBase.cpp
 lib/orogen/templates/project.pc
 lib/orogen/templates/gitignore
 lib/orogen/templates/typekit/TemplateInstanciation.cpp
+lib/orogen/templates/typekit/OpaqueFwd.hpp
 lib/orogen/templates/typekit/manifest.xml
 lib/orogen/templates/typekit/Makefile
+lib/orogen/templates/typekit/TypesDeprecated.hpp
 lib/orogen/templates/typekit/BoostSerialization.hpp
 lib/orogen/templates/typekit/typelib/transport-typelib.pc
 lib/orogen/templates/typekit/typelib/Registration.hpp
@@ -153,6 +162,8 @@ lib/orogen/templates/typekit/ros/config.cmake.in
 lib/orogen/templates/typekit/ros/Convertions.hpp
 lib/orogen/templates/typekit/ros/transport-ros.pc
 lib/orogen/templates/typekit/ros/ROSConvertions.cpp
+lib/orogen/templates/typekit/ros/transport-ros-disabled.pc
+lib/orogen/templates/typekit/ros/CMakeLists-disabled.txt
 lib/orogen/templates/typekit/ros/Type.msg
 lib/orogen/templates/typekit/mqueue/Registration.hpp
 lib/orogen/templates/typekit/mqueue/Type.cpp
@@ -161,6 +172,7 @@ lib/orogen/templates/typekit/mqueue/CMakeLists.txt
 lib/orogen/templates/typekit/mqueue/TransportPlugin.hpp
 lib/orogen/templates/typekit/mqueue/TransportPlugin.cpp
 lib/orogen/templates/typekit/typekit.pc
+lib/orogen/templates/typekit/OpaqueTypes.hpp
 lib/orogen/templates/typekit/CMakeLists.txt
 lib/orogen/templates/typekit/package.xml
 lib/orogen/templates/typekit/Types.hpp
@@ -177,6 +189,7 @@ lib/orogen/templates/typekit/corba/TransportPlugin.cpp
 lib/orogen/templates/typekit/corba/Convertions.hpp
 lib/orogen/templates/typekit/corba/transport-corba.pc
 lib/orogen/templates/typekit/Plugin.cpp
+lib/orogen/templates/typekit/OpaquesDeprecated.hpp
 lib/orogen/templates/typekit/Plugin.hpp
 lib/orogen/templates/typekit/Opaques.cpp
 lib/orogen/templates/typekit/type_info/ArrayInfo.cpp
@@ -208,3 +221,4 @@ lib/orogen/marshallers/mqueue.rb
 lib/orogen/base.rb
 lib/orogen/rtt.orogen
 lib/orogen.rb
+

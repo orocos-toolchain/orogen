@@ -2,10 +2,11 @@
 
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <rtt/internal/GlobalEngine.hpp>
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-#include <service_discovery/service_discovery.h>
+#include <service_discovery/ServiceDiscovery.hpp>
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
@@ -77,9 +78,9 @@ class Deinitializer
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-    friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
+    friend Deinitializer& operator << (Deinitializer&, servicediscovery::avahi::ServiceDiscovery&);
 
-    std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
+    std::vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
 #endif
 <% end %>
 
@@ -95,7 +96,7 @@ public:
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-        for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+        for(std::vector<servicediscovery::avahi::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
                 sit != m_service_discoveries.end(); ++sit)
         {
             (*sit)->stop();
@@ -114,7 +115,7 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
+Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::ServiceDiscovery& service_discovery)
 {
     deinit.m_service_discoveries.push_back(&service_discovery);
     return deinit;
@@ -236,6 +237,15 @@ int ORO_main(int argc, char* argv[])
     RTT::os::Thread::setLockTimeoutPeriodFactor(<%= lock_factor %>);
 <% end %>
 
+// Initialize some global threads so that we can properly setup their threading
+// parameters
+<% has_realtime = task_activities.all? { |t| t.realtime? } %>
+<% if has_realtime %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
+<% else %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
+<% end %>
+
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
@@ -280,9 +290,10 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
+    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
-    servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
+    servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
     deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
 <% end %>
@@ -297,7 +308,7 @@ int ORO_main(int argc, char* argv[])
 <% deployer.connections.
     sort_by { |src, dst, policy| [src.name, dst.name] }.
     each do |src, dst, policy|
-        if src.kind_of?(TaskDeployment) %>
+        if src.kind_of?(Spec::TaskDeployment) %>
             task_<%= src.activity.name %>->connectPorts(task_<%= dst.activity.name %>.get());
         <% else %>
         {
@@ -380,7 +391,11 @@ int ORO_main(int argc, char* argv[])
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
-    RTT::corba::TaskContextServer::ThreadOrb();
+    <% if has_realtime %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
+    <% else %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
+    <% end %>
     while (true)
     {
         uint8_t dummy;
