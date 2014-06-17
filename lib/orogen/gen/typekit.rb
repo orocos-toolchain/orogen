@@ -1798,7 +1798,7 @@ module Orocos
                 registered_types =
                     if type_export_policy == :all
                         generated_types.find_all do |type|
-                            !m_type?(type)
+                            !m_type?(type) && !(type <= Typelib::NumericType)
                         end.to_value_set
 
                     elsif type_export_policy == :used
