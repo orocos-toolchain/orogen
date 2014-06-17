@@ -1358,7 +1358,7 @@ module Orocos
                 'unsigned int' => 'uint' }
             BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib ros}
 
-            def normalize_registry(with_base_types = false)
+            def normalize_registry
                 base = self.registry
                 result = Typelib::Registry.new
                 self_types.each do |type|
@@ -1372,16 +1372,6 @@ module Orocos
                 opaques.each do |op_def|
                     if result.include?(op_def.type.name)
                         result.merge(base.minimal(find_type(op_def.intermediate).name))
-                    end
-                end
-
-                if with_base_types
-                    standard_types = Typelib::Registry.new
-                    Typelib::Registry.add_standard_cxx_types(standard_types)
-                    base.merge(standard_types)
-
-                    BASE_TYPES.each do |typename|
-                        result.merge(base.minimal(typename))
                     end
                 end
 
@@ -1737,15 +1727,6 @@ module Orocos
                     Generation.create_or_update_symlink(automatic_dir, fake_typekit_dir)
                 end
 
-                # Small hack to workaround the current structure w.r.t. our
-                # usage of the main RTT typekit
-                #
-                # We need to generate the typelib / mqueue transports (not
-                # CORBA) for the base types *if and only if* we are NOT
-                # standalone (we are using oroGen and not typegen) *and* the
-                # oroGen project does not import any other typekit
-                generate_transports_for_base_types = false && (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
-
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
@@ -1753,7 +1734,7 @@ module Orocos
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-                @registry = normalize_registry(generate_transports_for_base_types)
+                @registry = normalize_registry
 		minimal_registry = @registry.dup
                 generated_types = self_types.to_value_set
 
@@ -1925,24 +1906,8 @@ module Orocos
                     end
                 end
 
-                if generate_transports_for_base_types
-                    base_type_aliases = Hash.new
-                    base_types = BASE_TYPES.map do |typename|
-                        type = minimal_registry.get(typename)
-                        base_type_aliases[type] = [BASE_TYPES_RTT_NAMES[typename] || typename]
-                        type
-                    end.to_value_set
-                end
-
                 each_plugin do |plg|
                     plg_typesets = type_sets.dup
-                    if generate_transports_for_base_types && BASE_TYPES_NEEDED_TRANSPORTS.include?(plg.name)
-                        plg_typesets.interface_types = (plg_typesets.interface_types.to_value_set | base_types).
-                            sort_by { |t| t.name }
-
-                        plg_typesets.aliases = plg_typesets.aliases.merge(base_type_aliases)
-                    end
-
                     headers, impl = plg.generate(plg_typesets)
                     plugin_header_files.concat(headers)
                     implementation_files.concat(impl)
