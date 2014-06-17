@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <rtt/internal/GlobalEngine.hpp>
+#include <rtt/TaskContext.hpp>
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
