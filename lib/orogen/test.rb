@@ -29,6 +29,8 @@ if ENV['TEST_ENABLE_PRY'] != '0'
     end
 end
 
+TEST_DIR = File.expand_path(File.join('..', '..', '..', 'test'), __FILE__)
+
 module OroGen
     module SelfTest
         if defined? FlexMock

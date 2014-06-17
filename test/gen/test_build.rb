@@ -1,10 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orogen/test'
+require 'orogen/gen/test'
 
 class TC_GenerationBuild < Minitest::Test
-    include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-
     def test_check_uptodate
         build_test_component "modules/simple", []
 

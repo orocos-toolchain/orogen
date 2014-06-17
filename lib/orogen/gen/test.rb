@@ -1,9 +1,10 @@
-require 'orogen'
+require 'orogen/test'
+require 'orogen/gen'
 require 'fileutils'
-require 'flexmock'
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         # This module includes common methods used by orogen's test suite. The
         # basic idea is to have a set of methods that allow:
         #  - each module to be built and installed in a separate directory
@@ -22,13 +23,9 @@ module Orocos
         # If TEST_DONT_CLEAN is set, the module's working directory is not
         # cleaned. It speeds up the testing process when the test files don't
         # change but orogen does change.
-	module Test
-	    include Orocos
-	    include Orocos::Generation
-            include FlexMock::ArgumentTypes
-            include FlexMock::MockContainer
+	module SelfTest
+            include OroGen::Gen::RTT_CPP
 
-	    TEST_DIR      = File.expand_path('../../test', File.dirname(__FILE__))
             TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
             WC_ROOT  = File.join(TEST_DIR, 'wc')
 
@@ -210,11 +207,14 @@ module Orocos
                 end
 
                 in_prefix do
-                    output = nil
                     assert(system(test_bin))
                 end
             end
 	end
     end
+    end
+    Minitest::Test.include OroGen::Gen::RTT_CPP::SelfTest
+    Minitest::Spec.include OroGen::Gen::RTT_CPP::SelfTest
+    Gen::RTT_CPP.enable
 end
 

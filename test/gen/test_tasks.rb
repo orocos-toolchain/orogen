@@ -1,9 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orogen/test'
+require 'orogen/gen/test'
 
 class TC_GenerationTasks < Minitest::Test
-    include Orocos::Generation::Test
-
     # Orogen should refuse to create a task context which has the same name than
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name

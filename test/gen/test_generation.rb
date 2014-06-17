@@ -1,10 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orogen/test'
+require 'orogen/gen/test'
 
 class TC_GenerationErrorCases < Minitest::Test
-    include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-
     # Test on a very simple component. This usually catches some buildsystem
     # problems that are hidden by the complexity of full-fledged components
     def test_simple(*transports)

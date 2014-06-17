@@ -1,10 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orogen/test'
+require 'orogen/gen/test'
 
 class TC_GenerationDeployment < Minitest::Test
-    include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-
     def test_task_name
 	component = Component.new 
 	component.name 'test'
