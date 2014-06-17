@@ -19,7 +19,7 @@ module OroGen
 
             def default_task_superclass
                 if @default_task_superclass.nil?
-                    @default_task_superclass = loader.task_model_from_name "RTT::TaskContext"
+                    @default_task_superclass = loader.task_model_from_name "ROS::Node"
                 else @default_task_superclass
                 end
             end
