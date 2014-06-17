@@ -7,6 +7,9 @@ module OroGen
         module RTT_CPP
             extend Logger::Hierarchy
 
+            ConfigError = OroGen::ConfigError
+            OROGEN_LIB_DIR = OroGen::OROGEN_LIB_DIR
+
             ConfigurationObject = Spec::ConfigurationObject
             Attribute           = Spec::Attribute
             Property            = Spec::Property

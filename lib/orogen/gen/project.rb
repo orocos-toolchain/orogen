@@ -4,7 +4,6 @@ require 'utilrb/kernel/load_dsl_file'
 require 'metaruby/dsls/doc'
 
 module Orocos
-    OROGEN_LIB_DIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
     module Generation
 
         def self.extended_states=(value);  @extended_states = value end

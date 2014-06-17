@@ -24,6 +24,7 @@ module OroGen
         # cleaned. It speeds up the testing process when the test files don't
         # change but orogen does change.
 	module SelfTest
+            include OroGen::Gen
             include OroGen::Gen::RTT_CPP
 
             TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
