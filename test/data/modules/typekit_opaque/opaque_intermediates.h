@@ -1,7 +1,6 @@
 #ifndef TEST_OPAQUE_INTERMEDIATES_HH
 #define TEST_OPAQUE_INTERMEDIATES_HH
 
-#ifndef __orogen
 namespace NotOrogenCompatible
 {
     class Point2D
@@ -22,8 +21,6 @@ namespace NotOrogenCompatible
     };
 }
 
-#endif
-
 namespace TestOpaque
 {
     struct Point2D
@@ -37,10 +34,8 @@ namespace TestOpaque
         double timestamp;
         NotOrogenCompatible::Point2D p;
 
-#ifndef __orogen
         bool operator == (Position const& other) const
         { return other.timestamp == timestamp && other.p == p; }
-#endif
     };
 }
 
