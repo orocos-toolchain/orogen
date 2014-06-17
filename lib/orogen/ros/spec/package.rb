@@ -24,6 +24,11 @@ module OroGen
                 end
             end
 
+            # Load a typekit to import RTT-to-ROS mappings
+            def import_types_from(typekit)
+                using_typekit(typekit)
+            end
+
             # Declares a ros node that exists within the package
             # define by the project name
             #
