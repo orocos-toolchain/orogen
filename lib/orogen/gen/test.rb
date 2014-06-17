@@ -119,18 +119,22 @@ module OroGen
 
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
-                        make_cmd = ["make"]
-                        if ENV['TEST_MAKE_OPTIONS']
-                            make_cmd.concat(ENV['TEST_MAKE_OPTIONS'].split(','))
-                        end
 			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..")
 			    raise "failed to configure"
-			elsif !system(*make_cmd)
+			elsif !call_make
 			    raise "failed to build"
 			end
 		    end
 		end
 	    end
+
+            def call_make(*args)
+                make_cmd = ["make"]
+                if ENV['TEST_MAKE_OPTIONS']
+                    make_cmd.concat(ENV['TEST_MAKE_OPTIONS'].split(','))
+                end
+                system(*make_cmd, *args)
+            end
 
             def build_typegen(name, header_files, transports)
                 @working_directory = File.join(TEST_DIR, 'wc', name)

@@ -83,12 +83,12 @@ struct RegenLibNewType { int field; };
         in_wc do
             # First check that the user is forbidden to go on with building
             Dir.chdir("build") do
-                assert !system("make")
+                assert !call_make
             end
             # Now, verify that we can run make regen
             Dir.chdir("build") do
-                assert system("make", "regen")
-                assert system("make")
+                assert call_make('regen')
+                assert call_make
             end
 
             registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
