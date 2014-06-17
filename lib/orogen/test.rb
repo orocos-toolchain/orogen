@@ -1,4 +1,7 @@
 require 'minitest/autorun'
+require 'flexmock/test_unit'
+require 'minitest/spec'
+
 # simplecov must be loaded FIRST. Only the files required after it gets loaded
 # will be profiled !!!
 if ENV['TEST_ENABLE_COVERAGE'] == '1'
@@ -14,8 +17,6 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
 end
 
 require 'orogen'
-require 'flexmock/test_unit'
-require 'minitest/spec'
 
 if ENV['TEST_ENABLE_PRY'] != '0'
     begin
