@@ -1,81 +1,101 @@
-require 'orogen_ros/test'
+require 'orogen/test'
+require 'orogen/ros'
 
-require 'orocos'
+module ROSLoaderTestSetup
+    def data_dir
+        File.join(File.dirname(__FILE__),"models")
+    end
 
-describe OroGen::ROS::Loader do
-    include OroGen::SelfTest
+    def create_ros_loader
+        root = OroGen::Loaders::Aggregate.new
+        typekit_loader = OroGen::Loaders::Files.new(root)
+        typekit_loader.register_typekit(data_dir, 'std')
+        typekit_loader.register_typekit(data_dir, 'base')
+        root.add(typekit_loader)
+        ros_loader = OroGen::ROS::DefaultLoader.new(root)
+        ros_loader.search_path << data_dir
+        ros_loader.package_paths['manipulator_config'] = data_dir
+        root.add(ros_loader)
+        root.typekit_model_from_name('std')
+        root
+    end
 
     attr_reader :loader
-    before do
-        @loader = OroGen::ROS::Loader.new
-        loader.search_path << File.join(File.dirname(__FILE__),"orogen")
-    end
-
-    it "tells us if a given ROS package is available" do
-        assert loader.has_project? 'artemis_state_publisher'
-    end
-    it "tells us if a given ROS package is available" do
-        assert !loader.has_project? 'bla'
+    def setup
+        @loader = create_ros_loader
+        super
     end
 end
 
-describe OroGen::ROS::Package do
-    include OroGen::SelfTest
+describe OroGen::ROS::Loader do
+    include ROSLoaderTestSetup
 
-    attr_reader :loader
+    it "tells us if a given ROS package is available" do
+        assert loader.has_project?('artemis_state_publisher')
+    end
+    it "tells us if a given ROS package is available" do
+        assert !loader.has_project?('bla')
+    end
+    it "should load existing node descriptions" do
+        project = loader.project_model_from_name("artemis_state_publisher")
+        node = project.task_model_from_name('artemis_state_publisher_node')
+        assert node.has_port?("joint_states_out")
+        assert node.has_port?("joint_states_in")
+        assert node.find_output_port("joint_states_out")
+        assert node.find_input_port("joint_states_in")
+    end
+    it "should load project models as OroGen::ROS::Spec::Package" do
+        package = loader.project_model_from_name('joint_state_publisher')
+        assert_kind_of OroGen::ROS::Spec::Package, package
+    end
+    it "should load task models as OroGen::ROS::Spec::Node" do
+        package = loader.project_model_from_name('joint_state_publisher')
+        node = package.task_model_from_name('joint_state_publisher')
+        assert_kind_of OroGen::ROS::Spec::Node, node
+    end
+end
+
+describe OroGen::ROS::Spec::Package do
+    include ROSLoaderTestSetup
+    attr_reader :project
+
     before do
-        @loader = OroGen::ROS::Loader.new
-        loader.search_path << File.join(File.dirname(__FILE__),"orogen")
+        @project = OroGen::ROS::Spec::Package.new(loader)
     end
 
     it "lists the ROS nodes in self_tasks" do
-        package = launcher.project_model_from_name("artemis_state_publisher")
-        node = package.self_tasks['artemis_state_publisher_node']
-        assert_equal 'artemis_state_publisher_node', node.name
+        package = loader.project_model_from_name("artemis_state_publisher")
+        node = package.self_tasks['artemis_state_publisher::artemis_state_publisher_node']
+        assert_equal 'artemis_state_publisher::artemis_state_publisher_node', node.name
     end
 
     it "lists the ROS launchers in deployers" do
-        package = launcher.project_model_from_name("manipulator_config")
-        node = package.deployers['test']
-        assert_equal 'artemis_state_publisher_node', node.name
+        package = loader.project_model_from_name("manipulator_config")
+        launcher = package.deployers['test']
+        assert_equal 'test', launcher.name
     end
 
-    describe "rosnode_findpackage" do
-        Orocos::ROS.load
-
-        package = Orocos::ROS.rosnode_findpackage("state_publisher")
-        assert package.name == "artemis_state_publisher", "Find package of node #{package}"
-    end
-
-    describe "simple functions" do
-        assert_equal "/test", Orocos::ROS.rosnode_normalize_name("test"), "Node name normalization"
-        assert_equal "/test", Orocos::ROS.rosnode_normalize_name("//test"), "Node name normalization"
-        assert_equal "/test", Orocos::ROS.normalize_topic_name("////test"), "Topic name normalization"
-        assert_equal "/test", Orocos::ROS.normalize_topic_name("test"), "Topic name normalization"
+    describe "normalize_name" do
+        it "should normalize names to their full path" do
+            assert_equal "/test", OroGen::ROS.normalize_name("test"), "Node name normalization"
+            assert_equal "/test", OroGen::ROS.normalize_name("//test"), "Node name normalization"
+            assert_equal "/test", OroGen::ROS.normalize_topic_name("////test"), "Topic name normalization"
+            assert_equal "/test", OroGen::ROS.normalize_topic_name("test"), "Topic name normalization"
+        end
     end
 
     describe "equality" do
-        n1 = Orocos::ROS::Spec::Node.new(nil, "test")
-        n2 = Orocos::ROS::Spec::Node.new(nil, "test")
+        it "should return true for nodes with the same name" do
+            n1 = OroGen::ROS::Spec::Node.new(project, "test")
+            n2 = OroGen::ROS::Spec::Node.new(project, "test")
 
-        assert_equal n1,n1, "Node equality"
-        assert_equal n1,n2, "Node equality"
+            assert_equal n1,n1, "Node equality"
+            assert_equal n1,n2, "Node equality"
+        end
     end
 
     describe "node superclass" do
-        n1 = Orocos::ROS::Spec::Node.new(nil, "test")
-        assert_equal n1.superclass.name, "ROS::Node", "Node superclass should be ROS::Node, but was #{n1.superclass.name}"
     end
 
-    describe "node spec" do
-
-        assert Orocos::ROS.node_spec_available?("artemis_motionPlanner"), "Node spec available"
-
-        spec = Orocos::ROS.node_spec_by_node_name("artemis_motionPlanner")
-        assert spec.has_port?("status")
-        assert spec.has_port?("target_trajectory")
-
-        assert spec.find_output_port("status")
-    end
 end
 

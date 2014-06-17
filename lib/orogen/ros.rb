@@ -9,5 +9,6 @@ end
 require 'orogen/marshallers/ros'
 require 'orogen/ros/base'
 require 'orogen/ros/loader'
+require 'orogen/ros/default_loader'
 require 'orogen/ros/spec'
 

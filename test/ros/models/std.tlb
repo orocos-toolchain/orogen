@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<typelib>
+  <numeric name="/bool" category="uint" size="1">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+
+  </numeric>
+  <numeric name="/double" category="float" size="8">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+
+  </numeric>
+  <numeric name="/float" category="float" size="4">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+
+  </numeric>
+  <numeric name="/int16_t" category="sint" size="2">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/int32_t" category="sint" size="4">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/int64_t" category="sint" size="8">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/int8_t" category="sint" size="1">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/uint16_t" category="uint" size="2">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/uint32_t" category="uint" size="4">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/uint64_t" category="uint" size="8">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <numeric name="/uint8_t" category="uint" size="1">  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[boost/cstdint.hpp]]></metadata>
+
+  </numeric>
+  <alias name="/char" source="/int8_t"/>
+  <alias name="/int" source="/int32_t"/>
+  <alias name="/int long long" source="/int64_t"/>
+  <alias name="/int long unsigned" source="/uint64_t"/>
+  <alias name="/int short unsigned" source="/uint16_t"/>
+  <alias name="/int signed" source="/int32_t"/>
+  <alias name="/int signed long" source="/int64_t"/>
+  <alias name="/int signed long long" source="/int64_t"/>
+  <alias name="/int signed short" source="/int16_t"/>
+  <alias name="/int unsigned" source="/uint32_t"/>
+  <alias name="/int unsigned long long" source="/uint64_t"/>
+  <alias name="/long" source="/int64_t"/>
+  <alias name="/long int" source="/int64_t"/>
+  <alias name="/long int long" source="/int64_t"/>
+  <alias name="/long int unsigned" source="/uint64_t"/>
+  <alias name="/long long" source="/int64_t"/>
+  <alias name="/long long int" source="/int64_t"/>
+  <alias name="/long long int signed" source="/int64_t"/>
+  <alias name="/long long int unsigned" source="/uint64_t"/>
+  <alias name="/long long signed" source="/int64_t"/>
+  <alias name="/long long signed int" source="/int64_t"/>
+  <alias name="/long long unsigned" source="/uint64_t"/>
+  <alias name="/long long unsigned int" source="/uint64_t"/>
+  <alias name="/long signed" source="/int64_t"/>
+  <alias name="/long signed int" source="/int64_t"/>
+  <alias name="/long signed long" source="/int64_t"/>
+  <alias name="/long signed long int" source="/int64_t"/>
+  <alias name="/long unsigned" source="/uint64_t"/>
+  <alias name="/long unsigned int" source="/uint64_t"/>
+  <alias name="/long unsigned long" source="/uint64_t"/>
+  <alias name="/long unsigned long int" source="/uint64_t"/>
+  <alias name="/short" source="/int16_t"/>
+  <alias name="/short int" source="/int16_t"/>
+  <alias name="/short int unsigned" source="/uint16_t"/>
+  <alias name="/short signed" source="/int16_t"/>
+  <alias name="/short signed int" source="/int16_t"/>
+  <alias name="/short unsigned" source="/uint16_t"/>
+  <alias name="/short unsigned int" source="/uint16_t"/>
+  <alias name="/signed" source="/int32_t"/>
+  <alias name="/signed char" source="/int8_t"/>
+  <alias name="/signed int" source="/int32_t"/>
+  <alias name="/signed int long" source="/int64_t"/>
+  <alias name="/signed int long long" source="/int64_t"/>
+  <alias name="/signed int short" source="/int16_t"/>
+  <alias name="/signed long" source="/int64_t"/>
+  <alias name="/signed long int" source="/int64_t"/>
+  <alias name="/signed long int long" source="/int64_t"/>
+  <alias name="/signed long long" source="/int64_t"/>
+  <alias name="/signed long long int" source="/int64_t"/>
+  <alias name="/signed short" source="/int16_t"/>
+  <alias name="/signed short int" source="/int16_t"/>
+  <alias name="/unsigned" source="/uint32_t"/>
+  <alias name="/unsigned char" source="/uint8_t"/>
+  <alias name="/unsigned int" source="/uint32_t"/>
+  <alias name="/unsigned int long long" source="/uint64_t"/>
+  <alias name="/unsigned long" source="/uint64_t"/>
+  <alias name="/unsigned long int" source="/uint64_t"/>
+  <alias name="/unsigned long int long" source="/uint64_t"/>
+  <alias name="/unsigned long long" source="/uint64_t"/>
+  <alias name="/unsigned long long int" source="/uint64_t"/>
+  <alias name="/unsigned short" source="/uint16_t"/>
+  <alias name="/unsigned short int" source="/uint16_t"/>
+  <container name="/std/string" of="/int8_t" size="8" kind="/std/string">
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+
+  </container>
+  <compound name="/metadata/KeyValue" size="16">
+    <field name="key" type="/std/string" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:12]]></metadata>
+
+    </field>
+    <field name="value" type="/std/string" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:13]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[std:orogen_metadata/Metadata.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:8]]></metadata>
+
+  </compound>
+  <container name="/std/vector&lt;/metadata/KeyValue&gt;" of="/metadata/KeyValue" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[std:orogen_metadata/Metadata.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.8/bits/stl_vector.h:210]]></metadata>
+
+  </container>
+  <compound name="/metadata/InterfaceObject" size="32">
+    <field name="name" type="/std/string" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:20]]></metadata>
+
+    </field>
+    <field name="metadata" type="/std/vector&lt;/metadata/KeyValue&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:21]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[std:orogen_metadata/Metadata.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:16]]></metadata>
+
+  </compound>
+  <container name="/std/vector&lt;/metadata/InterfaceObject&gt;" of="/metadata/InterfaceObject" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[std:orogen_metadata/Metadata.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.8/bits/stl_vector.h:210]]></metadata>
+
+  </container>
+  <compound name="/metadata/Component" size="96">
+    <field name="metadata" type="/std/vector&lt;/metadata/KeyValue&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:26]]></metadata>
+
+    </field>
+    <field name="properties" type="/std/vector&lt;/metadata/InterfaceObject&gt;" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:27]]></metadata>
+
+    </field>
+    <field name="input_ports" type="/std/vector&lt;/metadata/InterfaceObject&gt;" offset="48">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:28]]></metadata>
+
+    </field>
+    <field name="output_ports" type="/std/vector&lt;/metadata/InterfaceObject&gt;" offset="72">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:29]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[std]]></metadata>
+<metadata key="orogen_include"><![CDATA[std:orogen_metadata/Metadata.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_loaders/install/include/orogen_metadata/Metadata.hpp:24]]></metadata>
+
+  </compound>
+</typelib>
