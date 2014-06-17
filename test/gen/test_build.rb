@@ -45,22 +45,25 @@ Cflags: -I${prefix}/include -I${prefix}/include/project
             # Add a new type to test.h
             File.open('test.h', 'a') do |io|
                 io.puts <<-NEWDEF
+#ifndef BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
+#define BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
 namespace Test {
     struct NewType {
         int field;
     };
 }
+#endif
                 NEWDEF
             end
 
             # First check that the user is forbidden to go on with building
             Dir.chdir("build") do
-                assert !system("make")
+                assert !call_make
             end
             # Now, verify that we can run make regen
             Dir.chdir("build") do
-                assert system("make", "regen")
-                assert system("make")
+                assert call_make('regen')
+                assert call_make
             end
 
             registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
@@ -69,7 +72,12 @@ namespace Test {
 
         Dir.chdir(lib_prefix) do
             File.open('include/regen_lib.h', 'a') do |io|
-                io.puts "struct RegenLibNewType { int field; };"
+                io.puts <<-NEWDEF
+#ifndef BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
+#define BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
+struct RegenLibNewType { int field; };
+#endif
+                NEWDEF
             end
         end
         in_wc do
