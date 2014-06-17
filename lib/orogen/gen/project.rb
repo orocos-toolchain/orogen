@@ -1009,7 +1009,9 @@ module Orocos
 
                 task = external_task_context(name, options) do
                     Orocos::Spec::TaskContext.apply_default_extensions(self)
-                    instance_eval(&block)
+                    if block_given?
+                        instance_eval(&block)
+                    end
                 end
                 if extended_states?
                     task.extended_state_support
