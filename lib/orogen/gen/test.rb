@@ -61,7 +61,7 @@ module OroGen
 	    end
 
             def clear_wc
-		unless ENV['TEST_KEEP_WC']
+		if ENV['TEST_KEEP_WC'] != '1' && ENV['TEST_DONT_CLEAN'] != '1'
 		    if File.directory?(WC_ROOT)
 			FileUtils.rm_rf WC_ROOT
                         @working_directory = nil
@@ -142,7 +142,7 @@ module OroGen
                     File.join(TEST_DATA_DIR, file)
                 end
 
-                if !ENV['TEST_DONT_CLEAN'] || !File.directory?(working_directory)
+                if ENV['TEST_DONT_CLEAN'] != '1' || !File.directory?(working_directory)
                     # Copy +dirname+ in place of wc
                     FileUtils.rm_rf working_directory
                     FileUtils.mkdir_p working_directory
@@ -172,7 +172,7 @@ module OroGen
                 @working_directory = File.join(TEST_DIR, 'wc', wc_dirname || dirname)
                 @subdir = [dirname]
 
-                if !ENV['TEST_DONT_CLEAN'] || !File.directory?(working_directory)
+                if ENV['TEST_DONT_CLEAN'] != '1' || !File.directory?(working_directory)
                     # Copy +dirname+ in place of wc
                     FileUtils.rm_rf working_directory
                     FileUtils.mkdir_p File.dirname(working_directory)
