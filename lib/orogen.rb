@@ -23,6 +23,7 @@ module OroGen
         module RTT_CPP
         end
     end
+    # Code-generation support for the different supported RTT transports
     module TypekitMarshallers
         extend Logger::Hierarchy
     end

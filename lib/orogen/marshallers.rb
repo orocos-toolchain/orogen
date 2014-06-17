@@ -1,12 +1,7 @@
-module OroGen
-    # Code-generation support for the different supported RTT transports
-    module TypekitMarshallers
-        extend Logger::Hierarchy
-    end
-end
-
-Orocos::TypekitMarshallers = OroGen::TypekitMarshallers
-
+# NOTE: the setup of TypekitMarshallers (e.g. for logging and backward
+# compatibility between the Orocos and OroGen toplevel namespaces) is done in
+# orogen.rb. This is required as we want to be able to load single marshallers
+# files
 require 'orogen/marshallers/corba'
 require 'orogen/marshallers/type_info'
 require 'orogen/marshallers/mqueue'
