@@ -1359,7 +1359,20 @@ module Orocos
             BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib ros}
 
             def normalize_registry
-                base = self.registry
+                base = self.registry.dup
+
+                # Properly define the headers we want to use for cstdint headers
+                [1, 2, 4, 8].each do |int_size|
+                    if base.include?("/int#{int_size * 8}_t")
+                        base.get("/int#{int_size * 8}_t").
+                            metadata.set("orogen_include", "boost/cstdint.hpp")
+                    end
+                    if base.include?("/uint#{int_size * 8}_t")
+                        base.get("/uint#{int_size * 8}_t").
+                            metadata.set("orogen_include", "boost/cstdint.hpp")
+                    end
+                end
+
                 result = Typelib::Registry.new
                 self_types.each do |type|
                     result.merge(base.minimal(type.name))
