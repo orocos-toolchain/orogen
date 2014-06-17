@@ -40,13 +40,13 @@ module OroGen
 	    if template = templates[path]
 		template
 	    else
-		template_file   = begin
-				      template_path(*path)
+		template_file   = template_path(*path)
+
+		templates[path] = begin
+                                      ERB.new(File.read(template_file), nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
 				  rescue Errno::ENOENT
 				      raise ArgumentError, "template #{File.join(*path)} does not exist"
 				  end
-
-		templates[path] = ERB.new(File.read(template_file), nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
                 templates[path].filename = template_file
                 templates[path]
 	    end
