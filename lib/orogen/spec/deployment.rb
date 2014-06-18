@@ -640,19 +640,21 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             #handels theActivity creation order to be sure that all activities are created in the right order
             def activity_ordered_tasks(ordered=Array.new)
                 oldsize = ordered.size()
-                task_activities.each do |task|
-                    if((task.master == nil or ordered.include?(task.master)) and not ordered.include?(task))
+                (task_activities - ordered).each do |task|
+                    if !task.master || ordered.include?(task.master)
                         ordered << task
                     end
                 end
-                if(oldsize == ordered.size())
-                    raise InternalError, "Could not Create order in where the Activities of The deployment #{name} should be created." <<
-                        "Did you created a loop among master<->slave activities?"
-
-                elsif(ordered.size() != task_activities.size()) 
-                    return activity_ordered_tasks(ordered)
-                else
+                if ordered.size == task_activities.size
                     return ordered
+                elsif oldsize == ordered.size()
+                    activities = task_activities.map do |task|
+                        "\n  #{task.name} (master: #{task.master ? task.master.name : "none"})"
+                    end
+                    raise ArgumentError, "I cannot find an order in which to create the deployed tasks of #{name} during deployment" <<
+                        "Did you created a loop among master and slave activities ?. The #{activities.size} deployed tasks are:#{activities.join("\n  ")}"
+                else
+                    return activity_ordered_tasks(ordered)
                 end
             end
 
