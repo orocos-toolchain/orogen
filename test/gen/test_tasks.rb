@@ -58,24 +58,6 @@ class TC_GenerationTasks < Minitest::Test
 	compile_wc(component)
     end
 
-    def test_validate_toplevel_types
-	component = Component.new
-	component.name 'test'
-
-	task = component.task_context("Task")
-
-	meth = task.operation("MethodName").
-	    doc("the method to test")
-
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "short") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned short") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "char") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned char") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "long long") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "unsigned long long") }
-        assert_raises(Orocos::Generation::ConfigError) { meth.argument("a", "float") }
-    end
-
     def test_task_operation
 	component = Component.new
 	component.name 'test'
