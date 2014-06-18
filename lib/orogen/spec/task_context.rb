@@ -522,7 +522,7 @@ module OroGen
                     end
                     begin
                         Typelib.from_ruby(default_value, type)
-                    rescue TypeError => e
+                    rescue Typelib::UnknownConversionRequested => e
                         raise ArgumentError, e.message, e.backtrace
                     end
                 end
