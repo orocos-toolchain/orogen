@@ -156,7 +156,7 @@ module OroGen
                     # Verify that the corresponding orogen project is indeed
                     # available. If not, just ignore the library
                     if !available_projects.has_key?(pkg.project_name)
-                        warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                        OroGen.warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
                     elsif !pkg.deployed_tasks
                         # oroGen has a bug, in which it installed the pkg-config
@@ -179,10 +179,10 @@ module OroGen
                     typekit_name = pkg_name.gsub(/-typekit-#{orocos_target}$/, '')
 
                     if !available_projects.has_key?(pkg.project_name)
-                        warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
                     elsif !available_projects[pkg.project_name].pkg.type_registry
-                        warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
+                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
                         next
                     end
                     available_typekits[typekit_name] = pkg
