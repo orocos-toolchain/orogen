@@ -122,11 +122,7 @@ class TC_GenerationDeployment < Minitest::Test
         # Start the resulting deployment
         in_prefix do
             reader, writer = IO.pipe
-            child_pid = fork do
-                writer.close
-                ENV["FD_DRIVEN_TEST_FILE"] = reader.fileno.to_s
-                exec("./bin/fd")
-            end
+            child_pid = Process.spawn({'FD_DRIVEN_TEST_FILE' => STDIN.fileno.to_s}, './bin/fd', writer => :close, :in => reader, :close_others => false)
 
             reader.close
             sleep 0.5
