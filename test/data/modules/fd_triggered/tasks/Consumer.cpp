@@ -43,12 +43,17 @@ void Consumer::updateHook()
 
     // We should have one byte on stdin
     char byte;
-    if (read(m_fd, &byte, 1) != 1)
+    int ret = read(m_fd, &byte, 1);
+    if (ret == -1)
     {
         cerr << "ERROR: error reading input" << endl;
         exit(1);
     }
-    if (byte != idx)
+    else if (ret == 0)
+    {
+        return;
+    }
+    else if (byte != idx)
     {
         cerr << "ERROR: expected " << (char)idx << ", got " << byte << endl;
         exit(1);
