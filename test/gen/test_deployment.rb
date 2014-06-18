@@ -14,10 +14,11 @@ class TC_GenerationDeployment < Minitest::Test
     def test_all_activity_types
 	component = Component.new 
 	component.name 'test_all_activity_types'
-	context    = component.task_context "task"
+	component.task_context "task"
         deployment = component.deployment "test"
 
-        deployment.task("slave", "task").slave
+        master = deployment.task("master", "task")
+        deployment.task("slave", "task").slave_of(master)
         deployment.task("periodic", "task").periodic(0.1)
         deployment.task("triggered", "task").triggered
         deployment.task("fd_driven", "task").fd_driven

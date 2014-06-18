@@ -374,12 +374,26 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     EOD
                 end
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="SequentialActivity" />
                     EOD
                 end
 
                 self
+            end
+
+            def slave_of(master)
+                activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                self.master = master
+                master.slaves << self
+                activity_setup do
+                    <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(activity_#{master.name},task_#{name}->engine());
+                    EOD
+                end
+                activity_xml do
+                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
+                end
             end
 
             def activity_setup(&block)
@@ -607,6 +621,13 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 deployment
             end
 
+            # Enumerates the tasks defined on this deployment
+            #
+            # @yieldparam [TaskDeployment] task a deployed task
+            def each_task(&block)
+                task_activities.each(&block)
+            end
+
             # Returns the deployed task that has this name
             #
             # @return [TaskDeployment,nil] the deployed task model, or nil if
@@ -659,22 +680,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             # Define an master slave avtivity between tasks
-            def set_master_slave_activity(master,slave)
-                #First create and peer connection between the master and the slave
-                add_peers(master,slave)
-
-                #Setting up the SlaveActivity
-                slave.activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
-                slave.master = master
-                master.slaves << slave
-                slave.activity_setup do
-                    result = <<-EOD
-#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}->engine());
-                    EOD
-                end
-                slave.activity_xml do
-                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
-                end
+            def set_master_slave_activity(master, slave)
+                slave.slave_of(master)
                 self
             end
 

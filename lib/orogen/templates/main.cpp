@@ -302,7 +302,9 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
-<% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
+<% all_peers = deployer.peers.dup.to_a
+   all_peers.concat deployer.each_task.inject(Array.new) { |a, m| a.concat m.slaves.map { |s| [m, s] } }
+   all_peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
     task_<%= a.name %>->connectPeers(task_<%= b.name %>.get());
 <% end %>
 
