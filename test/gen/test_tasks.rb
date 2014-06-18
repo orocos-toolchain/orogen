@@ -5,6 +5,8 @@ class TC_GenerationTasks < Minitest::Test
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name
         component = Component.new
+        component.name 'test'
+        component.deffile = File.join(TEST_DATA_DIR, 'modules', 'typekit_simple', 'simple.orogen')
         component.typekit(true).load File.join(TEST_DATA_DIR, 'modules', 'typekit_simple', 'simple.h')
         assert_raises(ArgumentError) { component.task_context("Test") {} }
     end
@@ -46,7 +48,7 @@ class TC_GenerationTasks < Minitest::Test
 	task = component.task_context("task_name")
         %w{/double /std/vector</double>}.each_with_index do |typename, i|
             property = task.property("p#{i}", typename).doc("property #{i}")
-            assert_kind_of(Generation::Property, property)
+            assert_kind_of(Property, property)
             assert_equal("p#{i}", property.name)
             assert_equal(typename, property.type.full_name)
             assert_equal("property #{i}",  property.doc)
@@ -84,7 +86,7 @@ class TC_GenerationTasks < Minitest::Test
 	    doc("the method to test")
 	assert_equal([meth], task.self_operations)
 
-	assert_kind_of(Generation::Operation, meth)
+	assert_kind_of(Operation, meth)
 	assert_equal("MethodName", meth.name)
 	assert_equal("methodName", meth.method_name)
 	assert_equal([nil, 'void', ''], meth.return_type)
@@ -183,7 +185,7 @@ class TC_GenerationTasks < Minitest::Test
 	read  = task.input_port 'r', 'int'
 	write = task.output_port 'w', 'int'
 
-        assert_nothing_raised { task.port_driven 'r' }
+        task.port_driven 'r'
         assert_raises(ArgumentError) { task.port_driven 'r1' }
         assert_raises(ArgumentError) { task.port_driven 'w' }
         assert_equal([read], task.all_event_ports)
@@ -307,6 +309,7 @@ class TC_GenerationTasks < Minitest::Test
 
     def test_default_values
         project = Project.new
+        project.deffile = File.join(WC_ROOT, 'test.orogen')
         project.name "test"
         task = project.task_context "Test"
         Tempfile.open("orogen_test_default_values") do |io|

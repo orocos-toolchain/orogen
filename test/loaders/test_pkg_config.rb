@@ -172,10 +172,10 @@ describe OroGen::Loaders::PkgConfig do
             assert_equal [File.read(pkg.deffile), pkg.deffile],
                 loader.project_model_text_from_name('base')
         end
-        it "should raise OroGen::NotFound for unknown projects" do
+        it "should raise OroGen::ProjectNotFound for unknown projects" do
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
-            assert_raises(OroGen::NotFound) { loader.project_model_text_from_name('base') }
+            assert_raises(OroGen::ProjectNotFound) { loader.project_model_text_from_name('base') }
         end
     end
 
@@ -189,10 +189,10 @@ describe OroGen::Loaders::PkgConfig do
             assert_equal [tlb, typelist],
                 loader.typekit_model_text_from_name('base')
         end
-        it "should raise OroGen::NotFound for unknown projects" do
+        it "should raise OroGen::TypekitNotFound for unknown projects" do
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
-            assert_raises(OroGen::NotFound) { loader.typekit_model_text_from_name('base') }
+            assert_raises(OroGen::TypekitNotFound) { loader.typekit_model_text_from_name('base') }
         end
     end
 end

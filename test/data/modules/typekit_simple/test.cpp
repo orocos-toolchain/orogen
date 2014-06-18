@@ -1,8 +1,8 @@
 #define OROCOS_TARGET gnulinux
 #include <rtt/types/TypekitPlugin.hpp>
 #include <rtt/typekit/RealTimeTypekit.hpp>
-#include "simple/Types.hpp"
-#include "simple/Plugin.hpp"
+#include "simple/typekit/Types.hpp"
+#include "simple/typekit/Plugin.hpp"
 #include <string.h>
 
 #ifdef WITH_CORBA

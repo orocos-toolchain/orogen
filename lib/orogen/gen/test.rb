@@ -32,6 +32,14 @@ module OroGen
 
 	    attr_reader :working_directory
 
+            def data_dir
+                TEST_DATA_DIR
+            end
+
+            def wc_root
+                WC_ROOT
+            end
+
             def prefix_directory
                 File.join(WC_ROOT, "prefix", *subdir)
             end

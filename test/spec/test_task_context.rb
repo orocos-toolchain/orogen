@@ -1,11 +1,17 @@
 require 'orogen/test'
 
-describe Orocos::Spec::TaskContext do
-    include Orocos::Generation::Test
+describe OroGen::Spec::TaskContext do
+    attr_reader :project
+    before do
+        loader = OroGen::Loaders::Files.new
+        OroGen::Loaders::RTT.setup_loader(loader)
+        @project = OroGen::Spec::Project.new(loader)
+    end
+
     describe "#property" do
-        attr_reader :project, :task
+        attr_reader :task
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new)
+            @task = OroGen::Spec::TaskContext.new(project)
         end
 
         it "should not allow for duplicate names" do
@@ -24,7 +30,7 @@ describe Orocos::Spec::TaskContext do
     describe "dynamic port support" do
         attr_reader :task, :input_port, :output_port
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new)
+            @task = OroGen::Spec::TaskContext.new(project)
             @input_port = task.dynamic_input_port(/r$/, "/int")
             @output_port = task.dynamic_output_port(/w$/, "/int")
         end
@@ -88,7 +94,7 @@ describe Orocos::Spec::TaskContext do
             attr_reader :parent_task
             before do
                 @parent_task = task
-                @task = Orocos::Spec::TaskContext.new(parent_task.project)
+                @task = OroGen::Spec::TaskContext.new(parent_task.project)
                 task.subclasses parent_task
             end
 

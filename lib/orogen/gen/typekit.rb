@@ -1048,6 +1048,8 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
+            #
+            # @raises LoadError if the file does not exist
 	    def load(file, add = true, user_options = Hash.new)
                 if !user_options.respond_to?(:to_hash) 
                     raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"

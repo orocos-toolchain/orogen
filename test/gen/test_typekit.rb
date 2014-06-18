@@ -16,25 +16,6 @@ class TC_GenerationTypekit < Minitest::Test
         end
     end
 
-    def test_orocos_type_equivalence
-	registry = Typelib::Registry.new
-        Typelib::Registry.add_standard_cxx_types(registry)
-
-	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('int32_t')))
-	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('uint32_t')))
-	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('int16_t')))
-	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('uint16_t')))
-	assert_equal(registry.get('int'), registry.base_rtt_type_for(registry.get('short')))
-	assert_equal(registry.get('unsigned int'), registry.base_rtt_type_for(registry.get('unsigned short')))
-	assert_equal(registry.get('double'), registry.base_rtt_type_for(registry.get('float')))
-    end
-
-    def test_base_types_are_imported
-        typekit = Orocos::Generation::Typekit.new
-        assert(typekit.imported_type?('/nil'))
-        assert(typekit.imported_type?('/int32_t'))
-    end
-
     def test_self_types_is_initially_empty
         typekit = Orocos::Generation::Typekit.new
         assert_equal [], typekit.self_types.to_a
@@ -45,16 +26,23 @@ class TC_GenerationTypekit < Minitest::Test
         assert_equal [], typekit.normalize_registry.to_a
     end
 
-    def test_typekit_load
+    def test_typekit_load_should_raise_LoadError_if_the_file_does_not_exist
 	component = Component.new
         component.name 'test_typekit_load'
+        component.deffile = File.join(wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file that does not exist
-        assert_raises(ArgumentError) do
+        assert_raises(LoadError) do
             component.typekit do
                 load 'does_not_exist.h'
             end
         end
+    end
+
+    def test_typekit_load_should_raise_ArgumentError_if_the_file_has_errors
+	component = Component.new
+        component.name 'test_typekit_load'
+        component.deffile = File.join(wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file with errors
         assert_raises(ArgumentError) do
@@ -170,7 +158,7 @@ install(TARGETS test RUNTIME DESTINATION bin)
         end
 
         # The simple.h header should be installed in orocos/typekit/simple.h
-        assert File.exists?( File.join(prefix_directory, "include", "orocos", "simple", "types", "simple", "simple.h") )
+        assert File.exists?( File.join(prefix_directory, "include", "orocos", "simple", "simple.h") )
 
         #check_output_file('modules/typekit_simple', 'basic.cpf')
         #check_output_file('modules/typekit_simple', 'basic.xml')
@@ -238,7 +226,6 @@ end
 
 
 describe Orocos::Generation::Typekit do
-
     describe "#filter_unsupported_types" do
         attr_reader :typekit
         before do
@@ -246,27 +233,27 @@ describe Orocos::Generation::Typekit do
         end
 
         it "rejects multi-dimensional arrays" do
-            reg = Typelib::Registry.import File.join(Orocos::Generation::Test::TEST_DATA_DIR, 'typekit', 'multi_dimensional_array.h')
+            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'multi_dimensional_array.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/double[2][4]")
         end
         it "rejects std::vector<bool>" do
-            reg = Typelib::Registry.import File.join(Orocos::Generation::Test::TEST_DATA_DIR, 'typekit', 'std_vector_bool.h')
+            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'std_vector_bool.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/std/vector</bool>")
         end
         it "rejects pointers" do
-            reg = Typelib::Registry.import File.join(Orocos::Generation::Test::TEST_DATA_DIR, 'typekit', 'pointer.h')
+            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'pointer.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/double*")
         end
         it "rejects compounds whose field name does not start with an alphanumeric character" do
-            reg = Typelib::Registry.import File.join(Orocos::Generation::Test::TEST_DATA_DIR, 'typekit', 'compound_with_field_not_starting_with_alphanumeric_character.h')
+            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'compound_with_field_not_starting_with_alphanumeric_character.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/Test")
         end
         it "rejects the types that depend on rejected types" do
-            reg = Typelib::Registry.import File.join(Orocos::Generation::Test::TEST_DATA_DIR, 'typekit', 'rejected_dependencies.h')
+            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'rejected_dependencies.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/CompoundTest")
             assert !reg.include?("/VectorTest")
