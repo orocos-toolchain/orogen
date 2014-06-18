@@ -29,6 +29,8 @@ typekit do
 
     # Load the file that defines TestOpaque::Point2D
     load 'opaque_intermediates.h'
+
+    export_types '/int32_t'
 end
 
 # Generate an empty deployment for testing
