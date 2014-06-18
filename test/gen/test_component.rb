@@ -81,10 +81,10 @@ class TC_GenerationComponent < Minitest::Test
         in_prefix do
             c.using_typekit "simple"
             assert_equal(2, c.used_typekits.size)
-            tk = c.used_typekits.find { |tk| tk.name == "simple" }
+            tk = c.used_typekits.find { |t| t.name == "simple" }
             assert tk
             assert_equal("simple", tk.name)
-            assert_equal("simple-typekit-#{Generation.orocos_target}", tk.pkg.name)
+            assert_equal("simple-typekit-#{OroGen::Gen::RTT_CPP.orocos_target}", tk.pkg.name)
 
             # Check that imported_type? takes the typekit into account
             t = c.registry.get "/Test/BaseTypes"

@@ -34,13 +34,13 @@ class TC_GenerationDeployment < Minitest::Test
     def test_task_fails_if_model_does_not_exist
 	component = Component.new 
 	component.name 'test'
-
-	context    = component.task_context "task"
+	component.task_context "task"
         deployment = component.deployment "test"
 
-        assert_raises(Orocos::Generation::ConfigError) { deployment.task "name", "Bla" }
+        assert_raises(ArgumentError) { deployment.task "name", "Bla" }
     end
 
+    ConnPolicy = OroGen::Spec::ConnPolicy
     def test_connpolicy
         policy = ConnPolicy.from_hash :type => :buffer, :lock_policy => :locked, :size => 10
         assert_equal(:buffer, policy.type)
