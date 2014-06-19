@@ -47,14 +47,14 @@ class TC_GenerationTypekit < Minitest::Test
         # Load a file with errors
         assert_raises(ArgumentError) do
             typekit = component.typekit(true)
-            typekit.load File.join(TEST_DATA_DIR, 'exists')
+            typekit.load File.join(data_dir, 'exists')
             typekit.perform_pending_loads
         end
     end
 
     def check_output_file(basedir, name)
         output   = File.read(File.join(prefix_directory, name))
-        expected = File.read(File.join(TEST_DATA_DIR, basedir, name))
+        expected = File.read(File.join(data_dir, basedir, name))
         assert_equal(expected, output)
     end
 
@@ -176,7 +176,7 @@ install(TARGETS test RUNTIME DESTINATION bin)
         libprefix = File.join(prefix_directory, "libs/typekit_dependencies_lib")
         FileUtils.mkdir_p File.join(libprefix, "include")
         FileUtils.mkdir_p File.join(libprefix, "lib", "pkgconfig")
-        FileUtils.cp File.join(TEST_DATA_DIR, "modules", "typekit_dependencies_lib", "tkdeps_lib.h"), File.join(libprefix, "include")
+        FileUtils.cp File.join(data_dir, "modules", "typekit_dependencies_lib", "tkdeps_lib.h"), File.join(libprefix, "include")
         File.open(File.join(libprefix, "lib", "pkgconfig", "tkdeps_lib.pc"), 'w') do |io|
             io << "Name: Blablabla\n"
             io << "Description: Blablabla\n"

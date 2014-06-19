@@ -93,8 +93,8 @@ module OroGen
 
                 if !hash.empty?
                     raise ArgumentError, "unknown policy specification options #{hash.keys.join(", ")}"
-                elsif type == :buffer && policy.size == 0
-                    raise ArgumentError, "you have to specify the buffer size"
+                elsif type == :buffer && policy.size <= 0
+                    raise ArgumentError, "you have to specify a buffer size"
                 end
 
                 policy
@@ -612,6 +612,9 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 end
 
                 name = OroGen.verify_valid_identifier(name)
+                if task = find_task_by_name(name)
+                    raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
+                end
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment

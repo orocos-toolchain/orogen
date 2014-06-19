@@ -189,7 +189,14 @@ module OroGen
                 if name !~ /::/
                     name = "#{self.name}::#{name}"
                 end
-                loader.task_model_from_name(name)
+                tasks[name] || loader.task_model_from_name(name)
+            end
+
+            # @deprecated use {task_model_from_name} instead
+            def find_task_context(name)
+                task_model_from_name(name)
+            rescue OroGen::TaskModelNotFound => e
+                raise ArgumentError, e.message, e.backtrace
             end
 
             # True if there is a deployment with the given name in this oroGen

@@ -1,6 +1,30 @@
 require 'orogen/gen/test'
 
 class TC_GenerationComponent < Minitest::Test
+    def test_component_generate
+        create_wc "base"
+	in_wc do
+            # No name, no orogen file
+	    component = RTT_CPP::Component.new
+	    assert_raises(ArgumentError) { component.generate }
+
+            # No orogen file
+	    component = RTT_CPP::Component.new
+	    component.name "cmp"
+	    assert_raises(ArgumentError) { component.generate } 
+            
+            # No name
+	    component = RTT_CPP::Component.new
+	    component.instance_variable_set(:@deffile, File.join(data_dir, "empty_component.orogen"))
+	    assert_raises(ArgumentError) { component.generate } 
+
+            # OK
+	    component = RTT_CPP::Component.new
+	    component.load(File.join(data_dir, "empty_component.orogen"))
+	    component.generate
+	end
+    end
+
     def test_generation_requires_name_and_orogen
 	component = Component.new
 
@@ -11,30 +35,12 @@ class TC_GenerationComponent < Minitest::Test
         # Should raise because there is no orogen file
         assert_raises(ArgumentError) { component.generate }
 
-        component.instance_variable_set(:@deffile, "bla.orogen")
+        component.deffile = "bla.orogen"
 
         create_wc("tasks/generation_validation")
         in_wc do
             component.generate
         end
-    end
-
-    def test_find_task
-        component = Component.new
-        component.name "TestFindTask"
-        task = component.task_context "Task"
-
-        assert_equal(task, component.find_task_context("Task"))
-        assert_equal(task, component.find_task_context("TestFindTask::Task"))
-        assert_raises(ArgumentError) { component.find_task_context("Bla") }
-
-        build_test_component("modules/simple", [])
-        install
-        ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
-        component.using_task_library "simple"
-        assert_raises(ArgumentError) { component.find_task_context("SimpleTask") }
-        assert_raises(ArgumentError) { component.find_task_context("TestFindTask::SimpleTask") }
-        assert(component.find_task_context("simple::SimpleTask"))
     end
 
     def test_filter_backtrace

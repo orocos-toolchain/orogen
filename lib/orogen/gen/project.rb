@@ -109,7 +109,7 @@ module Orocos
             end
 
             def to_s
-                "#<Orocos::Project: #{name}>"
+                "#<#{self.class.name}: #{name}>"
             end
             def inspect; to_s end
 
@@ -618,9 +618,6 @@ module Orocos
                 if !deffile
                     raise ArgumentError, "there is no orogen file for this project, cannot generate"
                 end
-                if !File.file?(deffile)
-                    OroGen::Gen::RTT_CPP.warn "#{deffile} does not exist, assuming that we are generating a stub project"
-                end
 
 		# For consistency in templates
 		project = self
@@ -1017,7 +1014,7 @@ module Orocos
                 end
 
                 if !task.abstract?
-                    if define_default_deployments?
+                    if define_default_deployments? && enabled_transports.include?('corba')
                         simple_deployment(Generation.default_deployment_name(task.name), task.name)
                     end
                 end

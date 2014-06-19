@@ -1,16 +1,6 @@
 require 'orogen/gen/test'
 
 class TC_GenerationDeployment < Minitest::Test
-    def test_task_name
-	component = Component.new 
-	component.name 'test'
-
-	context    = component.task_context "task"
-        deployment = component.deployment "test"
-        task       = deployment.task "my_name", "task"
-        assert_equal "my_name", task.name
-    end
-
     def test_all_activity_types
 	component = Component.new 
 	component.name 'test_all_activity_types'
@@ -29,81 +19,6 @@ class TC_GenerationDeployment < Minitest::Test
         in_wc do
             compile_wc(component)
         end
-    end
-
-    def test_task_fails_if_model_does_not_exist
-	component = Component.new 
-	component.name 'test'
-	component.task_context "task"
-        deployment = component.deployment "test"
-
-        assert_raises(ArgumentError) { deployment.task "name", "Bla" }
-    end
-
-    ConnPolicy = OroGen::Spec::ConnPolicy
-    def test_connpolicy
-        policy = ConnPolicy.from_hash :type => :buffer, :lock_policy => :locked, :size => 10
-        assert_equal(:buffer, policy.type)
-        assert_equal(:locked, policy.lock_policy)
-        assert_equal(false, policy.pull)
-        assert_equal(10, policy.size)
-
-        policy = ConnPolicy.from_hash(Hash.new)
-        assert_equal(:data, policy.type)
-        assert_equal(:lock_free, policy.lock_policy)
-        assert_equal(false, policy.pull)
-        assert_equal(0, policy.size)
-
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :unknown }
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :lock_policy => :unknown }
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :data, :size => 10 }
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :data, :size => 0 }
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :buffer }
-        assert_raises(ArgumentError) { ConnPolicy.from_hash :type => :buffer, :size => 0 }
-    end
-
-    def create_simple_deployment
-        return component, deployment, task
-    end
-    def test_activity_uses_default
-	component = Component.new 
-	component.name 'test'
-	context    = component.task_context "task"
-        context.default_activity :periodic, 0.1
-        deployment = component.deployment "test"
-        task       = deployment.task "my_name", "task"
-        assert_equal("RTT::Activity", task.activity_type.class_name)
-        assert_equal(0.1, task.period)
-    end
-    def test_can_change_default_activity
-	component = Component.new 
-	component.name 'test'
-	context    = component.task_context "task"
-        context.default_activity :periodic, 0.1
-        deployment = component.deployment "test"
-        task       = deployment.task "my_name", "task"
-        task.triggered
-        assert_equal("RTT::Activity", task.activity_type.class_name)
-        assert_equal(0, task.period)
-    end
-    def test_cannot_change_required_activity
-	component = Component.new 
-	component.name 'test'
-	context    = component.task_context "task"
-        context.required_activity :periodic, 0.1
-        deployment = component.deployment "test"
-        task       = deployment.task "my_name", "task"
-        assert_raises(ArgumentError) { task.triggered }
-    end
-    def test_cannot_modify_explicitely_set_activity
-	component = Component.new 
-	component.name 'test'
-	context    = component.task_context "task"
-        deployment = component.deployment "test"
-        task       = deployment.task "my_name", "task"
-        task.triggered
-        
-        assert_raises(ArgumentError) { task.periodic(0.1) }
     end
 
     def test_data_driven_deployment(*transports)
@@ -156,7 +71,7 @@ class TC_GenerationDeployment < Minitest::Test
 
         # Start by loading the component specfication and check some properties
         # on it. Then, do the generation, build and test
-        cross_deployment = Component.load(File.join(TEST_DATA_DIR, "modules", "cross_deployment", "deployment.orogen"))
+        cross_deployment = Component.load(File.join(data_dir, "modules", "cross_deployment", "deployment.orogen"))
 
         cross_deployment = build_test_component("modules/cross_deployment", transports)
         install

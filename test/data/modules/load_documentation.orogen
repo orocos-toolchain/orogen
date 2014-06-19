@@ -1,0 +1,26 @@
+name 'test'
+
+# TASKCONTEXT
+task_context 'Task' do
+  # PROPERTY
+  property 'p', 'int'
+
+  # INPUTPORT
+  input_port 'i', 'int'
+  # OUTPUTPORT
+  output_port 'o', 'int'
+  # OPERATION
+  operation 'op'
+
+  # This should not be loaded
+  # as there is an empty line
+  # after a non empty one
+
+  # PROPERTY
+  property 'test_empty_line_after_proper_comment', 'int'
+
+  # This should not be loaded
+  # as there is an empty line
+
+  property 'test_empty_line', 'int'
+end
