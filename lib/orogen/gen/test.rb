@@ -80,12 +80,14 @@ module OroGen
 		Dir.chdir(File.join(working_directory, *subdir), &block)
 	    end
 
+            def redirect_to_logfile
+                Hash[[STDOUT,STDERR] => [logfile, 'a']]
+            end
+
             def install
                 in_wc do
                     Dir.chdir("build") do
-                        if !system("make", "install")
-                            raise "failed to install"
-                        end
+                        assert(call_make('install'), "failed to install, see #{logfile} for more details")
                     end
                 end
             end
@@ -93,9 +95,7 @@ module OroGen
                 old_pkgconfig = ENV['PKG_CONFIG_PATH']
                 in_wc do
                     Dir.chdir("build") do
-                        if !system("make", "install")
-                            raise "failed to install"
-                        end
+                        assert(call_make('install'), "failed to install, see #{logfile} for more details")
                     end
 
                     ENV['PKG_CONFIG_PATH'] += ":" + File.join(prefix_directory, 'lib', 'pkgconfig')
@@ -103,6 +103,10 @@ module OroGen
                 end
             ensure
                 ENV['PKG_CONFIG_PATH'] = old_pkgconfig
+            end
+
+            def logfile
+                File.join(working_directory, 'test.log')
             end
 
 	    def compile_wc(component = nil, *subdir)
@@ -118,11 +122,8 @@ module OroGen
 
 		    FileUtils.mkdir('build') unless File.directory?('build')
 		    Dir.chdir('build') do
-			if !system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..")
-			    raise "failed to configure"
-			elsif !call_make
-			    raise "failed to build"
-			end
+			assert(system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..", redirect_to_logfile), "failed to configure, see #{logfile} for more details")
+                        assert(call_make, "failed to build, see #{logfile} for more details")
 		    end
 		end
 	    end
@@ -132,7 +133,7 @@ module OroGen
                 if ENV['TEST_MAKE_OPTIONS']
                     make_cmd.concat(ENV['TEST_MAKE_OPTIONS'].split(','))
                 end
-                system(*make_cmd, *args)
+                system(*make_cmd, *args, redirect_to_logfile)
             end
 
             def build_typegen(name, header_files, transports)
@@ -158,9 +159,7 @@ module OroGen
                     end
                     cmdline << "-o" << "typekit_output" << name << "types"
 
-                    if !system(*cmdline)
-                        raise "typegen failed"
-                    end
+                    assert(system(*cmdline, redirect_to_logfile), "typegen failed, log file in #{logfile}")
                 end
 
                 compile_wc(nil, "typekit_output")
@@ -194,7 +193,7 @@ module OroGen
 
                 if test_bin
                     in_prefix do
-                        assert(system(test_bin))
+                        assert(system(test_bin, redirect_to_logfile), "failed to run test program #{test_bin}, see #{logfile} for output")
                     end
                 end
                 component
@@ -210,7 +209,7 @@ module OroGen
                 end
 
                 in_prefix do
-                    assert(system(test_bin))
+                    assert(system(test_bin, redirect_to_logfile), "failed to run test program #{test_bin}, see #{logfile} for output")
                 end
             end
 	end
