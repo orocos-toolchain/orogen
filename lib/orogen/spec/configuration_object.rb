@@ -33,15 +33,6 @@ module OroGen
 	    # The property's default value
 	    attr_reader :default_value
 
-            # The property default value, formatted for as a C++ value
-            def cxx_default_value
-                if type < Typelib::EnumType
-                    type.namespace('::') + default_value.to_s
-                else
-                    default_value.inspect
-                end
-            end
-
 	    # Create a new property with the given name, type and default value
 	    def initialize(task, name, type, default_value)
                 name = name.to_s

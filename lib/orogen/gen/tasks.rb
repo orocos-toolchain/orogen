@@ -8,6 +8,15 @@ module Orocos
         end
 
         module ConfigurationObjectGeneration
+            # The property default value, formatted for as a C++ value
+            def cxx_default_value
+                if type < Typelib::EnumType
+                    type.namespace('::') + default_value.to_s
+                else
+                    default_value.inspect
+                end
+            end
+
             def gen_dynamic_setter
                 if dynamic? && (setter_operation.task == task)
                     #Adding user method
