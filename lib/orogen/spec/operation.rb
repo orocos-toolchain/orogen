@@ -53,7 +53,7 @@ module OroGen
                 @return_type = [nil, 'void', ""]
 		@arguments = []
                 @in_caller_thread = false
-                @doc = ""
+                @doc = nil
 
                 super()
 	    end
@@ -155,7 +155,7 @@ module OroGen
             def pretty_print(pp)
                 pp.text name
                 pp.nest(2) do
-                    if !self.doc.empty?
+                    if !self.doc
                         pp.breakable
                         pp.text self.doc
                     end
