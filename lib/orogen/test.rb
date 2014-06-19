@@ -77,6 +77,3 @@ module Minitest
     end
 end
 
-
-# Old testing infrastructure
-require 'orogen/gen/test'
