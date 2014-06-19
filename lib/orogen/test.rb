@@ -29,10 +29,21 @@ if ENV['TEST_ENABLE_PRY'] != '0'
     end
 end
 
-TEST_DIR = File.expand_path(File.join('..', '..', '..', 'test'), __FILE__)
-
 module OroGen
     module SelfTest
+        TEST_DIR = File.expand_path(File.join('..', '..', '..', 'test'), __FILE__)
+        TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
+        WC_ROOT  = File.join(TEST_DIR, 'wc')
+
+        def data_dir
+            TEST_DATA_DIR
+        end
+
+        def wc_root
+            WC_ROOT
+        end
+
+
         if defined? FlexMock
             include FlexMock::ArgumentTypes
             include FlexMock::MockContainer

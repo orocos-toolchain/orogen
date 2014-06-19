@@ -27,18 +27,7 @@ module OroGen
             include OroGen::Gen
             include OroGen::Gen::RTT_CPP
 
-            TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-            WC_ROOT  = File.join(TEST_DIR, 'wc')
-
 	    attr_reader :working_directory
-
-            def data_dir
-                TEST_DATA_DIR
-            end
-
-            def wc_root
-                WC_ROOT
-            end
 
             def prefix_directory
                 File.join(WC_ROOT, "prefix", *subdir)
