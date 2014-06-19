@@ -42,6 +42,8 @@ module OroGen
             # See also #runs_in_caller_thread and #runs_in_callee_thread
             attr_reader :in_caller_thread
 
+            RTT_ARGUMENT_COUNT_LIMIT = 4
+
 	    def initialize(task, name)
                 name = name.to_s
 		if name !~ /^\w+$/
@@ -111,8 +113,8 @@ module OroGen
             # arguments for an operation, and trying that will therefore raise an
             # error
 	    def argument(name, qualified_type, doc = "")
-                if arguments.size == 4
-                    raise ArgumentError, "Orocos does not support having more than 4 arguments for an operation"
+                if arguments.size >= RTT_ARGUMENT_COUNT_LIMIT
+                    raise ArgumentError, "Orocos does not support having more than #{RTT_ARGUMENT_COUNT_LIMIT} arguments for an operation"
                 end
 
                 type, qualified_type = find_interface_type(qualified_type)
