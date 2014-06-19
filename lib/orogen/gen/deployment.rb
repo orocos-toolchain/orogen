@@ -41,6 +41,13 @@ module Orocos
 		    @priority
 		end
 	    end
+
+            def method_missing(*args, &block)
+                if project.deffile && File.file?(project.deffile)
+                    OroGen.check_for_stray_dots(project.deffile, name, args)
+                end
+                super
+            end
         end
 
         module DeploymentGeneration

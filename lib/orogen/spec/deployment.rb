@@ -473,10 +473,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     end
                 end
                 
-                if project.deffile
-                    OroGen.check_for_stray_dots(project.deffile, name, args)
-                end
-
                 return super
             end
         end
