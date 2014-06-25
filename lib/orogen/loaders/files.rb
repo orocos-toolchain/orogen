@@ -5,9 +5,15 @@ module OroGen
             attr_reader :available_typekits
 
             def initialize(root_loader = self)
-                super
                 @available_projects = Hash.new
                 @available_typekits = Hash.new
+                super
+            end
+
+            def clear
+                @available_projects.clear
+                @available_typekits.clear
+                super
             end
 
             def register_orogen_file(path, name = nil)

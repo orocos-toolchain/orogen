@@ -20,9 +20,6 @@ module OroGen
             attr_reader :ros_to_orogen_mappings
 
             def initialize(root_loader = self)
-                @search_path = Array.new
-                @packs = Array.new
-                @package_paths = Hash.new
                 @spec_file_suffix = ".orogen"
 
                 super(root_loader)
@@ -34,6 +31,9 @@ module OroGen
 
             def clear
                 super
+                @search_path = Array.new
+                @packs = Array.new
+                @package_paths = Hash.new
                 @orogen_to_ros_mappings = Hash.new
                 @ros_to_orogen_mappings = Hash.new
             end
