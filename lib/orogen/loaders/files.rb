@@ -52,6 +52,27 @@ module OroGen
                 return File.read(tlb), File.read(typelist)
             end
 
+            def deployment_model_from_name(name)
+                if model = loaded_deployment_models[name]
+                    return model
+                end
+
+                # This is a hard one. We actually have to load every project
+                # until we find the deployment. In the long run, we should
+                # probably build an index or something
+                available_projects.each_key do |project_name|
+                    project = begin project_model_from_name(project_name)
+                              rescue OroGen::NotFound
+                                  OroGen.warn "could not load #{project_name} while looking for the deployment #{name}"
+                                  next
+                              end
+                    if m = project.find_deployment_by_name(name)
+                        return m
+                    end
+                end
+                nil
+            end
+
             def has_typekit?(name)
                 available_typekits.has_key?(name)
             end
