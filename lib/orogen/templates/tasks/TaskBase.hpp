@@ -92,11 +92,11 @@ namespace <%= component.name %> {
         <% end %>
 
         <% if task.extended_state_support? %>
-        void report(States state);
-        void state(States state);
-        void error(States state);
-        void fatal(States state);
-        void exception(States state);
+        void report(States state, bool onlyIfChanged = true);
+        void state(States state, bool onlyIfChanged = true);
+        void error(States state, bool onlyIfChanged = true);
+        void fatal(States state, bool onlyIfChanged = true);
+        void exception(States state, bool onlyIfChanged = true);
         States state() const;
         <% end %>
 

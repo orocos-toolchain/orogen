@@ -77,27 +77,42 @@ void <%= task.basename %>Base::setupComponentInterface()
         compact.join("\n") %>
 
 <% if task.extended_state_support? %>
-void <%= task.basename %>Base::report(States state)
+void <%= task.basename %>Base::report(States state, bool onlyIfChanged)
 {
-    _state.write(state);
+    if(this->state() != state || !onlyIfChanged)
+    {
+        _state.write(state);
+    }
 }
-void <%= task.basename %>Base::state(States state)
+void <%= task.basename %>Base::state(States state, bool onlyIfChanged)
 {
-    _state.write(state);
+    if(this->state() != state || !onlyIfChanged)
+    {
+        _state.write(state);
+    }
 }
-void <%= task.basename %>Base::error(States state)
+void <%= task.basename %>Base::error(States state, bool onlyIfChanged)
 {
-    _state.write(state);
+    if(this->state() != state || !onlyIfChanged)
+    {
+        _state.write(state);
+    }
     TaskContext::error();
 }
-void <%= task.basename %>Base::exception(States state)
+void <%= task.basename %>Base::exception(States state, bool onlyIfChanged)
 {
-    _state.write(state);
+    if(this->state() != state || !onlyIfChanged)
+    {
+        _state.write(state);
+    }
     TaskContext::exception();
 }
-void <%= task.basename %>Base::fatal(States state)
+void <%= task.basename %>Base::fatal(States state, bool onlyIfChanged)
 {
-    _state.write(state);
+    if(this->state() != state || !onlyIfChanged)
+    {
+        _state.write(state);
+    }
     TaskContext::fatal();
 }
 <%= task.basename %>Base::States <%= task.basename %>Base::state() const
