@@ -70,7 +70,7 @@ module OroGen
                         return m
                     end
                 end
-                nil
+                raise DeploymentModelNotFound, "there is no deployment called #{name} on #{self}"
             end
 
             def has_typekit?(name)
