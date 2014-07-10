@@ -237,9 +237,6 @@ module OroGen
             # new typekit as argument
             def register_typekit_model(typekit)
                 loaded_typekits[typekit.name] = typekit
-                if root_loader != self
-                    return root_loader.register_typekit_model(typekit)
-                end
 
                 registry.merge typekit.registry
                 @interface_typelist |= typekit.interface_typelist
@@ -249,6 +246,10 @@ module OroGen
                 end
                 typekit_load_callbacks.each do |callback|
                     callback.call(typekit)
+                end
+
+                if root_loader != self
+                    root_loader.register_typekit_model(typekit)
                 end
             end
 
@@ -387,14 +388,15 @@ module OroGen
             # Registers this project's subobjects
             def register_project_model(project)
                 loaded_projects[project.name] = project
-                if root_loader != self
-                    return root_loader.register_project_model(project)
-                end
 
                 loaded_task_models.merge! project.tasks
                 loaded_deployment_models.merge! project.deployers
                 project_load_callbacks.each do |callback|
                     callback.call(project)
+                end
+
+                if root_loader != self
+                    root_loader.register_project_model(project)
                 end
             end
 
