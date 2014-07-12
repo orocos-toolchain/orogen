@@ -389,8 +389,12 @@ module OroGen
             def register_project_model(project)
                 loaded_projects[project.name] = project
 
-                loaded_task_models.merge! project.tasks
-                loaded_deployment_models.merge! project.deployers
+                project.tasks.each do |_, task_model|
+                    register_task_context_model(task_model)
+                end
+                project.deployers.each do |_, deployer_model|
+                    register_deployment_model(deployer_model)
+                end
                 project_load_callbacks.each do |callback|
                     callback.call(project)
                 end
@@ -398,6 +402,22 @@ module OroGen
                 if root_loader != self
                     root_loader.register_project_model(project)
                 end
+            end
+
+            # Registers a new task model
+            #
+            # @param [Spec::TaskContext] model
+            # @return [void]
+            def register_task_context_model(model)
+                loaded_task_models[model.name] = model
+            end
+
+            # Registers a new deployment model
+            #
+            # @param [Spec::Deployment] model
+            # @return [void]
+            def register_deployment_model(model)
+                loaded_deployment_models[model.name] = model
             end
 
             # Returns the textual representation of a project model
