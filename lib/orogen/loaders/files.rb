@@ -57,16 +57,9 @@ module OroGen
                     return model
                 end
 
-                # This is a hard one. We actually have to load every project
-                # until we find the deployment. In the long run, we should
-                # probably build an index or something
-                available_projects.each_key do |project_name|
-                    project = begin project_model_from_name(project_name)
-                              rescue OroGen::NotFound
-                                  OroGen.warn "could not load #{project_name} while looking for the deployment #{name}"
-                                  next
-                              end
+                each_project do |project|
                     if m = project.find_deployment_by_name(name)
+                        loaded_deployment_models[name] = m
                         return m
                     end
                 end
@@ -79,9 +72,48 @@ module OroGen
 
             def to_s; "#<OroGen::Loaders::Files projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>" end
 
+            def each_project
+                return enum_for(__method__) if !block_given?
+
+                available_projects.each_key do |project_name|
+                    project = begin project_model_from_name(project_name)
+                              rescue OroGen::NotFound
+                                  OroGen.warn "could not load #{project_name}: #{$!.message}"
+                                  next
+                              end
+
+                    yield(project)
+                end
+                nil
+            end
+
+            def find_project_from_deployment_name(name)
+                each_project do |project|
+                    if project.find_deployment_by_name(name)
+                        return project.name
+                    end
+                end
+                nil
+            end
+
             def each_available_project_name(&block)
                 return available_projects.each_key(&block)
+            end
+
+            def each_available_typekit_name(&block)
+                return available_typekits.each_key(&block)
+            end
+
+            def each_available_deployment_name(&block)
+                return enum_for(__method__) if !block_given?
+                each_project do |project|
+                    project.each_deployment do |spec|
+                        yield(spec.name)
+                    end
+                end
+                nil
             end
         end
     end
 end
+

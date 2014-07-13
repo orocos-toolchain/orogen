@@ -245,6 +245,14 @@ module OroGen
             def each_available_project_name(&block)
                 return available_projects.each_key(&block)
             end
+
+            def each_available_typekit_name(&block)
+                return available_typekits.each_key(&block)
+            end
+
+            def each_available_deployment_name(&block)
+                return available_deployments.each_key(&block)
+            end
         end
     end
 end
