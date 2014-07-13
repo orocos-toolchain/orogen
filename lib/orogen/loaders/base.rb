@@ -48,7 +48,7 @@ module OroGen
             attr_reader :project_load_callbacks
 
             def initialize(root_loader = self)
-                @root_loader = root_loader
+                @root_loader = root_loader || self
                 @typekit_load_callbacks = Array.new
                 @project_load_callbacks = Array.new
                 clear
