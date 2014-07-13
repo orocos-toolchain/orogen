@@ -36,9 +36,9 @@ module Orocos
 end
 
 require 'utilrb/pkgconfig'
-require 'nokogiri'
 require 'metaruby/dsls/doc'
 require 'orogen/typenames'
+require 'rexml/document'
 
 require 'orogen/version'
 require 'orogen/exceptions'

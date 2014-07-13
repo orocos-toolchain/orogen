@@ -37,17 +37,17 @@ module OroGen
                     end
                 end
 
-                # Create a node description from a nokogiri xml node
+                # Create a node description from a xml node
                 # @return [OroGen::ROS::Spec::XML::NodeDescription] Node description object
                 def self.from_xml_node(node)
-                    name = node.attribute("name").to_s
-                    package = node.attribute("pkg").to_s
-                    type = node.attribute("type").to_s
+                    name = node.attributes["name"].to_s
+                    package = node.attributes["pkg"].to_s
+                    type = node.attributes["type"].to_s
 
                     nd = NodeDescription.new(name, package, type)
 
                     NodeDescription.optional_attr.each do |o,_|
-                        if attr = node.attribute("#{o}")
+                        if attr = node.attributes[o.to_s]
                             nd.instance_variable_set("@#{o}",attr)
                         end
                     end
@@ -164,8 +164,8 @@ module OroGen
 
                 nodes = []
                 File.open(filename) do |f|
-                    doc = Nokogiri::XML(f)
-                    doc.search('node').each do |n|
+                    doc = REXML::Document.new(f)
+                    doc.each_element('//node') do |n|
                         nodes << XML::NodeDescription.from_xml_node(n)
                     end
                 end

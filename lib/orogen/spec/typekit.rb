@@ -55,12 +55,12 @@ module OroGen
                               typekit_interface_typelist)
 
                 # Now initialize the opaque definitions
-                doc = Nokogiri::XML(registry_xml)
-                doc.xpath('//opaque').each do |opaque_entry|
-                    base_type_name  = opaque_entry['name']
-                    inter_type_name = opaque_entry['marshal_as']
-                    includes        = opaque_entry['includes']
-                    needs_copy      = opaque_entry['needs_copy']
+                doc = REXML::Document.new(registry_xml)
+                doc.each_element('//opaque') do |opaque_entry|
+                    base_type_name  = opaque_entry.attributes['name']
+                    inter_type_name = opaque_entry.attributes['marshal_as']
+                    includes        = opaque_entry.attributes['includes']
+                    needs_copy      = opaque_entry.attributes['needs_copy']
                     spec = OpaqueDefinition.new(
                         typekit_registry.get(base_type_name),
                         inter_type_name,
