@@ -317,6 +317,15 @@ module OroGen
                 end
                 new_transports
             end
+
+            # Enumerate this project's deployments
+            #
+            # @yieldparam [Deployment] deployment
+            # @return [void]
+            def each_deployment
+                return enum_for(__method__) if !block_given?
+                deployers.each_value(&proc)
+            end
         end
     end
 end
