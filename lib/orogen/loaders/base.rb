@@ -49,6 +49,9 @@ module OroGen
 
             def initialize(root_loader = self)
                 @root_loader = root_loader || self
+                if root_loader != self
+                    root_loader.added_child(self)
+                end
                 @typekit_load_callbacks = Array.new
                 @project_load_callbacks = Array.new
                 clear
@@ -62,6 +65,9 @@ module OroGen
                 @typekits_by_type_name = Hash.new
                 @registry = Typelib::Registry.new
                 @interface_typelist = Set.new
+            end
+
+            def added_child(loader)
             end
 
             # Returns the project model corresponding to the given name
@@ -417,6 +423,10 @@ module OroGen
                 if root_loader != self
                     root_loader.register_project_model(project)
                 end
+            end
+
+            def has_loaded_project?(name)
+                loaded_projects.has_key?(name)
             end
 
             # Registers a new task model

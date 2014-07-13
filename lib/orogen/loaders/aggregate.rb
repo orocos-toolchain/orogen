@@ -10,6 +10,10 @@ module OroGen
                 super(root_loader)
             end
 
+            def added_child(loader)
+                add(loader)
+            end
+
             def clear
                 super
                 loaders.each do |l|
@@ -17,12 +21,15 @@ module OroGen
                 end
             end
 
-            def add(launcher)
-                @loaders << launcher
+            def add(loader)
+                if loaders.include?(loader)
+                    raise ArgumentError, "#{loader} is already a child of #{self}"
+                end
+                @loaders << loader
             end
 
-            def remove(launcher)
-                @loaders.delete launcher
+            def remove(loader)
+                @loaders.delete loader
             end
 
             def project_model_from_name(name)
@@ -165,7 +172,7 @@ module OroGen
             end
 
             def to_s
-                "#<#{self.class.name}: #{loaders.map(&:to_s).join(",")}>"
+                "#<#{self.class.name}(#{object_id.to_s(16)}): #{loaders.map(&:to_s).join(",")}>"
             end
         end
     end

@@ -70,7 +70,9 @@ module OroGen
                 available_typekits.has_key?(name)
             end
 
-            def to_s; "#<OroGen::Loaders::Files projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>" end
+            def to_s;
+                "#<OroGen::Loaders::Files(#{object_id.to_s(16)}) projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>"
+            end
 
             def each_project
                 return enum_for(__method__) if !block_given?

@@ -15,7 +15,7 @@ module OroGen
             TaskLibrary = Struct.new :pkg
             Type = Struct.new :name, :exported
 
-            def to_s; "#<OroGen::Loaders::PkgConfig #{orocos_target}>" end
+            def to_s; "#<OroGen::Loaders::PkgConfig(#{object_id.to_s(16)}) #{orocos_target}>" end
 
             # @return [String] the name of the orocos target we are looking for
             attr_reader :orocos_target
