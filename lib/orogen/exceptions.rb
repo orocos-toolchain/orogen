@@ -40,4 +40,7 @@ module OroGen
 
     class InternalError < RuntimeError
     end
+
+    class AlreadyRegistered < RuntimeError
+    end
 end

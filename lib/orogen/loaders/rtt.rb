@@ -2,7 +2,7 @@ module OroGen
     module Loaders
         module RTT
             DIR = File.join(File.expand_path(File.dirname(__FILE__)), 'rtt')
-            STANDARD_PROJECT_SPECS = { "rtt" => DIR, "ocl" => DIR }
+            STANDARD_PROJECT_SPECS = { "RTT" => DIR, "OCL" => DIR }
             STANDARD_TYPEKIT_SPECS = { "orocos" => DIR }
             def self.loader
                 loader = Files.new

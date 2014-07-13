@@ -89,6 +89,9 @@ module OroGen
                     end
 
                 Loaders::Project.new(project).__eval__(path, text)
+                if project.name != name
+                    raise RuntimeError, "inconsistency: got project #{project.name} while loading #{name}"
+                end
                 register_project_model(project)
                 project
             end
@@ -227,6 +230,10 @@ module OroGen
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
                 typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
+                if typekit.name != name
+                    raise RuntimeError, "inconsistency: got typekit #{typekit.name} while loading #{name}"
+                end
+
                 register_typekit_model(typekit)
                 typekit
             end
@@ -236,6 +243,10 @@ module OroGen
             # Callbacks registered by {#on_typekit_load} gets called with the
             # new typekit as argument
             def register_typekit_model(typekit)
+                if loaded_typekits.has_key?(typekit.name)
+                    raise AlreadyRegistered, "there is already a typekit called #{typekit.name} registered on #{self}"
+                end
+
                 loaded_typekits[typekit.name] = typekit
 
                 registry.merge typekit.registry
@@ -387,6 +398,10 @@ module OroGen
 
             # Registers this project's subobjects
             def register_project_model(project)
+                if loaded_projects.has_key?(project.name)
+                    raise AlreadyRegistered, "there is already a project called #{project.name} registered on #{self}"
+                end
+
                 loaded_projects[project.name] = project
 
                 project.tasks.each do |_, task_model|
