@@ -254,6 +254,9 @@ module OroGen
                 end
 
                 loaded_typekits[typekit.name] = typekit
+                if root_loader != self
+                    return root_loader.register_typekit_model(typekit)
+                end
 
                 registry.merge typekit.registry
                 @interface_typelist |= typekit.interface_typelist
@@ -263,10 +266,6 @@ module OroGen
                 end
                 typekit_load_callbacks.each do |callback|
                     callback.call(typekit)
-                end
-
-                if root_loader != self
-                    root_loader.register_typekit_model(typekit)
                 end
             end
 
@@ -409,6 +408,9 @@ module OroGen
                 end
 
                 loaded_projects[project.name] = project
+                if root_loader != self
+                    return root_loader.register_project_model(project)
+                end
 
                 project.tasks.each do |_, task_model|
                     register_task_context_model(task_model)
@@ -418,10 +420,6 @@ module OroGen
                 end
                 project_load_callbacks.each do |callback|
                     callback.call(project)
-                end
-
-                if root_loader != self
-                    root_loader.register_project_model(project)
                 end
             end
 
