@@ -78,9 +78,10 @@ module OroGen
                 return enum_for(__method__) if !block_given?
 
                 available_projects.each_key do |project_name|
-                    project = begin project_model_from_name(project_name)
-                              rescue OroGen::NotFound
-                                  OroGen.warn "could not load #{project_name}: #{$!.message}"
+                    project = begin
+                                  root_loader.project_model_from_name(project_name)
+                              rescue Exception => e
+                                  OroGen.warn "could not load #{project_name}: #{e.message}"
                                   next
                               end
 
