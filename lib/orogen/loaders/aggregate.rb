@@ -147,7 +147,10 @@ module OroGen
                     return deployment
                 end
 
-                OroGen::Loaders.debug "Aggregate: resolving deployment #{name} on #{loaders.map(&:to_s).join(",")}"
+                OroGen::Loaders.debug do
+                    "Aggregate: resolving deployment #{name} on #{loaders.map(&:to_s).join(",")}"
+                end
+
                 loaders.each do |l|
                     begin
                         # We assume that the sub-loaders are created with self
