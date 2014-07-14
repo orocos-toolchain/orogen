@@ -104,4 +104,28 @@ describe Orocos::Spec::TaskContext do
             end
         end
     end
+
+    describe "#to_h" do
+        attr_reader :task
+        before do
+            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new, "test::Task")
+        end
+        it "marshals the model in hash form" do
+            task.runtime_states :TEST
+            port      = task.input_port('in_p', '/int')
+            property  = task.property('p', '/double')
+            attribute = task.attribute('a', '/double')
+            operation = task.operation('op')
+            h = task.to_h
+            assert_equal task.name, h[:name]
+            assert_equal task.superclass.name, h[:superclass]
+            assert_equal [port.to_h, task.find_port('state').to_h], h[:ports]
+            assert_equal [property.to_h], h[:properties]
+            assert_equal [attribute.to_h], h[:attributes]
+            assert_equal [operation.to_h], h[:operations]
+
+            expected_states = task.superclass.each_state.to_a + [['TEST', :runtime]]
+            assert_equal expected_states, h[:states]
+        end
+    end
 end
