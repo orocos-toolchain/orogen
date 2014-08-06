@@ -1484,6 +1484,8 @@ module Orocos
                     map
                 end
 
+                options[:include_paths] = include_dirs
+                
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
