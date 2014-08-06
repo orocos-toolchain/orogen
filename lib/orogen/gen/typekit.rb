@@ -1495,7 +1495,7 @@ module Orocos
                     io.flush
 
                     begin
-                        file_registry.import(io.path, 'c', options)
+                        file_registry.import(io.path, 'clang', options)
                         filter_unsupported_types(file_registry)
                         resolve_registry_includes(file_registry, include_mappings)
                         registry.merge(file_registry)
