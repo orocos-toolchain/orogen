@@ -6,8 +6,4 @@
   <null name="/nil" />
   <alias name="/int64" source="/int64_t"/>
   <alias name="/uint64" source="/uint64_t"/>
-  <container  name="/std/string" of="/int8_t" size="0" kind="/std/string" >
-  <metadata key="orogen_include"><![CDATA[:string]]></metadata>
-  </container>
-  <alias name="/string" source="/std/string"/>
 </typelib>
