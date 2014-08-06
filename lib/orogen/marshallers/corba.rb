@@ -231,6 +231,23 @@ module Orocos
             result << "#{indent}value = corba;\n"
         end
     end
+    
+    ::Typelib::specialize_model '/std/basic_string</char>' do
+        def inlines_code?; true end
+        def corba_name; "char const*" end
+        def corba_arg_type; "char const*" end
+        def corba_ref_type; "char const*&" end
+
+        def inline_toCorba(result, value, indent)
+            "#{indent}#{result} = #{value}.c_str();"
+        end
+        def to_corba(typekit, result, indent)
+            result << "#{indent}corba = value.c_str();\n"
+        end
+        def from_corba(typekit, result, indent)
+            result << "#{indent}value = corba;\n"
+        end
+    end
 
     module ContainerType
         def corba_name
