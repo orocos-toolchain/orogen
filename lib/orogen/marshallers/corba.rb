@@ -179,6 +179,24 @@ module Orocos
         end
     end
 
+    ::Typelib::specialize_model '/unsigned char' do
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} >>= CORBA::Any::to_octet(#{corba_var});"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= CORBA::Any::from_octet(#{corba_var});"
+        end
+    end
+
+    ::Typelib::specialize_model '/signed char' do
+        def inline_fromAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} >>= CORBA::Any::to_char(#{corba_var});"
+        end
+        def inline_toAny(any_var, corba_var, indent)
+            "#{indent}#{any_var} <<= CORBA::Any::from_char(#{corba_var});"
+        end
+    end
+
     ::Typelib::specialize_model '/int8_t' do
         def inline_fromAny(any_var, corba_var, indent)
             "#{indent}#{any_var} >>= CORBA::Any::to_char(#{corba_var});"
