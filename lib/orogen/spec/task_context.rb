@@ -1300,7 +1300,7 @@ module Orocos
             def to_h
                 Hash[
                     name: name,
-                    superclass: task.superclass.name,
+                    superclass: superclass.name,
                     states: each_state.to_a,
                     ports: each_port.map(&:to_h),
                     properties: each_property.map(&:to_h),
