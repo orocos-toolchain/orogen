@@ -1758,7 +1758,7 @@ module Orocos
                     marshalling_code = Generation.
                         render_template 'typekit', 'marshalling_types.hpp', binding
 
-                    path = Generation.save_automatic 'typekit', 'types', self.name, "m_types", "#{type.method_name(false)}.hpp", marshalling_code
+                    path = Generation.save_automatic 'typekit', 'types', self.name, "m_types", "#{type.method_name(true)}.hpp", marshalling_code
                     self.load(path, true, options)
                 end
                 true
