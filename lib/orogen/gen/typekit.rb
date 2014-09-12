@@ -1129,8 +1129,8 @@ module Orocos
             # to take ownership on that value, in which case it has to return
             # true. If the function returns false, then the sample is deleted after
             # the method call.
-            def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
-                options = validate_options options,
+            def opaque_type(base_type, intermediate_type, options = Hash.new, &convert_code_generator)
+                options = Kernel.validate_options options,
                     :include => [],
                     :includes => [],
                     :needs_copy => true
