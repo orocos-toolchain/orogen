@@ -629,7 +629,7 @@ module Orocos
             # If true, the opaque needs to be copied into the intermediate. If
             # false, the convertion does not require a copy.
             def needs_copy?; !!options[:needs_copy] end
-            # If true, the convertion function is provided by the user, and
+            # If true, the conversion function is provided by the user, and
             # orogen should therefore generate the corresponding templates.
             def generate_templates?; !code_generator end
         end
@@ -730,7 +730,7 @@ module Orocos
             attr_accessor :version
             # The set of include directories that should be considered in #load
             attr_accessor :include_dirs
-            # The set of includes that have been loaded
+            # The array of includes that have been loaded
             attr_reader :included_files
 
             # The three possible type export policies. See #type_export_policy
@@ -1336,8 +1336,7 @@ module Orocos
             # get access on the C++ side to each type in the registry. It is
             # saved in the orogen_include metadata information of the types.
             #
-            # @param [Array<Pathname>] include_path the include path
-            # @param [Typelib::Registry] the registry whose types should be
+            # @param [Typelib::Registry] registry whose types should be
             #   resolved
             # @param [{String=>Array<String>}] file_to_include mapping from a
             #   source file and line to the toplevel include that relates to
