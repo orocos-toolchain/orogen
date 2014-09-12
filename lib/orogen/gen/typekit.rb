@@ -1043,20 +1043,42 @@ module Orocos
             #
             # The Typekit#ro_ptr and Typekit#shared_ptr shortcuts are defined
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
-            def smart_ptr(name, base_type, options = Hash.new)
+            def smart_ptr(ptr_name, base_type, options = Hash.new)
                 typekit = self
-                opaque = opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
+                # create a validated options-hash
+                options = Kernel.validate_options options,
+                    # just the plain name of the header like "path/Header.hpp"
+                    :include => [],
+                    # additional pkg-config info like "pkg-config-name:path/Header.hpp"
+                    :orogen_include => []
+                # create opaque
+                opaque = opaque_type("#{ptr_name}<#{base_type.name}>",
+                                     base_type,
+                                     options.merge(:needs_copy => false)) do |from, into|
+                    # create code from template
                     Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
-                # Add the headers required for the smart pointer definition to
-                # the list of included files, as well as to the headers needed
-                # for the type
+                # handle the "orogen_include" option, which has to contain the
+                # pkg-config-name of the software providing this header
+                options[:orogen_include].each do |or_inc|
+                    included_files << or_inc.split(':').last
+                    opaque.metadata.add('orogen_include', or_inc)
+                end
+                # Add the headers required for this smart pointer definition to
+                # the list of included files. we dont have any pkg-config
+                # informations in this channel, so just prepend a ":" to denote
+                # the empty case.
                 options[:include].each do |inc|
                     included_files << inc
-                    opaque.metadata.add('orogen_include', inc)
+                    # note that the "opaque_type()" factory-function used
+                    # previously to create the opaque for the ro_ptr will take
+                    # care that this header is added to the "orogen_include"
+                    # metadata as well
                 end
-                base_type.metadata.get('orogen_include').each do |inc|
-                    opaque.metadata.add('orogen_include', inc)
+                # ...and copy the header-informations needed for the type
+                # verbatim.
+                base_type.metadata.get('orogen_include').each do |or_inc|
+                    opaque.metadata.add('orogen_include', or_inc)
                 end
                 opaque
             end
@@ -1066,8 +1088,8 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
-                options[:include] ||= Array.new
-                options[:include] << 'rtt/extras/ReadOnlyPointer.hpp'
+                options[:orogen_include] ||= Array.new
+                options[:orogen_include] << "orocos-rtt-#{Orocos::Generation.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
                 smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
@@ -1076,8 +1098,10 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def shared_ptr(name, options = Hash.new)
-                options[:include] ||= Array.new
-                options[:include] << 'boost/shared_ptr.hpp'
+                options[:orogen_include] ||= Array.new
+                # actually we would need to add a pkg-config name in front of
+                # the ":", but boost does _still_ not have pkg-config...
+                options[:orogen_include] << ':boost/shared_ptr.hpp'
                 smart_ptr("/boost/shared_ptr", find_type(name), options)
             end
 
@@ -1132,6 +1156,7 @@ module Orocos
                 options = Kernel.validate_options options,
                     :include => [],
                     :includes => [],
+                    :orogen_include => [],
                     :needs_copy => true
 
                 if options[:includes].respond_to?(:to_str)
