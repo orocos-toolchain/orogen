@@ -2179,11 +2179,31 @@ module Orocos
             # @return [Array<String>]
             # @see cxx_gen_includes
             def include_for_type(type)
-                if type.respond_to?(:deference)
+
+                if type <= Typelib::NumericType
+                    if type.name =~ /u?int\d+_t/
+                        # through all of rock there is "boost" used to define
+                        # the fixed-width integers. stick to that.
+                        return ["boost/cstdint.hpp"]
+                    else
+                        # all the other NumericType (bool, double/float) are
+                        # builtin and need no header
+                        return []
+                    end
+                elsif type.respond_to?(:deference)
                     result = []
                     if type <= Typelib::ContainerType
+                        # strings are special containers, which need only one
+                        # header to work. and we happen to know it in advance.
+                        if type.name == '/std/string' or type.name == '/string'
+                            return ['string']
+                        end
+                        # right now only "std::vector" is a supported container.
+                        # so add "vector" to the includes...
                         result << 'vector'
                     end
+                    # ...and recurse one level down to find the header for the
+                    # type inside the ContainerType or ArrayType.
                     return result + include_for_type(type.deference)
                 end
 
@@ -2198,14 +2218,10 @@ module Orocos
                     end
                 end
 
-                if type <= Typelib::NumericType
-                    return []
-                end
-
                 if type.opaque?
                     raise ConfigError, "no includes known for #{type.name}, This is an opaque, and you must either call import_types_from on a header that defines it, or provide the :include option to the opaque definition"
                 else
-                    raise InternalError, "no includes known for #{type.name}, #{type.metadata.get("source_file_line")}"
+                    raise InternalError, "no includes known for #{type.name} defined in #{type.metadata.get("source_file_line")}"
                 end
             end
 
