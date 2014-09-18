@@ -4,8 +4,6 @@
 #define __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_USER_HPP
 
 #include <<%= typekit.name %>/typekit/Types.hpp>
-#include <boost/cstdint.hpp>
-#include <string>
 
 <% user_converted_types.each do |type, ros_type| %>
 #include <<%= type_to_msg[ros_type.name] %>.h>
