@@ -1365,6 +1365,7 @@ module Orocos
 
                         file, line = location.split(':')
                         if !File.file?(file)
+                            Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
                             type.metadata.delete('source_file_line')
                             next(true)
                         end
