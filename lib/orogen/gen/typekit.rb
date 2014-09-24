@@ -930,7 +930,6 @@ module Orocos
 		@project = project
 
                 @include_dirs = Set.new
-                @include_dirs << "/usr/include" << "/usr/local/include"
                 @included_files = Array.new
 
                 @plugins = []
