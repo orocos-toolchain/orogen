@@ -2,6 +2,7 @@ name "RTT"
 
 external_task_context "TaskContext" do
     abstract
+    root_model
 
     rtt_states = ['INIT', 'PRE_OPERATIONAL', 'FATAL_ERROR', 'EXCEPTION', 'STOPPED',
         'RUNNING', 'RUNTIME_ERROR'].

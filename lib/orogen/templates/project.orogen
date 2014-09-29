@@ -3,6 +3,8 @@ enable_transports('<%= component.enabled_transports.sort.join("', '") %>')
 <% end %>
 self.extended_states = <%= Orocos::Generation.extended_states_enabled? %>
 
+Orocos::Spec::TaskContext.disable_default_extensions
+
 <% used_typekits.each do |tk| %>
 <%   if !tk.virtual? %>
 using_typekit "<%= tk.name %>"
@@ -10,3 +12,12 @@ using_typekit "<%= tk.name %>"
 <% end %>
 
 <%= File.read(component.deffile) %>
+
+
+<% self_tasks.each do |task_context| %>
+<%    Orocos::Spec::TaskContext.default_extensions.each do |ext| %>
+find_task_context("<%= task_context.name %>").<%= ext %>
+<%    end %>
+<% end %>
+
+Orocos::Spec::TaskContext.enable_default_extensions

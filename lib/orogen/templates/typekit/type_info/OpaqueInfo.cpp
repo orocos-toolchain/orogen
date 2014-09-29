@@ -1,10 +1,9 @@
 /* Generated from orogen/lib/orogen/templates/typekit/type_info/OpaqueInfo.hpp */
 
-#include <<%= typekit.name %>/Types.hpp>
-#include <<%= typekit.name %>/type_info/BoostSerialization.hpp>
-#include <rtt/types/StructTypeInfo.hpp>
-#include <rtt/types/TypeInfoRepository.hpp>
-#include <<%= typekit.name %>/OpaqueConvertions.hpp>
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
+<%= typekit.cxx_gen_includes(*typekit.include_for_type(intermediate_type)) %>
+<%= typekit.cxx_gen_includes(*typekit.type_info_includes_for_type(type)) %>
+#include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 
 <% base_class =
     if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?

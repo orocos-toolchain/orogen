@@ -2,10 +2,11 @@
 
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <rtt/internal/GlobalEngine.hpp>
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-#include <service_discovery/service_discovery.h>
+#include <service_discovery/ServiceDiscovery.hpp>
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
@@ -21,7 +22,7 @@
 #include <rtt/types/TypekitPlugin.hpp>
 <% end %>
 <% if typekit = component.typekit %>
-#include "typekit/Plugin.hpp"
+#include <<%= typekit.name %>/typekit/Plugin.hpp>
 <% deployer.transports.each do |transport_name| %>
 #include "typekit/transports/<%= transport_name %>/TransportPlugin.hpp"
 <% end %>
@@ -35,9 +36,6 @@
 <% end %>
 
 <% task_activities = deployer.task_activities.sort_by(&:name) %>
-<% task_activities.each do |task| %>
-#include <<%= task.context.header_file %>>
-<% end %>
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
 #include <rtt/transports/corba/TaskContextServer.hpp>
@@ -63,6 +61,13 @@
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
 
+namespace orogen
+{
+<% task_activities.each do |task| %>
+    extern RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name);
+<% end %>
+}
+
 namespace po = boost::program_options;
 
 class Deinitializer
@@ -73,9 +78,9 @@ class Deinitializer
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-    friend Deinitializer& operator << (Deinitializer&, servicediscovery::ServiceDiscovery&);
+    friend Deinitializer& operator << (Deinitializer&, servicediscovery::avahi::ServiceDiscovery&);
 
-    std::vector<servicediscovery::ServiceDiscovery*> m_service_discoveries;
+    std::vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
 #endif
 <% end %>
 
@@ -91,7 +96,7 @@ public:
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-        for(std::vector<servicediscovery::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+        for(std::vector<servicediscovery::avahi::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
                 sit != m_service_discoveries.end(); ++sit)
         {
             (*sit)->stop();
@@ -110,7 +115,7 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::base::ActivityInterface&
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-Deinitializer& operator << (Deinitializer& deinit, servicediscovery::ServiceDiscovery& service_discovery)
+Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::ServiceDiscovery& service_discovery)
 {
     deinit.m_service_discoveries.push_back(&service_discovery);
     return deinit;
@@ -149,6 +154,7 @@ int ORO_main(int argc, char* argv[])
         ("sd-domain", po::value<std::string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
 <% end %>
+        ("with-ros", po::value<bool>()->default_value(false), "also publish the task as ROS node, default is false")
         ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
@@ -198,6 +204,11 @@ int ORO_main(int argc, char* argv[])
     if( vm.count("prefix")) 
         prefix = vm["prefix"].as<std::string>();
 
+    bool with_ros = false;
+
+    if( vm.count("with-ros"))
+	with_ros = vm["with-ros"].as<bool>();
+
     std::string task_name;
 
     std::map<std::string, std::string> rename_map;
@@ -226,6 +237,15 @@ int ORO_main(int argc, char* argv[])
     RTT::os::Thread::setLockTimeoutPeriodFactor(<%= lock_factor %>);
 <% end %>
 
+// Initialize some global threads so that we can properly setup their threading
+// parameters
+<% has_realtime = task_activities.all? { |t| t.realtime? } %>
+<% if has_realtime %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
+<% else %>
+RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
+<% end %>
+
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
@@ -234,21 +254,15 @@ int ORO_main(int argc, char* argv[])
     else
         task_name = prefix + task_name;
     
-    <%= task.context.class_name %> task_<%= task.name%>(task_name);
-    <% task.properties.sort_by { |prop| prop.name }.each do |prop|
-        if prop.value %>
-    dynamic_cast< RTT::Property<  <%= prop.interface_object.type.cxx_name %> >*>(
-            task_<%= task.name %>.properties()->getProperty("<%= prop.name %>"))
-        ->set(<%= prop.value.inspect %>);
-        <% end %>
-    <% end %>
+    std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(
+            orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
 
     <% if deployer.corba_enabled? %>
-    RTT::corba::TaskContextServer::Create( &task_<%= task.name%> );
+    RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
     <% if task.realtime? %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
     <% else %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>.ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
+    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
     <% end %>
     <% end %>
 
@@ -265,7 +279,7 @@ int ORO_main(int argc, char* argv[])
             thread->setStopTimeout(<%= timeout %>);
     }
     <% end %>
-    task_<%= task.name %>.setActivity(activity_<%= task.name %>);
+    task_<%= task.name %>->setActivity(activity_<%= task.name %>);
 <% end %>
 
 
@@ -276,9 +290,10 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::ServiceConfiguration sd_conf_<%= task.name%>(prefix + "<%= task.name %>", vm["sd-domain"].as<std::string>());
-    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(&task_<%= task.name%>));
-    servicediscovery::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::ServiceDiscovery();
+    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
+    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
+    sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
+    servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
     deinit << *sd_<%= task.name%>;
     sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
 <% end %>
@@ -286,32 +301,22 @@ int ORO_main(int argc, char* argv[])
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
-<% if !deployer.loggers.empty?
-        deployer.loggers.sort_by { |filename, _| filename }.each do |filename, logger|
-            logger.config.each do |type, reported_activity, args| %>
-                task_<%= logger.task.name %>.connectPeers(&task_<%= reported_activity.name %>);
-                task_<%= logger.task.name %>.report<%= type %>(<%= args.map { |v| "\"#{v}\"" }.join(", ") %>);
-            <% end %>
-        <% end %>
-<% end %>
-
-
 <% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
-    task_<%= a.name %>.connectPeers(&task_<%= b.name %>);
+    task_<%= a.name %>->connectPeers(task_<%= b.name %>.get());
 <% end %>
 
 <% deployer.connections.
     sort_by { |src, dst, policy| [src.name, dst.name] }.
     each do |src, dst, policy|
-        if src.kind_of?(TaskDeployment) %>
-            task_<%= src.activity.name %>.connectPorts(&task_<%= dst.activity.name %>);
+        if src.kind_of?(Spec::TaskDeployment) %>
+            task_<%= src.activity.name %>->connectPorts(task_<%= dst.activity.name %>.get());
         <% else %>
         {
             <%= policy.to_code("policy") %>
             RTT::base::OutputPortInterface* src = dynamic_cast<RTT::base::OutputPortInterface*>(
-                    task_<%= src.activity.name %>.ports()->getPort("<%= src.name %>"));
+                    task_<%= src.activity.name %>->ports()->getPort("<%= src.name %>"));
             RTT::base::InputPortInterface* dst = dynamic_cast<RTT::base::InputPortInterface*>(
-                    task_<%= dst.activity.name %>.ports()->getPort("<%= dst.name %>"));
+                    task_<%= dst.activity.name %>->ports()->getPort("<%= dst.name %>"));
             src->createConnection(*dst, policy);
         }
         <% end %>
@@ -323,13 +328,13 @@ int ORO_main(int argc, char* argv[])
 
     <% if task.start?
         if task.context.needs_configuration? %>
-    if (!task_<%= task.name %>.configure())
+    if (!task_<%= task.name %>->configure())
     {
         RTT::log(RTT::Error) << "cannot configure <%= task.name %>" << RTT::endlog();
         return -1;
     }
         <% end %>
-    if (!task_<%= task.name %>.start())
+    if (!task_<%= task.name %>->start())
     {
         RTT::log(RTT::Error) << "cannot start <%= task.name %>" << RTT::endlog();
         return -1;
@@ -337,23 +342,27 @@ int ORO_main(int argc, char* argv[])
     <% end %>
 <% end %>
 
+    if(with_ros){
 <% if deployer.transports.include? 'ros' %>
-    RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
-    if(!ros::isInitialized()){
-        int argc =__os_main_argc();
-        char ** argv = __os_main_argv();
-        ros::init(argc,argv,prefix + "<%= deployer.name %>");
-      if(ros::master::check())
-          ros::start();
-      else{
-          RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
-          return false;
-      }   
-    }
-    static ros::AsyncSpinner spinner(1); // Use 1 threads
-    spinner.start();
-    RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
+        RTT::log(RTT::Info)<<"Initializing ROS node"<<RTT::endlog();
+        if(!ros::isInitialized()){
+            int argc =__os_main_argc();
+            char ** argv = __os_main_argv();
+            ros::init(argc,argv,prefix + "<%= deployer.name %>");
+          if(ros::master::check())
+              ros::start();
+          else{
+              RTT::log(RTT::Error)<<"No ros::master available"<<RTT::endlog();
+              return false;
+          }
+        }
+        static ros::AsyncSpinner spinner(1); // Use 1 threads
+        spinner.start();
+        RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
+<% else %>
+        throw std::runtime_error("Requesting to start as ROS node, but the support for 'ros' transport is not available. Recompile with 'ros' transport option!");
 <% end %>
+    }
 
 <% if deployer.corba_enabled? %>
     /** Setup shutdown procedure on SIGINT. We use a pipe-based channel to do
@@ -382,7 +391,11 @@ int ORO_main(int argc, char* argv[])
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
-    RTT::corba::TaskContextServer::ThreadOrb();
+    <% if has_realtime %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
+    <% else %>
+    RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
+    <% end %>
     while (true)
     {
         uint8_t dummy;
@@ -394,7 +407,7 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::TaskContextServer::ShutdownOrb();
     RTT::corba::TaskContextServer::DestroyOrb();
 <% elsif deployer.browse %>
-    OCL::TaskBrowser browser(& task_<%= deployer.browse.name %>);
+    OCL::TaskBrowser browser(task_<%= deployer.browse.name %>.get());
     browser.loop();
 <% end %>
 

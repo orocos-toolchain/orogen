@@ -16,10 +16,11 @@ if(service_discovery_FOUND)
     link_directories(${service_discovery_LIBRARY_DIRS})
 endif()
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS system program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
+add_definitions(-DRTT_COMPONENT)
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if component.typekit %>
 target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
@@ -32,7 +33,7 @@ if(service_discovery_FOUND)
     target_link_libraries(<%= deployer.name %> ${service_discovery_LIBRARIES})
 endif()
 
-target_link_libraries(<%= deployer.name %> ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries(<%= deployer.name %> ${Boost_PROGRAM_OPTIONS_LIBRARIES} ${Boost_SYSTEM_LIBRARIES})
 
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)

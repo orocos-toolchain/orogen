@@ -1,10 +1,7 @@
 <ul class="body-header-list">
-   <% if task.doc %>
-   <%= page.render_item("doc", task.doc) %>
-   <% else %>
-   <%= page.render_item("doc", "<i>no documentation provided for this task context</i>") %>
-   <% end %>
+   <% if task.superclass %>
    <%= page.render_item("subclassed from", page.link_to(task.superclass)) %>
+   <% end %>
 
    <% if task.needs_configuration? %>
    <li>This task does <b>NOT</b> need any configuration</li>
@@ -34,7 +31,12 @@
   <% else %>
      <li class="title"><%= kind %></li>
      <% objects.each do |p| %>
-     <%= page.render_item(p.name, "(#{page.link_to(p.type)}) #{p.doc}") %>
+     <li>
+     <%     if p.doc %>
+         <div class="doc-above"><%= Kramdown::Document.new(p.doc).to_html %></div>
+     <%     end %>
+         <b><%= p.name %></b>: <%= page.link_to(p.type) %>
+     </li>
      <% end %>
   <% end %>
 <% end %>

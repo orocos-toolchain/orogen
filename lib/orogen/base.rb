@@ -1,3 +1,4 @@
+require 'utilrb/module/dsl_attribute'
 require 'utilrb/module/include'
 require 'utilrb/logger'
 require 'fileutils'
@@ -10,7 +11,7 @@ require 'find'
 
 class Module
     def enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
-	class_eval <<-EOD
+	class_eval <<-EOD, __FILE__, __LINE__
 	def find_#{attribute_name}(name) 
             each_#{each_name} do |n|
                 return n if n.name == name
@@ -32,13 +33,14 @@ class Module
     end
 
     def enumerate_inherited_map(each_name, attribute_name = each_name) # :nodoc:
-	class_eval <<-EOD
+	class_eval <<-EOD, __FILE__, __LINE__
         attr_reader :#{attribute_name}
 	def all_#{attribute_name}; each_#{each_name}.to_a end
 	def self_#{attribute_name}; @#{attribute_name}.values end
 	def has_#{attribute_name}?(name); !!find_#{each_name}(name) end
 
 	def find_#{each_name}(name)
+            name = name.to_str
 	    if v = @#{attribute_name}[name]
 		v
 	    elsif superclass
@@ -56,69 +58,6 @@ class Module
 	    end
 	end
 	EOD
-    end
-
-    # call-seq:
-    #   dsl_attribute(name)
-    #   dsl_attribute(name) { |value| ... }
-    #
-    # This defines a +name+ instance method on the given class which accepts zero or one argument
-    #
-    # Without any argument, it acts as a getter for the +@name+ attribute. With
-    # one argument, it acts instead as a setter for the same attribute and
-    # returns self. If a block has been given to +dsl_attribute+, any new value
-    # is passed to the block, whose return value is actually saved in the
-    # instance variable.  This block can therefore both filter the value
-    # (convert it to a desired form) and validate it.
-    #
-    # The goal of this method is to have a nicer way to handle attribute in DSLs: instead
-    # of 
-    #
-    #    model = create_model do
-    #	    self.my_model_attribute = 'bla'
-    #
-    #	    if (my_model_attribute)
-    #		<do something>
-    #	    end
-    #	 end
-    #
-    # (or worse, using set_ and get_ prefixes), we can do
-    #
-    #    model = create_model do
-    #	    my_model_attribute 'bla', arg0, arg1, ...
-    #
-    #	    if (my_model_attribute)
-    #		<do something>
-    #	    end
-    #	 end
-    #
-    def dsl_attribute(name, &filter_block)
-	class_eval do
-            if filter_block
-                define_method("__dsl_attribute__#{name}__filter__", &filter_block)
-            end
-
-	    define_method(name) do |*value|
-		if value.empty?
-		    instance_variable_get("@#{name}")
-		elsif filter_block
-                    if filter_block.arity >= 0 && value.size != filter_block.arity
-                        raise ArgumentError, "too much arguments. Got #{value.size}, expected #{filter_block.arity}"
-                    end
-
-		    filtered_value = send("__dsl_attribute__#{name}__filter__", *value)
-		    instance_variable_set("@#{name}", filtered_value)
-		    self
-		else
-                    if value.size == 1
-                        instance_variable_set("@#{name}", value.first)
-                    else
-                        instance_variable_set("@#{name}", value)
-                    end
-		    self
-		end
-	    end
-	end
     end
 end
 
@@ -173,13 +112,15 @@ module Orocos
 	    if template = templates[path]
 		template
 	    else
-		template_data   = begin
-				      File.open(template_path(*path))
+		template_file   = begin
+				      template_path(*path)
 				  rescue Errno::ENOENT
 				      raise ArgumentError, "template #{File.join(*path)} does not exist"
 				  end
 
-		templates[path] = ERB.new(template_data.read, nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
+		templates[path] = ERB.new(File.read(template_file), nil, "<>", path.join('_').gsub(/[\/\.-]/, '_'))
+                templates[path].filename = template_file
+                templates[path]
 	    end
 	end
 
@@ -428,6 +369,7 @@ module Orocos
 
         def self.verify_valid_identifier(name)
             name = name.to_s if name.respond_to?(:to_sym)
+            name = name.to_str
             if name !~ /^[a-zA-Z0-9_][a-zA-Z0-9_]*$/
                 raise ArgumentError, "task name '#{name}' invalid: it can contain only alphanumeric characters and '_', and cannot start with a number"
             end

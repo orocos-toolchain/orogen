@@ -7,6 +7,7 @@ require 'optparse'
 Typelib.load_type_plugins = false
 
 DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
+DEFAULT_EXTENSIONS = %w{}
 
 verbosity = 0
 extended_states = true
@@ -15,6 +16,7 @@ Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = true
 
 imported_typekits = []
 transports = []
+extensions = []
 no_transports = false
 explicit_typekit_slice = false
 
@@ -40,6 +42,12 @@ parser = OptionParser.new do |opt|
     opt.on('--typekit-slice=NUMBER', Integer) do |slice_size|
 	explicit_typekit_slice = true
         Orocos::Generation.typekit_slice = slice_size
+    end
+    
+    opt.on('--extensions=NAME[,NAME]', "selects the extensions that should be enabled (by default, #{DEFAULT_EXTENSIONS.join(", ")} are enabled)") do |v|
+        v.split(',').each do |name|
+            extensions << name
+        end
     end
 
     opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
@@ -145,7 +153,7 @@ begin
     filename  = files.first
     Orocos.beautify_loading_errors(filename) do
         component.enable_transports(*transports)
-        component.load(filename, verbosity > 1)
+        component.enable_extension(extensions)
         imported_typekits.each do |tk_name|
             begin
                 component.using_typekit tk_name
@@ -153,6 +161,7 @@ begin
                 raise ArgumentError, "#{tk_name}, which was given to the --import option, does not seem to be a typekit name"
             end
         end
+        component.load(filename, verbosity > 1)
     end
 
     component.generate
@@ -160,8 +169,8 @@ rescue LoadError, Orocos::Generation::ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
-    error_line = e.backtrace.find { |line| line =~ file_pattern }
-    STDERR.puts "#{error_line}: #{e.message}"
+    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
+    STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
     exit 1
 rescue Exception => e
     STDERR.puts "===== Internal error ======="

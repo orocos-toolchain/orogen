@@ -183,6 +183,35 @@ module Orocos
             end
 
             attr_predicate :hidden?, true
+            # Converts this model into a representation that can be fed to e.g.
+            # a JSON dump, that is a hash with pure ruby key / values.
+            #
+            # The generated hash has the following keys:
+            #
+            #     name: the operation name
+            #     returns: the operation return type. It is not present if the
+            #       operation does not return anything
+            #         type: the return type as marshalled with
+            #           Typelib::Type#to_h
+            #         doc: the return type documentation
+            #
+            #     arguments: the list of arguments as an array of
+            #         name: the argument name
+            #         type: the argument type as marshalled with
+            #           Typelib::Type#to_h
+            #         doc: the argument documentation
+            #
+            # @return [Hash]
+            def to_h
+                result = Hash[name: name, doc: doc]
+                if has_return_value?
+                    result[:returns] = Hash[type: self.return_type[0].to_h, doc: self.return_type[2]]
+                end
+                result[:arguments] = arguments.map do |name, type, doc, qualified_type|
+                    Hash[name: name, type: type.to_h, doc: doc]
+                end
+                result
+            end
 	end
     end
 end

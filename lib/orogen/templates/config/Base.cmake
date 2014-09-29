@@ -1,8 +1,7 @@
 include(OrogenPkgCheckModules)
 ADD_CUSTOM_TARGET(regen
-    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
-       orogen_bin = File.expand_path('../bin/orogen', Orocos::Generation.base_dir) %>
-    <%= ruby_bin %> <%= orogen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>
+    <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
+    <%= ruby_bin %> -S orogen <%= Orocos::Generation.command_line_options.join(" ") %> <%= component.deffile %>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_command(
@@ -25,8 +24,12 @@ set(OROCOS_TARGET "<%= component.orocos_target %>")
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-Wall" CXX_SUPPORTS_WALL)
 if (CXX_SUPPORTS_WALL)
-    add_definitions (" -Wall")
-endif (CXX_SUPPORTS_WALL)
+    add_definitions ("-Wall")
+endif()
+CHECK_CXX_COMPILER_FLAG("-Wno-unused-local-typedefs" CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
+if (CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
+    add_definitions ("-Wno-unused-local-typedefs")
+endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "running on Linux, implementing the __orogen_getTID() operation on all tasks")

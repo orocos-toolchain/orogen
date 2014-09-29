@@ -18,8 +18,13 @@ module Orocos
 
             def initialize(page)
                 @page = page
-                @template = ERB.new(File.read(File.join(File.dirname(__FILE__), "type_fragment.page")))
-                @definition_template = ERB.new(File.read(File.join(File.dirname(__FILE__), "type_definition_fragment.page")))
+
+                template_path = File.join(File.dirname(__FILE__), "type_fragment.page")
+                @template = ERB.new(File.read(template_path))
+                template.filename = template_path
+                fragment_path = File.join(File.dirname(__FILE__), "type_definition_fragment.page")
+                @definition_template = ERB.new(File.read(fragment_path))
+                definition_template.filename = fragment_path
 
                 @produced_by = []
                 @consumed_by = []
@@ -43,7 +48,7 @@ module Orocos
                 elsif type.respond_to?(:deference)
                     return has_convertions?(type.deference, false)
                 else
-                    raise NotImplementedError
+                    false
                 end
             end
 
@@ -111,10 +116,13 @@ module Orocos
                 definition_template.result(binding)
             end
 
-            def render(type)
+            def render(type, options = Hash.new)
+                _, push_options = Kernel.filter_options options, :external_objects => nil
                 @type = type
                 base = self.type
-                typekit = Orocos.load_typekit_for(base, false)
+                typekit = begin Orocos.load_typekit_for(base, false)
+                          rescue Orocos::TypekitTypeNotFound
+                          end
 
                 if base.contains_opaques?
                     @intermediate_type = typekit.intermediate_type_for(type)

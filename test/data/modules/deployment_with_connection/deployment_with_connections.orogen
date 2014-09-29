@@ -1,0 +1,14 @@
+name 'deployment_with_connections'
+
+task_context 'Producer' do
+  output_port 'out', 'double'
+end
+task_context 'Consumer' do
+  input_port 'in', 'double'
+end
+
+deployment 'test' do
+  producer = task 'producer', 'Producer'
+  consumer = task 'consumer', 'Consumer'
+  connect producer.out, consumer.in
+end

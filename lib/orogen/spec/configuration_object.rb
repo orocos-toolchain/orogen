@@ -18,8 +18,8 @@ module Orocos
             def dynamic?; !!@setter_operation end
 
             # An operation that can be used to set the property. This is non-nil
-            # only for dynamic properties
-            #
+            # only for dynamic properties. 
+            # 
             # @return [Orocos::Spec::Operation]
             attr_accessor :setter_operation
 
@@ -54,12 +54,13 @@ module Orocos
                 @dynamic = false
 		@task, @name, @type, @default_value = task, name, type, default_value
                 @setter_operation = nil
+                @doc = ""
 	    end
 
             def dynamic
-                @setter_operation = task.find_operation("set#{name.capitalize}")
+                @setter_operation = task.find_operation("__orogen_set#{name.capitalize}")
                 if !@setter_operation
-                    @setter_operation = task.operation("set#{name.capitalize}").
+                    @setter_operation = task.operation("__orogen_set#{name.capitalize}").
                         returns("bool").
                         argument("value", type_name).
                         doc("Dynamic Property setter of #{name}")
@@ -73,10 +74,16 @@ module Orocos
                               ", default: #{value}"
                           end
 
-                pp.text "#{name}:#{type.name}#{default}"
                 if doc
-                    pp.text ", doc: #{doc}"
+                    first_line = true
+                    doc.split("\n").each do |line|
+                        pp.breakable if !first_line
+                        first_line = false
+                        pp.text "# #{line}"
+                    end
+                    pp.breakable
                 end
+                pp.text "#{name}:#{type.name}#{default}"
             end
 
 	    # call-seq:
@@ -85,6 +92,35 @@ module Orocos
 	    #
 	    # Gets/sets a string describing this object
 	    dsl_attribute(:doc) { |value| value.to_s }
+
+            # Converts this model into a representation that can be fed to e.g.
+            # a JSON dump, that is a hash with pure ruby key / values.
+            #
+            # The generated hash has the following keys:
+            #
+            #     name: the attribute name
+            #     type: the type (as marshalled with Typelib::Type#to_h)
+            #     dynamic: boolean value indicating whether this can be set
+            #       dynamically or not
+            #     doc: the documentation string
+            #     default: the default value. Not present if there is none.
+            #
+            # @return [Hash]
+            def to_h
+                result = Hash[
+                    name: name,
+                    type: type.to_h,
+                    dynamic: !!dynamic?,
+                    doc: doc]
+                if value = self.default_value
+                    if value.respond_to?(:to_simple_value)
+                        result[:default] = value.to_simple_value
+                    else
+                        result[:default] = value
+                    end
+                end
+                result
+            end
 	end
     end
 end

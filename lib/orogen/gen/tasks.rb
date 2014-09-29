@@ -8,6 +8,43 @@ module Orocos
     end
 
     module Generation
+        def self.multiline_string_to_cxx(str)
+            if str
+                "\"#{str.split("\n").join("\\n").gsub('"', '\\"')}\""
+            else "\"\""
+            end
+        end
+
+        module ConfigurationObjectGeneration
+            def gen_dynamic_setter
+                if dynamic? && (setter_operation.task == task)
+                    #Adding user method
+                    task.add_base_method("bool", "set#{name.capitalize}",setter_operation.argument_signature).
+                        body("  return true;")
+                    task.add_user_method("bool", "set#{name.capitalize}",setter_operation.argument_signature).
+                        body( " return(#{task.name}Base::set#{name.capitalize}(value));")
+
+                    #Adding user method cal to updateDynamicProperties
+                    task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
+
+                    setter_operation.base_body= <<EOF
+//      The following steps happen within the base Implementation:
+//       if the task is not configured yet, update the classical property and return true
+//       if the task is configured OR running so far, call the user method to update the value
+//         if the user method return false, we return false too and do NOT update the classical value
+        if(isConfigured()){
+            if(!set#{name.capitalize}(#{setter_operation.argument_signature(true,false)})){
+                return false;
+            }
+        }
+        _#{name}.set(value);
+        return true;
+EOF
+                    setter_operation.hidden = true
+                end
+            end
+        end
+
         # Module that is used to add code generation functionality to
         # Spec::Property
         module PropertyGeneration
@@ -23,15 +60,11 @@ module Orocos
 
                 task.add_base_member("property", "_#{name}",
                     "RTT::Property< #{type.cxx_name} >").
-                    initializer("_#{name}(\"#{name}\", \"#{doc}\")").
+                    initializer("_#{name}(\"#{name}\", #{Generation.multiline_string_to_cxx(doc)})").
                     constructor(constructor.join("\n"))
 
 
-                if dynamic? && (setter_operation.task == task)
-                    task.add_code_to_base_method_before "updateDynamicProperties","\tif(!set#{name.capitalize}(_#{name}.get())) return false;\n"
-                    setter_operation.base_body = "\t//Updates the classical value of this Property\n\t_#{name}.set(value); \n\treturn true;"
-                    setter_operation.body = "\t//TODO Add your code here \n\n  \t//Call the base function, DO-NOT Remove\n\treturn(#{task.name}Base::set#{name.capitalize}(value));"
-                end
+                gen_dynamic_setter
 
             end
         end
@@ -52,6 +85,8 @@ module Orocos
                     "RTT::Attribute< #{type.cxx_name} >").
                     initializer("_#{name}(\"#{name}\")").
                     constructor(constructor.join("\n"))
+                
+                gen_dynamic_setter
             end
         end
 
@@ -73,7 +108,7 @@ module Orocos
                 constructor = []
                 constructor << "ports()->#{add}(_#{name})"
                 if doc
-                    constructor << "  .doc(\"#{doc}\")"
+                    constructor << "  .doc(#{Generation.multiline_string_to_cxx(doc)})"
                 end
                 constructor.last << ';'
 
@@ -147,7 +182,7 @@ module Orocos
             end
 
 	    # Returns the argument part of the C++ signature for this callable
-	    def argument_signature(with_names = true)
+	    def argument_signature(with_names = true, with_types = true)
 		arglist = arguments.map do |name, type, doc, qualified_type|
                     # Auto-add const-ref for non-trivial types
                     arg =
@@ -157,9 +192,7 @@ module Orocos
                             qualified_type
                         end
 
-		    if with_names then "#{arg} #{name}"
-		    else arg
-		    end
+		    ("#{arg if with_types} #{name if with_names}").strip
 		end
 
 		arglist.join(", ")
@@ -185,7 +218,7 @@ module Orocos
                     end
 
                 constructor = "provides()->addOperation( _#{name})\n" +
-                    "    .doc(\"#{doc}\")"
+                    "    .doc(#{Generation.multiline_string_to_cxx(doc)})"
                 if !arguments.empty?
                     constructor += "\n" + arguments.map { |n, _, d| "    .arg(\"#{n}\", \"#{d}\")" }.join("\n")
                 end
@@ -417,7 +450,7 @@ module Orocos
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
             def interface_types
-                (all_properties + all_operations + all_ports + all_dynamic_ports).
+                (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
                     map { |obj| obj.used_types }.
                     flatten.to_value_set.to_a
             end
@@ -450,16 +483,35 @@ module Orocos
                     begin
                         while true
                             line = file.readline
-                            if Regexp.new(taskname + "\(.*\)").match(line)
-                                if $1 =~ /TaskCore::TaskState/
-                                    puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                            begin
+                                if Regexp.new(taskname + "\(.*\)").match(line)
+                                    if $1 =~ /TaskCore::TaskState/
+                                        puts  "\nWarning: 'needs_configuration' has been specified for the task '#{taskname}', but the task's constructor has not been updated after this change.\n\n Note: setting a TaskState is not allowed in combination with using 'needs_configuration'.\n Constructors in #{filename} and corresponding files require adaption."
+                                    end
                                 end
+                            rescue ArgumentError => e 
+                                STDERR.puts "[CRITICAL] Could not parse \'#{line}\' maybe it contains invalid chars?"
+                                raise e
                             end
                         end
                     rescue EOFError
                     end
                 end
             end
+
+            def create_dynamic_updater(name, superclass_has_dynamic)
+                add_base_method("bool",name)
+
+                if superclass_has_dynamic
+                    #Call the superclass method if needed, returning false if it fail. Otherwise check our dynamic properties
+                    #they are generated in register_for_generation, or returning true in the end
+                    add_code_to_base_method_after name,"        return #{superclass.name}::#{name}();\n"
+                else                
+                    #No superclass code, so return simply true
+                    add_code_to_base_method_after name,"        return true;\n"
+                end
+            end
+
 
 	    # Generate the code files for this task. This builds to classes:
 	    #
@@ -486,25 +538,18 @@ module Orocos
                         body("    return \"#{name}\";")
                 end
 
-                
-                if has_dynamic_properties?
-                    add_base_method("bool","updateDynamicProperties")
-
-                    if superclass.has_dynamic_properties?
-                        #call the superclass method if needed, returning false if they failed. Otherwise check our dynamic properties
-                        #they are generated in register_for_generation, or returning true in the end
-                        add_code_to_base_method_after "updateDynamicProperties","\tif(!#{superclass.name}::updateDynamicProperties()) return false;\n"
-                    end
-                    
-                    #Add the return true in any case
-                    add_code_to_base_method_after "updateDynamicProperties","\treturn true;\n"
+            
+                if(has_dynamic_properties?)
+                    create_dynamic_updater("updateDynamicProperties",superclass.has_dynamic_properties?)
                 end
 
-
+                if(has_dynamic_attributes?)
+                    create_dynamic_updater("updateDynamicAttributes",superclass.has_dynamic_attributes?)
+                end
 
                 self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
-                new_operations.each(&:register_for_generation)
                 self_attributes.each(&:register_for_generation)
+                new_operations.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
                 extensions.each do |ext|
                     if ext.respond_to?(:register_for_generation)
@@ -844,7 +889,6 @@ module Orocos
                 all_base_methods.any? { |m| m.name == name }
             end
 
-
             # This function adds @param code [String] AFTER the already defined code on the 
             # @param name [String] given method
             def add_code_to_base_method_after(name,code)
@@ -923,6 +967,7 @@ module Orocos
 	end
 
         ConfigurationObject = Spec::ConfigurationObject
+        ConfigurationObject.include ConfigurationObjectGeneration
         Attribute           = Spec::Attribute
         Attribute.include AttributeGeneration
         Property            = Spec::Property

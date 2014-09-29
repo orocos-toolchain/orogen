@@ -1,6 +1,7 @@
 require 'pathname'
 require 'utilrb/pkgconfig'
 require 'utilrb/kernel/load_dsl_file'
+require 'metaruby/dsls/doc'
 
 module Orocos
     module Generation
@@ -205,6 +206,11 @@ module Orocos
             end
 
             @@standard_tasks = nil
+            @@standard_task_specs = { "rtt.orogen" => OROGEN_LIB_DIR, "ocl.orogen" => OROGEN_LIB_DIR }
+
+            def self.add_standard_task_spec(filename, directory)
+                @@standard_task_specs[filename] = directory
+            end
 
             # The set of standard project defined by RTT and OCL. They are
             # defined as orogen-specification in the <tt>rtt.orogen</tt> and
@@ -214,8 +220,8 @@ module Orocos
                     @@standard_tasks
                 else
                     @@standard_tasks = []
-                    ["rtt.orogen", "ocl.orogen"].each do |orogen|
-                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, OROGEN_LIB_DIR))
+                    @@standard_task_specs.each do |orogen, dir|
+                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, dir))
                         project.orogen_project = false
                         @@standard_tasks.concat project.tasks.values
                     end
@@ -657,7 +663,7 @@ module Orocos
                     state_types = Generation.render_template(
                         "tasks", "TaskStates.hpp", binding)
                     header = Generation.save_automatic(
-                        "#{project.name}TaskStates.hpp", state_types)
+                        'typekit', 'types', project.name, "TaskStates.hpp", state_types)
                     typekit(true).load(header)
                 end
 
@@ -856,8 +862,12 @@ module Orocos
                 end
 
                 pkg, registry_xml, typelist_txt = orogen_typekit_description(name)
-                loaded_typekits[name] = ImportedTypekit.
-                    from_raw_data(self, name, pkg, registry_xml, typelist_txt)
+                begin
+                    loaded_typekits[name] = ImportedTypekit.
+                        from_raw_data(self, name, pkg, registry_xml, typelist_txt)
+                rescue Exception => e
+                    raise e, "failed to import typekit #{name}: #{e.message}", e.backtrace
+                end
             end
 
 	    def register_typekit(name, registry_xml, typelist)
@@ -974,7 +984,7 @@ module Orocos
             # the documentation of that class for more details.
 	    def task_context(name, options = Hash.new, &block)
                 if name == self.name
-                    raise ArgumentError, "a task cannot have the same name that the project"
+                    raise ArgumentError, "a task cannot have the same name as the project"
                 elsif name !~ /^(\w+::)*\w+$/
                     raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
@@ -986,7 +996,11 @@ module Orocos
                     typekit.perform_pending_loads
                 end
 
-                task = external_task_context(name, options, &block)
+
+                task = external_task_context(name, options) do
+                    Orocos::Spec::TaskContext.apply_default_extensions(self)
+                    instance_eval(&block)
+                end
                 if extended_states?
                     task.extended_state_support
                 end
@@ -1015,6 +1029,7 @@ module Orocos
                     :class => Orocos::Spec::TaskContext
 
 		new_task = options[:class].new(self, "#{self.name}::#{name}")
+                Spec.load_documentation(new_task, /^task_context/)
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
                 self_tasks << new_task
@@ -1139,7 +1154,7 @@ module Orocos
             def has_task_library?(name)
                 orogen_project_description(name)
                 true
-            rescue ConfigError
+            rescue Orocos::Generation::Project::MissingTaskLibrary
                 false
             end
 
@@ -1186,7 +1201,7 @@ module Orocos
                 end
                 used_task_libraries << tasklib
                 if self.typekit
-                    typekit.using_library(tasklib.tasklib_pkg, :link => false)
+                    typekit.using_library(tasklib.tasklib_pkg_name, :link => false)
                 end
 
                 max_sizes.merge!(tasklib.max_sizes) do |typename, a, b|
@@ -1355,6 +1370,14 @@ module Orocos
                 end
                 @enabled_transports |= transport_names.to_set
             end
+
+            # Enable the given transports
+            def enable_extension(extensions)
+                extensions.each do |ext|
+                    Orocos::Spec::TaskContext.default_extensions << ext
+                end
+            end
+
 	end
 
         Component = Project

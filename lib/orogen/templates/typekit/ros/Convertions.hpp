@@ -1,9 +1,11 @@
 /* Generated from orogen/lib/orogen/templates/typekit/ros/Convertions.hpp */
 
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_HPP
+<% ros_pkg_name = typekit.plugin('ros').ros_package_name_for_typekit(typekit) %>
 
-#include "Types.hpp"
+#ifndef __OROGEN_GENERATED_<%= ros_pkg_name.upcase %>_ROS_CONVERTIONS_HPP
+#define __OROGEN_GENERATED_<%= ros_pkg_name.upcase %>_ROS_CONVERTIONS_HPP
+
+#include <<%= typekit.name %>/typekit/Types.hpp>
 #include <boost/cstdint.hpp>
 #include <string>
 
@@ -14,7 +16,7 @@
 #include <<%= ros_message_name(ros_type, true) %>.h>
 <% end %>
 <% all_messages.each do |msg_name| %>
-#include <<%= typekit.name %>_msgs/<%= msg_name %>.h>
+#include <<%= ros_pkg_name %>/<%= msg_name %>.h>
 <% end %>
 <% convert_types.
     find_all { |_, t| t.respond_to?(:deference) && (t.deference <= Typelib::CompoundType || t.deference <= Typelib::OpaqueType) }.
@@ -35,6 +37,7 @@ namespace ros_convertions {
     <% end %>
     /** Array types: */
     <% convert_array_types.each do |type, ros_type| %>
+    <%   next if type <= Typelib::NumericType  %>
     void toROS( std::vector< <%= ros_cxx_type(ros_type) %> >& ros, <%= type.cxx_name%> const* value, int length );
     void fromROS( <%= type.cxx_name %>* value, std::vector< <%= ros_cxx_type(ros_type) %> > const& ros, int length );
     <% end %>

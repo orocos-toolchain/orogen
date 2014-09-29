@@ -16,6 +16,27 @@ module Orocos
                 Typelib::Registry.rtt_typename(type)
             end
 
+            # Converts this model into a representation that can be fed to e.g.
+            # a JSON dump, that is a hash with pure ruby key / values.
+            #
+            # The generated hash has the following keys:
+            #
+            #     name: the name
+            #     type: the type (as marshalled with Typelib::Type#to_h)
+            #     direction: either the string 'input' or 'output'
+            #     doc: the documentation string
+            #
+            # @return [Hash]
+            def to_h
+                Hash[
+                    direction: (if kind_of?(OutputPort) then 'output' else 'input' end),
+                    name: name,
+                    type: type.to_h,
+                    doc: doc
+                ]
+            end
+
+
             # Stores the policy for keeping last values. It can be nil, :initial or true
             #
             # The default is :initial. It reasonably ensures that connections
@@ -61,7 +82,7 @@ module Orocos
             # True if this is a dynamic port model, false otherwise
             def dynamic?; false end
 
-	    def initialize(task, name, type)
+	    def initialize(task, name, type, options = Hash.new)
                 if !name.kind_of?(Regexp)
                     name = name.to_s
                     if name !~ /^\w+$/
@@ -80,6 +101,7 @@ module Orocos
                 end
 		@task, @name, @type = task, name, type
 
+                @doc = ""
                 @max_sizes = Hash.new
                 keep_last_written_value :initial
 	    end

@@ -11,7 +11,7 @@ module Orocos
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
             #{rtt_scheduler},
             #{rtt_priority},
-            task_#{name}.engine(),
+            task_#{name}->engine(),
             "#{name}");
                     EOD
                 end

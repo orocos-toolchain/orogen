@@ -18,24 +18,29 @@ task :setup do
     end
 end
 
-task :default => :setup
-
 begin
     require 'hoe'
+    Hoe::plugin :yard
+
+    config = Hoe.spec 'orogen' do
+        self.developer "Sylvain Joyeux", "sylvain.joyeux@dfki.de"
+
+        self.summary = 'Component generation for Orocos::RTT'
+        self.description = paragraphs_of('README.markdown', 3..6).join("\n\n")
+        self.changes     = paragraphs_of('History.txt', 0..1).join("\n\n")
+        licenses << "GPLv2 or later"
+
+        extra_deps <<
+            ['utilrb',   '>= 1.3.4'] <<
+            ['rake',     '>= 0.8'] <<
+            ['nokogiri', '>= 1.3.3'] <<
+            ['hoe-yard', '>= 0.1.2']
+
+        extra_dev_deps <<
+            ['flexmock', '>= 0.8.6']
+    end
+
     namespace 'dist' do
-        config = Hoe.spec 'orogen' do
-            self.developer "Sylvain Joyeux", "sylvain.joyeux@dfki.de"
-
-            self.summary = 'Component generation for Orocos::RTT'
-            self.description = paragraphs_of('README.txt', 3..6).join("\n\n")
-            self.changes     = paragraphs_of('History.txt', 0..1).join("\n\n")
-
-            extra_deps << 
-                ['utilrb',   '>= 1.3.4'] <<
-                ['rake',     '>= 0.8'] <<
-                ['nokogiri', '>= 1.3.3']
-        end
-
         Rake.clear_tasks(/dist:publish_docs/)
         Rake.clear_tasks(/dist:(re|clobber_|)docs/)
         task 'publish_docs' => 'redocs' do
@@ -48,6 +53,7 @@ begin
         end
     end
 
+    task :doc => :yard
 rescue LoadError
     STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
 rescue Exception => e
@@ -56,6 +62,9 @@ rescue Exception => e
         STDERR.puts "WARN: error message is: #{e.message}"
     end
 end
+
+Rake.clear_tasks(/^default$/)
+task :default => :setup
 
 require 'utilrb/doc/rake'
 Utilrb.doc :include => ['lib/**/*.rb'],
