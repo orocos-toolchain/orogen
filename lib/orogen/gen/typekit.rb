@@ -629,7 +629,7 @@ module Orocos
             # If true, the opaque needs to be copied into the intermediate. If
             # false, the convertion does not require a copy.
             def needs_copy?; !!options[:needs_copy] end
-            # If true, the convertion function is provided by the user, and
+            # If true, the conversion function is provided by the user, and
             # orogen should therefore generate the corresponding templates.
             def generate_templates?; !code_generator end
         end
@@ -730,7 +730,7 @@ module Orocos
             attr_accessor :version
             # The set of include directories that should be considered in #load
             attr_accessor :include_dirs
-            # The set of includes that have been loaded
+            # The array of includes that have been loaded
             attr_reader :included_files
 
             # The three possible type export policies. See #type_export_policy
@@ -930,7 +930,6 @@ module Orocos
 		@project = project
 
                 @include_dirs = Set.new
-                @include_dirs << "/usr/include" << "/usr/local/include"
                 @included_files = Array.new
 
                 @plugins = []
@@ -1044,20 +1043,42 @@ module Orocos
             #
             # The Typekit#ro_ptr and Typekit#shared_ptr shortcuts are defined
             # for boost::shared_ptr and RTT::ReadOnlyPointer.
-            def smart_ptr(name, base_type, options = Hash.new)
+            def smart_ptr(ptr_name, base_type, options = Hash.new)
                 typekit = self
-                opaque = opaque_type("#{name}<#{base_type.name}>", base_type, options.merge(:needs_copy => false)) do |from, into|
+                # create a validated options-hash
+                options = Kernel.validate_options options,
+                    # just the plain name of the header like "path/Header.hpp"
+                    :include => [],
+                    # additional pkg-config info like "pkg-config-name:path/Header.hpp"
+                    :orogen_include => []
+                # create opaque
+                opaque = opaque_type("#{ptr_name}<#{base_type.name}>",
+                                     base_type,
+                                     options.merge(:needs_copy => false)) do |from, into|
+                    # create code from template
                     Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
-                # Add the headers required for the smart pointer definition to
-                # the list of included files, as well as to the headers needed
-                # for the type
+                # handle the "orogen_include" option, which has to contain the
+                # pkg-config-name of the software providing this header
+                options[:orogen_include].each do |or_inc|
+                    included_files << or_inc.split(':').last
+                    opaque.metadata.add('orogen_include', or_inc)
+                end
+                # Add the headers required for this smart pointer definition to
+                # the list of included files. we dont have any pkg-config
+                # informations in this channel, so just prepend a ":" to denote
+                # the empty case.
                 options[:include].each do |inc|
                     included_files << inc
-                    opaque.metadata.add('orogen_include', inc)
+                    # note that the "opaque_type()" factory-function used
+                    # previously to create the opaque for the ro_ptr will take
+                    # care that this header is added to the "orogen_include"
+                    # metadata as well
                 end
-                base_type.metadata.get('orogen_include').each do |inc|
-                    opaque.metadata.add('orogen_include', inc)
+                # ...and copy the header-informations needed for the type
+                # verbatim.
+                base_type.metadata.get('orogen_include').each do |or_inc|
+                    opaque.metadata.add('orogen_include', or_inc)
                 end
                 opaque
             end
@@ -1067,8 +1088,8 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
-                options[:include] ||= Array.new
-                options[:include] << 'rtt/extras/ReadOnlyPointer.hpp'
+                options[:orogen_include] ||= Array.new
+                options[:orogen_include] << "orocos-rtt-#{Orocos::Generation.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
                 smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
@@ -1077,8 +1098,10 @@ module Orocos
             #
             # See #smart_ptr for more information.
             def shared_ptr(name, options = Hash.new)
-                options[:include] ||= Array.new
-                options[:include] << 'boost/shared_ptr.hpp'
+                options[:orogen_include] ||= Array.new
+                # actually we would need to add a pkg-config name in front of
+                # the ":", but boost does _still_ not have pkg-config...
+                options[:orogen_include] << ':boost/shared_ptr.hpp'
                 smart_ptr("/boost/shared_ptr", find_type(name), options)
             end
 
@@ -1129,10 +1152,11 @@ module Orocos
             # to take ownership on that value, in which case it has to return
             # true. If the function returns false, then the sample is deleted after
             # the method call.
-            def opaque_type(base_type, intermediate_type, options = {}, &convert_code_generator)
-                options = validate_options options,
+            def opaque_type(base_type, intermediate_type, options = Hash.new, &convert_code_generator)
+                options = Kernel.validate_options options,
                     :include => [],
                     :includes => [],
+                    :orogen_include => [],
                     :needs_copy => true
 
                 if options[:includes].respond_to?(:to_str)
@@ -1233,7 +1257,7 @@ module Orocos
                     raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
                 end
 
-                if match = /(\w+)\/Types.hpp$/.match(file)
+                if match = /(\w+)\/Types\.hpp$/.match(file)
                     project_name = match[1]
                     if project.has_typekit?(project_name) || project.name == project_name
                         raise ArgumentError, "cannot use a header called #{file} as it clashes with the Types.hpp header generated by orogen for the #{project_name} project"
@@ -1336,8 +1360,7 @@ module Orocos
             # get access on the C++ side to each type in the registry. It is
             # saved in the orogen_include metadata information of the types.
             #
-            # @param [Array<Pathname>] include_path the include path
-            # @param [Typelib::Registry] the registry whose types should be
+            # @param [Typelib::Registry] registry whose types should be
             #   resolved
             # @param [{String=>Array<String>}] file_to_include mapping from a
             #   source file and line to the toplevel include that relates to
@@ -1366,6 +1389,7 @@ module Orocos
 
                         file, line = location.split(':')
                         if !File.file?(file)
+                            Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
                             type.metadata.delete('source_file_line')
                             next(true)
                         end
@@ -2179,11 +2203,31 @@ module Orocos
             # @return [Array<String>]
             # @see cxx_gen_includes
             def include_for_type(type)
-                if type.respond_to?(:deference)
+
+                if type <= Typelib::NumericType
+                    if type.name =~ /u?int\d+_t/
+                        # through all of rock there is "boost" used to define
+                        # the fixed-width integers. stick to that.
+                        return ["boost/cstdint.hpp"]
+                    else
+                        # all the other NumericType (bool, double/float) are
+                        # builtin and need no header
+                        return []
+                    end
+                elsif type.respond_to?(:deference)
                     result = []
                     if type <= Typelib::ContainerType
+                        # strings are special containers, which need only one
+                        # header to work. and we happen to know it in advance.
+                        if type.name == '/std/string' or type.name == '/string'
+                            return ['string']
+                        end
+                        # right now only "std::vector" is a supported container.
+                        # so add "vector" to the includes...
                         result << 'vector'
                     end
+                    # ...and recurse one level down to find the header for the
+                    # type inside the ContainerType or ArrayType.
                     return result + include_for_type(type.deference)
                 end
 
@@ -2198,14 +2242,10 @@ module Orocos
                     end
                 end
 
-                if type <= Typelib::NumericType
-                    return []
-                end
-
                 if type.opaque?
                     raise ConfigError, "no includes known for #{type.name}, This is an opaque, and you must either call import_types_from on a header that defines it, or provide the :include option to the opaque definition"
                 else
-                    raise InternalError, "no includes known for #{type.name}, #{type.metadata.get("source_file_line")}"
+                    raise InternalError, "no includes known for #{type.name} defined in #{type.metadata.get("source_file_line")}"
                 end
             end
 

@@ -3,9 +3,8 @@
 #ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
 #define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
 
-#include <string>
-#include <boost/cstdint.hpp>
 #include <<%= task.superclass.header_file %>>
+
 <% if !task.new_operations.empty? || task.superclass.name == "RTT::TaskContext" %>
 #include <rtt/Operation.hpp>
 <% end %>

@@ -6,8 +6,6 @@
 #define __OROGEN_GENERATED_<%= ros_pkg_name.upcase %>_ROS_CONVERTIONS_HPP
 
 #include <<%= typekit.name %>/typekit/Types.hpp>
-#include <boost/cstdint.hpp>
-#include <string>
 
 <% if !user_converted_types.empty? %>
 #include <<%= typekit.name %>/transports/ros/ROSConvertions.hpp>
