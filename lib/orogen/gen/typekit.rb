@@ -851,6 +851,35 @@ module Orocos
                 end
             end
 
+            def build_type(type_name)
+                registry.build(type_name)
+            rescue Typelib::NotFound
+                if type_name =~ /(.*)\[(\d+)\]$/
+                    base_type, array_size = $1, $2
+                    find_type(base_type, true)
+                    return registry.build(type_name)
+                end
+
+                container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
+                if template_arguments.size == 1
+                    element_type = find_type(template_arguments[0], true)
+                    if project
+                        project.registry.create_container(container_name,
+                                        project.find_type(element_type.name, true))
+                    end
+                    return registry.create_container(container_name, element_type)
+
+                elsif project && type = project.registry.build(type_name)
+                    while type.respond_to?(:deference)
+                        type = type.deference
+                    end
+
+                    type_def = project.registry.minimal(type.name)
+                    registry.merge(type_def)
+                    return registry.build(type_name)
+                end
+            end
+
             # Returns the Typelib::Type subclass that represents the type whose
             # name is given. If the type is a derived type (pointer, array or
             # container), then it will be built on the fly.
@@ -862,32 +891,11 @@ module Orocos
                         is_normalized = true
                     end
                     begin
-                        registry.build(type_name)
+                        registry.get(type_name)
                     rescue Typelib::NotFound
-                        if type_name =~ /(.*)\[(\d+)\]$/
-                            base_type, array_size = $1, $2
-                            find_type(base_type, true)
-                            return registry.build(type_name)
-                        end
-
-                        container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
-                        if template_arguments.size == 1
-                            element_type = find_type(template_arguments[0], true)
-                            if project
-                                project.registry.create_container(container_name,
-                                                project.find_type(element_type.name, true))
-                            end
-                            return registry.create_container(container_name, element_type)
-
-                        elsif project && type = project.registry.build(type_name)
-                            while type.respond_to?(:deference)
-                                type = type.deference
-                            end
-
-                            type_def = project.registry.minimal(type.name)
-                            registry.merge(type_def)
-                            return registry.build(type_name)
-                        end
+                        new_type = build_type(type_name)
+                        compute_orogen_include_on_type(new_type, Hash.new)
+                        return new_type
                     end
                 elsif type.kind_of?(Class) && type <= Typelib::Type
                     if !registry.include?(type.name)
@@ -896,8 +904,12 @@ module Orocos
                         if project
                             project.registry.merge(type_def)
                         end
+                        new_type = registry.get(type.name)
+                        compute_orogen_include_on_type(new_type, Hash.new)
+                        return new_type
+                    else
+                        return registry.get(type.name)
                     end
-                    return registry.get(type.name)
                 else
                     raise ArgumentError, "expected a type object or a type name, but got #{type} (#{type.class})"
                 end
@@ -1058,6 +1070,12 @@ module Orocos
                     # create code from template
                     Generation.render_template('typekit/smart_ptr.cpp', binding)
                 end
+                if base_type_inc = existing_orogen_include_for_type(base_type)
+                    base_type_inc.each do |or_inc|
+                        opaque.metadata.add('orogen_include', or_inc)
+                    end
+                end
+
                 # handle the "orogen_include" option, which has to contain the
                 # pkg-config-name of the software providing this header
                 options[:orogen_include].each do |or_inc|
@@ -1353,6 +1371,90 @@ module Orocos
                 include_candidates.compact.min_by { |inc| inc.size }
             end
 
+            # Returns an existing orogen_include metadata entry for the given
+            # type, or nil if none exists so far
+            #
+            # @param type [Model<Type>] a type model
+            # @return [Array,nil] either a non-empty set of entries for
+            #   orogen_include or nil if none could be found
+            def existing_orogen_include_for_type(type)
+                if imported_types.include?(type.name)
+                    metadata = imported_types.get(type.name).metadata
+                    if metadata.include?('orogen_include')
+                        return metadata.get('orogen_include')
+                    end
+                end
+                if self.registry.include?(type.name)
+                    metadata = self.registry.get(type.name).metadata
+                    if metadata.include?('orogen_include')
+                        return metadata.get('orogen_include')
+                    end
+                end
+                metadata = type.metadata
+                if metadata.include?('orogen_include')
+                    return metadata.get('orogen_include')
+                end
+                nil
+            end
+
+            def orogen_include_of_type(type, file_to_include)
+                # 'Types with deference' are vectors and arrays. Arrays
+                # are ignored. Vectors are hardcoded to :vector
+                if type.respond_to?(:deference)
+                    deference_includes = orogen_include_of_type(type.deference, file_to_include)
+                    if !deference_includes
+                        return
+                    end
+
+                    container_includes = []
+                    if type <= Typelib::ContainerType
+                        if type.name == '/std/string'
+                            container_includes = [':string']
+                        elsif type.container_kind == '/std/vector'
+                            container_includes = [':vector']
+                        else
+                            raise ArgumentError, "unexpected container type #{type.container_kind}"
+                        end
+                    end
+                    return container_includes + deference_includes
+                elsif type <= Typelib::NullType
+                    return []
+                elsif type <= Typelib::NumericType
+                    if type.integer? then return [':boost/cstdint.hpp']
+                    else return []
+                    end
+                elsif existing = existing_orogen_include_for_type(type)
+                    return existing
+                else
+                    if !(location = type.metadata.get('source_file_line').first)
+                        return
+                    end
+
+                    file, line = location.split(':')
+                    if !File.file?(file)
+                        Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
+                        type.metadata.delete('source_file_line')
+                        return
+                    end
+
+                    if orogen_include = file_to_include[file][Integer(line)]
+                        return ["#{self.name}:#{orogen_include}"]
+                    else raise ArgumentError, "no entry for #{file}:#{line} in the provided file-to-include mapping"
+                    end
+                end
+            end
+            
+            def compute_orogen_include_on_type(type, file_to_include)
+                if includes = orogen_include_of_type(type, file_to_include)
+                    type.metadata.set('orogen_include', *includes)
+                    includes
+                elsif has_pending_loads?
+                    perform_pending_loads
+                    compute_orogen_include_on_type(type, file_to_include)
+                else raise ArgumentError, "cannot compute include information for #{type.name}. If it is an opaque, you must either load the header which defines it with import_types_from, or specify the relevant information with the orogen_include option"
+                end
+            end
+
             # Resolves the orogen_include metadata for each type in the given
             # registry
             #
@@ -1369,51 +1471,27 @@ module Orocos
                 queue = Array.new
                 registry.each do |type|
                     _, template_args = Typelib::GCCXMLLoader.parse_template(type.name)
-                    template_args.delete_if { |type_name| !registry.include?(type_name) }
+                    template_args = template_args.map do |type_name|
+                        if registry.include?(type_name)
+                            registry.get(type_name)
+                        end
+                    end.compact
                     queue << [type, template_args]
                 end
-                queue = queue.sort_by { |_, template_args| template_args.size }
+                queue = queue.sort_by { |type, template_args| [template_args.size, type.name.size] }
 
                 while !queue.empty?
                     # If this is a template, we need to add the relevant
                     # includes for the parameters as well. We need to do some
                     # form of ordering for that to work ...
                     queue.delete_if do |type, template_args|
-                        has_unresolved_args = template_args.any? do |arg_name|
-                            queue.include?(registry.get(arg_name))
+                        has_unresolved_args = template_args.any? do |template_arg_type|
+                            queue.include?(template_arg_type)
                         end
-                        next(false) if has_unresolved_args
-
-                        location = type.metadata.get('source_file_line').first
-                        next(true) if !location
-
-                        file, line = location.split(':')
-                        if !File.file?(file)
-                            Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
-                            type.metadata.delete('source_file_line')
-                            next(true)
+                        if !has_unresolved_args
+                            compute_orogen_include_on_type(type, file_to_include)
+                            true
                         end
-
-                        orogen_include = file_to_include[file][Integer(line)]
-                        if imported_types.include?(type.name)
-                            metadata = imported_types.get(type.name).metadata.get('orogen_include')
-                            if !metadata.empty?
-                                metadata.each do |inc|
-                                    type.metadata.add('orogen_include', inc)
-                                end
-                                next(true)
-                            end
-                        end
-                        if self.registry.include?(type.name)
-                            metadata = self.registry.get(type.name).metadata.get('orogen_include')
-                            if !metadata.empty?
-                                next(true)
-                            end
-                        end
-                        if type.metadata.get('orogen_include').empty?
-                            type.metadata.set('orogen_include', "#{self.name}:#{orogen_include}")
-                        end
-                        true
                     end
                 end
             end
@@ -1486,8 +1564,14 @@ module Orocos
                 Kernel.filter_options options, :include, :define
             end
 
+            def has_pending_loads?
+                !pending_loads.empty?
+            end
+
             def perform_pending_loads
                 return if pending_loads.empty?
+                loads = pending_loads.dup
+                pending_loads.clear
 
                 add, user_options = *pending_load_options
 
@@ -1499,11 +1583,11 @@ module Orocos
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
-                preprocess_options, options = make_load_options(pending_loads, user_options)
-                preprocessed, include_mappings = resolve_toplevel_include_mapping(pending_loads, preprocess_options)
+                preprocess_options, options = make_load_options(loads, user_options)
+                preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
 
                 include_path = include_dirs.map { |d| Pathname.new(d) }
-                pending_loads_to_relative = pending_loads.inject(Hash.new) do |map, path|
+                pending_loads_to_relative = loads.inject(Hash.new) do |map, path|
                     map[path] = resolve_full_include_path_to_relative(path, include_path)
                     map
                 end
@@ -1525,14 +1609,13 @@ module Orocos
                             project.registry.merge(file_registry)
                         end
                     rescue Exception => e
-                        raise ArgumentError, "cannot load one of the header files #{pending_loads.join(", ")}: #{e.message}", e.backtrace
+                        raise ArgumentError, "cannot load one of the header files #{loads.join(", ")}: #{e.message}", e.backtrace
                     end
                 end
 
                 if add
-                    loads.concat(pending_loads.to_a)
+                    self.loads.concat(loads.to_a)
                 end
-                pending_loads.clear
 	    end
 
             # Packages defined in this typekit on which the typekit should
@@ -2203,43 +2286,8 @@ module Orocos
             # @return [Array<String>]
             # @see cxx_gen_includes
             def include_for_type(type)
-
-                if type <= Typelib::NumericType
-                    if type.name =~ /u?int\d+_t/
-                        # through all of rock there is "boost" used to define
-                        # the fixed-width integers. stick to that.
-                        return ["boost/cstdint.hpp"]
-                    else
-                        # all the other NumericType (bool, double/float) are
-                        # builtin and need no header
-                        return []
-                    end
-                elsif type.respond_to?(:deference)
-                    result = []
-                    if type <= Typelib::ContainerType
-                        # strings are special containers, which need only one
-                        # header to work. and we happen to know it in advance.
-                        if type.name == '/std/string' or type.name == '/string'
-                            return ['string']
-                        end
-                        # right now only "std::vector" is a supported container.
-                        # so add "vector" to the includes...
-                        result << 'vector'
-                    end
-                    # ...and recurse one level down to find the header for the
-                    # type inside the ContainerType or ArrayType.
-                    return result + include_for_type(type.deference)
-                end
-
-                includes = type.metadata.get('orogen_include')
-                if !includes.empty?
+                if includes = existing_orogen_include_for_type(type)
                     return includes.map { |s| s.split(':').last }
-                elsif imported_types.include?(type.name)
-                    import = imported_types.get(type.name)
-                    includes = import.metadata.get('orogen_include')
-                    if !includes.empty?
-                        return includes.map { |s| s.split(':').last }
-                    end
                 end
 
                 if type.opaque?
