@@ -6,6 +6,9 @@
 #include "<%= typekit.name %>/typekit/Types.hpp"
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 
+// toCORBA fromCORBA for string is always generated, so include <string> here:
+#include <string>
+
 namespace orogen_typekits {
     /** Converted types: */
     <% typesets.converted_types.each do |type|
