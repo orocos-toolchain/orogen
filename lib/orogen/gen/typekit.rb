@@ -2186,7 +2186,7 @@ module Orocos
                 if type.opaque?
                     return type_info_includes_for_type(intermediate_type_for(type))
                 elsif Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
-                   result = ["#{self.name}/type_info/BoostSerialization.hpp", type.info_type_header]
+                   result = ["#{self.name}/typekit/BoostSerialization.hpp", type.info_type_header]
                    if type.full_name == "/std/string"
                        result << "rtt/typekit/StdStringTypeInfo.hpp"
                    end
