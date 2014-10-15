@@ -6,6 +6,12 @@
 #include "<%= typekit.name %>/typekit/Types.hpp"
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 
+<%  type_includes = Set.new
+    typesets.converted_types.each do |type| 
+        type_includes << typekit.cxx_gen_includes(*typekit.include_for_type(type))
+    end %>
+<%= type_includes.to_a.join("\n") %>
+
 namespace orogen_typekits {
     /** Converted types: */
     <% typesets.converted_types.each do |type|
