@@ -10,14 +10,13 @@
 <%
 # First handle the plain types
 typeset = typesets.converted_types | typesets.array_types
-needed_convertions = typesets.converted_types.
+needed_convertions = (typesets.converted_types | typesets.array_types).
     inject(Set.new) do |result, type|
         intermediate_type = typekit.intermediate_type_for(type)
         result << type << intermediate_type
         result | type.direct_dependencies.to_set | intermediate_type.direct_dependencies.to_set
     end
 needed_convertions.delete_if { |t| t <= Typelib::NumericType }
-needed_convertions |= typesets.array_types
 # Plain types might depend on array types, split the two
 needed_array_convertions, needed_convertions = needed_convertions.
     partition { |t| t <= Typelib::ArrayType }
