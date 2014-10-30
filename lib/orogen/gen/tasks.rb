@@ -578,6 +578,18 @@ EOF
 		file_cpp = Generation.save_user "tasks", "#{basename}.cpp", code_cpp
 		file_hpp = Generation.save_user "tasks", "#{basename}.hpp", code_hpp
 
+                proxy_hpp = Generation.render_template "proxies", "Task.hpp", binding
+                proxy_cpp = Generation.render_template "proxies", "Task.cpp", binding
+                file_proxy_hpp = Generation.save_automatic "proxies", "#{basename}.hpp", proxy_hpp
+                file_proxy_cpp = Generation.save_automatic "proxies", "#{basename}.cpp", proxy_cpp
+
+                cmake = Generation.render_template 'proxies', 'CMakeLists.txt', binding
+                Generation.save_automatic('proxies', "CMakeLists.txt", cmake)
+                
+                pc = Generation.render_template "proxies", "proxies.pc", binding
+                Generation.save_automatic "proxies", "#{component.name}-proxies.pc.in", pc
+
+                
                 # Validate constructors of old task files
                 validate_constructors(file_cpp, basename)
                 validate_constructors(file_hpp, basename)
