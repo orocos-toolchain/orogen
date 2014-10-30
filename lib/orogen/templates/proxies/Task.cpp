@@ -81,32 +81,25 @@ void <%= task.basename %>::initTypes()
 <%= 
 result = ""
 task.each_operation do |operation|
-puts(operation.signature(true))
-puts(operation.signature(false))
-if(operation.has_return_value?)
-    puts("Class is #{operation.return_type.class}")
-    if(operation.return_type[1].instance_of?(String))
-        result << operation.return_type[1]
-    else
-        result << "#{operation.return_type[1].cxx_name}"
-    end
-else
-    result << "void"
-end
-result << " #{task.basename}::#{operation.name}("
+    signature = operation.signature(true) do
+        "#{task.basename}::#{operation.name}"
+    end 
+    result << signature
+    result << "{\n"
+    result << "RTT::OperationInterfacePart *opIfac = getOperation(\"#{operation.name}\");\n"
+    result << "RTT::OperationCaller< #{operation.signature(false)} >  caller(opIfac);\n"
+    result << "return caller("
+    first = true
     operation.arguments.each do |arg|
-        result << "#{arg.type.cxx_name} #{arg.name}, "
+        if(first)
+            first = false
+        else
+            result << ", "
+        end
+        result << " #{arg[0]}"
     end
-result << ")\n"
-result << "{\n"
-result << "RTT::OperationInterfacePart *opIfac = getOperation(\"#{operation.name}\");\n"
-result << "RTT::OperationCaller< #{operation.signature(false)} >  caller(opIfac);\n"
-result << "return caller("
-    operation.arguments.each do |arg|
-        result << "#{arg.name}, "
-    end
-result << ");\n"
-result << "}\n"
+    result << ");\n"
+    result << "}\n"
 end
 result
 %>        
