@@ -39,10 +39,6 @@ class <%= task.basename %> : public RTT::corba::TaskContextProxy
 {
     protected:
 
-<%= task.self_user_methods.sort_by(&:name).
-    map { |m| m.with_indent(8, :declaration) }.
-    compact.join("\n\n") %>
-
     public:
         /** TaskContext constructor for <%= task.basename %>
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.
