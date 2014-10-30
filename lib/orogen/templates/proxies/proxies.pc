@@ -1,0 +1,50 @@
+# Generated from orogen/lib/orogen/templates/proxies/proxies.pc
+
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/lib/orocos
+includedir=${prefix}/include/orocos
+
+<% # Get all typekits that are needed to define the tasks, and list them in the
+   # includes. We don't have to link explicitely to them, unless we're using
+   # them explicitely (and therefore we will link to them anyway)
+  used_typekits = component.self_tasks.
+            inject(ValueSet.new) { |set, t| set | t.used_typekits }
+%>
+
+project_name=<%= component.name %>
+deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
+task_models=<%= component.self_tasks.map(&:name).sort.join(",") %>
+typekits=<%= component.name if component.typekit %> <%= used_typekits.map { |tk| tk.name }.compact.sort.join(" ") %>
+
+Name: <%= component.name %>Tasks
+Version: <%= component.version %>
+Description: tasks defined for the <%= component.name %> component
+Requires: orocos_cpp @<%= component.name.upcase %>_TASKLIB_REQUIRES@ \
+<%= 
+    list = used_typekits
+    list << component.typekit if component.typekit
+    result = ""
+    list.each do |tk|
+        result << " #{tk.name}-transport-corba-gnulinux"
+        result << " #{tk.name}-transport-mqueue-gnulinux"
+        result << " #{tk.name}-transport-typelib-gnulinux"
+        result << " #{tk.name}-typekit-gnulinux"
+        result << " \\\n"
+    end
+    result
+%>
+
+<%
+  libs = component.tasklib_used_task_libraries.map { |tk| tk.tasklib_pkg.libs if tk.tasklib_pkg }.compact.to_set
+%>
+Libs:  @RTT_PLUGIN_rtt-typekit_LIBRARY@ @RTT_PLUGIN_rtt-transport-corba_LIBRARY@ @RTT_PLUGIN_rtt-transport-mqueue_LIBRARY@ <%= libs.to_a.sort.join(" ") %> -L${libdir} -l<%= component.name %>-proxies
+<%
+  cflags = component.tasklib_used_task_libraries.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+  cflags |= component.used_typekits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+%>
+<% if component.extended_state_support? %>
+<%   cflags << "-I${includedir}/#{component.name}/types" %>
+<% end %>
+Cflags: -I${includedir} <%= cflags.to_a.sort.join(" ") %>
+

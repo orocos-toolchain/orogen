@@ -83,6 +83,7 @@ add_dependencies(check-uptodate check-typekit-uptodate)
 # Take care of the task library
 <% if !project.self_tasks.empty? %>
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/proxies )
 <% end %>
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= project.name %>.pc.in
