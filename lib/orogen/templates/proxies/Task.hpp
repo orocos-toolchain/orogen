@@ -10,7 +10,7 @@
 <% if !task.new_operations.empty? %>
 #include <rtt/Operation.hpp>
 <% end %>
-<% if !task.self_ports.empty? %>
+<% if !task.all_ports.empty? %>
 #include <rtt/Port.hpp>
 #include <orocos_cpp/ProxyPort.hpp>
 <% end %>
