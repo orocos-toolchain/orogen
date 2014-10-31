@@ -493,6 +493,23 @@ module OroGen
 
             include OpaqueHandling
 
+            def get_pkg_config_deps
+                list = used_typekits.dup
+                list << typekit if typekit
+                result = []
+                list.each do |tk|
+                    next if tk.name == "rtt"
+                    next if tk.name == "logger"
+                    result << "#{tk.name}-typekit-gnulinux"
+                    enabled_transports.each do |transport_name|
+                        result << "#{tk.name}-transport-#{transport_name}-gnulinux"
+                    end
+                end
+                result
+            end
+
+
+            
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
             def rtt_registry; Project.rtt_registry end
