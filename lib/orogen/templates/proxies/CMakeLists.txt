@@ -3,7 +3,15 @@
 
 SET(PROXYLIB_NAME <%= component.name %>-proxies)
 
-pkg_check_modules(OROCOS_CPP REQUIRED orocos_cpp)
+<% 
+    pkg_conf_deps = ["orocos_cpp"]
+    pkg_conf_deps.concat(component.get_pkg_config_deps())
+%>
+
+<% pkg_conf_deps.each do |dependency| %>
+pkg_check_modules(<%= dependency.upcase%> REQUIRED <%= dependency%>)
+<% end %>
+
 include(<%= component.name %>TaskLib)
 
 ADD_LIBRARY(${PROXYLIB_NAME} SHARED 
@@ -22,22 +30,11 @@ add_dependencies(${PROXYLIB_NAME}
 TARGET_LINK_LIBRARIES(${PROXYLIB_NAME}
     ${OROCOS_CPP_LIBRARIES}
     ${OrocosRTT_LIBRARIES}
-<%= 
-    list = component.used_typekits.dup
-    list << component.typekit if component.typekit
-    result = ""
-    list.each do |tk|
-        next if tk.name == "rtt"
-        next if tk.name == "logger"
+<% pkg_conf_deps.each do |dependency| %>
+    ${<%=dependency.upcase%>_LIBRARIES}
+<% end %>
+)
 
-        component.enabled_transports.each do |transport_name|
-            result << "    #{tk.name}-transport-#{transport_name}-gnulinux \n"
-        end
-        result << "    #{tk.name}-typekit-gnulinux"
-        result << " \n"
-    end
-    result
-%>)
 SET_TARGET_PROPERTIES(${PROXYLIB_NAME}
     PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
 

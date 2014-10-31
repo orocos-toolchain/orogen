@@ -21,19 +21,10 @@ Name: <%= component.name %>Tasks
 Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
 Requires: orocos_cpp @<%= component.name.upcase %>_TASKLIB_REQUIRES@ \
-<%= 
-    list = used_typekits
-    list << component.typekit if component.typekit
-    result = ""
-    list.each do |tk|
-        result << " #{tk.name}-transport-corba-gnulinux"
-        result << " #{tk.name}-transport-mqueue-gnulinux"
-        result << " #{tk.name}-transport-typelib-gnulinux"
-        result << " #{tk.name}-typekit-gnulinux"
-        result << " \\\n"
-    end
-    result
-%>
+<% component.get_pkg_config_deps().each do |dependency| %>
+     <%=dependency%> \
+<% end %>
+
 
 <%
   libs = component.tasklib_used_task_libraries.map { |tk| tk.tasklib_pkg.libs if tk.tasklib_pkg }.compact.to_set
