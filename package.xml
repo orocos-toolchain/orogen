@@ -10,14 +10,26 @@
   <maintainer email="orocos-dev@lists.mech.kuleuven.be">OCL Development Team</maintainer>
   <license>GPL v2 or later</license>
 
+  <url>http://rock-robotics.org/documentation/orogen</url>
+
   <buildtool_depend>cmake</buildtool_depend>
   <run_depend>catkin</run_depend>
 
+  <build_depend>rtt</build_depend>
+  <build_depend>typelib</build_depend>
+  <build_depend>rtt_typelib</build_depend>
+  <build_depend>utilrb</build_depend>
+  <build_depend>nokogiri</build_depend>
+  <build_depend>rake</build_depend>
   <build_depend>ruby</build_depend>
 
-  <run_depend>ruby</run_depend>
+  <run_depend>rtt</run_depend>
   <run_depend>typelib</run_depend>
+  <run_depend>rtt_typelib</run_depend>
   <run_depend>utilrb</run_depend>
+  <run_depend>nokogiri</run_depend>
+  <run_depend>rake</run_depend>
+  <run_depend>ruby</run_depend>
 
   <export>
     <build_type>
