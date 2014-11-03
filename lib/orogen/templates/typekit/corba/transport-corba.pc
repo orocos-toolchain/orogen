@@ -17,6 +17,6 @@ Version: <%= typekit.version %>
 Requires: <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
 <% end %>
 Description: <%= typekit.name %> types support for the Orocos type system
-Libs: -L${libdir} -l@libname_corba@
+Libs: -L${libdir} -l@libname_corba@-@OROCOS_TARGET@
 Cflags: -I${includedir}
 

@@ -1,6 +1,6 @@
-IF (NOT OrocosRTT_FOUND)
-    FIND_PACKAGE(OrocosRTT REQUIRED)
-ENDIF(NOT OrocosRTT_FOUND)
+IF (NOT Orocos-RTT_FOUND)
+    FIND_PACKAGE(Orocos-RTT REQUIRED)
+ENDIF(NOT Orocos-RTT_FOUND)
 
 orogen_pkg_check_modules(OrocosCORBA "orocos-rtt-corba-${OROCOS_TARGET}>=2.1.0")
 IF(NOT OrocosCORBA_FOUND)
