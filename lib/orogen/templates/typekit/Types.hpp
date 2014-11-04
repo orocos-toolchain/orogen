@@ -11,12 +11,6 @@
 #include <<%= tk.name %>/typekit/Types.hpp>
 <% end %>
 
-// This is a hack. We include it unconditionally as it may be required by some
-// typekits *and* it is a standard header. Ideally, we would actually check if
-// some of the types need std::vector.
-#include <vector>
-#include <boost/cstdint.hpp>
-
 <% interface_types.each do |type| %>
 #ifdef ORO_CHANNEL_ELEMENT_HPP
     extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;

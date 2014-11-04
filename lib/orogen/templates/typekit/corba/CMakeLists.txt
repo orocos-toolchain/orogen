@@ -44,7 +44,6 @@ CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA
 install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
 install(FILES
     <%= headers.join("\n   ") %>
-    Convertions.hpp
     <%= typekit.name %>Types.idl
     ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>TypesC.h
     DESTINATION include/orocos/<%= typekit.name %>/transports/corba)
