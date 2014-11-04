@@ -95,6 +95,7 @@ orocos_typekit(${libname}
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES)
+set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 

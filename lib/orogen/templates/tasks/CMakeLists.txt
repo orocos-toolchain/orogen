@@ -12,7 +12,8 @@ TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}
     ${OrocosRTT_LIBRARIES}
     ${<%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES})
 SET_TARGET_PROPERTIES(${<%= component.name.upcase %>_TASKLIB_NAME}
-    PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
+    PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}"
+    INTERFACE_LINK_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
 
 INSTALL(TARGETS ${<%= component.name.upcase %>_TASKLIB_NAME}
     RUNTIME DESTINATION bin
