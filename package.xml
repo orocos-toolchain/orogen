@@ -11,15 +11,23 @@
   <license>GPL v2 or later</license>
 
   <buildtool_depend>cmake</buildtool_depend>
+  <run_depend>catkin</run_depend>
+
+  <build_depend>ruby</build_depend>
+
+  <run_depend>rtt</run_depend>
+  <run_depend>typelib</run_depend>
+  <run_depend>rtt_typelib</run_depend>
+  <run_depend>utilrb</run_depend>
+  <run_depend>metaruby</run_depend>
+  <run_depend>nokogiri</run_depend>
+  <run_depend>rake</run_depend>
+  <run_depend>ruby</run_depend>
+
   <export>
     <build_type>
       cmake
     </build_type>
   </export>
-  <build_depend>ruby</build_depend>
-
-  <run_depend>ruby</run_depend>
-  <run_depend>typelib</run_depend>
-  <run_depend>utilrb</run_depend>
 
 </package>
