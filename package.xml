@@ -10,6 +10,8 @@
   <maintainer email="orocos-dev@lists.mech.kuleuven.be">OCL Development Team</maintainer>
   <license>GPL v2 or later</license>
 
+  <url>http://rock-robotics.org/documentation/orogen</url>
+
   <buildtool_depend>cmake</buildtool_depend>
   <run_depend>catkin</run_depend>
 
