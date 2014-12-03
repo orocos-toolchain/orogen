@@ -93,6 +93,9 @@ module Orocos
             # a normalized version for +name+. It does accept const and
             # reference qualifiers in +name+.
             def find_interface_type(qualified_type)
+                if qualified_type.respond_to?(:name)
+                    qualified_type = qualified_type.name
+                end
                 type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
 		type      = task.project.find_interface_type(type_name)
                 Orocos.validate_toplevel_type(type)

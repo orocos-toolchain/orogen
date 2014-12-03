@@ -52,5 +52,31 @@ describe Orocos::Spec::ConfigurationObject do
             assert_equal [Hash[name: 'arg', type: double_t.to_h, doc: "arg documentation"]], op.to_h[:arguments]
         end
     end
+
+    describe "#find_interface_type" do
+        attr_reader :op, :project
+        before do
+            project = Orocos::Generation::Project.new
+            project.name "TestFindTask"
+            task = project.task_context "Task"
+            @project = project
+            @op = Orocos::Spec::Operation.new(task, 'op')
+        end
+
+        it "should strip the qualifiers to resolve the type" do
+            type, _ = op.find_interface_type('double const&')
+            assert_equal type, op.task.project.find_type('/double')
+        end
+        it "should replace typelib typenames by C++ typenames in the signature" do
+            _, cxx_signature = op.find_interface_type('/double const&')
+            assert_equal cxx_signature, 'double const&'
+        end
+        it "should accept plain Typelib type objects" do
+            double_t = project.find_type('/double')
+            type, cxx_signature = op.find_interface_type(double_t)
+            assert_equal type, double_t
+            assert_equal cxx_signature, 'double'
+        end
+    end
 end
 

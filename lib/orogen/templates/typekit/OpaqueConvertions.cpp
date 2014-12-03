@@ -3,6 +3,7 @@
 #include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 #include <<%= typekit.name %>/typekit/OpaqueTypes.hpp>
 #include <memory>
+#include <stdexcept>
 
 <% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>
 <% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
