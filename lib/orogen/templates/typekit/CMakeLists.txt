@@ -49,11 +49,16 @@ ENDIF ( NOT CMAKE_BUILD_TYPE )
 find_package(Orocos-RTT 2 REQUIRED)
 include(${OROCOS-RTT_USE_FILE})
 
-ADD_CUSTOM_TARGET(<%= typekit.name %>-regen
+add_custom_target(<%= typekit.name %>-regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        typegen_bin = 'typegen' %>
     <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
+
+if(NOT TARGET regen)
+    add_custom_target(regen)
+endif()
+add_dependencies(regen <%= typekit.name %>-regen)
 
 <% end %>
 # END if typekit.standalone?
