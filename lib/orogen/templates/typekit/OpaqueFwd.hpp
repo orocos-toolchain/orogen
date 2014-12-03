@@ -1,7 +1,7 @@
 #ifndef OROGEN_<%= typekit.name %>_OPAQUE_FWD_HPP
 #define OROGEN_<%= typekit.name %>_OPAQUE_FWD_HPP
 
-<% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>
+<% opaque_types             = type_sets.opaque_types %>
 <% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
 <% all_types = opaque_types.map { |op| op.type } + types_containing_opaques
    all_types.dup.each do |type|
