@@ -2320,6 +2320,21 @@ module Orocos
                     return includes.map { |s| s.split(':').last }
                 end
 
+                # *sigh* -- uint-types are in the database with
+                # "boost/cstdint", only the floating-point types are
+                # fundamental and have no header...
+                if type <= Typelib::NumericType and type.name == "/bool"
+                    return []
+                elsif type <= Typelib::NumericType and not type.integer?
+                    return []
+                elsif type <= Typelib::ArrayType
+                    if type.deference <= Typelib::NumericType and type.deference.name == "/bool"
+                        return []
+                    elsif type.deference <= Typelib::NumericType and not type.deference.integer?
+                        return []
+                    end
+                end
+
                 if type.opaque?
                     raise ConfigError, "no includes known for #{type.name}, This is an opaque, and you must either call import_types_from on a header that defines it, or provide the :include option to the opaque definition"
                 else
