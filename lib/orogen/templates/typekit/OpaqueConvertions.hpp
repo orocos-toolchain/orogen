@@ -3,8 +3,8 @@
 #ifndef __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 #define __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
 
-#include <boost/cstdint.hpp>
 #include <<%= typekit.name %>/typekit/OpaqueFwd.hpp>
+
 <% opaque_types             = type_sets.opaque_types.find_all { |op| !op.generate_templates? } %>
 <% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
 <% if typekit.has_opaques_with_templates? %>

@@ -1,9 +1,15 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/Type.cpp */
 
+#include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 <%= typekit.cxx_gen_includes(*typekit.include_for_type(type)) %>
 #include "transports/corba/Registration.hpp"
-#include "transports/corba/Convertions.hpp"
 #include <rtt/transports/corba/CorbaTemplateProtocol.hpp>
+
+namespace orogen_typekits
+{
+    <%= type.to_corba_signature(typekit) %>;
+    <%= type.from_corba_signature(typekit) %>;
+}
 
 namespace RTT
 {

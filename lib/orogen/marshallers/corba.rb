@@ -58,9 +58,6 @@ module Orocos
             idl_file = typekit.save_automatic("transports", "corba",
                 "#{typekit.name}Types.idl", idl)
 
-            code  = Generation.render_template "typekit", "corba", "Convertions.hpp", binding
-            headers << typekit.save_automatic("transports", "corba",
-                    "Convertions.hpp", code)
             code  = Generation.render_template "typekit", "corba", "Convertions.cpp", binding
             impl << typekit.save_automatic("transports", "corba",
                     "Convertions.cpp", code)
@@ -113,6 +110,26 @@ module Orocos
 	def corba_namespace
 	    "orogen#{namespace('::')}Corba"
 	end
+
+        def to_corba_signature(typekit, options = Hash.new)
+            target_type = typekit.intermediate_type_for(self)
+            "bool #{options[:namespace]}toCORBA( #{target_type.corba_ref_type} corba, #{arg_type} value )"
+        end
+
+        def to_corba_array_signature(typekit, options = Hash.new)
+            target_type = typekit.intermediate_type_for(self)
+            "bool #{options[:namespace]}toCORBA( #{target_type.corba_ref_type} corba, #{arg_type} value, int length )"
+        end
+
+        def from_corba_signature(typekit, options = Hash.new)
+            target_type = typekit.intermediate_type_for(self)
+            "bool #{options[:namespace]}fromCORBA( #{ref_type} value, #{target_type.corba_arg_type} corba )"
+        end
+
+        def from_corba_array_signature(typekit, options = Hash.new)
+            target_type = typekit.intermediate_type_for(self)
+            "bool #{options[:namespace]}fromCORBA( #{ref_type} value, int length, #{target_type.corba_arg_type} corba )"
+        end
 
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end

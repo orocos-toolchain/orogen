@@ -1340,6 +1340,36 @@ module OroGen
             # specify the initial state, or a non-standard one.
             def fixed_initial_state; @fixed_initial_state = true end
 
+            # Converts this model into a representation that can be fed to e.g.
+            # a JSON dump, that is a hash with pure ruby key / values.
+            #
+            # The generated hash has the following keys:
+            #
+            #     name: the name
+            #     superclass: the name of this model's superclass (if there is
+            #       one)
+            #     states: the list of defined states, as formatted by
+            #       {each_state}
+            #     ports: the list of ports, as formatted by {Port#to_h}
+            #     properties: the list of properties, as formatted by
+            #       {ConfigurationObject#to_h}
+            #     attributes: the list of attributes, as formatted by
+            #       {ConfigurationObject#to_h}
+            #     operations: the list of operations, as formatted by
+            #       {Operation#to_h}
+            #
+            # @return [Hash]
+            def to_h
+                Hash[
+                    name: name,
+                    superclass: superclass.name,
+                    states: each_state.to_a,
+                    ports: each_port.map(&:to_h),
+                    properties: each_property.map(&:to_h),
+                    attributes: each_attribute.map(&:to_h),
+                    operations: each_operation.map(&:to_h)
+                ]
+            end
 	end
     end
 end

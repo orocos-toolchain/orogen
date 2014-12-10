@@ -4,8 +4,6 @@
 // declarations in the TypekitImpl files
 #include <<%= typekit.name %>/typekit/Plugin.hpp>
 
-#include <iostream>
-#include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <rtt/types/TypeInfoRepository.hpp>
