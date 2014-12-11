@@ -2,6 +2,8 @@
 
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 #include <memory>
+// for error-messages in enum-converters "toCORBA()" and "fromCORBA()"
+#include <rtt/Logger.hpp>
 
 <% if typekit.has_opaques? %>
 #include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>

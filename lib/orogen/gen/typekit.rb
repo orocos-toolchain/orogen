@@ -224,7 +224,7 @@ module Typelib
 
             result << <<-EOT
 #{indent}    default:
-#{indent}        RTT::log(RTT::Error) << "invalid value " << (int)value << " for enum #{cxx_name}" << RTT::endlog();
+#{indent}        RTT::log(RTT::Error) << "invalid value '" << (int)value << "' for enum '#{cxx_name}'" << RTT::endlog();
 #{indent}        return false;
 #{indent}}
             EOT

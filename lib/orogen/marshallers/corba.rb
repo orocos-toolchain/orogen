@@ -335,6 +335,11 @@ module Orocos
                 result << indent << "    corba = orogen#{namespace}Corba::#{name};\n"
                 result << indent << "    break;\n"
             end
+            result << <<-EOT
+#{indent}  default:
+#{indent}    RTT::log(RTT::Error) << "orogen_typekits::toCORBA() invalid value '" << (int)value << "' for enum '#{cxx_name}'" << RTT::endlog();
+#{indent}    return false;
+EOT
             result << indent << "}\n"
 	end
 	def from_corba(typekit, result, indent)
@@ -349,6 +354,11 @@ module Orocos
                 result << indent << "    value = #{namespace}#{name};\n"
                 result << indent << "    break;\n"
             end
+            result << <<-EOT
+#{indent}  default:
+#{indent}    RTT::log(RTT::Error) << "orogen_typekits::fromCORBA() invalid value '" << (int)corba << "' for enum '#{cxx_name}'" << RTT::endlog();
+#{indent}    return false;
+EOT
             result << indent << "}\n"
 	end
     end
