@@ -11,7 +11,6 @@
 
 <%
 # First handle the plain types
-typeset = typesets.converted_types | typesets.array_types
 needed_convertions = (typesets.converted_types | typesets.array_types).
     inject(Set.new) do |result, type|
         intermediate_type = typekit.intermediate_type_for(type)
