@@ -961,10 +961,11 @@ module Orocos
                 @opaques            = Array.new
 		@loaded_files_dirs  = Set.new
                 @pending_load_options = []
-                # The order matters ! GCCXML unfortunately only gives as file
-                # names the argument to #include. So, if we are unlucky, one
-                # file will be loaded recursively and we won't actually detect
-                # it ... :(
+                # The order matters ! GCCXML unfortunately gave as file names
+                # the argument to #include. So, if we are unlucky, one file
+                # will be loaded recursively and we won't actually detect it
+                # ... :( Not sure if this is still relevant with the
+                # clang-based importer
                 #
                 # In other words, keep pending_loads an array
                 @pending_loads        = Array.new
@@ -1402,6 +1403,8 @@ module Orocos
                 # are ignored. Vectors are hardcoded to :vector
                 if type.respond_to?(:deference)
                     deference_includes = orogen_include_of_type(type.deference, file_to_include)
+                    # if the type used in the opaque/ro_ptr/container has no
+                    # include, the container doesn't need one as well?
                     if !deference_includes
                         return
                     end
@@ -1439,7 +1442,7 @@ module Orocos
 
                     if orogen_include = file_to_include[file][Integer(line)]
                         return ["#{self.name}:#{orogen_include}"]
-                    else raise ArgumentError, "no entry for #{file}:#{line} in the provided file-to-include mapping"
+                    else raise ArgumentError, "no entry for '#{file}:#{line}' in the provided file-to-include mapping of typekit '#{self.name}'"
                     end
                 end
             end
