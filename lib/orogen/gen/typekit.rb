@@ -1514,7 +1514,10 @@ module Orocos
                     # note that we have to specify the language for a modern
                     # compiler so that it is not confused by the Tempfile --
                     # which has no ending.
-                    result = IO.popen(["clang", "-xc++", "-E", *includes, *defines, io.path]) do |io|
+                    #
+                    # just to be sure to have exactly the same compiler as the
+                    # importer we enforce "clang-3.4"
+                    result = IO.popen(["clang-3.4", "-xc++", "-E", *includes, *defines, io.path]) do |io|
                         io.read
                     end
                     if !$?.success?
