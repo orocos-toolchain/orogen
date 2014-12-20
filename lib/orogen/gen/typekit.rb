@@ -1513,7 +1513,20 @@ module Orocos
                                 if toplevel_files.include?(file) then file
                                 else current_file.last[0]
                                 end
-                            current_file.push [toplevel_file, file, lineno]
+                            # the gccxml-importer always reported "flattened"
+                            # filepath, like "/usr/include/c++/4.9/bits".
+                            # clang++ does print
+                            # "/usr/lib/gcc/x86_64-linux-gnu/4.9/../../../../include/c++/4.9/bits/stl_vector.h"
+                            # into the preprocessed output (read here), so we
+                            # have to flattend the path. this can fail for
+                            # "built-in" for examples, thus the rescue.
+                            begin
+                                current_file.push [toplevel_file, File.realpath(file), lineno]
+                            rescue Errno::ENOENT
+                                # now file is smth like "<built-in>" or
+                                # similar, at it anyways...
+                                current_file.push [toplevel_file, file, lineno]
+                            end
                         elsif mode == "2"
                             current_file.pop
                         end
