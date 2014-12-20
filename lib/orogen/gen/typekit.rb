@@ -1595,6 +1595,8 @@ module Orocos
                     map
                 end
 
+                options[:include_paths] = include_dirs
+                
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
@@ -1604,7 +1606,7 @@ module Orocos
                     io.flush
 
                     begin
-                        file_registry.import(io.path, 'c', options)
+                        file_registry.import(io.path, 'clang', options)
                         filter_unsupported_types(file_registry)
                         resolve_registry_includes(file_registry, include_mappings)
                         registry.merge(file_registry)
