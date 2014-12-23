@@ -45,7 +45,7 @@ module OroGen
                 @dynamic = false
 		@task, @name, @type, @default_value = task, name, type, default_value
                 @setter_operation = nil
-                @doc = ""
+                @doc = nil
 	    end
 
             def dynamic
@@ -102,7 +102,7 @@ module OroGen
                     name: name,
                     type: type.to_h,
                     dynamic: !!dynamic?,
-                    doc: doc]
+                    doc: (doc || "")]
                 if value = self.default_value
                     if value.respond_to?(:to_simple_value)
                         result[:default] = value.to_simple_value

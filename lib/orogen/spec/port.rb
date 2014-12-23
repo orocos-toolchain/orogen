@@ -32,7 +32,7 @@ module OroGen
                     direction: (if kind_of?(OutputPort) then 'output' else 'input' end),
                     name: name,
                     type: type.to_h,
-                    doc: doc
+                    doc: (doc || "")
                 ]
             end
 
@@ -101,7 +101,7 @@ module OroGen
                 end
 		@task, @name, @type = task, name, type
 
-                @doc = ""
+                @doc = nil
                 @max_sizes = Hash.new
                 keep_last_written_value :initial
 	    end

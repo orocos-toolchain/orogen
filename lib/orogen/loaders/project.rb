@@ -107,8 +107,9 @@ module OroGen
             end
 
             def task_context(*args, &block)
+                load_doc = @load_doc
                 model = super(*args) do
-                    ::OroGen::Loaders::TaskContext.new(@load_doc, self).instance_eval(&block)
+                    ::OroGen::Loaders::TaskContext.new(load_doc, self).instance_eval(&block)
                 end
                 if @load_doc
                     Spec.load_documentation(model, /^task_context/)

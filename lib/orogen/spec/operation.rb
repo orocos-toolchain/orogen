@@ -196,7 +196,7 @@ module OroGen
             #
             # @return [Hash]
             def to_h
-                result = Hash[name: name, doc: doc]
+                result = Hash[name: name, doc: (doc || "")]
                 if has_return_value?
                     result[:returns] = Hash[type: self.return_type[0].to_h, doc: self.return_type[2]]
                 end
