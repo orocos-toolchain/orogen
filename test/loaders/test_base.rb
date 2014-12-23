@@ -1,9 +1,6 @@
 require 'orogen/test'
 
 describe OroGen::Loaders::Base do
-    include FlexMock::ArgumentTypes
-    include FlexMock::MockContainer
-
     attr_reader :loader
 
     before do

@@ -1,4 +1,3 @@
-
 require './test/spec/test_configuration_object'
 require './test/spec/test_deployment'
 require './test/spec/test_operation'

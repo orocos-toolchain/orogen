@@ -1,8 +1,6 @@
 require 'orogen/test'
 
 describe Orocos::Spec::Port do
-    include OroGen::SelfTest
-
     attr_reader :project, :loader, :task, :port
     before do
         @loader = OroGen::Loaders::Files.new

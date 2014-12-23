@@ -1,8 +1,6 @@
 require 'orogen/test'
 
 describe Orocos::Spec::ConfigurationObject do
-    include OroGen::SelfTest
-
     describe "#to_h" do
         attr_reader :task, :p
         before do

@@ -1,9 +1,6 @@
 require 'orogen/test'
 
 describe OroGen::Loaders::PkgConfig do
-    include FlexMock::ArgumentTypes
-    include FlexMock::MockContainer
-
     attr_reader :pkg_config
     attr_reader :fixtures_prefix
 
