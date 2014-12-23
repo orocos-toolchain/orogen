@@ -29,7 +29,7 @@ class TC_GenerationTypekit < Minitest::Test
     def test_typekit_load_should_raise_LoadError_if_the_file_does_not_exist
 	component = Component.new
         component.name 'test_typekit_load'
-        component.deffile = File.join(wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
+        component.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file that does not exist
         assert_raises(LoadError) do
@@ -42,19 +42,19 @@ class TC_GenerationTypekit < Minitest::Test
     def test_typekit_load_should_raise_ArgumentError_if_the_file_has_errors
 	component = Component.new
         component.name 'test_typekit_load'
-        component.deffile = File.join(wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
+        component.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file with errors
         assert_raises(ArgumentError) do
             typekit = component.typekit(true)
-            typekit.load File.join(data_dir, 'exists')
+            typekit.load File.join(path_to_data, 'exists')
             typekit.perform_pending_loads
         end
     end
 
     def check_output_file(basedir, name)
         output   = File.read(File.join(prefix_directory, name))
-        expected = File.read(File.join(data_dir, basedir, name))
+        expected = File.read(File.join(path_to_data, basedir, name))
         assert_equal(expected, output)
     end
 
@@ -176,7 +176,7 @@ install(TARGETS test RUNTIME DESTINATION bin)
         libprefix = File.join(prefix_directory, "libs/typekit_dependencies_lib")
         FileUtils.mkdir_p File.join(libprefix, "include")
         FileUtils.mkdir_p File.join(libprefix, "lib", "pkgconfig")
-        FileUtils.cp File.join(data_dir, "modules", "typekit_dependencies_lib", "tkdeps_lib.h"), File.join(libprefix, "include")
+        FileUtils.cp File.join(path_to_data, "modules", "typekit_dependencies_lib", "tkdeps_lib.h"), File.join(libprefix, "include")
         File.open(File.join(libprefix, "lib", "pkgconfig", "tkdeps_lib.pc"), 'w') do |io|
             io << "Name: Blablabla\n"
             io << "Description: Blablabla\n"
@@ -233,27 +233,27 @@ describe Orocos::Generation::Typekit do
         end
 
         it "rejects multi-dimensional arrays" do
-            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'multi_dimensional_array.h')
+            reg = Typelib::Registry.import File.join(path_to_data, 'typekit', 'multi_dimensional_array.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/double[2][4]")
         end
         it "rejects std::vector<bool>" do
-            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'std_vector_bool.h')
+            reg = Typelib::Registry.import File.join(path_to_data, 'typekit', 'std_vector_bool.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/std/vector</bool>")
         end
         it "rejects pointers" do
-            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'pointer.h')
+            reg = Typelib::Registry.import File.join(path_to_data, 'typekit', 'pointer.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/double*")
         end
         it "rejects compounds whose field name does not start with an alphanumeric character" do
-            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'compound_with_field_not_starting_with_alphanumeric_character.h')
+            reg = Typelib::Registry.import File.join(path_to_data, 'typekit', 'compound_with_field_not_starting_with_alphanumeric_character.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/Test")
         end
         it "rejects the types that depend on rejected types" do
-            reg = Typelib::Registry.import File.join(data_dir, 'typekit', 'rejected_dependencies.h')
+            reg = Typelib::Registry.import File.join(path_to_data, 'typekit', 'rejected_dependencies.h')
             typekit.filter_unsupported_types(reg)
             assert !reg.include?("/CompoundTest")
             assert !reg.include?("/VectorTest")

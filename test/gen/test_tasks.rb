@@ -12,8 +12,8 @@ class TC_GenerationTasks < Minitest::Test
     # Orogen should refuse to create a task context which has the same name than
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name
-        project.deffile = File.join(data_dir, 'modules', 'typekit_simple', 'simple.orogen')
-        project.typekit(true).load File.join(data_dir, 'modules', 'typekit_simple', 'simple.h')
+        project.deffile = File.join(path_to_data, 'modules', 'typekit_simple', 'simple.orogen')
+        project.typekit(true).load File.join(path_to_data, 'modules', 'typekit_simple', 'simple.h')
         assert_raises(ArgumentError) { project.task_context("Test") {} }
     end
 
@@ -173,7 +173,7 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_default_values
-        project.deffile = File.join(WC_ROOT, 'test.orogen')
+        project.deffile = File.join(path_to_wc_root, 'test.orogen')
         Tempfile.open("orogen_test_default_values") do |io|
             io.puts <<-EOCODE
 enum TestEnum {

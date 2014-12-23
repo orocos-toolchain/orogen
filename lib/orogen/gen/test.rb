@@ -30,7 +30,7 @@ module OroGen
 	    attr_reader :working_directory
 
             def prefix_directory
-                File.join(wc_root, "prefix", *subdir)
+                File.join(path_to_wc_root, "prefix", *subdir)
             end
 
             attr_reader :subdir
@@ -50,7 +50,7 @@ module OroGen
 	    end
 
 	    def create_wc(*subdir)
-                required_wc = File.join(test_dir, 'wc', *subdir)
+                required_wc = File.join(path_to_test, 'wc', *subdir)
 		if working_directory != required_wc
 		    @working_directory = required_wc
 		    FileUtils.mkdir_p working_directory
@@ -60,8 +60,8 @@ module OroGen
 
             def clear_wc
 		if ENV['TEST_KEEP_WC'] != '1' && ENV['TEST_DONT_CLEAN'] != '1'
-		    if File.directory?(wc_root)
-			FileUtils.rm_rf wc_root
+		    if File.directory?(path_to_wc_root)
+			FileUtils.rm_rf path_to_wc_root
                         @working_directory = nil
 		    end
 		end
@@ -73,7 +73,7 @@ module OroGen
 		    FileUtils.mkdir_p destination
 		end
 
-		FileUtils.cp File.expand_path(file, test_dir), (destination || working_directory)
+		FileUtils.cp File.expand_path(file, path_to_test), (destination || working_directory)
 	    end
 
 	    def in_wc(*subdir, &block)
@@ -137,9 +137,9 @@ module OroGen
             end
 
             def build_typegen(name, header_files, transports)
-                @working_directory = File.join(test_dir, 'wc', name)
+                @working_directory = File.join(path_to_test, 'wc', name)
                 header_files = [*header_files].map do |file|
-                    File.join(data_dir, file)
+                    File.join(path_to_data, file)
                 end
 
                 if ENV['TEST_DONT_CLEAN'] != '1' || !File.directory?(working_directory)
@@ -166,8 +166,8 @@ module OroGen
             end
 
             def build_test_component(dirname, transports = [], test_bin = nil, wc_dirname = nil)
-                source             = File.join(data_dir, dirname)
-                @working_directory = File.join(test_dir, 'wc', wc_dirname || dirname)
+                source             = File.join(path_to_data, dirname)
+                @working_directory = File.join(path_to_test, 'wc', wc_dirname || dirname)
                 @subdir = [dirname]
 
                 if ENV['TEST_DONT_CLEAN'] != '1' || !File.directory?(working_directory)

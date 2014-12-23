@@ -71,7 +71,7 @@ class TC_GenerationDeployment < Minitest::Test
 
         # Start by loading the component specfication and check some properties
         # on it. Then, do the generation, build and test
-        cross_deployment = Component.load(File.join(data_dir, "modules", "cross_deployment", "deployment.orogen"))
+        cross_deployment = Component.load(File.join(path_to_data, "modules", "cross_deployment", "deployment.orogen"))
 
         cross_deployment = build_test_component("modules/cross_deployment", transports)
         install

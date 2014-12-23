@@ -14,7 +14,7 @@ describe OroGen::Loaders::Project do
     end
 
     it "loads documentation for each task context object" do
-        load(File.join(data_dir, 'modules', 'load_documentation.orogen'))
+        load(File.join(path_to_data, 'modules', 'load_documentation.orogen'))
 
         task = target.task_model_from_name('Task')
         assert_equal 'TASKCONTEXT', task.doc
@@ -25,7 +25,7 @@ describe OroGen::Loaders::Project do
     end
 
     it "does not load after an empty line" do
-        load(File.join(data_dir, 'modules', 'load_documentation.orogen'))
+        load(File.join(path_to_data, 'modules', 'load_documentation.orogen'))
         task = target.task_model_from_name('Task')
         assert_equal 'PROPERTY', task.find_property('test_empty_line_after_proper_comment').doc
         assert_equal nil, task.find_property('test_empty_line').doc

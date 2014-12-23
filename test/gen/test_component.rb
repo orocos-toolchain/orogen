@@ -15,12 +15,12 @@ class TC_GenerationComponent < Minitest::Test
             
             # No name
 	    component = RTT_CPP::Component.new
-	    component.instance_variable_set(:@deffile, File.join(data_dir, "empty_component.orogen"))
+	    component.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
 	    assert_raises(ArgumentError) { component.generate } 
 
             # OK
 	    component = RTT_CPP::Component.new
-	    component.load(File.join(data_dir, "empty_component.orogen"))
+	    component.load(File.join(path_to_data, "empty_component.orogen"))
 	    component.generate
 	end
     end

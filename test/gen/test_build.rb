@@ -26,7 +26,7 @@ class TC_GenerationBuild < Minitest::Test
         lib_prefix = File.join(prefix_directory, 'build_regen_library')
         FileUtils.mkdir_p prefix_directory
         FileUtils.rm_rf lib_prefix
-        FileUtils.cp_r File.join(data_dir, 'build_regen_library'), lib_prefix
+        FileUtils.cp_r File.join(path_to_data, 'build_regen_library'), lib_prefix
         File.open(File.join(lib_prefix, 'build_regen_library.pc'), 'w') do |io|
             io.puts <<-PKGFILE
 prefix=#{lib_prefix}

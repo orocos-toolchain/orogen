@@ -2,20 +2,18 @@ require 'orogen/test'
 require 'orogen/ros'
 
 module ROSLoaderTestSetup
-    def data_dir
+    def path_to_data
         File.join(File.dirname(__FILE__),"models")
     end
 
     def create_ros_loader
         root = OroGen::Loaders::Aggregate.new
         typekit_loader = OroGen::Loaders::Files.new(root)
-        typekit_loader.register_typekit(data_dir, 'std')
-        typekit_loader.register_typekit(data_dir, 'base')
-        root.add(typekit_loader)
+        typekit_loader.register_typekit(path_to_data, 'std')
+        typekit_loader.register_typekit(path_to_data, 'base')
         ros_loader = OroGen::ROS::DefaultLoader.new(root)
-        ros_loader.search_path << data_dir
-        ros_loader.package_paths['manipulator_config'] = data_dir
-        root.add(ros_loader)
+        ros_loader.search_path << path_to_data
+        ros_loader.package_paths['manipulator_config'] = path_to_data
         root.typekit_model_from_name('std')
         root
     end
