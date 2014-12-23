@@ -216,7 +216,6 @@ module OroGen
     end
     end
     Minitest::Test.include OroGen::Gen::RTT_CPP::SelfTest
-    Minitest::Spec.include OroGen::Gen::RTT_CPP::SelfTest
     Gen::RTT_CPP.enable
 end
 

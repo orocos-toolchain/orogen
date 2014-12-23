@@ -84,9 +84,6 @@ if defined?(FlexMock) && !FlexMock::TestUnitFrameworkAdapter.method_defined?(:as
 end
 
 module Minitest
-    class Spec
-        include OroGen::SelfTest
-    end
     class Test
         include OroGen::SelfTest
     end
