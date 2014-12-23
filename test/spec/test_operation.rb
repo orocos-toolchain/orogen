@@ -22,7 +22,7 @@ describe OroGen::Spec::Operation do
     describe "#to_h" do
         attr_reader :task, :op
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new)
+            @task = Orocos::Spec::TaskContext.new(project)
             @op = task.operation('op')
         end
 
@@ -72,9 +72,7 @@ describe OroGen::Spec::Operation do
     describe "#find_interface_type" do
         attr_reader :op, :project
         before do
-            project = Orocos::Generation::Project.new
-            project.name "TestFindTask"
-            task = project.task_context "Task"
+            task = create_dummy_project.task_context "Task"
             @project = project
             @op = Orocos::Spec::Operation.new(task, 'op')
         end

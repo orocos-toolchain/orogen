@@ -52,6 +52,12 @@ module OroGen
             WC_ROOT
         end
 
+        def create_dummy_project
+            loader = OroGen::Loaders::Files.new
+            OroGen::Loaders::RTT.setup_loader(loader)
+            OroGen::Spec::Project.new(loader)
+        end
+
         if defined? FlexMock
             include FlexMock::ArgumentTypes
             include FlexMock::MockContainer

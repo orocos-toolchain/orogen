@@ -1,6 +1,6 @@
 require 'orogen/test'
 describe Orocos::Generation::Operation do
-    include Orocos::Generation::Test
+    include Orocos::Generation::SelfTest
     it "should accept ro_ptr arguments (#13)" do
         project = Orocos::Generation::Project.new
         project.name "test"

@@ -1,12 +1,12 @@
 require 'orogen/test'
 
 describe Orocos::Spec::ConfigurationObject do
-    include Orocos::Generation::Test
+    include OroGen::SelfTest
 
     describe "#to_h" do
         attr_reader :task, :p
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new)
+            @task = OroGen::Spec::TaskContext.new(create_dummy_project)
             @p = task.property('p', '/double')
         end
 

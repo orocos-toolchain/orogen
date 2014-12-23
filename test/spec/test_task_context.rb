@@ -265,7 +265,7 @@ describe OroGen::Spec::TaskContext do
     describe "#to_h" do
         attr_reader :task
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new, "test::Task")
+            @task = Orocos::Spec::TaskContext.new(create_dummy_project, "test::Task")
         end
         it "marshals the model in hash form" do
             task.runtime_states :TEST
