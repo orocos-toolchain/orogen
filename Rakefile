@@ -53,6 +53,7 @@ begin
             end
         end
     end
+    hoe_spec.test_globs = ['test/suite.rb']
 
     task :doc => :yard
 rescue LoadError
