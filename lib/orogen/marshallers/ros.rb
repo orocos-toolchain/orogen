@@ -1,9 +1,9 @@
-module Orocos
+module OroGen
     module TypekitMarshallers
         module ROS
             extend Logger::Hierarchy
 
-            class Orocos::Generation::Typekit
+            class Gen::RTT_CPP::Typekit
                 def ros_mappings(mappings)
                     plugin = find_plugin('ros')
                     if !plugin
@@ -15,7 +15,7 @@ module Orocos
                     self
                 end
             end
-            class Orocos::Generation::ImportedTypekit
+            class Gen::RTT_CPP::ImportedTypekit
                 def ros_mappings(mappings)
                     self
                 end
@@ -150,7 +150,7 @@ module Orocos
                     result = []
                     typekit.used_typekits.each do |tk|
                         next if tk.virtual?
-                        build_dep = Orocos::Generation::BuildDependency.new(
+                        build_dep = Gen::RTT_CPP::BuildDependency.new(
                             tk.name.upcase + "_TRANSPORT_ROS",
                             tk.pkg_transport_name('ros'))
                             build_dep.in_context('ros', 'include')
@@ -159,13 +159,13 @@ module Orocos
                     end
                     typekit.used_libraries.each do |pkg|
                         needs_link = typekit.linked_used_libraries.include?(pkg)
-                        result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+                        result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
                             in_context('ros', 'include')
                         if needs_link
                             result.last.in_context('ros', 'link')
                         end
                     end
-                    build_dep = Orocos::Generation::BuildDependency.new(
+                    build_dep = Gen::RTT_CPP::BuildDependency.new(
                         "OROCOS_RTT_ROS",
                         "orocos-rtt-ros-${OROCOS_TARGET}")
                     build_dep.in_context('ros', 'include')
@@ -344,13 +344,13 @@ module Orocos
                 end
 
                 def generate_disabled(typesets, convert_types, convert_array_types, user_converted_types)
-                    rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
+                    rosmap = Gen::RTT_CPP.render_template "typekit", "ros", "rosmap", binding
                     rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
 
-                    pkg_config = Generation.render_template "typekit", "ros", "transport-ros-disabled.pc", binding
+                    pkg_config = Gen::RTT_CPP.render_template "typekit", "ros", "transport-ros-disabled.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
 
-                    cmake = Generation.render_template "typekit", "ros", "CMakeLists-disabled.txt", binding
+                    cmake = Gen::RTT_CPP.render_template "typekit", "ros", "CMakeLists-disabled.txt", binding
                     typekit.save_automatic("transports", "ros", "CMakeLists.txt", cmake)
                     return [], []
                 end
@@ -377,7 +377,7 @@ module Orocos
                                 type = typekit.intermediate_type_for(type)
                             end
 
-                            msg = Orocos::Generation.render_template "typekit", "ros", "Type.msg", binding
+                            msg = Gen::RTT_CPP.render_template "typekit", "ros", "Type.msg", binding
                             typekit.save_automatic("transports", "ros", "msg", "#{msg_name}.msg", msg)
                             all_messages << msg_name
                         end
@@ -418,35 +418,35 @@ module Orocos
                         if (mapped = type_to_msg[type.name]) && boxed_ros_msg?(mapped)
                             convert_boxed_types << [type, type]
                         end
-                        code  = Generation.render_template "typekit", "ros", "Type.cpp", binding
+                        code  = Gen::RTT_CPP.render_template "typekit", "ros", "Type.cpp", binding
                         [type, code]
                     end.compact
 
                     headers, impl = Array.new, Array.new
 
                     convert_boxed_types = convert_boxed_types.sort_by { |t1, t2| [t1.name, t2.name] }
-                    code  = Generation.render_template "typekit", "ros", "Convertions.hpp", binding
+                    code  = Gen::RTT_CPP.render_template "typekit", "ros", "Convertions.hpp", binding
                     headers << typekit.save_automatic("transports", "ros",
                                                       "Convertions.hpp", code)
-                    code  = Generation.render_template "typekit", "ros", "Convertions.cpp", binding
+                    code  = Gen::RTT_CPP.render_template "typekit", "ros", "Convertions.cpp", binding
                     impl << typekit.save_automatic("transports", "ros",
                                                    "Convertions.cpp", code)
 
-                    code  = Generation.render_template "typekit", "ros", "TransportPlugin.hpp", binding
+                    code  = Gen::RTT_CPP.render_template "typekit", "ros", "TransportPlugin.hpp", binding
                     headers << typekit.save_automatic("transports", "ros",
                                                       "TransportPlugin.hpp", code)
-                    code  = Generation.render_template "typekit", "ros", "TransportPlugin.cpp", binding
+                    code  = Gen::RTT_CPP.render_template "typekit", "ros", "TransportPlugin.cpp", binding
                     impl << typekit.save_automatic("transports", "ros",
                                                    "TransportPlugin.cpp", code)
                     if !user_converted_types.empty?
                         # We need to generate a user part with the convertion
                         # functions. Reuse the templates !
                         
-                        code  = Generation.render_template "typekit", "ros", "ROSConvertions.hpp", binding
+                        code  = Gen::RTT_CPP.render_template "typekit", "ros", "ROSConvertions.hpp", binding
                         headers << typekit.save_user("ROSConvertions.hpp", code)
-                        code  = Generation.render_template "typekit", "ros", "ROSConvertions.cpp", binding
+                        code  = Gen::RTT_CPP.render_template "typekit", "ros", "ROSConvertions.cpp", binding
                         impl << typekit.save_user("ROSConvertions.cpp", code)
-                        Orocos::Generation.create_or_update_symlink(
+                        Gen::RTT_CPP.create_or_update_symlink(
                             headers.last, File.join(typekit.automatic_dir, "transports", "ros", "ROSConvertions.hpp"))
                     end
 
@@ -456,7 +456,7 @@ module Orocos
                         ROS.warn "#{rejected.size} types cannot be exported to ROS, you will not able to publish/subscribe ports of these types to/from ROS: #{rejected.map(&:name).sort.join(", ")}"
                     end
 
-                    code  = Generation.render_template "typekit", "ros", "Registration.hpp", binding
+                    code  = Gen::RTT_CPP.render_template "typekit", "ros", "Registration.hpp", binding
                     typekit.save_automatic("transports", "ros", "Registration.hpp", code)
 
                     impl = impl.map do |path|
@@ -466,16 +466,16 @@ module Orocos
                         typekit.cmake_relative_path(path, "transports", "ros")
                     end.sort
 
-                    cmake_config = Generation.render_template "typekit", "ros", "config.cmake.in", binding
+                    cmake_config = Gen::RTT_CPP.render_template "typekit", "ros", "config.cmake.in", binding
                     typekit.save_automatic("transports", "ros", "orogen_#{typekit.name}_msgs-config.cmake.in", cmake_config)
 
-                    rosmap = Generation.render_template "typekit", "ros", "rosmap", binding
+                    rosmap = Gen::RTT_CPP.render_template "typekit", "ros", "rosmap", binding
                     rosmap = typekit.save_automatic("transports", "ros", "#{typekit.name}.rosmap", rosmap)
 
-                    pkg_config = Generation.render_template "typekit", "ros", "transport-ros.pc", binding
+                    pkg_config = Gen::RTT_CPP.render_template "typekit", "ros", "transport-ros.pc", binding
                     typekit.save_automatic("transports", "ros", "#{typekit.name}-transport-ros.pc.in", pkg_config)
 
-                    cmake = Generation.render_template "typekit", "ros", "CMakeLists.txt", binding
+                    cmake = Gen::RTT_CPP.render_template "typekit", "ros", "CMakeLists.txt", binding
                     typekit.save_automatic("transports", "ros", "CMakeLists.txt", cmake)
 
                     return [], []

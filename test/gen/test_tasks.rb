@@ -145,7 +145,7 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_needs_configuration
-        build_test_component('modules/with_configuration', [])
+        build_test_project('modules/with_configuration', [])
         install
     end
 
@@ -157,7 +157,7 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_state_type_definitions(*transports)
-        project = build_test_component('modules/extended_states', transports)
+        project = build_test_project('modules/extended_states', transports)
         install
 
         parent = project.find_task_context "Parent"

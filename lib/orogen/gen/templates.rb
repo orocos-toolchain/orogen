@@ -109,7 +109,7 @@ module OroGen
 	#   save_automatic path1, path2, ..., file_name, data
 	#
 	# Save the provided data in the path1/path2/.../file_name file of the
-	# automatically-generated part of the component (i.e. under .orogen)
+	# automatically-generated part of the project (i.e. under .orogen)
 	def self.save_automatic(*args)
 	    save_generated true, AUTOMATIC_AREA_NAME, *args
 	end
@@ -118,7 +118,7 @@ module OroGen
 	#   save_public_automatic path1, path2, ..., file_name, data
 	#
 	# Save the provided data in the path1/path2/file_name file of the
-	# user-written part of the component. It differs from save_user because
+	# user-written part of the project. It differs from save_user because
 	# it will happily overwrite an existing file.
 	def self.save_public_automatic(*args)
 	    save_generated true, *args
@@ -128,7 +128,7 @@ module OroGen
 	#   save_user path1, path2, ..., file_name, data
 	#
 	# Save the provided data in the path1/path2/file_name file of the
-	# user-written part of the component, if the said file does
+	# user-written part of the project, if the said file does
 	# not exist yet
 	def self.save_user(*args)
 	    result = save_generated false, *args
@@ -158,7 +158,7 @@ module OroGen
 
 	def self.really_clean
 	    # List all files in templates and compare them w.r.t.  the ones in
-	    # the user-side of the component. Remove those that are identical
+	    # the user-side of the project. Remove those that are identical
 	    base_dir     = Pathname.new('.')
 	    template_dir = Pathname.new('templates')
 	    template_dir.find do |path|

@@ -264,8 +264,9 @@ struct #{target_basename}
     end
 end
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         # Helper method used to create a symbolic link. If a link already
         # exists, it makes sure that it is up to date
         def self.create_or_update_symlink(source, target)
@@ -499,9 +500,6 @@ module Orocos
             # The Project instance this typekit is part of. It may be nil if the
             # Typekit is generated standalone (as, for instance, in typegen)
 	    attr_reader :project
-
-            # For backward compatibility only. Replaced by #project
-            def component; project end
 
             # The set of headers loaded by #load, as an array of absolute paths
             attr_reader :loads
@@ -745,7 +743,7 @@ module Orocos
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
-                Orocos::Generation.orocos_target.dup
+                RTT_CPP.orocos_target.dup
             end
 
             # True if the orocos target is gnulinux
@@ -765,7 +763,7 @@ module Orocos
                 @included_files = Array.new
 
                 @plugins = []
-                plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new(self))
+                plugins << (TypekitMarshallers::TypeInfo::Plugin.new(self))
 
                 @internal_dependencies = []
 		@imports, @loads    = [], []
@@ -927,7 +925,7 @@ module Orocos
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
                 options[:orogen_include] ||= Array.new
-                options[:orogen_include] << "orocos-rtt-#{Orocos::Generation.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
+                options[:orogen_include] << "orocos-rtt-#{RTT_CPP.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
                 smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
@@ -1144,21 +1142,21 @@ module Orocos
                     # TODO: work around this in Typelib and oroGen by emitting a
                     # TODO: single-dimension array of the right size
                     if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
-                        Orocos::Generation.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        RTT_CPP.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
                         to_delete << type
 
                     elsif type < Typelib::PointerType
-                        Orocos::Generation.warn "ignoring #{type.name} as pointers are not allowed"
+                        RTT_CPP.warn "ignoring #{type.name} as pointers are not allowed"
                         to_delete << type
 
                     elsif type.name == "/std/vector</bool>"
-                        Orocos::Generation.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
+                        RTT_CPP.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
                         to_delete << type
 
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
-                                Orocos::Generation.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
+                                RTT_CPP.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
                                 to_delete << type
                                 break
                             end
@@ -1170,7 +1168,7 @@ module Orocos
                     deleted_types = registry.remove(type)
                     deleted_types.each do |dep_type|
                         next if to_delete.include?(dep_type)
-                        Orocos::Generation.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                        RTT_CPP.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
                     end
                 end
             end
@@ -1254,7 +1252,7 @@ module Orocos
 
                     file, line = location.split(':')
                     if !File.file?(file)
-                        Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
+                        RTT_CPP.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
                         type.metadata.delete('source_file_line')
                         return
                     end
@@ -1366,7 +1364,7 @@ module Orocos
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{Orocos::Generation.orocos_target}", '__orogen2']
+                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
 
                 options[:include] = self.include_dirs.dup
                 options = options.merge(user_options) do |key, a, b|
@@ -1807,8 +1805,8 @@ module Orocos
                 end
                 code_snippets = code_snippets.sort_by { |code| code[0] }
 
-                slice_size = Orocos::Generation.typekit_slice
-                while slice_size > 1 && code_snippets.size / slice_size < Orocos::Generation.typekit_slice_minimum
+                slice_size = RTT_CPP.typekit_slice
+                while slice_size > 1 && code_snippets.size / slice_size < RTT_CPP.typekit_slice_minimum
                     slice_size -= 1
                 end
 
@@ -2068,7 +2066,7 @@ module Orocos
             def type_info_includes_for_type(type)
                 if type.opaque?
                     return type_info_includes_for_type(intermediate_type_for(type))
-                elsif Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+                elsif TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
                    result = ["#{self.name}/typekit/BoostSerialization.hpp", type.info_type_header]
                    if type.full_name == "/std/string"
                        result << "rtt/typekit/StdStringTypeInfo.hpp"
@@ -2109,6 +2107,7 @@ module Orocos
                 end.sort.join("\n") + "\n"
             end
 	end
+    end
     end
 end
 

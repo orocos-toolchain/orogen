@@ -4,7 +4,7 @@
 <%= typekit.cxx_gen_includes(*typekit.type_info_includes_for_type(type)) %>
 
 <% base_class =
-    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+    if !TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
         ["RTT::types::PrimitiveTypeInfo< #{type.cxx_name} >", "RTT::types::TemplateConnFactory< #{type.cxx_name} >"]
     elsif type.full_name == "/std/string"
         ["RTT::types::StdStringTypeInfo"]
@@ -20,7 +20,7 @@ namespace orogen_typekits {
         <%= type.method_name(true) %>TypeInfo()
             : <%= base_class.first %>("<%= type.full_name %>") {}
 
-<%  if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
+<%  if !TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         bool installTypeInfoObject(RTT::types::TypeInfo* ti) {
             // This shared pointer MUST be taken HERE, and MUST be pointing to
             // the most derived class. Otherwise, you'll get double-free at

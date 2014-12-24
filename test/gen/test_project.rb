@@ -1,45 +1,45 @@
 require 'orogen/gen/test'
 
-class TC_GenerationComponent < Minitest::Test
-    def test_component_generate
+class TC_GenerationProject < Minitest::Test
+    def test_project_generate
         create_wc "base"
 	in_wc do
             # No name, no orogen file
-	    component = RTT_CPP::Component.new
-	    assert_raises(ArgumentError) { component.generate }
+	    project = RTT_CPP::Project.new
+	    assert_raises(ArgumentError) { project.generate }
 
             # No orogen file
-	    component = RTT_CPP::Component.new
-	    component.name "cmp"
-	    assert_raises(ArgumentError) { component.generate } 
+	    project = RTT_CPP::Project.new
+	    project.name "cmp"
+	    assert_raises(ArgumentError) { project.generate } 
             
             # No name
-	    component = RTT_CPP::Component.new
-	    component.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
-	    assert_raises(ArgumentError) { component.generate } 
+	    project = RTT_CPP::Project.new
+	    project.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
+	    assert_raises(ArgumentError) { project.generate } 
 
             # OK
-	    component = RTT_CPP::Component.new
-	    component.load(File.join(path_to_data, "empty_component.orogen"))
-	    component.generate
+	    project = RTT_CPP::Project.new
+	    project.load(File.join(path_to_data, "empty_component.orogen"))
+	    project.generate
 	end
     end
 
     def test_generation_requires_name_and_orogen
-	component = Component.new
+	project = Project.new
 
         # Should raise because there is no name
-        assert_raises(ArgumentError) { component.generate }
+        assert_raises(ArgumentError) { project.generate }
 
-        component.name "test"
+        project.name "test"
         # Should raise because there is no orogen file
-        assert_raises(ArgumentError) { component.generate }
+        assert_raises(ArgumentError) { project.generate }
 
-        component.deffile = "bla.orogen"
+        project.deffile = "bla.orogen"
 
         create_wc("tasks/generation_validation")
         in_wc do
-            component.generate
+            project.generate
         end
     end
 
@@ -50,7 +50,7 @@ class TC_GenerationComponent < Minitest::Test
             io.flush
 
             begin
-                Component.load(io.path, false)
+                Project.load(io.path, false)
                 flunk "no exception thrown by load"
             rescue TypeError => e
                 assert_equal("#{io.path}:1", e.backtrace[0], "complete backtrace is:\n  #{e.backtrace.join("\n  ")}")
@@ -60,18 +60,18 @@ class TC_GenerationComponent < Minitest::Test
     end
 
     def test_find_type
-        c = Component.new
+        c = Project.new
         t = c.find_type "/int"
         assert_same c.registry.get("/int"), t
     end
     def test_find_type_should_build_arrays
-        c = Component.new
+        c = Project.new
         t = c.find_type "/int[12]"
         assert_same c.registry.get("/int[12]"), t
         assert !c.typekit
     end
     def test_find_type_should_create_containers
-        c = Component.new
+        c = Project.new
         t = c.find_type "/std/vector</int>"
         assert_same c.registry.get("/std/vector</int>"), t
         # The container should have been defined on the typekit as well
@@ -80,9 +80,9 @@ class TC_GenerationComponent < Minitest::Test
 
     def test_imported_typekits
         # Build the simple typekit first
-        build_test_component('modules/typekit_simple', [])
+        build_test_project('modules/typekit_simple', [])
 
-        c = Component.new
+        c = Project.new
         # Then try to load it
         in_prefix do
             c.using_typekit "simple"
@@ -99,13 +99,13 @@ class TC_GenerationComponent < Minitest::Test
     end
 
     def test_imported_type_looks_at_rtt_registry
-        c = Component.new
+        c = Project.new
         t = c.registry.get "/uint64_t"
         assert c.imported_type?(t)
     end
 
     def test_project_names_is_lowercase
-        c = Component.new
+        c = Project.new
         create_wc "lowercase_assertion"
         in_wc do
             c.name "Test"

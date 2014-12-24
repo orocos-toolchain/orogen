@@ -109,13 +109,13 @@ module OroGen
                 File.join(working_directory, 'test.log')
             end
 
-	    def compile_wc(component = nil, *subdir)
+	    def compile_wc(project = nil, *subdir)
 		in_wc(*subdir) do
-                    if component
-                        unless component.deffile
-                            component.deffile = File.join(working_directory, "#{component.name}.orogen")
+                    if project
+                        unless project.deffile
+                            project.deffile = File.join(working_directory, "#{project.name}.orogen")
                         end
-                        component.generate
+                        project.generate
                     end
 
 		    yield if block_given?
@@ -165,7 +165,7 @@ module OroGen
                 compile_wc(nil, "typekit_output")
             end
 
-            def build_test_component(dirname, transports = [], test_bin = nil, wc_dirname = nil)
+            def build_test_project(dirname, transports = [], test_bin = nil, wc_dirname = nil)
                 source             = File.join(path_to_data, dirname)
                 @working_directory = File.join(path_to_test, 'wc', wc_dirname || dirname)
                 @subdir = [dirname]
@@ -177,13 +177,13 @@ module OroGen
                     FileUtils.cp_r source, working_directory
                 end
 
-                component = nil
+                project = nil
                 in_wc do
                     spec = Dir.glob("*.orogen").to_a.first
-                    component = Component.load(spec)
-                    component.enable_transports(*transports)
+                    project = Project.load(spec)
+                    project.enable_transports(*transports)
 
-                    compile_wc(component) do
+                    compile_wc(project) do
                         FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
                         File.open('CMakeLists.txt', 'a') do |io|
                             yield(io) if block_given?
@@ -196,12 +196,12 @@ module OroGen
                         assert(system(test_bin, redirect_to_logfile), "failed to run test program #{test_bin}, see #{logfile} for output")
                     end
                 end
-                component
+                project
             end
 
 
-            def compile_and_test(component, test_bin)
-                compile_wc(component) do
+            def compile_and_test(project, test_bin)
+                compile_wc(project) do
                     FileUtils.cp 'templates/CMakeLists.txt', 'CMakeLists.txt'
                     File.open('CMakeLists.txt', 'a') do |io|
                         yield(io) if block_given?

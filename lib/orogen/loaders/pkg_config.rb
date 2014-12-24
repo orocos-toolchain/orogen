@@ -233,7 +233,7 @@ module OroGen
                 typekit = available_types[typename]
 
                 if !typekit
-                    raise NotTypekitType.new(typename), "no type #{typename} has been registered in oroGen components"
+                    raise NotTypekitType.new(typename), "no type #{typename} has been registered in an oroGen project"
                 elsif exported && !typekit.exported
                     typekits = imported_typekits_for(typename)
                     raise NotExportedType.new(typename, typekits), "the type #{typename} is registered in the #{typekits.map(&:name).sort.join(", ")} typekit, but it is not exported to the RTT type system"

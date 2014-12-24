@@ -1,7 +1,9 @@
 module OroGen
     module Spec
-        # Instances of this class represent a typekit that has been imported
-        # using Component#using_typekit.
+        # A typekit, i.e. a subpart of the system that handles a set of types
+        #
+        # Typekits provide (at model time) definitions of types, and (at
+        # runtime) the support to marshal/unmarshal them on transports
         class Typekit
             attr_reader :loader
             attr_reader :name

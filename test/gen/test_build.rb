@@ -2,7 +2,7 @@ require 'orogen/gen/test'
 
 class TC_GenerationBuild < Minitest::Test
     def test_check_uptodate
-        build_test_component "modules/simple", []
+        build_test_project "modules/simple", []
 
         in_wc do
             # Touch the orogen file
@@ -39,7 +39,7 @@ Cflags: -I${prefix}/include -I${prefix}/include/project
         end
         ENV['PKG_CONFIG_PATH'] = "#{lib_prefix}:#{ENV['PKG_CONFIG_PATH']}"
 
-        build_test_component "modules/build_regen_typekit", []
+        build_test_project "modules/build_regen_typekit", []
 
         in_wc do
             # Add a new type to test.h

@@ -2,11 +2,11 @@ prefix=@PROJECT_BINARY_DIR@
 exec_prefix=${prefix}
 binfile=${prefix}/<%= deployer.name %>
 
-project_name=<%= component.name %>
-deffile=@PROJECT_SOURCE_DIR@/<%= File.basename(component.deffile) %>
-typekits=<%= component.name if component.typekit %> <%= deployer.used_typekits.map { |tk| tk.name }.join(" ") %>
+project_name=<%= project.name %>
+deffile=@PROJECT_SOURCE_DIR@/<%= File.basename(project.deffile) %>
+typekits=<%= project.name if project.typekit %> <%= deployer.used_typekits.map { |tk| tk.name }.join(" ") %>
 
 Name: <%= deployer.name %>
-Version: <%= component.version %>
+Version: <%= project.version %>
 Description: the static deployment defined for the <%= deployer.name %> deployment
 

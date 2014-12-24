@@ -18,7 +18,7 @@ add_message_files(DIRECTORY msg
 msg_deps = typekit.used_typekits.map do |tk|
     next if tk.virtual?
     # Don't depend on transports that actually don't define any messages
-    pkg_rosmap = Orocos::TypekitMarshallers::ROS.load_rosmap_by_package_name(tk.name)
+    pkg_rosmap = TypekitMarshallers::ROS.load_rosmap_by_package_name(tk.name)
     next if pkg_rosmap.empty?
     "orogen_#{tk.name}_msgs"
 end.compact.to_set

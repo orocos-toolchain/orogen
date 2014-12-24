@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module HTML
         # Rendering object that converts a Typelib type, along with the typekit
         # information, into a HTML page.

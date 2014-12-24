@@ -22,7 +22,7 @@ describe OroGen::Spec::Operation do
     describe "#to_h" do
         attr_reader :task, :op
         before do
-            @task = Orocos::Spec::TaskContext.new(project)
+            @task = OroGen::Spec::TaskContext.new(project)
             @op = task.operation('op')
         end
 
@@ -74,7 +74,7 @@ describe OroGen::Spec::Operation do
         before do
             task = create_dummy_project.task_context "Task"
             @project = project
-            @op = Orocos::Spec::Operation.new(task, 'op')
+            @op = OroGen::Spec::Operation.new(task, 'op')
         end
 
         it "should strip the qualifiers to resolve the type" do

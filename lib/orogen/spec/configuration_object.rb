@@ -11,7 +11,7 @@ module OroGen
 	    attr_reader :name
 
 	    # The property type, as a Typelib::Type object from the underlying
-	    # component's type registry
+	    # project's type registry
 	    attr_reader :type
 
             #If this property coudl be set Dynamic this returns true
@@ -20,7 +20,7 @@ module OroGen
             # An operation that can be used to set the property. This is non-nil
             # only for dynamic properties. 
             # 
-            # @return [Orocos::Spec::Operation]
+            # @return [Spec::Operation,nil]
             attr_accessor :setter_operation
 
             # The name of the type this property is using, for consistency with

@@ -17,36 +17,36 @@ class TC_GenerationTypekit < Minitest::Test
     end
 
     def test_self_types_is_initially_empty
-        typekit = Orocos::Generation::Typekit.new
+        typekit = OroGen::Gen::RTT_CPP::Typekit.new
         assert_equal [], typekit.self_types.to_a
     end
 
     def test_normalized_registry_is_initially_empty
-        typekit = Orocos::Generation::Typekit.new
+        typekit = OroGen::Gen::RTT_CPP::Typekit.new
         assert_equal [], typekit.normalize_registry.to_a
     end
 
     def test_typekit_load_should_raise_LoadError_if_the_file_does_not_exist
-	component = Component.new
-        component.name 'test_typekit_load'
-        component.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
+	project = Project.new
+        project.name 'test_typekit_load'
+        project.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file that does not exist
         assert_raises(LoadError) do
-            component.typekit do
+            project.typekit do
                 load 'does_not_exist.h'
             end
         end
     end
 
     def test_typekit_load_should_raise_ArgumentError_if_the_file_has_errors
-	component = Component.new
-        component.name 'test_typekit_load'
-        component.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
+	project = Project.new
+        project.name 'test_typekit_load'
+        project.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
         # Load a file with errors
         assert_raises(ArgumentError) do
-            typekit = component.typekit(true)
+            typekit = project.typekit(true)
             typekit.load File.join(path_to_data, 'exists')
             typekit.perform_pending_loads
         end
@@ -59,7 +59,7 @@ class TC_GenerationTypekit < Minitest::Test
     end
 
     def opaque(*transports)
-        build_test_component('modules/typekit_opaque', transports, "bin/test") do |cmake|
+        build_test_project('modules/typekit_opaque', transports, "bin/test") do |cmake|
             transports.each do |transport_name|
                 cmake << "ADD_DEFINITIONS(-DWITH_#{transport_name.upcase})\n"
             end
@@ -118,11 +118,11 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
     transport_tests 'opaque'
 
     def test_opaque_autodef
-        build_test_component('modules/typekit_autodef', ['corba'])
+        build_test_project('modules/typekit_autodef', ['corba'])
     end
 
     def simple(*transports)
-        build_test_component('modules/typekit_simple', transports, "bin/test") do |cmake|
+        build_test_project('modules/typekit_simple', transports, "bin/test") do |cmake|
             ENV['CMAKE_LIBRARY_PATH'] = "#{ENV['CMAKE_LIBRARY_PATH']}:#{prefix_directory}"
 
             transports.each do |transport_name|
@@ -188,12 +188,12 @@ install(TARGETS test RUNTIME DESTINATION bin)
 
         # Install the parent typekit (the one that will be imported in the main
         # typekit)
-        build_test_component 'modules/typekit_dependencies_parent', transports
+        build_test_project 'modules/typekit_dependencies_parent', transports
         install
         ENV['PKG_CONFIG_PATH'] += ":" + File.join(prefix_directory, 'lib', 'pkgconfig')
 
         # And now the final one ...
-        build_test_component('modules/typekit_dependencies', transports)
+        build_test_project('modules/typekit_dependencies', transports)
     end
     transport_tests 'dependencies'
 
@@ -225,11 +225,11 @@ install(TARGETS test RUNTIME DESTINATION bin)
 end
 
 
-describe Orocos::Generation::Typekit do
+describe OroGen::Gen::RTT_CPP::Typekit do
     describe "#filter_unsupported_types" do
         attr_reader :typekit
         before do
-            @typekit = Orocos::Generation::Typekit.new
+            @typekit = OroGen::Gen::RTT_CPP::Typekit.new
         end
 
         it "rejects multi-dimensional arrays" do

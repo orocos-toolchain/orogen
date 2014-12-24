@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module TypekitMarshallers
     module Corba
     class Plugin
@@ -22,7 +22,7 @@ module Orocos
             result = []
             typekit.used_typekits.each do |tk|
                 next if tk.virtual?
-                build_dep = Orocos::Generation::BuildDependency.new(
+                build_dep = Gen::RTT_CPP::BuildDependency.new(
                     tk.name.upcase + "_TRANSPORT_CORBA",
                     tk.pkg_transport_name('corba'))
                 build_dep.in_context('corba', 'include')
@@ -31,7 +31,7 @@ module Orocos
             end
 	    typekit.used_libraries.each do |pkg|
 		needs_link = typekit.linked_used_libraries.include?(pkg)
-		result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+		result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
 		    in_context('corba', 'include')
 		if needs_link
 		    result.last.in_context('corba', 'link')
@@ -54,29 +54,29 @@ module Orocos
             end
             idl_registry.clear_aliases
             
-            idl = Orocos::Generation.render_template "typekit", "corba", "Types.idl", binding
+            idl = Gen::RTT_CPP.render_template "typekit", "corba", "Types.idl", binding
             idl_file = typekit.save_automatic("transports", "corba",
                 "#{typekit.name}Types.idl", idl)
 
-            code  = Generation.render_template "typekit", "corba", "Convertions.cpp", binding
+            code  = Gen::RTT_CPP.render_template "typekit", "corba", "Convertions.cpp", binding
             impl << typekit.save_automatic("transports", "corba",
                     "Convertions.cpp", code)
 
-            code  = Generation.render_template "typekit", "corba", "TransportPlugin.hpp", binding
+            code  = Gen::RTT_CPP.render_template "typekit", "corba", "TransportPlugin.hpp", binding
             headers << typekit.save_automatic("transports", "corba",
                     "TransportPlugin.hpp", code)
-            code  = Generation.render_template "typekit", "corba", "TransportPlugin.cpp", binding
+            code  = Gen::RTT_CPP.render_template "typekit", "corba", "TransportPlugin.cpp", binding
             impl << typekit.save_automatic("transports", "corba",
                     "TransportPlugin.cpp", code)
 
             code_snippets = typesets.interface_types.map do |type|
                 target_type = typekit.intermediate_type_for(type)
-                code  = Generation.render_template "typekit", "corba", "Type.cpp", binding
+                code  = Gen::RTT_CPP.render_template "typekit", "corba", "Type.cpp", binding
                 [type, code]
             end
             impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "corba")
 
-            code  = Generation.render_template "typekit", "corba", "Registration.hpp", binding
+            code  = Gen::RTT_CPP.render_template "typekit", "corba", "Registration.hpp", binding
             typekit.save_automatic("transports", "corba", "Registration.hpp", code)
 
             impl = impl.map do |path|
@@ -86,9 +86,9 @@ module Orocos
                 typekit.cmake_relative_path(path, "transports", "corba")
             end.sort
 
-            pkg_config = Generation.render_template "typekit", "corba", "transport-corba.pc", binding
+            pkg_config = Gen::RTT_CPP.render_template "typekit", "corba", "transport-corba.pc", binding
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
-            code = Generation.render_template "typekit", "corba", "CMakeLists.txt", binding
+            code = Gen::RTT_CPP.render_template "typekit", "corba", "CMakeLists.txt", binding
             typekit.save_automatic("transports", "corba", "CMakeLists.txt", code)
 
             # We generate our own CMake code, no need to export anything to the

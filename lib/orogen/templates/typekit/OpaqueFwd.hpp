@@ -25,11 +25,11 @@
 
 <% current_namespace = '/' %>
 <% forward_declared.sort_by(&:name).each do |type| %>
-<%= Orocos::Generation.adapt_namespace(current_namespace, type.namespace) %>
+<%= RTT_CPP.adapt_namespace(current_namespace, type.namespace) %>
 <%     current_namespace = type.namespace %>
 class <%= type.basename %>;
 <% end %>
-<%= Orocos::Generation.adapt_namespace(current_namespace, '/') %>
+<%= RTT_CPP.adapt_namespace(current_namespace, '/') %>
 
 #endif
 

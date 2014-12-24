@@ -6,8 +6,8 @@ libdir=${prefix}/lib/orocos@OROCOS_PKG_DIR@/types
 includedir=${prefix}/include/orocos
 
 project_name=<%= typekit.name %>
-<% if typekit.component %>
-deffile=${prefix}/share/orogen/<%= File.basename(typekit.component.deffile) %>
+<% if typekit.project %>
+deffile=${prefix}/share/orogen/<%= File.basename(typekit.project.deffile) %>
 <% end %>
 type_registry=@TYPEKIT_REGISTRY@
 

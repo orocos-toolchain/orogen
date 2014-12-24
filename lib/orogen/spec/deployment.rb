@@ -231,8 +231,6 @@ module OroGen
 
             # The Project object this task is part of
             def project; task_model.project end
-            # Backward compatibility only. Use #project instead
-            def component; project end
 
             ActivityDefinition = Struct.new :name, :class_name, :header
 
@@ -363,9 +361,9 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             # Marks this task as being "sequential". Sequential tasks are
-            # thread-less, and are triggered by the component that is calling
+            # thread-less, and are triggered by the task context that is calling
             # step() on them, or -- in the case of port-driven tasks -- by the
-            # component that wrote on their read ports.
+            # task context that wrote on their read ports.
             def sequential
                 activity_type 'Sequential', 'RTT::extras::SequentialActivity', 'rtt/extras/SequentialActivity.hpp'
                 activity_setup do
@@ -404,10 +402,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @activity_xml = block
             end
 
-            # Call to make the deployer start this task when the component is
+            # Call to make the deployer start this task when the task context is
             # launched
             def start; @start = true; self end
-            # True if this task should be started when the component is
+            # True if this task should be started when the task context is
             # started. Note that the deployer must honor the initial_state of
             # the underlying task context (i.e. call configure() if
             # initial_state is PreOperational)
@@ -486,8 +484,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    attr_reader :name
             # The underlying Project object
             attr_reader :project
-            # Backward compatibility only
-            def component; project end
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
@@ -727,7 +723,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             #   browse -> currently_browsed_task
             #   browse(task) -> self
             #
-            # Sets up a TaskBrowser component to browse the given task, which
+            # Sets up a TaskBrowser to browse the given task, which
             # is started when all tasks have been initialized. This is incompatible
             # with the use of CORBA and only one browser can be defined.
             dsl_attribute :browse do |task|

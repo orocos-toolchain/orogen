@@ -80,7 +80,7 @@ module OroGen
     def self.registry_of(typekit_name)
         registry = Typelib::Registry.new
         typekit_pkg =
-            Utilrb::PkgConfig.new("#{typekit_name}-typekit-#{Orocos::Generation.orocos_target}")
+            Utilrb::PkgConfig.new("#{typekit_name}-typekit-#{Gen::RTT_CPP.orocos_target}")
 
         tlb = typekit_pkg.type_registry
         if tlb

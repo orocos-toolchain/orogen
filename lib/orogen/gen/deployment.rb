@@ -1,7 +1,8 @@
 require 'set'
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         module TaskDeploymentGeneration
             def generate_activity_setup
                 if @activity_setup
@@ -177,6 +178,7 @@ module Orocos
 
         Spec::TaskDeployment.include TaskDeploymentGeneration
         Spec::Deployment.include DeploymentGeneration
+    end
     end
 end
 

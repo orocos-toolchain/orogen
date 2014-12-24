@@ -30,7 +30,7 @@ module Typelib
 
         def self.normalize_cxxname(name)
             if name =~ /::/
-                raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
+                raise InternalError, "normalize_cxxname called with a C++ type name (#{name})"
             end
 
             if name =~ /(.*)((?:\[\d+\])+)$/

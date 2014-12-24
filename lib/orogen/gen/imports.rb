@@ -1,7 +1,8 @@
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         # Instances of this class represent a typekit that has been imported
-        # using Component#using_typekit.
+        # using {Project#using_typekit}
         class ImportedTypekit
             attr_reader :main_project
             attr_reader :name
@@ -185,15 +186,15 @@ module Orocos
         #
         # For the task contexts imported this way,
         # TaskContext#external_definition?  returns true.
-        class ImportedProject < Component
-            # The main Component instance that groups all the imported task
+        class ImportedProject < Project
+            # The main {Project} instance that groups all the imported task
             # libraries
             attr_reader :main_project
             # The pkg-config file defining this oroGen project
             attr_reader :pkg
             # The pkg-config file for the task library of this oroGen project
             def tasklib_pkg_name
-                "#{name}-tasks-#{Orocos::Generation.orocos_target}"
+                "#{name}-tasks-#{RTT_CPP.orocos_target}"
             end
 
             def tasklib_pkg
@@ -332,9 +333,9 @@ module Orocos
             def generate_build_system; raise NotImplementedError end
 
             def to_s
-                "#<Orocos::Generation::ImportedProject: #{name} on #{main_project.name}>"
+                "#<OroGen::Gen::RTT_CPP::ImportedProject: #{name} on #{main_project.name}>"
             end
         end
     end
+    end
 end
-

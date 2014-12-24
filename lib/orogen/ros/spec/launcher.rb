@@ -140,9 +140,9 @@ module OroGen
 
             # Declares a node in a ROS launcher
             #
-            # This is equivalently to declaring a task in an Orocos deployment
+            # This is equivalently to declaring a task in a RTT deployment
             #
-            # @return [Orocos::Spec::TaskDeployment] A task deployment
+            # @return [OroGen::Spec::TaskDeployment] A task deployment
             def node(name, klass)
                 task_deployment = task(name, klass)
 
@@ -156,7 +156,7 @@ module OroGen
             end
 
             # Parses a given launch file and extracts the launch information
-            # @return [Set<Orocos::ROS::Spec::XML::NodeDescription>] Extract all nodes from a launch file
+            # @return [Set<Spec::XML::NodeDescription>] Extract all nodes from a launch file
             def self.parse(filename)
                 if not File.exists?(filename)
                     raise ArgumentError, "#{self}: could not find file '#{filename}'"
@@ -176,8 +176,8 @@ module OroGen
             def to_s
                 "Launcher: #{name}, launch_file: #{@launch_file}, loaded: #{loaded_launch_file?}"
             end
-        end # Launcher
-    end # Spec
+        end
     end
-end # Orocos
+    end
+end
 

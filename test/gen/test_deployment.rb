@@ -2,10 +2,10 @@ require 'orogen/gen/test'
 
 class TC_GenerationDeployment < Minitest::Test
     def test_all_activity_types
-	component = Component.new 
-	component.name 'test_all_activity_types'
-	component.task_context "task"
-        deployment = component.deployment "test"
+	project = Project.new 
+	project.name 'test_all_activity_types'
+	project.task_context "task"
+        deployment = project.deployment "test"
 
         master = deployment.task("master", "task")
         deployment.task("slave", "task").slave_of(master)
@@ -17,12 +17,12 @@ class TC_GenerationDeployment < Minitest::Test
 
         create_wc('test_all_activity_types')
         in_wc do
-            compile_wc(component)
+            compile_wc(project)
         end
     end
 
     def test_data_driven_deployment(*transports)
-        build_test_component "modules/data_triggered", transports
+        build_test_project "modules/data_triggered", transports
 
         # Check the resulting file
         in_prefix do
@@ -32,7 +32,7 @@ class TC_GenerationDeployment < Minitest::Test
     end
 
     def test_fd_driven_deployment(*transports)
-        build_test_component "modules/fd_triggered", transports
+        build_test_project "modules/fd_triggered", transports
 
         # Start the resulting deployment
         in_prefix do
@@ -52,28 +52,28 @@ class TC_GenerationDeployment < Minitest::Test
     end
 
     def test_deployment_with_connection(*transports)
-        build_test_component("modules/deployment_with_connection", transports)
+        build_test_project("modules/deployment_with_connection", transports)
     end
 
     def test_cross_dependencies(*transports)
         # Generate and build all the modules that are needed ...
-        typekit_opaque = build_test_component("modules/typekit_opaque", transports)
+        typekit_opaque = build_test_project("modules/typekit_opaque", transports)
         install
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{ENV['PKG_CONFIG_PATH']}"
 
-        cross_producer = build_test_component("modules/cross_producer", transports)
+        cross_producer = build_test_project("modules/cross_producer", transports)
         install
         producer_pkgconfig = File.join(prefix_directory, "lib", "pkgconfig")
-        cross_consumer = build_test_component("modules/cross_consumer", transports)
+        cross_consumer = build_test_project("modules/cross_consumer", transports)
         install
 
         ENV['PKG_CONFIG_PATH'] = "#{File.join(prefix_directory, "lib", "pkgconfig")}:#{producer_pkgconfig}:#{ENV['PKG_CONFIG_PATH']}"
 
-        # Start by loading the component specfication and check some properties
+        # Start by loading the project specfication and check some properties
         # on it. Then, do the generation, build and test
-        cross_deployment = Component.load(File.join(path_to_data, "modules", "cross_deployment", "deployment.orogen"))
+        cross_deployment = Project.load(File.join(path_to_data, "modules", "cross_deployment", "deployment.orogen"))
 
-        cross_deployment = build_test_component("modules/cross_deployment", transports)
+        cross_deployment = build_test_project("modules/cross_deployment", transports)
         install
 
         in_prefix do

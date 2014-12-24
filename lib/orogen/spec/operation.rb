@@ -108,16 +108,16 @@ module OroGen
             # Defines the next argument of this operation. +name+ is the argument
             # name and +type+ is either the type name as a string, or a
             # Typelib::Type object. In both cases, the required type must be
-            # defined in the component, either because it is part of its own
+            # defined in the task context, either because it is part of its own
             # typekit or because it has been imported by a
-            # Component#load_typekit call.
+            # Project#load_typekit call.
             #
-            # Note that Orocos::RTT does not support having more than 4
+            # Note that RTT does not support having more than 4
             # arguments for an operation, and trying that will therefore raise an
             # error
 	    def argument(name, qualified_type, doc = "")
                 if arguments.size >= RTT_ARGUMENT_COUNT_LIMIT
-                    raise ArgumentError, "Orocos does not support having more than #{RTT_ARGUMENT_COUNT_LIMIT} arguments for an operation"
+                    raise ArgumentError, "RTT does not support having more than #{RTT_ARGUMENT_COUNT_LIMIT} arguments for an operation"
                 end
 
                 type, qualified_type = find_interface_type(qualified_type)
@@ -138,9 +138,9 @@ module OroGen
 
             # Sets the return type for this operation. +type+ can either be the
             # type name or a Typelib::Type object. In both cases, the required
-            # type must be defined in the component, either because it is part
-            # of its own typekit or because it has been imported by a
-            # Component#load_typekit call.
+            # type must be defined in the underlying project, either because it
+            # is part of its own typekit or because it has been imported by a
+            # Project#load_typekit call.
 	    def returns(type, doc = "")
                 @return_type =
                     if type

@@ -17,7 +17,7 @@ module OroGen
         end
     end
     
-    # Exception thrown when a type will be used on a component interface (to
+    # Exception thrown when a type will be used on a task context interface (to
     # create a port, property, ...), but it is exported by no typekit
     class NotExportedType < InvalidInterfaceType
         attr_reader :typekits

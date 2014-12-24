@@ -29,31 +29,31 @@
 
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 
-<% if component.typekit %>
+<% if project.typekit %>
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
-    <%= component.name %>-typekit-${OROCOS_TARGET})
+list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
+    <%= project.name %>-typekit-${OROCOS_TARGET})
 <% end %>
 
-<%= dependencies = component.tasklib_dependencies
+<%= dependencies = project.tasklib_dependencies
     Generation.cmake_pkgconfig_require(dependencies) %>
 <% dependencies.each do |dep_def|
    next if !dep_def.in_context?('link') %>
-list(APPEND <%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
+list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
 <% if dep_def.var_name =~ /TASKLIB/ %>
-list(APPEND <%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
+list(APPEND <%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
 <% end %>
 <% end %>
 
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= component.name %>-tasks.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_TARGET}.pc
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
 
 <% 
    include_files = []
    task_files = []
-   component.self_tasks.each do |task| 
+   project.self_tasks.each do |task| 
      if !task_files.empty?
 	 task_files << "\n    "
      end
@@ -65,11 +65,11 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= component.name %>-tasks-${OROCOS_T
 %>
 
 add_definitions(-DRTT_COMPONENT)
-set(<%= component.name.upcase %>_TASKLIB_NAME <%= component.name %>-tasks-${OROCOS_TARGET})
-set(<%= component.name.upcase %>_TASKLIB_SOURCES
+set(<%= project.name.upcase %>_TASKLIB_NAME <%= project.name %>-tasks-${OROCOS_TARGET})
+set(<%= project.name.upcase %>_TASKLIB_SOURCES
     ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/DeployerComponent.cpp
     <%= task_files.sort.join(";") %>)
-set(<%= component.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(";") %>)
+set(<%= project.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(";") %>)
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 link_directories(${OrocosRTT_LIBRARY_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})

@@ -1,6 +1,6 @@
 require 'orogen/test'
 
-describe Orocos::Spec::ConfigurationObject do
+describe OroGen::Spec::ConfigurationObject do
     describe "#to_h" do
         attr_reader :task, :p
         before do

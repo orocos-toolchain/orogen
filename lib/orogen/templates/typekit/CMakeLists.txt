@@ -49,8 +49,8 @@ orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        typegen_bin = 'typegen' %>
-    <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
+   <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= RTT_CPP.relative_generation_directory %>)
 
 <% end %>
 # END if typekit.standalone?

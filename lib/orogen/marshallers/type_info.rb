@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module TypekitMarshallers
     module TypeInfo
         class Plugin
@@ -36,7 +36,7 @@ module Orocos
 
                 code_snippets = []
                 code_snippets += plain.find_all { |t| !t.contains_opaques? }.map do |type|
-                    c = Generation.render_template "typekit", "type_info", "Info.cpp", binding
+                    c = Gen::RTT_CPP.render_template "typekit", "type_info", "Info.cpp", binding
                     [type, c]
                 end
 
@@ -46,7 +46,7 @@ module Orocos
                     h[t.deference] = t; h
                 end
                 code_snippets += arrays_of.values.find_all { |t| !t.contains_opaques? }.map do |type|
-                    c = Generation.render_template "typekit", "type_info", "ArrayInfo.cpp", binding
+                    c = Gen::RTT_CPP.render_template "typekit", "type_info", "ArrayInfo.cpp", binding
                     [type.deference.name_as_word + "[]", c]
                 end
 
@@ -57,13 +57,13 @@ module Orocos
                         end
 
                     intermediate_type = typekit.intermediate_type_for(type)
-                    c  = Generation.render_template "typekit", "type_info", "OpaqueInfo.cpp", binding
+                    c  = Gen::RTT_CPP.render_template "typekit", "type_info", "OpaqueInfo.cpp", binding
                     [type, c]
                 end
 
                 impl += typekit.render_typeinfo_snippets(code_snippets, "type_info")
 
-                code  = Generation.render_template "typekit", "type_info", "TypeInfo.hpp", binding
+                code  = Gen::RTT_CPP.render_template "typekit", "type_info", "TypeInfo.hpp", binding
                 typekit.save_automatic("type_info",
                         "Registration.hpp", code)
 

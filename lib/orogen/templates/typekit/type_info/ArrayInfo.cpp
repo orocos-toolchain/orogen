@@ -5,7 +5,7 @@
 #include <rtt/internal/carray.hpp>
 
 <% base_class =
-    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+    if !TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
         "RTT::types::PrimitiveTypeInfo< RTT::internal::carray< #{type.deference.cxx_name} > >"
     else
         "#{type.info_type}< RTT::internal::carray< #{type.deference.cxx_name} > >"

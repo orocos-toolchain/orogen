@@ -1,6 +1,6 @@
 require 'orogen/test'
 
-describe Orocos::Spec::Port do
+describe OroGen::Spec::Port do
     attr_reader :project, :loader, :task, :port
     before do
         @loader = OroGen::Loaders::Files.new

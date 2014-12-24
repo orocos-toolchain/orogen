@@ -33,10 +33,10 @@ module OroGen
             end
         end
 
-        # Model of a task context, i.e. a component interface
+        # Model of a task context, i.e. a task context interface
         #
         # The corresponding code generation support is done in
-        # Orocos::Generation::TaskContextGeneration
+        # {Gen::RTT_CPP::TaskContextGeneration}
 	class TaskContext
 	    # The oroGen project this task is part of
 	    attr_reader :project
@@ -138,11 +138,6 @@ module OroGen
                 end
             end
 
-            # for backward compatibility reasons
-            def component # :nodoc:
-                project
-            end
-
             def to_s; "#<OroGen::Spec::TaskContext: #{name}>" end
             def inspect; to_s end
 
@@ -166,8 +161,8 @@ module OroGen
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
             # TaskContext instance. In both cases, it must be defined in the
-            # scope of the enclosing Component object -- i.e. either defined in
-            # it, or imported by a Component#using_task_library call.
+            # scope of the enclosing Project object -- i.e. either defined in
+            # it, or imported by a Project#using_task_library call.
             def subclasses(task_context)
                 if task_context.respond_to?(:to_str)
                     if @superclass != project.default_task_superclass
@@ -218,7 +213,7 @@ module OroGen
             #   worstcase_processing_time value
             #
             # Sets or gets the worst-case computation time (i.e. time spent in
-            # 'update') for this component. This should usually not be set in
+            # 'update') for this task context. This should usually not be set in
             # the oroGen file, but in the supervision/deployment code, since the
             # actual computation time will depend on the system.
             #
@@ -289,7 +284,7 @@ module OroGen
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
-	    # Create a new task context in the given component and with
+	    # Create a new task context in the given project and with
 	    # the given name. If a block is given, it is evaluated
 	    # in the context of the newly created TaskContext object.
 	    #
@@ -483,21 +478,11 @@ module OroGen
             # Create a new attribute with the given name, type and default value
             # for this task. This returns an Attribute instance representing
             # the new attribute, whose methods can be used to configure it
-            # further. +type+ is the type name for that attribute.  It
-            # can be either in Typelib notation (/std/string) or in C++
-            # notation (std::string). This type must be defined either by the
-            # component's own typekit, or by typekits imported with
-            # Component#load_typekit.
+            # further. +type+ is the type name for that attribute.
             #
-            # The generated task context will have a <tt>_[attribute name]</tt>
-            # attribute of class RTT::Attribute<type>.
-            #
-            # For instance, the following definition
+            # @example
             #   attribute('device_name', '/std/string/, '').
             #       doc 'the device name to connect to'
-            #
-            # Will generate a task context with a <tt>_device_name</tt>
-            # attribute of type RTT::Attribute<std::string>.
 	    def attribute(name, type, default_value = nil)
 		@attributes[name] = att = configuration_object(Attribute, name, type, default_value)
                 Spec.load_documentation(att, /attribute/)
@@ -536,18 +521,12 @@ module OroGen
             # property further. +type+ is the type name for that property.  It
             # can be either in Typelib notation (/std/string) or in C++
             # notation (std::string). This type must be defined either by the
-            # component's own typekit, or by typekits imported with
-            # Component#load_typekit.
+            # project's own typekit, or by typekits imported with
+            # Project#load_typekit.
             #
-            # The generated task context will have a <tt>_[property name]</tt>
-            # property of class RTT::Property<type>.
-            #
-            # For instance, the following definition
+            # @example
             #   property('device_name', '/std/string/, '').
             #       doc 'the device name to connect to'
-            #
-            # Will generate a task context with a <tt>_device_name</tt>
-            # attribute of type RTT::Property<std::string>.
 	    def property(name, type, default_value = nil)
 		@properties[name] = prop = configuration_object(Property, name, type, default_value)
                 Spec.load_documentation(prop, /property/)
@@ -770,10 +749,6 @@ module OroGen
 
             # Create a new operation with the given name. Use the returned
             # Operation object to configure it further
-	    #
-            # In Orocos, an operation publishes a C++ method to the component
-            # interface. The operation can then be called by other components
-            # remotely or locally, and synchronoulsy as well as asynchronously.
 	    def operation(name)
                 name = OroGen.verify_valid_identifier(name)
 		@operations[name] = op = Operation.new(self, name)

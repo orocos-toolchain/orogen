@@ -1,5 +1,6 @@
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         def self.multiline_string_to_cxx(str)
             if str
                 "\"#{str.split("\n").join("\\n").gsub('"', '\\"')}\""
@@ -132,7 +133,7 @@ EOF
         # Module that is used to add code generation functionality to
         # Spec::OutputPort
         module OutputPortGeneration
-            # Returns the name of the Orocos class for this port (i.e.  one of
+            # Returns the name of the RTT class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::OutputPort" end
 
@@ -159,7 +160,7 @@ EOF
         # Module that is used to add code generation functionality to
         # Spec::InputPort
         module InputPortGeneration
-            # Returns the name of the Orocos class for this port (i.e.  one of
+            # Returns the name of the RTT class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
 	    def orocos_class; "RTT::InputPort" end
 
@@ -918,6 +919,7 @@ EOF
                 add_base_member(kind, name).destructor(code, &block)
             end
 	end
+    end
     end
 end
 
