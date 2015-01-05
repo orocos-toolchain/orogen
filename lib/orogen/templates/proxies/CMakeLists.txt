@@ -3,9 +3,11 @@
 
 SET(PROXYLIB_NAME <%= component.name %>-proxies)
 
+add_definitions(-DRTT_COMPONENT)
+
 <% 
     pkg_conf_deps = ["orocos_cpp"]
-    pkg_conf_deps.concat(component.get_pkg_config_deps())
+    pkg_conf_deps.concat(component.get_pkg_config_deps(false))
 %>
 
 <% pkg_conf_deps.each do |dependency| %>
@@ -32,6 +34,12 @@ TARGET_LINK_LIBRARIES(${PROXYLIB_NAME}
     ${OrocosRTT_LIBRARIES}
 <% pkg_conf_deps.each do |dependency| %>
     ${<%=dependency.upcase%>_LIBRARIES}
+<% end %>
+<% if component.typekit %>
+    <%= component.name %>-typekit-${OROCOS_TARGET}
+<% component.enabled_transports.each do |transport_name| %>
+    <%= component.name %>-transport-<%= transport_name %>-${OROCOS_TARGET}
+<% end %>
 <% end %>
 )
 
