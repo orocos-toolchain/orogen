@@ -493,9 +493,15 @@ module OroGen
 
             include OpaqueHandling
 
-            def get_pkg_config_deps
+            def get_pkg_config_deps(includeSelf = true)
                 list = used_typekits.dup
-                list << typekit if typekit
+                list.each do |tk|
+                    puts("List #{tk.name}")
+                end
+                if(includeSelf)
+                    puts("Typekit is #{typekit.name}")
+                    list << typekit if typekit
+                end
                 result = []
                 list.each do |tk|
                     next if tk.name == "rtt"
