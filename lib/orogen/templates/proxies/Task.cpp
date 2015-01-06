@@ -51,6 +51,11 @@ result.slice!(0, result.length() -2)
 {
 }
 
+void <%= task.basename %>::synchronize()
+{
+        RTT::corba::TaskContextProxy::synchronize();
+}
+
 void <%= task.basename %>::initTypes()
 {
     RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );

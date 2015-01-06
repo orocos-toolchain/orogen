@@ -50,6 +50,8 @@ class <%= task.basename %> : public RTT::corba::TaskContextProxy
          */
         ~<%= task.basename %>();
         
+        void synchronize();
+        
         static void initTypes();
 <%= 
 result = ""
