@@ -20,7 +20,7 @@ module Typelib
                 name, array_modifiers = $1, $2
             end
 
-            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
+            name, template_arguments = Typelib::ClangLoader.parse_template(name)
             template_arguments.map! do |arg|
                 arg =
                     if arg !~ /^\d+$/ && arg[0, 1] != "/"
@@ -59,7 +59,7 @@ module Typelib
         end
 
         def self.normalize_cxxname_part(name)
-            name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
+            name, template_arguments = Typelib::ClangLoader.parse_template(name)
 
             name = name.gsub('/', '::')
             if name =~ /^::(.*)/
@@ -860,7 +860,7 @@ module Orocos
                     return registry.build(type_name)
                 end
 
-                container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
+                container_name, template_arguments = Typelib::ClangLoader.parse_template(type_name)
                 if template_arguments.size == 1
                     element_type = find_type(template_arguments[0], true)
                     if project
@@ -1473,7 +1473,7 @@ module Orocos
             def resolve_registry_includes(registry, file_to_include)
                 queue = Array.new
                 registry.each do |type|
-                    _, template_args = Typelib::GCCXMLLoader.parse_template(type.name)
+                    _, template_args = Typelib::ClangLoader.parse_template(type.name)
                     template_args = template_args.map do |type_name|
                         if registry.include?(type_name)
                             registry.get(type_name)
@@ -1503,16 +1503,25 @@ module Orocos
                 includes = options[:include].map { |v| "-I#{v}" }
                 defines  = options[:define].map { |v| "-D#{v}" }
 
-                preprocessed = Tempfile.open('orogen_gccxml_input') do |io|
+                # create a tempfile where all files used in the typekit are
+                # just "dummy-included" to create one big compile unit. this is
+                # supposed to trick the compiler into beeing faster...
+                preprocessed = Tempfile.open('orogen-clang-input_') do |io|
                     toplevel_files.each do |path|
                         io.puts "#include <#{path}>"
                     end
                     io.flush
-                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]) do |io|
+                    # note that we have to specify the language for a modern
+                    # compiler so that it is not confused by the Tempfile --
+                    # which has no ending.
+                    #
+                    # just to be sure to have exactly the same compiler as the
+                    # importer we enforce "clang-3.4"
+                    result = IO.popen(["clang-3.4", "-xc++", "-E", *includes, *defines, io.path]) do |io|
                         io.read
                     end
                     if !$?.success?
-                        raise ArgumentError, "failed to preprocess #{toplevel_files.join(" ")}"
+                        raise ArgumentError, "resolve_toplevel_include_mapping(): Failed to preprocess one of #{toplevel_files.join(", ")}"
                     end
                     result
                 end
@@ -1528,7 +1537,20 @@ module Orocos
                                 if toplevel_files.include?(file) then file
                                 else current_file.last[0]
                                 end
-                            current_file.push [toplevel_file, file, lineno]
+                            # the gccxml-importer always reported "flattened"
+                            # filepath, like "/usr/include/c++/4.9/bits".
+                            # clang++ does print
+                            # "/usr/lib/gcc/x86_64-linux-gnu/4.9/../../../../include/c++/4.9/bits/stl_vector.h"
+                            # into the preprocessed output (read here), so we
+                            # have to flattend the path. this can fail for
+                            # "built-in" for examples, thus the rescue.
+                            begin
+                                current_file.push [toplevel_file, File.realpath(file), lineno]
+                            rescue
+                                # now file is smth like "<built-in>" or
+                                # similar, at it anyways...
+                                current_file.push [toplevel_file, file, lineno]
+                            end
                         elsif mode == "2"
                             current_file.pop
                         end
@@ -1547,7 +1569,7 @@ module Orocos
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{Orocos::Generation.orocos_target}", '__orogen2']
+                options[:define] = ["OROCOS_TARGET=#{Orocos::Generation.orocos_target}", '__orogen2']
 
                 options[:include] = self.include_dirs.dup
                 options = options.merge(user_options) do |key, a, b|
@@ -1595,11 +1617,19 @@ module Orocos
                     map
                 end
 
+                # add this to the options hash so the the called importer-tool
+                # is able to reuse the include-directories while parsing the c++ code.
+                # it needs the full list of files (and not the preprocessed
+                # content return from "resolve_toplevel_include_mapping()"
+                # earlier) so that the importer can fill-in some of the
+                # metadata, like doc and source_file_line.
+                options[:include_paths] = include_dirs
+
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
 
-                Tempfile.open("orogen_pending_loads") do |io|
+                Tempfile.open("orogen-pending-loads_") do |io|
                     io.write preprocessed
                     io.flush
 
@@ -2291,6 +2321,21 @@ module Orocos
             def include_for_type(type)
                 if includes = existing_orogen_include_for_type(type)
                     return includes.map { |s| s.split(':').last }
+                end
+
+                # *sigh* -- uint-types are in the database with
+                # "boost/cstdint", only the floating-point types are
+                # fundamental and have no header...
+                if type <= Typelib::NumericType and type.name == "/bool"
+                    return []
+                elsif type <= Typelib::NumericType and not type.integer?
+                    return []
+                elsif type <= Typelib::ArrayType
+                    if type.deference <= Typelib::NumericType and type.deference.name == "/bool"
+                        return []
+                    elsif type.deference <= Typelib::NumericType and not type.deference.integer?
+                        return []
+                    end
                 end
 
                 if type.opaque?
