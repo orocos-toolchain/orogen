@@ -120,7 +120,7 @@ module OroGen
                 if type < Typelib::ArrayType
                     "#{render_type_link(type.deference)}[#{type.length}]"
                 elsif type < Typelib::ContainerType
-                    "#{type.container_kind}<#{render_type_link(type.deference)}>"
+                    "#{type.container_kind}&lt;#{render_type_link(type.deference)}&gt;"
                 elsif type < Typelib::CompoundType
                     page.link_to(type)
                 else
