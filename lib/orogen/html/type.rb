@@ -146,7 +146,7 @@ module OroGen
                     @ruby_type = base
                 end
 
-                page.push(nil, template.result(binding))
+                page.push(nil, template.result(binding), push_options)
             end
         end
     end
