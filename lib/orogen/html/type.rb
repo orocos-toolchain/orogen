@@ -136,6 +136,7 @@ module OroGen
                           rescue Orocos::TypekitTypeNotFound
                           end
 
+                @intermediate_type, @ruby_type = nil
                 if base.contains_opaques?
                     @intermediate_type = typekit.intermediate_type_for(type)
                     if has_convertions?(intermediate_type)
