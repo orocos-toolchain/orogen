@@ -116,6 +116,18 @@ module OroGen
                 definition_template.result(binding)
             end
 
+            def render_type_link(type)
+                if type < Typelib::ArrayType
+                    "#{render_type_link(type.deference)}[#{type.length}]"
+                elsif type < Typelib::ContainerType
+                    "#{type.container_kind}<#{render_type_link(type.deference)}>"
+                elsif type < Typelib::CompoundType
+                    page.link_to(type)
+                else
+                    type.name
+                end
+            end
+
             def render(type, options = Hash.new)
                 _, push_options = Kernel.filter_options options, :external_objects => nil
                 @type = type
