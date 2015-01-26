@@ -4,12 +4,12 @@ libdir=${prefix}/lib/orocos
 includedir=${prefix}/include/orocos
 binfile=${prefix}/bin/<%= deployer.name %>
 
-project_name=<%= component.name %>
-deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
-typekits=<%= component.name if component.typekit %> <%= deployer.used_typekits.map { |tk| tk.name }.join(" ") %>
+project_name=<%= project.name %>
+deffile=${prefix}/share/orogen/<%= File.basename(project.deffile) %>
+typekits=<%= project.name if project.typekit %> <%= deployer.used_typekits.map { |tk| tk.name }.join(" ") %>
 deployed_tasks=<%= deployer.task_activities.map(&:name).sort.join(",") %>
 
 Name: <%= deployer.name %>
-Version: <%= component.version %>
+Version: <%= project.version %>
 Description: the static deployment defined for the <%= deployer.name %> deployment
 

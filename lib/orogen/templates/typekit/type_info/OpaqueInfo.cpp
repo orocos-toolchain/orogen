@@ -6,7 +6,7 @@
 #include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 
 <% base_class =
-    if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+    if !TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
         ["RTT::types::PrimitiveTypeInfo< #{type.cxx_name} >", "RTT::types::TemplateConnFactory< #{type.cxx_name} >"]
     else
 	["RTT::types::TemplateTypeInfo< #{type.cxx_name} >"]
@@ -37,7 +37,7 @@ namespace orogen_typekits {
         {
         }
 
-<% if Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
+<% if TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         virtual bool composeType(RTT::base::DataSourceBase::shared_ptr source, RTT::base::DataSourceBase::shared_ptr target) const
         {
             getIntermediateTypeInfo();
@@ -104,7 +104,7 @@ namespace orogen_typekits {
         }
 <% end %>
 
-<%  if !Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
+<%  if !TypekitMarshallers::TypeInfo::Plugin.rtt_scripting? %>
         bool installTypeInfoObject(RTT::types::TypeInfo* ti) {
             // This shared pointer MUST be taken HERE, and MUST be pointing to
             // the most derived class. Otherwise, you'll get double-free at

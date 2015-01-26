@@ -1,12 +1,28 @@
 require 'orogen/test'
 
-describe Orocos::Spec::ConfigurationObject do
-    include Orocos::Generation::Test
+describe OroGen::Spec::Operation do
+    attr_reader :project, :loader, :task_model, :operation
+    before do
+        @loader = OroGen::Loaders::Files.new
+        OroGen::Loaders::RTT.setup_loader(loader)
+        @project = OroGen::Spec::Project.new(loader)
+        project.name 'base'
+        @task_model = project.task_context 'Task'
+        @operation = task_model.operation 'test'
+    end
+
+    describe "#doc" do
+        it "sets the documentation" do
+            doc = "test documentation"
+            operation.doc(doc)
+            assert_equal doc, operation.doc
+        end
+    end
 
     describe "#to_h" do
         attr_reader :task, :op
         before do
-            @task = Orocos::Spec::TaskContext.new(Orocos::Generation::Project.new)
+            @task = OroGen::Spec::TaskContext.new(project)
             @op = task.operation('op')
         end
 
@@ -56,11 +72,9 @@ describe Orocos::Spec::ConfigurationObject do
     describe "#find_interface_type" do
         attr_reader :op, :project
         before do
-            project = Orocos::Generation::Project.new
-            project.name "TestFindTask"
-            task = project.task_context "Task"
+            task = create_dummy_project.task_context "Task"
             @project = project
-            @op = Orocos::Spec::Operation.new(task, 'op')
+            @op = OroGen::Spec::Operation.new(task, 'op')
         end
 
         it "should strip the qualifiers to resolve the type" do

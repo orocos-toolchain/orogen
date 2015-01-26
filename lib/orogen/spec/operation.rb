@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         # Representation of a RTT operation. Instances of this object are
         # usually created through TaskContext#operation. The generated code will
@@ -42,6 +42,8 @@ module Orocos
             # See also #runs_in_caller_thread and #runs_in_callee_thread
             attr_reader :in_caller_thread
 
+            RTT_ARGUMENT_COUNT_LIMIT = 4
+
 	    def initialize(task, name)
                 name = name.to_s
 		if name !~ /^\w+$/
@@ -53,9 +55,9 @@ module Orocos
                 @return_type = [nil, 'void', ""]
 		@arguments = []
                 @in_caller_thread = false
-                @doc = ""
+                @doc = nil
 
-                super if defined? super
+                super()
 	    end
 
             # Declares that the C++ method associated with this operation should
@@ -96,25 +98,26 @@ module Orocos
                 if qualified_type.respond_to?(:name)
                     qualified_type = qualified_type.name
                 end
-                type_name = Orocos::Generation.unqualified_cxx_type(qualified_type)
-		type      = task.project.find_interface_type(type_name)
-                Orocos.validate_toplevel_type(type)
+                type_name = OroGen.unqualified_cxx_type(qualified_type)
+                typelib_type_name = ::Typelib::GCCXMLLoader.cxx_to_typelib(type_name)
+		type      = task.project.find_interface_type(typelib_type_name)
+                OroGen.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end
 
             # Defines the next argument of this operation. +name+ is the argument
             # name and +type+ is either the type name as a string, or a
             # Typelib::Type object. In both cases, the required type must be
-            # defined in the component, either because it is part of its own
+            # defined in the task context, either because it is part of its own
             # typekit or because it has been imported by a
-            # Component#load_typekit call.
+            # Project#load_typekit call.
             #
-            # Note that Orocos::RTT does not support having more than 4
+            # Note that RTT does not support having more than 4
             # arguments for an operation, and trying that will therefore raise an
             # error
 	    def argument(name, qualified_type, doc = "")
-                if arguments.size == 4
-                    raise ArgumentError, "Orocos does not support having more than 4 arguments for an operation"
+                if arguments.size >= RTT_ARGUMENT_COUNT_LIMIT
+                    raise ArgumentError, "RTT does not support having more than #{RTT_ARGUMENT_COUNT_LIMIT} arguments for an operation"
                 end
 
                 type, qualified_type = find_interface_type(qualified_type)
@@ -135,9 +138,9 @@ module Orocos
 
             # Sets the return type for this operation. +type+ can either be the
             # type name or a Typelib::Type object. In both cases, the required
-            # type must be defined in the component, either because it is part
-            # of its own typekit or because it has been imported by a
-            # Component#load_typekit call.
+            # type must be defined in the underlying project, either because it
+            # is part of its own typekit or because it has been imported by a
+            # Project#load_typekit call.
 	    def returns(type, doc = "")
                 @return_type =
                     if type
@@ -154,23 +157,10 @@ module Orocos
                 !!@return_type.first
             end
 
-            # Returns the C++ signature for this operation. Used in code
-            # generation only.
-	    def signature(with_names = true)
-		result = return_type[1].dup
-                if with_names
-                    result << " " <<
-                        if block_given? then yield
-                        else method_name
-                        end
-                end
-		result << "(" << argument_signature(with_names) << ")"
-	    end
-
             def pretty_print(pp)
-                pp.text signature(true)
+                pp.text name
                 pp.nest(2) do
-                    if !self.doc.empty?
+                    if !self.doc
                         pp.breakable
                         pp.text self.doc
                     end
@@ -206,7 +196,7 @@ module Orocos
             #
             # @return [Hash]
             def to_h
-                result = Hash[name: name, doc: doc]
+                result = Hash[name: name, doc: (doc || "")]
                 if has_return_value?
                     result[:returns] = Hash[type: self.return_type[0].to_h, doc: self.return_type[2]]
                 end

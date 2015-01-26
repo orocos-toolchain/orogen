@@ -1,11 +1,11 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
 
-#ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
-#define <%= component.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
 
-#include "<%= component.name.downcase %>/<%= task.basename %>Base.hpp"
+#include "<%= project.name.downcase %>/<%= task.basename %>Base.hpp"
 
-namespace <%= component.name %> {
+namespace <%= project.name %> {
 
     /*! \class <%= task.basename %> 
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
@@ -16,7 +16,7 @@ namespace <%= component.name %> {
      * The name of a TaskContext is primarily defined via:
      \verbatim
      deployment 'deployment_name'
-         task('custom_task_name','<%= "#{component.name}::#{task.basename}" %>')
+         task('custom_task_name','<%= "#{project.name}::#{task.basename}" %>')
      end
      \endverbatim
      *  It can be dynamically adapted when the deployment is called with a prefix argument. 

@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module HTML
         class TaskContext
             attr_reader :page

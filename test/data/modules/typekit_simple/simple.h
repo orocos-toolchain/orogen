@@ -1,7 +1,8 @@
-#ifndef __orogen
+#ifndef TYPEKIT_SIMPLE_SIMPLE_H
+#define TYPEKIT_SIMPLE_SIMPLE_H
+
 #include <stdint.h>
 #include <vector>
-#endif
 
 namespace Test {
     enum BASIC_ENUM {
@@ -23,7 +24,6 @@ namespace Test {
         BASIC_ENUM        e;
 	char               a[20];
 
-#ifndef __orogen
         bool operator == (BaseTypes const& other) const
         { 
 	    if (other.v0 != v0) return false;
@@ -43,7 +43,6 @@ namespace Test {
             }
             return true;
         }
-#endif
     };
 
     struct TestArrayOfDifferentSizes
@@ -58,7 +57,6 @@ namespace Test {
         long long ll;
         unsigned long long ull;
 
-#ifndef __orogen
         bool operator == (Test64BitHandling const& other) const
         { 
 	    if (!(other.base == base)) return false;
@@ -66,38 +64,32 @@ namespace Test {
 	    if (other.ull != ull) return false;
             return true;
         }
-#endif
 
     };
 
     struct SimpleVector {
         uint32_t field;
         std::vector<uint8_t> data;
-#ifndef __orogen
         bool operator == (SimpleVector const& other) const
         { return field == other.field && data == other.data; }
         bool operator != (SimpleVector const& other) const
         { return !(*this == other); }
-#endif
     };
 
     struct ComplexVector
     {
         uint32_t field;
         std::vector<SimpleVector> data;
-#ifndef __orogen
         bool operator == (ComplexVector const& other) const
         {
             return field == other.field && data == other.data;
         }
-#endif
     };
 
     struct ComplexArray
     {
         uint32_t field;
         SimpleVector data[10];
-#ifndef __orogen
         bool operator == (ComplexArray const& other) const
         {
             if (field != other.field) return false;
@@ -105,7 +97,7 @@ namespace Test {
                 if (!(data[i] == other.data[i])) return false;
             return true;
         }
-#endif
     };
 }
 
+#endif

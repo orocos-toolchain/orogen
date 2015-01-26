@@ -1,3 +1,6 @@
+#ifndef NUMERICS_NUMERICS_H
+#define NUMERICS_NUMERICS_H
+
 namespace numerics
 {
     struct Bla
@@ -18,3 +21,4 @@ namespace numerics
     };
 }
 
+#endif

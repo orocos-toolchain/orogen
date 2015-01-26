@@ -21,6 +21,7 @@ end
 begin
     require 'hoe'
     Hoe::plugin :yard
+    Hoe::RUBY_FLAGS.gsub!(/-w/, '')
 
     config = Hoe.spec 'orogen' do
         self.developer "Sylvain Joyeux", "sylvain.joyeux@dfki.de"
@@ -52,6 +53,7 @@ begin
             end
         end
     end
+    hoe_spec.test_globs = ['test/suite.rb']
 
     task :doc => :yard
 rescue LoadError

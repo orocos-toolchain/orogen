@@ -3,14 +3,14 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib/orocos
 includedir=${prefix}/include/orocos
 
-project_name=<%= component.name %>
-deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
+project_name=<%= project.name %>
+deffile=${prefix}/share/orogen/<%= File.basename(project.deffile) %>
 <%=
-if component.typekit(false)
-    "type_registry=${prefix}/share/orogen/#{component.name}.tlb"
+if project.typekit(false)
+    "type_registry=${prefix}/share/orogen/#{project.name}.tlb"
 end
 %>
 
-Name: <%= component.name %>
-Version: <%= component.version %>
+Name: <%= project.name %>
+Version: <%= project.version %>
 Description: the definition file for the orogen project itself

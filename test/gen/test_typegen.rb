@@ -1,10 +1,6 @@
-$LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
-require 'orogen/test'
+require 'orogen/gen/test'
 
-class TC_GenerationTypegen < Test::Unit::TestCase
-    include Orocos::Generation::Test
-    TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-
+class TC_GenerationTypegen < Minitest::Test
     def test_generate_and_install
         build_typegen "simple", "modules/typekit_simple/simple.h", []
     end
@@ -18,12 +14,12 @@ class TC_GenerationTypegen < Test::Unit::TestCase
 
             # First check that the user is forbidden to go on with building
             Dir.chdir("build") do
-                assert !system("make")
+                assert !call_make
             end
             # Now, verify that we can run make regen and build fine
             Dir.chdir("build") do
-                assert system("make", "regen")
-                assert system("make")
+                assert call_make('regen')
+                assert call_make
             end
         end
     end

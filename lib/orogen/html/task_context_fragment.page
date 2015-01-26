@@ -41,6 +41,14 @@
   <% end %>
 <% end %>
 
-   <li class="title">Operations [NOT IMPLEMENTED YET]</li>
+   <li class="title">Operations</li>
+   <% task.each_operation do |op| %>
+   <li>
+   <%  if op.doc %>
+       <div class="doc-above"><%= Kramdown::Document.new(op.doc).to_html %></div>
+   <%  end %>
+   <b><%= op.name %></b>(<%= op.arguments.map { |name, _, _, cxx_type| "#{cxx_type} #{name}" }.join(", ") %>)
+   </li>
+   <% end %>
 </ul>
 

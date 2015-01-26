@@ -2,6 +2,8 @@
 
 #include "<%= typekit.name %>/transports/corba/<%= typekit.name %>TypesC.h"
 #include <memory>
+// for error-messages in enum-converters "toCORBA()" and "fromCORBA()"
+#include <rtt/Logger.hpp>
 
 <% if typekit.has_opaques? %>
 #include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
@@ -9,7 +11,6 @@
 
 <%
 # First handle the plain types
-typeset = typesets.converted_types | typesets.array_types
 needed_convertions = (typesets.converted_types | typesets.array_types).
     inject(Set.new) do |result, type|
         intermediate_type = typekit.intermediate_type_for(type)

@@ -52,8 +52,8 @@ include(${OROCOS-RTT_USE_FILE})
 add_custom_target(<%= typekit.name %>-regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        typegen_bin = 'typegen' %>
-    <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
+   <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= RTT_CPP.relative_generation_directory %>)
 
 if(NOT TARGET regen)
     add_custom_target(regen)
@@ -147,6 +147,9 @@ set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 get_directory_property(include_path INCLUDE_DIRECTORIES)
 foreach(dep <%= typekit.included_files.to_set.sort.join(" ") %>)
     find_file(dep_full_path ${dep} PATHS ${include_path})
+    if (NOT dep_full_path)
+        message(FATAL_ERROR "cannot find ${dep} in ${include_path}. This should never happen, report this as an oroGen bug")
+    endif()
     list(APPEND TYPEKIT_SOURCE_HEADERS ${dep_full_path})
     unset(dep_full_path CACHE)
 endforeach()

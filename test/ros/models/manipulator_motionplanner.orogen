@@ -1,0 +1,16 @@
+name "manipulator_motionplanner"
+
+import_types_from 'base'
+
+ros_node "manipulator_motionplanner" do
+    output_topic "/artemis_motionPlanner/target_trajectory", "target_trajectory","trajectory_msgs/JointTrajectory"
+    output_topic "/artemis_motionPlanner/artemis_motionPlanner_status", "status", "std_msgs/Int32"
+end
+
+ros_node "rock_ros_wrapper" do
+    input_topic "/artemis_desired_joint_position", "desired_joint_position", "sensor_msgs/JointState"
+    input_topic "/artemis_planner_status_reset", "planner_status_reset", "std_msgs/Bool"
+    input_topic "/artemis_desired_cartesian_position", "desired_cartesian_position", "geometry_msgs/PoseStamped"
+end
+
+

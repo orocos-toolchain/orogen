@@ -1,0 +1,111 @@
+/RTT/extras/ReadOnlyPointer</base/samples/frame/FramePair> orogen_base_msgs/RTTExtrasReadOnlyPointerBaseSamplesFrameFramePair orogen_base_msgs/RTTExtrasReadOnlyPointerBaseSamplesFrameFramePair
+/base/Angle orogen_base_msgs/BaseAngle orogen_base_msgs/BaseAngle
+/base/JointLimitRange orogen_base_msgs/BaseJointLimitRange orogen_base_msgs/BaseJointLimitRange
+/base/JointState orogen_base_msgs/BaseJointState orogen_base_msgs/BaseJointState
+/base/JointTransform orogen_base_msgs/BaseJointTransform orogen_base_msgs/BaseJointTransform
+/base/JointTransform_m orogen_base_msgs/BaseJointTransform orogen_base_msgs/BaseJointTransform
+/base/Matrix2d orogen_base_msgs/BaseMatrix2d orogen_base_msgs/BaseMatrix2d
+/base/Matrix3d orogen_base_msgs/BaseMatrix3d orogen_base_msgs/BaseMatrix3d
+/base/Matrix4d orogen_base_msgs/BaseMatrix4d orogen_base_msgs/BaseMatrix4d
+/base/Matrix6d orogen_base_msgs/BaseMatrix6d orogen_base_msgs/BaseMatrix6d
+/base/MatrixXd orogen_base_msgs/BaseMatrixXd orogen_base_msgs/BaseMatrixXd
+/base/Pose2D orogen_base_msgs/BasePose2D orogen_base_msgs/BasePose2D
+/base/Pose2D_m orogen_base_msgs/BasePose2D orogen_base_msgs/BasePose2D
+/base/PoseUpdateThreshold orogen_base_msgs/BasePoseUpdateThreshold orogen_base_msgs/BasePoseUpdateThreshold
+/base/Quaterniond orogen_base_msgs/BaseQuaterniond orogen_base_msgs/BaseQuaterniond
+/base/Temperature orogen_base_msgs/BaseTemperature orogen_base_msgs/BaseTemperature
+/base/TimeStamped</base/commands/Motion2D> orogen_base_msgs/BaseTimeStampedBaseCommandsMotion2D orogen_base_msgs/BaseTimeStampedBaseCommandsMotion2D
+/base/Trajectory orogen_base_msgs/BaseTrajectory orogen_base_msgs/BaseTrajectory
+/base/Trajectory_m orogen_base_msgs/BaseTrajectory orogen_base_msgs/BaseTrajectory
+/base/Vector2d orogen_base_msgs/BaseVector2d orogen_base_msgs/BaseVector2d
+/base/Vector3d orogen_base_msgs/BaseVector3d orogen_base_msgs/BaseVector3d
+/base/Vector4d orogen_base_msgs/BaseVector4d orogen_base_msgs/BaseVector4d
+/base/Vector6d orogen_base_msgs/BaseVector6d orogen_base_msgs/BaseVector6d
+/base/VectorXd orogen_base_msgs/BaseVectorXd orogen_base_msgs/BaseVectorXd
+/base/Waypoint orogen_base_msgs/BaseWaypoint orogen_base_msgs/BaseWaypoint
+/base/Waypoint_m orogen_base_msgs/BaseWaypoint orogen_base_msgs/BaseWaypoint
+/base/actuators/AdaptativeCommand orogen_base_msgs/BaseActuatorsAdaptativeCommand orogen_base_msgs/BaseActuatorsAdaptativeCommand
+/base/actuators/AdaptativeCommands orogen_base_msgs/BaseActuatorsAdaptativeCommands orogen_base_msgs/BaseActuatorsAdaptativeCommands
+/base/actuators/Command orogen_base_msgs/BaseActuatorsCommand orogen_base_msgs/BaseActuatorsCommand
+/base/actuators/MotorState orogen_base_msgs/BaseActuatorsMotorState orogen_base_msgs/BaseActuatorsMotorState
+/base/actuators/PIDValues orogen_base_msgs/BaseActuatorsPIDValues orogen_base_msgs/BaseActuatorsPIDValues
+/base/actuators/Status orogen_base_msgs/BaseActuatorsStatus orogen_base_msgs/BaseActuatorsStatus
+/base/commands/AUVMotion orogen_base_msgs/BaseCommandsAUVMotion orogen_base_msgs/BaseCommandsAUVMotion
+/base/commands/AUVPosition orogen_base_msgs/BaseCommandsAUVPosition orogen_base_msgs/BaseCommandsAUVPosition
+/base/commands/Motion2D orogen_base_msgs/BaseCommandsMotion2D orogen_base_msgs/BaseCommandsMotion2D
+/base/commands/Speed6D orogen_base_msgs/BaseCommandsSpeed6D orogen_base_msgs/BaseCommandsSpeed6D
+/base/geometry/Spline<1> orogen_base_msgs/BaseGeometrySpline1 orogen_base_msgs/BaseGeometrySpline1
+/base/geometry/Spline<3> orogen_base_msgs/BaseGeometrySpline3 orogen_base_msgs/BaseGeometrySpline3
+/base/samples/DistanceImage orogen_base_msgs/BaseSamplesDistanceImage orogen_base_msgs/BaseSamplesDistanceImage
+/base/samples/IMUSensors orogen_base_msgs/BaseSamplesIMUSensors orogen_base_msgs/BaseSamplesIMUSensors
+/base/samples/IMUSensors_m orogen_base_msgs/BaseSamplesIMUSensors orogen_base_msgs/BaseSamplesIMUSensors
+/base/samples/LaserScan orogen_base_msgs/BaseSamplesLaserScan orogen_base_msgs/BaseSamplesLaserScan
+/base/samples/Motion2D orogen_base_msgs/BaseSamplesMotion2D orogen_base_msgs/BaseSamplesMotion2D
+/base/samples/RigidBodyAcceleration orogen_base_msgs/BaseSamplesRigidBodyAcceleration orogen_base_msgs/BaseSamplesRigidBodyAcceleration
+/base/samples/RigidBodyAcceleration_m orogen_base_msgs/BaseSamplesRigidBodyAcceleration orogen_base_msgs/BaseSamplesRigidBodyAcceleration
+/base/samples/SonarBeam orogen_base_msgs/BaseSamplesSonarBeam orogen_base_msgs/BaseSamplesSonarBeam
+/base/samples/SonarScan orogen_base_msgs/BaseSamplesSonarScan orogen_base_msgs/BaseSamplesSonarScan
+/base/samples/frame/FramePair orogen_base_msgs/RTTExtrasReadOnlyPointerBaseSamplesFrameFramePair orogen_base_msgs/RTTExtrasReadOnlyPointerBaseSamplesFrameFramePair
+/base/samples/frame/FramePair orogen_base_msgs/BaseSamplesFrameFramePair orogen_base_msgs/BaseSamplesFrameFramePair
+/base/samples/frame/frame_attrib_t orogen_base_msgs/BaseSamplesFrameFrame_attrib_t orogen_base_msgs/BaseSamplesFrameFrame_attrib_t
+/base/samples/frame/frame_size_t orogen_base_msgs/BaseSamplesFrameFrame_size_t orogen_base_msgs/BaseSamplesFrameFrame_size_t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/wrappers/Matrix</double,2,1> orogen_base_msgs/BaseVector2d orogen_base_msgs/BaseVector2d
+/wrappers/Matrix</double,2,1> orogen_base_msgs/WrappersMatrixDouble21 orogen_base_msgs/WrappersMatrixDouble21
+/wrappers/Matrix</double,2,2> orogen_base_msgs/BaseMatrix2d orogen_base_msgs/BaseMatrix2d
+/wrappers/Matrix</double,2,2> orogen_base_msgs/WrappersMatrixDouble22 orogen_base_msgs/WrappersMatrixDouble22
+/wrappers/Matrix</double,3,1> orogen_base_msgs/BaseVector3d orogen_base_msgs/BaseVector3d
+/wrappers/Matrix</double,3,1> orogen_base_msgs/WrappersMatrixDouble31 orogen_base_msgs/WrappersMatrixDouble31
+/wrappers/Matrix</double,3,3> orogen_base_msgs/BaseMatrix3d orogen_base_msgs/BaseMatrix3d
+/wrappers/Matrix</double,3,3> orogen_base_msgs/WrappersMatrixDouble33 orogen_base_msgs/WrappersMatrixDouble33
+/wrappers/Matrix</double,4,1> orogen_base_msgs/BaseVector4d orogen_base_msgs/BaseVector4d
+/wrappers/Matrix</double,4,1> orogen_base_msgs/WrappersMatrixDouble41 orogen_base_msgs/WrappersMatrixDouble41
+/wrappers/Matrix</double,4,4> orogen_base_msgs/BaseMatrix4d orogen_base_msgs/BaseMatrix4d
+/wrappers/Matrix</double,4,4> orogen_base_msgs/WrappersMatrixDouble44 orogen_base_msgs/WrappersMatrixDouble44
+/wrappers/Matrix</double,6,1> orogen_base_msgs/BaseVector6d orogen_base_msgs/BaseVector6d
+/wrappers/Matrix</double,6,1> orogen_base_msgs/WrappersMatrixDouble61 orogen_base_msgs/WrappersMatrixDouble61
+/wrappers/Matrix</double,6,6> orogen_base_msgs/BaseMatrix6d orogen_base_msgs/BaseMatrix6d
+/wrappers/Matrix</double,6,6> orogen_base_msgs/WrappersMatrixDouble66 orogen_base_msgs/WrappersMatrixDouble66
+/wrappers/MatrixX</double> orogen_base_msgs/BaseMatrixXd orogen_base_msgs/BaseMatrixXd
+/wrappers/MatrixX</double> orogen_base_msgs/WrappersMatrixXDouble orogen_base_msgs/WrappersMatrixXDouble
+/wrappers/Quaternion</double> orogen_base_msgs/BaseQuaterniond orogen_base_msgs/BaseQuaterniond
+/wrappers/Quaternion</double> orogen_base_msgs/WrappersQuaternionDouble orogen_base_msgs/WrappersQuaternionDouble
+/wrappers/VectorX</double> orogen_base_msgs/BaseVectorXd orogen_base_msgs/BaseVectorXd
+/wrappers/VectorX</double> orogen_base_msgs/WrappersVectorXDouble orogen_base_msgs/WrappersVectorXDouble
+/wrappers/geometry/Spline orogen_base_msgs/BaseGeometrySpline1 orogen_base_msgs/BaseGeometrySpline1
+/wrappers/geometry/Spline orogen_base_msgs/BaseGeometrySpline3 orogen_base_msgs/BaseGeometrySpline3
+/wrappers/geometry/Spline orogen_base_msgs/WrappersGeometrySpline orogen_base_msgs/WrappersGeometrySpline
+/RTT/extras/ReadOnlyPointer</base/samples/frame/Frame> sensor_msgs/Image sensor_msgs/Image
+/base/JointsTrajectory trajectory_msgs/JointTrajectory trajectory_msgs/JointTrajectory
+/base/Pose geometry_msgs/Pose geometry_msgs/Pose
+/base/Pose_m geometry_msgs/Pose geometry_msgs/Pose
+/base/Time std_msgs/Time time
+/base/samples/Joints sensor_msgs/JointState sensor_msgs/JointState
+/base/samples/Pointcloud sensor_msgs/PointCloud2 sensor_msgs/PointCloud2
+/base/samples/Pointcloud_m sensor_msgs/PointCloud2 sensor_msgs/PointCloud2
+/base/samples/RigidBodyState geometry_msgs/PoseStamped geometry_msgs/PoseStamped
+/base/samples/RigidBodyState_m geometry_msgs/PoseStamped geometry_msgs/PoseStamped
+/base/samples/frame/Frame sensor_msgs/Image sensor_msgs/Image
+/base/samples/frame/Frame sensor_msgs/Image sensor_msgs/Image

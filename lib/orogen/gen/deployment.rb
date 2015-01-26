@@ -1,7 +1,8 @@
 require 'set'
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         module TaskDeploymentGeneration
             def generate_activity_setup
                 if @activity_setup
@@ -21,41 +22,32 @@ module Orocos
                 @activity_xml.call
             end
 
-            # Check for the case when there is an superfluous dot at
-            # the end of a task statement
-            def check_for_stray_dots(filename, name, args)
-                # Building the regular expression to 
-                # match on the method name and arguments
-                regexp_expression = "#{name}.*"
-                args.each do |element|
-                    regexp_expression << "#{element}.*"
-                end
-                regexp = Regexp.new(regexp_expression)
+            # Returns the scheduler constant name for this task's scheduler
+            # class. Call #realtime and #non_realtime to change the task
+            # scheduling class
+	    def rtt_scheduler
+		if @realtime then 'ORO_SCHED_RT'
+		else 'ORO_SCHED_OTHER'
+		end
+	    end
 
-                # Check the spec to locate the error in case
-                # of stray dots
-                File.open(filename) do |file|
-                    begin 
-                        line_counter = 0
-                        previous_non_empty_line_number = 0
-                        previous_non_empty_line = nil
-                        while true
-                            line = file.readline
-                            line_counter += 1
-                            if regexp.match(line)
-                                if previous_non_empty_line =~ /\.$/
-                                    raise ArgumentError, "stray dot in statement: #{previous_non_empty_line.strip} (line #{previous_non_empty_line_number})"
-                                end
-                            end
+	    # Returns the Orocos value for this task's priority
+	    def rtt_priority
+		case @priority
+		when :highest
+		    'RTT::os::HighestPriority'
+		when :lowest
+		    'RTT::os::LowestPriority'
+		when Integer
+		    @priority
+		end
+	    end
 
-                            if line =~ /.+/
-                                previous_non_empty_line = line
-                                previous_non_empty_line_number = line_counter
-                            end
-                        end
-                    rescue EOFError
-                    end
+            def method_missing(*args, &block)
+                if project.deffile && File.file?(project.deffile)
+                    OroGen.check_for_stray_dots(project.deffile, name, args)
                 end
+                super
             end
         end
 
@@ -168,7 +160,7 @@ module Orocos
                 deployer = self
 
                 if !corba_enabled? && !@browse
-                    STDERR.puts "WARN: the deployment #{name} will do nothing. Either generate with --transports=corba or use the 'browse' statement"
+                    OroGen.warn "the deployment #{name} will do nothing. Either generate with --transports=corba or use the 'browse' statement"
                 end
 
 		main = Generation.render_template 'main.cpp', binding
@@ -186,6 +178,7 @@ module Orocos
 
         Spec::TaskDeployment.include TaskDeploymentGeneration
         Spec::Deployment.include DeploymentGeneration
+    end
     end
 end
 

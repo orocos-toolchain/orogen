@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module TypekitMarshallers
         module TypelibMarshaller
             class Plugin
@@ -14,7 +14,7 @@ module Orocos
 		    result = []
 		    typekit.used_libraries.each do |pkg|
 			needs_link = typekit.linked_used_libraries.include?(pkg)
-			result << Orocos::Generation::BuildDependency.new(pkg.name.upcase, pkg.name).
+			result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
 			    in_context('typelib', 'include')
 			if needs_link
 			    result.last.in_context('typelib', 'link')
@@ -38,29 +38,28 @@ module Orocos
                                 end
 
                             intermediate = typekit.intermediate_type_for(type)
-                            code  = Generation.render_template "typekit", "typelib", "OpaqueType.cpp", binding
+                            code  = Gen::RTT_CPP.render_template "typekit", "typelib", "OpaqueType.cpp", binding
                         else
-                            code  = Generation.render_template "typekit", "typelib", "Type.cpp", binding
+                            code  = Gen::RTT_CPP.render_template "typekit", "typelib", "Type.cpp", binding
                         end
                         [type, code]
                     end
                     impl += typekit.render_typeinfo_snippets(code_snippets, "transports", "typelib")
 
-                    code = Generation.render_template "typekit", "typelib", "Registration.hpp", binding
+                    code = Gen::RTT_CPP.render_template "typekit", "typelib", "Registration.hpp", binding
                     headers << typekit.save_automatic("transports", "typelib", "Registration.hpp", code)
-                    code = Generation.render_template "typekit", "typelib", "TransportPlugin.hpp", binding
+                    code = Gen::RTT_CPP.render_template "typekit", "typelib", "TransportPlugin.hpp", binding
                     headers << typekit.save_automatic("transports", "typelib", "TransportPlugin.hpp", code)
-                    code = Generation.render_template "typekit", "typelib", "TransportPlugin.cpp", binding
+                    code = Gen::RTT_CPP.render_template "typekit", "typelib", "TransportPlugin.cpp", binding
                     impl << typekit.save_automatic("transports", "typelib", "TransportPlugin.cpp", code)
-                    pkg_config = Generation.render_template "typekit", "typelib", "transport-typelib.pc", binding
+                    pkg_config = Gen::RTT_CPP.render_template "typekit", "typelib", "transport-typelib.pc", binding
                     typekit.save_automatic("transports", "typelib", "#{typekit.name}-transport-typelib.pc.in", pkg_config)
-                    code = Generation.render_template "typekit", "typelib", "CMakeLists.txt", binding
+                    code = Gen::RTT_CPP.render_template "typekit", "typelib", "CMakeLists.txt", binding
                     typekit.save_automatic("transports", "typelib", "CMakeLists.txt", code)
 
                     return [], []
                 end
             end
-            Orocos::Generation::Typekit.register_plugin(Plugin)
         end
     end
 end
