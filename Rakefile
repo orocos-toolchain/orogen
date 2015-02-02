@@ -34,7 +34,6 @@ begin
         extra_deps <<
             ['utilrb',   '>= 1.3.4'] <<
             ['rake',     '>= 0.8'] <<
-            ['nokogiri', '>= 1.3.3'] <<
             ['hoe-yard', '>= 0.1.2']
 
         extra_dev_deps <<

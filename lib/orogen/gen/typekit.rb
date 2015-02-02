@@ -4,7 +4,6 @@ require 'tempfile'
 require 'find'
 require 'orogen/base'
 require 'utilrb/kernel/options'
-require 'nokogiri'
 
 module Typelib
     class Type
@@ -1950,15 +1949,18 @@ module OroGen
                 # Generate the XML representation of the generated type library,
                 # and add opaque information to it
                 plain_registry = minimal_registry.to_xml
-                doc = Nokogiri::XML(plain_registry)
-                doc.xpath('//opaque').each do |opaque_entry|
-                    spec = opaque_specification(opaque_entry['name'])
-
-                    opaque_entry['marshal_as'] = spec.intermediate
-                    opaque_entry['includes']   = spec.includes.join(':')
-                    opaque_entry['needs_copy'] = (spec.needs_copy? ? '1' : '0')
+                doc = REXML::Document.new(plain_registry)
+                doc.each_element('//opaque') do |opaque_entry|
+                    spec = opaque_specification(opaque_entry.attributes['name'])
+                    opaque_entry.add_attributes(
+                        'marshal_as' => spec.intermediate,
+                        'includes' => spec.includes.join(':'),
+                        'needs_copy' => (spec.needs_copy? ? '1' : '0'))
                 end
-                save_automatic "#{name}.tlb", doc.to_xml
+
+                modified_tlb = String.new
+                doc.write(modified_tlb)
+                save_automatic "#{name}.tlb", modified_tlb
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
