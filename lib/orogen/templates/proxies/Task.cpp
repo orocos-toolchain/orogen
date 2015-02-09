@@ -30,33 +30,16 @@
 namespace <%= component.name %> {
 
 namespace proxies {
+
+<%= task.basename %>Initializer::<%= task.basename %>Initializer(std::string location, bool is_ior)
+:TaskContextProxy()
+{
+    initTypes();
     
-<%= task.basename %>::<%= task.basename %>(std::string location, bool is_ior)
-<%= 
-result = ":TaskContextProxy(location, is_ior),\n"
-task.each_port do |port|
-    result << "#{port.name}(getPort(\"#{port.name}\")),\n"
-end
-
-task.each_property do |property|
-    result << "#{property.name}(*(dynamic_cast<RTT::Property< #{property.type.cxx_name} > *>(getProperty(\"#{property.name}\")))),\n"
-end
-
-result.slice!(0, result.length() -2)
-%>
-{
+    initFromURIOrTaskname(location, is_ior);
 }
 
-<%= task.basename %>::~<%= task.basename %>()
-{
-}
-
-void <%= task.basename %>::synchronize()
-{
-        RTT::corba::TaskContextProxy::synchronize();
-}
-
-void <%= task.basename %>::initTypes()
+void <%= task.basename %>Initializer::initTypes()
 {
     RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
     <% if component.enabled_transports.include?('corba') %>
@@ -85,6 +68,30 @@ void <%= task.basename %>::initTypes()
    RTT::types::TypekitRepository::Import( new <%= Orocos::Generation::Typekit.transport_plugin_name(transport_name, tk.name) %> );
        <% end %>
    <% end %>
+}
+    
+<%= task.basename %>::<%= task.basename %>(std::string location, bool is_ior) :
+<%= 
+result = task.basename + "Initializer(location, is_ior),\n"
+task.each_port do |port|
+    result << "#{port.name}(getPort(\"#{port.name}\")),\n"
+end
+
+task.each_property do |property|
+    result << "#{property.name}(*(dynamic_cast<RTT::Property< #{property.type.cxx_name} > *>(getProperty(\"#{property.name}\")))),\n"
+end
+
+result.slice!(0, result.length() -2)
+%>
+{
+    initTypes();
+    
+    initFromURIOrTaskname(location, is_ior);
+}
+
+void <%= task.basename %>::synchronize()
+{
+        RTT::corba::TaskContextProxy::synchronize();
 }
 
 <%= 

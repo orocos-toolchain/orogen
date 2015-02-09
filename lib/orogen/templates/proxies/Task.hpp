@@ -35,7 +35,15 @@ namespace <%= component.name %> {
 
 namespace proxies {
     
-class <%= task.basename %> : public RTT::corba::TaskContextProxy
+class <%= task.basename %>Initializer : public RTT::corba::TaskContextProxy
+{
+    public:
+        <%= task.basename %>Initializer(std::string location, bool is_ior = false);
+
+        static void initTypes();
+};
+
+class <%= task.basename %> : public <%= task.basename %>Initializer
 {
     protected:
 
@@ -44,15 +52,9 @@ class <%= task.basename %> : public RTT::corba::TaskContextProxy
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.
          * \param initial_state The initial TaskState of the TaskContext. Default is Stopped state.
          */
-        <%= task.basename %>(std::string location, bool is_ior);
+        <%= task.basename %>(std::string location, bool is_ior = false);
 
-        /** Default deconstructor of <%= task.basename %>
-         */
-        ~<%= task.basename %>();
-        
         void synchronize();
-        
-        static void initTypes();
 <%= 
 result = ""
 task.each_input_port do |port|
