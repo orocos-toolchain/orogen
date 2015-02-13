@@ -1,7 +1,6 @@
 /* Generated from orogen/lib/orogen/templates/tasks/TaskBase.hpp */
 
-#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
-#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
+#pragma once
 
 #include <<%= task.superclass.header_file %>>
 
@@ -110,5 +109,4 @@ namespace <%= project.name %> {
 
 <%= code_after.sort.join("\n") %>
 
-#endif
 

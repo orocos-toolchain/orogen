@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
-
-#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
-#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#pragma once
 
 #include "<%= project.name.downcase %>/<%= task.basename %>Base.hpp"
 
@@ -108,5 +106,4 @@ namespace <%= project.name %> {
     };
 }
 
-#endif
 

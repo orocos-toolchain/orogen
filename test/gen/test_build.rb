@@ -45,14 +45,12 @@ Cflags: -I${prefix}/include -I${prefix}/include/project
             # Add a new type to test.h
             File.open('test.h', 'a') do |io|
                 io.puts <<-NEWDEF
-#ifndef BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
-#define BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
+#pragma once
 namespace Test {
     struct NewType {
         int field;
     };
 }
-#endif
                 NEWDEF
             end
 
@@ -73,10 +71,8 @@ namespace Test {
         Dir.chdir(lib_prefix) do
             File.open('include/regen_lib.h', 'a') do |io|
                 io.puts <<-NEWDEF
-#ifndef BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
-#define BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
+#pragma once
 struct RegenLibNewType { int field; };
-#endif
                 NEWDEF
             end
         end

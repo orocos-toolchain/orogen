@@ -1,5 +1,4 @@
-#ifndef NUMERICS_TEST_TASK_HPP
-#define NUMERICS_TEST_TASK_HPP
+#pragma once 
 
 #include "numerics/TestBase.hpp"
 
@@ -82,6 +81,4 @@ namespace numerics {
 
     };
 }
-
-#endif
 

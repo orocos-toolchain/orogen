@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Types.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPES_HPP
+#pragma once
 
 <% typekit.included_files.to_set.sort.each do |file| %>
 #include <<%= file %>>
@@ -36,5 +34,4 @@
 #endif
 <% end %>
 
-#endif
 

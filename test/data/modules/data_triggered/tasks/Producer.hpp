@@ -1,5 +1,4 @@
-#ifndef DATA_PRODUCER_TASK_HPP
-#define DATA_PRODUCER_TASK_HPP
+#pragma once
 
 #include "data/ProducerBase.hpp"
 
@@ -78,6 +77,4 @@ namespace data {
 
     };
 }
-
-#endif
 

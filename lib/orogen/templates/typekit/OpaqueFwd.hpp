@@ -1,5 +1,4 @@
-#ifndef OROGEN_<%= typekit.name %>_OPAQUE_FWD_HPP
-#define OROGEN_<%= typekit.name %>_OPAQUE_FWD_HPP
+#pragma once
 
 <% types_containing_opaques = type_sets.types.find_all { |t| t.contains_opaques? && !t.opaque? } %>
 <% all_types = type_sets.opaque_types.map { |op| op.type } + types_containing_opaques
@@ -31,5 +30,4 @@ class <%= type.basename %>;
 <% end %>
 <%= RTT_CPP.adapt_namespace(current_namespace, '/') %>
 
-#endif
 

@@ -1,5 +1,4 @@
-#ifndef DATA_CONSUMER_TASK_HPP
-#define DATA_CONSUMER_TASK_HPP
+#pragma once
 
 #include "data/ConsumerBase.hpp"
 #include <iosfwd>
@@ -81,6 +80,4 @@ namespace data {
 
     };
 }
-
-#endif
 

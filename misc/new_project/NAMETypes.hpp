@@ -1,6 +1,4 @@
-#ifndef NAME_TYPES_HPP
-#define NAME_TYPES_HPP
-
+#pragma once
 /* If you need to define types specific to your oroGen components, define them
  * here. Required headers must be included explicitly
  *
@@ -11,5 +9,4 @@
 namespace NAME {
 }
 
-#endif
 

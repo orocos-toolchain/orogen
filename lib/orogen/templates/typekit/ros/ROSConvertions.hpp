@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/ros/ROSConvertions.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_USER_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_CONVERTIONS_USER_HPP
+#pragma once
 
 #include <<%= typekit.name %>/typekit/Types.hpp>
 
@@ -16,7 +14,4 @@ namespace ros_convertions {
     void fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type) %> ros );
     <% end %>
 }
-
-#endif
-
 

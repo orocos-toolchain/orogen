@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Plugin.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPEKIT_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPEKIT_HPP
+#pragma once
 
 #include <rtt/types/TypekitPlugin.hpp>
 
@@ -26,7 +24,5 @@ namespace orogen_typekits {
 
     extern <%= typekit.name %>TypekitPlugin <%= typekit.name %>Typekit;
 }
-
-#endif
 
 

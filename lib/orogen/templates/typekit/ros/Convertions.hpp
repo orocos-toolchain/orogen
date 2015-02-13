@@ -2,8 +2,7 @@
 
 <% ros_pkg_name = typekit.plugin('ros').ros_package_name_for_typekit(typekit) %>
 
-#ifndef __OROGEN_GENERATED_<%= ros_pkg_name.upcase %>_ROS_CONVERTIONS_HPP
-#define __OROGEN_GENERATED_<%= ros_pkg_name.upcase %>_ROS_CONVERTIONS_HPP
+#pragma once
 
 #include <<%= typekit.name %>/typekit/Types.hpp>
 
@@ -45,7 +44,5 @@ namespace ros_convertions {
     void fromROS( <%= type.ref_type %> value, <%= ros_arg_type(ros_type, false) %> ros );
     <% end %>
 }
-
-#endif
 
 

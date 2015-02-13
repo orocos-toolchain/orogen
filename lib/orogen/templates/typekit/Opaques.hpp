@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/Opaques.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name %>_USER_MARSHALLING_HH
-#define __OROGEN_GENERATED_<%= typekit.name %>_USER_MARSHALLING_HH
+#pragma once
 
 #include <<%= typekit.name %>/typekit/OpaqueFwd.hpp>
 
@@ -28,6 +26,4 @@ namespace orogen_typekits
         <% end %>
     <% end %>
 }
-
-#endif
 

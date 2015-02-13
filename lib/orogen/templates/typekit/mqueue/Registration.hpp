@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/mqueue/Registration.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_MQUEUE_REGISTRATION_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_MQUEUE_REGISTRATION_HPP
+#pragma once
 
 #include <rtt/types/TypeMarshaller.hpp>
 
@@ -13,7 +11,4 @@ namespace orogen_typekits {
     RTT::types::TypeMarshaller*  <%= type.method_name %>_MQueueTransport(Typelib::Registry const& registry);
     <% end %>
 }
-
-#endif
-
 

@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/typelib/Registration.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_REGISTRATION_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_TYPELIB_REGISTRATION_HPP
+#pragma once
 
 #include <rtt/types/TypeInfoGenerator.hpp>
 
@@ -19,7 +17,5 @@ namespace orogen_typekits {
     orogen_transports::TypelibMarshallerBase* <%= type.method_name %>_TypelibMarshaller(Typelib::Registry const& registry);
     <% end %>
 }
-
-#endif
 
 

@@ -1,5 +1,4 @@
-#ifndef BUILD_REGEN_LIBRARY_REGEN_LIB_H
-#define BUILD_REGEN_LIBRARY_REGEN_LIB_H
+#pragma once 
 
 namespace RegenLib {
     struct Test {
@@ -7,4 +6,3 @@ namespace RegenLib {
     };
 }
 
-#endif

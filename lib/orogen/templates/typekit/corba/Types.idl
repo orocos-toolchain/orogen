@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/Types.idl */
-
-#ifndef __OROGEN_TYPEKIT_<%= typekit.name.upcase %>_IDL__
-#define __OROGEN_TYPEKIT_<%= typekit.name.upcase %>_IDL__
+#pragma once
 
 <% typekit.used_typekits.each do |tk| %>
 <% next if tk.virtual? %>
@@ -14,5 +12,4 @@
     :opaque_as_any => true,
     :selected => typekit.self_typenames %>
 
-#endif
 

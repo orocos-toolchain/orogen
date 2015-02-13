@@ -1,11 +1,8 @@
-#ifndef TKDEPS_LIB_HH
-#define TKDEPS_LIB_HH
+#pragma once
 
 namespace tkdeps_lib {
     struct Test {
         double e;
     };
 }
-
-#endif
 

@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/TransportPlugin.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_PLUGIN_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_ROS_PLUGIN_HPP
+#pragma once
 
 #include <rtt/types/TransportPlugin.hpp>
 
@@ -18,6 +16,4 @@ namespace orogen_typekits {
 
     extern <%= typekit.name %>RosTransportPlugin <%= typekit.name %>RosTransport;
 }
-
-#endif
 
