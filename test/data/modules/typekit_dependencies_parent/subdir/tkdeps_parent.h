@@ -1,5 +1,5 @@
-#ifndef TKDEPS_PARENT_H
-#define TKDEPS_PARENT_H
+#pragma once
+
 namespace tkdeps_parent {
     struct Test
     {
@@ -15,4 +15,4 @@ namespace tkdeps_parent {
         double b[20];
     };
 }
-#endif
+

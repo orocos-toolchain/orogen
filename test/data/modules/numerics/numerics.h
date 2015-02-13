@@ -1,5 +1,4 @@
-#ifndef NUMERICS_NUMERICS_H
-#define NUMERICS_NUMERICS_H
+#pragma once
 
 namespace numerics
 {
@@ -21,4 +20,3 @@ namespace numerics
     };
 }
 
-#endif

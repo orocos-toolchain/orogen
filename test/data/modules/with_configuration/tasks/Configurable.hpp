@@ -1,5 +1,4 @@
-#ifndef WITH_CONFIGURATION_CONFIGURABLE_TASK_HPP
-#define WITH_CONFIGURATION_CONFIGURABLE_TASK_HPP
+#pragma once
 
 #include "with_configuration/ConfigurableBase.hpp"
 
@@ -78,6 +77,4 @@ namespace with_configuration {
 
     };
 }
-
-#endif
 

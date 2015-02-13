@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/tasks/TaskStates.hpp */
-
-#ifndef <%= project.name %>_TASKS_STATES
-#define <%= project.name %>_TASKS_STATES
+#pragma once
 
 namespace <%= project.name %>
 {
@@ -19,5 +17,4 @@ namespace <%= project.name %>
     <% end %>
 }
 
-#endif
 

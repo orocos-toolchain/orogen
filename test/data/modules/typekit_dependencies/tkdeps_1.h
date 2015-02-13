@@ -1,5 +1,4 @@
-#ifndef TKDEPS_1_H
-#define TKDEPS_1_H
+#pragma once
 
 #include <tkdeps_lib.h>
 #include <tkdeps_parent/subdir/tkdeps_parent.h>
@@ -10,6 +9,4 @@ namespace tkdeps {
         tkdeps_parent::Test b;
     };
 }
-
-#endif
 

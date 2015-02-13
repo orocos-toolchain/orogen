@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/OpaqueConvertions.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
-#define __OROGEN_GENERATED_<%= typekit.name %>_OPAQUE_CONVERTIONS_HH
+#pragma once
 
 #include <<%= typekit.name %>/typekit/OpaqueFwd.hpp>
 
@@ -63,6 +61,4 @@ types_containing_opaques.each do |type|
     void fromIntermediate(<%= type.ref_type %> value<%= ", int length" if type < Typelib::ArrayType %>, <%= m_type.arg_type %> intermediate);
 <% end %>
 }
-
-#endif
 

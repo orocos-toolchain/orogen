@@ -1,5 +1,4 @@
-#ifndef CROSS_PRODUCER_PRODUCER_TASK_HPP
-#define CROSS_PRODUCER_PRODUCER_TASK_HPP
+#pragma once
 
 #include "cross_producer/ProducerBase.hpp"
 
@@ -78,6 +77,4 @@ namespace cross_producer {
 
     };
 }
-
-#endif
 

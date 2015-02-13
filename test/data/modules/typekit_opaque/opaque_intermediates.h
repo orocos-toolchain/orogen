@@ -1,5 +1,4 @@
-#ifndef TEST_OPAQUE_INTERMEDIATES_HH
-#define TEST_OPAQUE_INTERMEDIATES_HH
+#pragma once 
 
 namespace NotOrogenCompatible
 {
@@ -38,6 +37,4 @@ namespace TestOpaque
         { return other.timestamp == timestamp && other.p == p; }
     };
 }
-
-#endif
 

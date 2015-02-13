@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/corba/Registration.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_CORBA_REGISTRATION_HPP
+#pragma once
 
 #include <rtt/transports/corba/CorbaTypeTransporter.hpp>
 
@@ -11,6 +9,5 @@ namespace orogen_typekits {
     <% end %>
 }
 
-#endif
 
 

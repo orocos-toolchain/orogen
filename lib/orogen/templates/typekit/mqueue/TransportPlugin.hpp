@@ -1,7 +1,5 @@
 /* Generated from orogen/lib/orogen/templates/typekit/mqueue/TransportPlugin.hpp */
-
-#ifndef __OROGEN_GENERATED_<%= typekit.name.upcase %>_MQUEUE_PLUGIN_HPP
-#define __OROGEN_GENERATED_<%= typekit.name.upcase %>_MQUEUE_PLUGIN_HPP
+#pragma once
 
 #include <rtt/types/TransportPlugin.hpp>
 
@@ -26,6 +24,4 @@ namespace orogen_typekits {
 
     extern <%= typekit.name %>MQueueTransportPlugin <%= typekit.name %>MQueueTransport;
 }
-
-#endif
 

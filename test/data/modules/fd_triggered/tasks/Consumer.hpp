@@ -1,5 +1,4 @@
-#ifndef FD_CONSUMER_TASK_HPP
-#define FD_CONSUMER_TASK_HPP
+#pragma once
 
 #include "fd/ConsumerBase.hpp"
 
@@ -92,6 +91,4 @@ namespace fd {
 
     };
 }
-
-#endif
 

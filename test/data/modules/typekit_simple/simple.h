@@ -1,5 +1,4 @@
-#ifndef TYPEKIT_SIMPLE_SIMPLE_H
-#define TYPEKIT_SIMPLE_SIMPLE_H
+#pragma once
 
 #include <stdint.h>
 #include <vector>
@@ -100,4 +99,3 @@ namespace Test {
     };
 }
 
-#endif

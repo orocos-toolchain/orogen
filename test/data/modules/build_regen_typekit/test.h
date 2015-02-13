@@ -1,5 +1,4 @@
-#ifndef BUILD_REGEN_TYPEKIT_TEST_H
-#define BUILD_REGEN_TYPEKIT_TEST_H
+#pragma once
 
 namespace Regen {
     struct S0 {
@@ -7,4 +6,3 @@ namespace Regen {
     };
 }
 
-#endif

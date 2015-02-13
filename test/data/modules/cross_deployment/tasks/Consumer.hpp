@@ -1,5 +1,4 @@
-#ifndef CROSS_DEPLOYMENT_CONSUMER_TASK_HPP
-#define CROSS_DEPLOYMENT_CONSUMER_TASK_HPP
+#pragma once
 
 #include "cross_deployment/ConsumerBase.hpp"
 
@@ -79,6 +78,4 @@ namespace cross_deployment {
 
     };
 }
-
-#endif
 

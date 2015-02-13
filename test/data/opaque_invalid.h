@@ -1,5 +1,4 @@
-#ifndef TEST_OPAQUE_INVALID_1_HH
-#define TEST_OPAQUE_INVALID_1_HH
+#pragma once
 
 #include "opaque_intermediates.h"
 
@@ -11,7 +10,4 @@ namespace TestOpaque
         float following;
     };
 }
-
-#endif
-
 

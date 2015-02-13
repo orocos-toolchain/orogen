@@ -1,5 +1,4 @@
-#ifndef CROSS_CONSUMER_CONSUMER_TASK_HPP
-#define CROSS_CONSUMER_CONSUMER_TASK_HPP
+#pragma once
 
 #include "cross_consumer/ConsumerBase.hpp"
 #include <iosfwd>
@@ -78,6 +77,4 @@ namespace cross_consumer {
 
     };
 }
-
-#endif
 

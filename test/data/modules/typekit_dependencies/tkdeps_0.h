@@ -1,5 +1,4 @@
-#ifndef TKDEPS_0_H
-#define TKDEPS_0_H
+#pragma once
 
 #include <tkdeps_lib.h>
 
@@ -13,6 +12,4 @@ namespace tkdeps {
         double test[40];
     };
 }
-
-#endif
 
