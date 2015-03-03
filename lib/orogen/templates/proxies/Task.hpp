@@ -12,7 +12,7 @@
 <% end %>
 <% if !task.all_ports.empty? %>
 #include <rtt/Port.hpp>
-#include <orocos_cpp/ProxyPort.hpp>
+#include <orocos_cpp_base/ProxyPort.hpp>
 <% end %>
 <% if task.extended_state_support? %>
 #include <<%= component.typekit.name %>/TaskStates.hpp>

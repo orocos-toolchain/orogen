@@ -6,7 +6,7 @@ SET(PROXYLIB_NAME <%= component.name %>-proxies)
 add_definitions(-DRTT_COMPONENT)
 
 <% 
-    pkg_conf_deps = ["orocos_cpp"]
+    pkg_conf_deps = ["orocos_cpp_base"]
     pkg_conf_deps.concat(component.get_pkg_config_deps(false))
 %>
 
