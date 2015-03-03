@@ -174,7 +174,11 @@ rescue LoadError, ConfigError, ArgumentError => e
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
     error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
-    STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
+    STDERR.puts "===== Orogen Error (#{e.class}) =====\n"
+    STDERR.puts "full backtrace:\n#{e.backtrace.join("\n")}\n"
+    STDERR.puts "initial location: '#{error_line}'\n"
+    STDERR.puts "exception type: '#{e.class}'\n"
+    STDERR.puts "message: '#{e.message}'\n"
     exit 1
 rescue Exception => e
     STDERR.puts "===== Internal error ======="
