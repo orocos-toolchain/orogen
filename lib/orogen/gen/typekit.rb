@@ -4,7 +4,6 @@ require 'tempfile'
 require 'find'
 require 'orogen/base'
 require 'utilrb/kernel/options'
-require 'nokogiri'
 
 module Typelib
     class Type
@@ -105,12 +104,6 @@ module Typelib
 	def self.contains_int64?
             dependencies.any? { |t| t.contains_int64? }
         end
-        def self.contains_opaques?
-            if @contains_opaques.nil?
-                @contains_opaques = contains?(Typelib::OpaqueType)
-            end
-            @contains_opaques
-        end
 
         @@index_var_stack = Array.new
         def self.index_var_stack; @@index_var_stack end
@@ -133,22 +126,6 @@ module Typelib
             integer? && size == 8
         end
 
-	def self.cxx_name
-	    if integer?
-		if name == "/bool"
-		    "bool"
-                elsif name == "/char"
-                    "char"
-                elsif name == "/unsigned char"
-                    "unsigned char"
-		else
-		    "boost::#{'u' if unsigned?}int#{size * 8}_t"
-		end
-	    else
-		basename
-	    end
-	end
-
         def self.inlines_code?; superclass.eql?(NumericType) end
     end
 
@@ -163,14 +140,6 @@ module Typelib
             normalize_cxxname(container_kind)
         end
 
-
-        def self.cxx_name
-            if name =~ /</
-                normalize_cxxname(container_kind) + "< " + deference.cxx_name + " >"
-            else
-                normalize_cxxname(container_kind)
-            end
-        end
 
         def self.code_copy(typekit, result, indent, dest, src, method, src_type, dest_type)
             collection_name, element_type = container_kind, deference.name
@@ -371,81 +340,12 @@ struct #{target_basename}
     end
 
     class Registry
-        # Returns true if +type+ is handled by the typekit that is included in
-        # the RTT itself, and false otherwise.
-        #
-        # This is used in property bags and in the interface definition, as --
-        # among the simple types -- only these can be used directly in
-        # interfaces.
-        def self.base_rtt_type?(type)
-            if type.name == "/std/string"
-                return true
-            elsif !(type <= Typelib::NumericType)
-                return false
-            end
-
-            if type.integer?
-                type.name == "/bool" || type.size == 4
-            else
-                type.name == "/double"
-            end
-        end
-
-        # Returns the typename used by RTT to register the given type
-        def self.rtt_typename(type)
-            if !@typelib_to_rtt_mappings
-                cxx_types = Typelib::Registry.new
-                Typelib::Registry.add_standard_cxx_types(cxx_types)
-                @typelib_to_rtt_mappings = {
-                    cxx_types.get('bool') => 'bool',
-                    cxx_types.get('int') => 'int',
-                    cxx_types.get('unsigned int') => 'uint',
-                    cxx_types.get('float') => 'float',
-                    cxx_types.get('double') => 'double',
-                    cxx_types.get('char') => 'char'
-                }
-            end
-
-            if type.name == "/std/string"
-                return "string"
-            elsif !(type <= Typelib::NumericType)
-                return type.name
-            end
-
-            if type.name == "/bool" then return 'bool'
-            elsif mapped = @typelib_to_rtt_mappings.find { |typelib, rtt| typelib == type }
-                return mapped[1]
-            else
-                raise ArgumentError, "#{type.name} is (probably) not registered on the RTT type system"
-            end
-        end
-
-        # Returns the RTT type that we should use to handle +type+.
-        #
-        # This is used in property bag marshalling/demarshalling to convert to
-        # the corresponding property type.
-        def base_rtt_type_for(type)
-	    if Registry.base_rtt_type?(type)
-		type
-            elsif type < Typelib::NumericType
-                if type.integer?
-                    if type.size == 8
-                        raise NotImplementedError, "there is no RTT type for 64bit integers, sorry"
-                    elsif type.unsigned? then get("/unsigned int")
-                    else get("/int")
-                    end
-                else
-                    get("/double")
-                end
-            else
-                raise ArgumentError, "no type equivalent for #{type.name} in Orocos"
-            end
-        end
     end
 end
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         # Helper method used to create a symbolic link. If a link already
         # exists, it makes sure that it is up to date
         def self.create_or_update_symlink(source, target)
@@ -679,9 +579,6 @@ module Orocos
             # The Project instance this typekit is part of. It may be nil if the
             # Typekit is generated standalone (as, for instance, in typegen)
 	    attr_reader :project
-
-            # For backward compatibility only. Replaced by #project
-            def component; project end
 
             # The set of headers loaded by #load, as an array of absolute paths
             attr_reader :loads
@@ -925,7 +822,7 @@ module Orocos
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
-                Orocos::Generation.orocos_target.dup
+                RTT_CPP.orocos_target.dup
             end
 
             # True if the orocos target is gnulinux
@@ -945,7 +842,7 @@ module Orocos
                 @included_files = Array.new
 
                 @plugins = []
-                plugins << (Orocos::TypekitMarshallers::TypeInfo::Plugin.new(self))
+                plugins << (TypekitMarshallers::TypeInfo::Plugin.new(self))
 
                 @internal_dependencies = []
 		@imports, @loads    = [], []
@@ -1108,7 +1005,7 @@ module Orocos
             # See #smart_ptr for more information.
             def ro_ptr(name, options = Hash.new)
                 options[:orogen_include] ||= Array.new
-                options[:orogen_include] << "orocos-rtt-#{Orocos::Generation.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
+                options[:orogen_include] << "orocos-rtt-#{RTT_CPP.orocos_target}:rtt/extras/ReadOnlyPointer.hpp"
                 smart_ptr("/RTT/extras/ReadOnlyPointer", find_type(name), options)
             end
 
@@ -1271,6 +1168,8 @@ module Orocos
             # inheritance. For those who want to know, this is needed so that
             # orogen is able to compute the memory layout of the types (i.e.
             # the exact offsets for all the fields in the structures).
+            #
+            # @raises LoadError if the file does not exist
 	    def load(file, add = true, user_options = Hash.new)
                 if !user_options.respond_to?(:to_hash) 
                     raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
@@ -1323,21 +1222,21 @@ module Orocos
                     # TODO: work around this in Typelib and oroGen by emitting a
                     # TODO: single-dimension array of the right size
                     if type < Typelib::ArrayType && type.deference < Typelib::ArrayType
-                        Orocos::Generation.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
+                        RTT_CPP.warn "ignoring #{type.name} as multi-dimensional arrays cannot be represented in CORBA IDL"
                         to_delete << type
 
                     elsif type < Typelib::PointerType
-                        Orocos::Generation.warn "ignoring #{type.name} as pointers are not allowed"
+                        RTT_CPP.warn "ignoring #{type.name} as pointers are not allowed"
                         to_delete << type
 
                     elsif type.name == "/std/vector</bool>"
-                        Orocos::Generation.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
+                        RTT_CPP.warn "std::vector<bool> is unsupported in oroGen due to its special nature. Use std::vector<uint8_t> instead."
                         to_delete << type
 
                     elsif type < Typelib::CompoundType
                         type.each_field do |field_name, _|
                             if field_name !~ /^[a-zA-Z]/
-                                Orocos::Generation.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
+                                RTT_CPP.warn "ignoring #{type.name} as its field #{field_name} does not start with an alphabetic character, which is forbidden in CORBA IDL"
                                 to_delete << type
                                 break
                             end
@@ -1349,7 +1248,7 @@ module Orocos
                     deleted_types = registry.remove(type)
                     deleted_types.each do |dep_type|
                         next if to_delete.include?(dep_type)
-                        Orocos::Generation.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
+                        RTT_CPP.warn "ignoring #{dep_type.name} as it depends on #{type.name} which is ignored"
                     end
                 end
             end
@@ -1435,7 +1334,7 @@ module Orocos
 
                     file, line = location.split(':')
                     if !File.file?(file)
-                        Orocos::Generation.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
+                        RTT_CPP.debug("resolve_registry_includes: deleting non-existing 'line' entry in metadata 'source_file_line'=#{location}")
                         type.metadata.delete('source_file_line')
                         return
                     end
@@ -1545,7 +1444,7 @@ module Orocos
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ["OROCOS_TARGET=#{Orocos::Generation.orocos_target}", '__orogen2']
+                options[:define] = ["OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
 
                 options[:include] = self.include_dirs.dup
                 options = options.merge(user_options) do |key, a, b|
@@ -1654,8 +1553,21 @@ module Orocos
                 'unsigned int' => 'uint' }
             BASE_TYPES_NEEDED_TRANSPORTS = %w{typelib ros}
 
-            def normalize_registry(with_base_types = false)
-                base = self.registry
+            def normalize_registry
+                base = self.registry.dup
+
+                # Properly define the headers we want to use for cstdint headers
+                [1, 2, 4, 8].each do |int_size|
+                    if base.include?("/int#{int_size * 8}_t")
+                        base.get("/int#{int_size * 8}_t").
+                            metadata.set("orogen_include", "boost/cstdint.hpp")
+                    end
+                    if base.include?("/uint#{int_size * 8}_t")
+                        base.get("/uint#{int_size * 8}_t").
+                            metadata.set("orogen_include", "boost/cstdint.hpp")
+                    end
+                end
+
                 result = Typelib::Registry.new
                 self_types.each do |type|
                     result.merge(base.minimal(type.name))
@@ -1668,16 +1580,6 @@ module Orocos
                 opaques.each do |op_def|
                     if result.include?(op_def.type.name)
                         result.merge(base.minimal(find_type(op_def.intermediate).name))
-                    end
-                end
-
-                if with_base_types
-                    standard_types = Typelib::Registry.new
-                    Typelib::Registry.add_standard_cxx_types(standard_types)
-                    base.merge(standard_types)
-
-                    BASE_TYPES.each do |typename|
-                        result.merge(base.minimal(typename))
                     end
                 end
 
@@ -1893,7 +1795,7 @@ module Orocos
 	    def issue_warnings(generated_types, registry)
 		generated_types.each do |type|
 		    if type.contains_int64?
-			Orocos::Generation.info "you will not be able to marshal #{type.name} as XML, it contains 64bit integers"
+			OroGen::Gen::RTT_CPP.info "you will not be able to marshal #{type.name} as XML, it contains 64bit integers"
 		    end
 		end
 	    end
@@ -1991,8 +1893,8 @@ module Orocos
                 end
                 code_snippets = code_snippets.sort_by { |code| code[0] }
 
-                slice_size = Orocos::Generation.typekit_slice
-                while slice_size > 1 && code_snippets.size / slice_size < Orocos::Generation.typekit_slice_minimum
+                slice_size = RTT_CPP.typekit_slice
+                while slice_size > 1 && code_snippets.size / slice_size < RTT_CPP.typekit_slice_minimum
                     slice_size -= 1
                 end
 
@@ -2033,15 +1935,6 @@ module Orocos
                     Generation.create_or_update_symlink(automatic_dir, fake_typekit_dir)
                 end
 
-                # Small hack to workaround the current structure w.r.t. our
-                # usage of the main RTT typekit
-                #
-                # We need to generate the typelib / mqueue transports (not
-                # CORBA) for the base types *if and only if* we are NOT
-                # standalone (we are using oroGen and not typegen) *and* the
-                # oroGen project does not import any other typekit
-                generate_transports_for_base_types = false && (!standalone? && project.used_typekits.find_all { |tk| !tk.virtual? }.empty?)
-
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
                 handle_opaques_generation(registry)
@@ -2049,7 +1942,7 @@ module Orocos
 
 		# Do some registry mumbo-jumbo to remove unneeded types to the
                 # dumped registry
-                @registry = normalize_registry(generate_transports_for_base_types)
+                @registry = normalize_registry
 		minimal_registry = @registry.dup
                 generated_types = self_types.to_value_set
 
@@ -2100,7 +1993,7 @@ module Orocos
                 registered_types =
                     if type_export_policy == :all
                         generated_types.find_all do |type|
-                            !m_type?(type)
+                            !m_type?(type) && !(type <= Typelib::NumericType)
                         end.to_value_set
 
                     elsif type_export_policy == :used
@@ -2142,15 +2035,18 @@ module Orocos
                 # Generate the XML representation of the generated type library,
                 # and add opaque information to it
                 plain_registry = minimal_registry.to_xml
-                doc = Nokogiri::XML(plain_registry)
-                doc.xpath('//opaque').each do |opaque_entry|
-                    spec = opaque_specification(opaque_entry['name'])
-
-                    opaque_entry['marshal_as'] = spec.intermediate
-                    opaque_entry['includes']   = spec.includes.join(':')
-                    opaque_entry['needs_copy'] = (spec.needs_copy? ? '1' : '0')
+                doc = REXML::Document.new(plain_registry)
+                doc.each_element('//opaque') do |opaque_entry|
+                    spec = opaque_specification(opaque_entry.attributes['name'])
+                    opaque_entry.add_attributes(
+                        'marshal_as' => spec.intermediate,
+                        'includes' => spec.includes.join(':'),
+                        'needs_copy' => (spec.needs_copy? ? '1' : '0'))
                 end
-                save_automatic "#{name}.tlb", doc.to_xml
+
+                modified_tlb = String.new
+                doc.write(modified_tlb)
+                save_automatic "#{name}.tlb", modified_tlb
 
                 registered_types = registered_types.
                     sort_by { |t| t.name }
@@ -2221,24 +2117,8 @@ module Orocos
                     end
                 end
 
-                if generate_transports_for_base_types
-                    base_type_aliases = Hash.new
-                    base_types = BASE_TYPES.map do |typename|
-                        type = minimal_registry.get(typename)
-                        base_type_aliases[type] = [BASE_TYPES_RTT_NAMES[typename] || typename]
-                        type
-                    end.to_value_set
-                end
-
                 each_plugin do |plg|
                     plg_typesets = type_sets.dup
-                    if generate_transports_for_base_types && BASE_TYPES_NEEDED_TRANSPORTS.include?(plg.name)
-                        plg_typesets.interface_types = (plg_typesets.interface_types.to_value_set | base_types).
-                            sort_by { |t| t.name }
-
-                        plg_typesets.aliases = plg_typesets.aliases.merge(base_type_aliases)
-                    end
-
                     headers, impl = plg.generate(plg_typesets)
                     plugin_header_files.concat(headers)
                     implementation_files.concat(impl)
@@ -2277,7 +2157,7 @@ module Orocos
             def type_info_includes_for_type(type)
                 if type.opaque?
                     return type_info_includes_for_type(intermediate_type_for(type))
-                elsif Orocos::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
+                elsif TypekitMarshallers::TypeInfo::Plugin.rtt_scripting?
                    result = ["#{self.name}/typekit/BoostSerialization.hpp", type.info_type_header]
                    if type.full_name == "/std/string"
                        result << "rtt/typekit/StdStringTypeInfo.hpp"
@@ -2319,10 +2199,6 @@ module Orocos
             end
 	end
     end
+    end
 end
 
-require 'orogen/marshallers/typelib'
-require 'orogen/marshallers/corba'
-require 'orogen/marshallers/type_info'
-require 'orogen/marshallers/mqueue'
-require 'orogen/marshallers/ros'

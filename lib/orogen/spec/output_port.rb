@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         # Specification for an output port
         class OutputPort < Port

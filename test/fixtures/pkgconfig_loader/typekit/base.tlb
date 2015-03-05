@@ -1,0 +1,2127 @@
+<?xml version="1.0"?>
+<typelib>
+  <opaque name="/RTT/extras/ReadOnlyPointer&lt;/base/samples/frame/Frame&gt;" size="0" marshal_as="/base/samples/frame/Frame" includes="rtt/extras/ReadOnlyPointer.hpp" needs_copy="0">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:rtt/extras/ReadOnlyPointer.hpp]]></metadata>
+<metadata key="orogen_include"><![CDATA[rtt/extras/ReadOnlyPointer.hpp]]></metadata>
+
+  </opaque>
+  <opaque name="/RTT/extras/ReadOnlyPointer&lt;/base/samples/frame/FramePair&gt;" size="0" marshal_as="/base/samples/frame/FramePair" includes="rtt/extras/ReadOnlyPointer.hpp" needs_copy="0">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:rtt/extras/ReadOnlyPointer.hpp]]></metadata>
+<metadata key="orogen_include"><![CDATA[rtt/extras/ReadOnlyPointer.hpp]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Matrix2d" size="0" marshal_as="/wrappers/Matrix2d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:26]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Matrix3d" size="0" marshal_as="/wrappers/Matrix3d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:27]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Matrix4d" size="0" marshal_as="/wrappers/Matrix4d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:28]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Matrix6d" size="0" marshal_as="/wrappers/Matrix6d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:29]]></metadata>
+
+  </opaque>
+  <opaque name="/base/MatrixXd" size="0" marshal_as="/wrappers/MatrixXd" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:31]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Quaterniond" size="0" marshal_as="/wrappers/Quaterniond" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:33]]></metadata>
+
+  </opaque>
+  <alias name="/base/Orientation" source="/base/Quaterniond"/>
+  <opaque name="/base/Vector2d" size="0" marshal_as="/wrappers/Vector2d" includes="" needs_copy="1">
+  <metadata key="doc"><![CDATA[We define these typedefs to workaround alignment requirements for normal
+Eigen types. This reduces the amount of knowledge people have to have to
+manipulate these types -- as well as the structures that use them -- and
+make them usable in Orocos dataflow.
+
+Eigen supports converting them to "standard" eigen types in a
+straightforward way. Moreover, vectorization does not help for small
+sizes]]></metadata>
+<metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:19]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Vector3d" size="0" marshal_as="/wrappers/Vector3d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:20]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Vector4d" size="0" marshal_as="/wrappers/Vector4d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:21]]></metadata>
+
+  </opaque>
+  <opaque name="/base/Vector6d" size="0" marshal_as="/wrappers/Vector6d" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:22]]></metadata>
+
+  </opaque>
+  <opaque name="/base/VectorXd" size="0" marshal_as="/wrappers/VectorXd" includes="" needs_copy="1">
+  <metadata key="opaque_is_typedef"><![CDATA[1]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Eigen.hpp:24]]></metadata>
+
+  </opaque>
+  <alias name="/base/Point" source="/base/Vector3d"/>
+  <compound name="/base/Pose" size="56">
+    <field name="position" type="/base/Vector3d" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:104]]></metadata>
+
+    </field>
+    <field name="orientation" type="/base/Quaterniond" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:105]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Pose.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:103]]></metadata>
+
+  </compound>
+  <alias name="/base/Position" source="/base/Vector3d"/>
+  <alias name="/base/Position2D" source="/base/Vector2d"/>
+  <alias name="/Eigen/Matrix&lt;/double,00000000000000000001,00000000000000000001,2,00000000000000000001,00000000000000000001&gt;" source="/base/MatrixXd"/>
+  <alias name="/Eigen/Matrix&lt;/double,00000000000000000001,1,2,00000000000000000001,1&gt;" source="/base/VectorXd"/>
+  <alias name="/Eigen/Matrix&lt;/double,2,1,2,2,1&gt;" source="/base/Vector2d"/>
+  <alias name="/Eigen/Matrix&lt;/double,2,2,2,2,2&gt;" source="/base/Matrix2d"/>
+  <alias name="/Eigen/Matrix&lt;/double,3,1,2,3,1&gt;" source="/base/Vector3d"/>
+  <alias name="/Eigen/Matrix&lt;/double,3,3,2,3,3&gt;" source="/base/Matrix3d"/>
+  <alias name="/Eigen/Matrix&lt;/double,4,1,2,4,1&gt;" source="/base/Vector4d"/>
+  <alias name="/Eigen/Matrix&lt;/double,4,4,2,4,4&gt;" source="/base/Matrix4d"/>
+  <alias name="/Eigen/Matrix&lt;/double,6,1,2,6,1&gt;" source="/base/Vector6d"/>
+  <alias name="/Eigen/Matrix&lt;/double,6,6,2,6,6&gt;" source="/base/Matrix6d"/>
+  <alias name="/Eigen/Quaternion&lt;/double,2&gt;" source="/base/Quaterniond"/>
+  <enum name="/base/Time/Resolution">
+    <value symbol="Microseconds" value="1000000"/>
+    <value symbol="Milliseconds" value="1000"/>
+    <value symbol="Seconds" value="1"/>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Time.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Time.hpp:27]]></metadata>
+
+  </enum>
+  <enum name="/base/actuators/ADAPTATIVE_MODE">
+    <value symbol="PID_POSITION" value="64"/>
+    <value symbol="PID_SPEED" value="128"/>
+  <metadata key="doc"><![CDATA[\deprecated ]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:70]]></metadata>
+
+  </enum>
+  <enum name="/base/actuators/DRIVE_MODE">
+    <value symbol="DM_POSITION" value="2"/>
+    <value symbol="DM_PWM" value="0"/>
+    <value symbol="DM_SPEED" value="1"/>
+    <value symbol="DM_UNINITIALIZED" value="3"/>
+  <metadata key="doc"><![CDATA[\deprecated See the documentation of Command
+The control mode requested for a controller output]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:30]]></metadata>
+
+  </enum>
+  <enum name="/base/actuators/WHEEL4_ACTUATORS">
+    <value symbol="WHEEL4_FRONT_LEFT" value="3"/>
+    <value symbol="WHEEL4_FRONT_RIGHT" value="2"/>
+    <value symbol="WHEEL4_REAR_LEFT" value="0"/>
+    <value symbol="WHEEL4_REAR_RIGHT" value="1"/>
+  <metadata key="doc"><![CDATA[Standard joint order for all 4-wheeled systems ]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/vehicles.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/vehicles.h:7]]></metadata>
+
+  </enum>
+  <opaque name="/base/geometry/Spline&lt;1&gt;" size="0" marshal_as="/wrappers/geometry/Spline" includes="" needs_copy="1">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/geometry/Spline.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/geometry/Spline.hpp:357]]></metadata>
+
+  </opaque>
+  <opaque name="/base/geometry/Spline&lt;3&gt;" size="0" marshal_as="/wrappers/geometry/Spline" includes="" needs_copy="1">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/geometry/Spline.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/geometry/Spline.hpp:357]]></metadata>
+
+  </opaque>
+  <alias name="/base/geometry/Spline1" source="/base/geometry/Spline&lt;1&gt;"/>
+  <alias name="/base/geometry/Spline3" source="/base/geometry/Spline&lt;3&gt;"/>
+  <alias name="/base/geometry/Spline&lt;3&gt;/vector_t" source="/base/Vector3d"/>
+  <enum name="/base/geometry/SplineBase/CoordinateType">
+    <value symbol="DERIVATIVE_TO_NEXT" value="3"/>
+    <value symbol="DERIVATIVE_TO_PRIOR" value="4"/>
+    <value symbol="KNUCKLE_POINT" value="2"/>
+    <value symbol="ORDINARY_POINT" value="1"/>
+    <value symbol="SECOND_DERIVATIVE_TO_NEXT" value="5"/>
+    <value symbol="SECOND_DERIVATIVE_TO_PRIOR" value="6"/>
+    <value symbol="TANGENT_POINT_FOR_NEXT" value="13"/>
+    <value symbol="TANGENT_POINT_FOR_PRIOR" value="14"/>
+  <metadata key="doc"><![CDATA[types to be used in the interpolate() method]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/geometry/Spline.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/geometry/Spline.hpp:111]]></metadata>
+
+  </enum>
+  <enum name="/base/samples/LASER_RANGE_ERRORS">
+    <value symbol="MAX_RANGE_ERROR" value="5"/>
+    <value symbol="MEASUREMENT_ERROR" value="3"/>
+    <value symbol="OTHER_RANGE_ERRORS" value="4"/>
+    <value symbol="TOO_FAR" value="1"/>
+    <value symbol="TOO_NEAR" value="2"/>
+  <metadata key="doc"><![CDATA[Special values for the ranges. If a range has one of these values, then
+it is not valid and the value declares what is going on ]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/LaserScan.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:16]]></metadata>
+
+  </enum>
+  <enum name="/base/samples/frame/frame_mode_t">
+    <value symbol="COMPRESSED_MODES" value="256"/>
+    <value symbol="MODE_BAYER" value="128"/>
+    <value symbol="MODE_BAYER_BGGR" value="131"/>
+    <value symbol="MODE_BAYER_GBRG" value="132"/>
+    <value symbol="MODE_BAYER_GRBG" value="130"/>
+    <value symbol="MODE_BAYER_RGGB" value="129"/>
+    <value symbol="MODE_BGR" value="4"/>
+    <value symbol="MODE_GRAYSCALE" value="1"/>
+    <value symbol="MODE_JPEG" value="258"/>
+    <value symbol="MODE_PJPG" value="257"/>
+    <value symbol="MODE_RGB" value="2"/>
+    <value symbol="MODE_RGB32" value="5"/>
+    <value symbol="MODE_UNDEFINED" value="0"/>
+    <value symbol="MODE_UYVY" value="3"/>
+    <value symbol="RAW_MODES" value="128"/>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:52]]></metadata>
+
+  </enum>
+  <enum name="/base/samples/frame/frame_status_t">
+    <value symbol="STATUS_EMPTY" value="0"/>
+    <value symbol="STATUS_INVALID" value="2"/>
+    <value symbol="STATUS_VALID" value="1"/>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:71]]></metadata>
+
+  </enum>
+  <numeric name="/bool" category="uint" size="1">  
+  </numeric>
+  <numeric name="/double" category="float" size="8">  
+  </numeric>
+  <numeric name="/float" category="float" size="4">  
+  </numeric>
+  <numeric name="/int32_t" category="sint" size="4">  
+  </numeric>
+  <numeric name="/int64_t" category="sint" size="8">  
+  </numeric>
+  <numeric name="/int8_t" category="sint" size="1">  
+  </numeric>
+  <alias name="/char" source="/int8_t"/>
+  <alias name="/int" source="/int32_t"/>
+  <alias name="/int long long" source="/int64_t"/>
+  <alias name="/int signed" source="/int32_t"/>
+  <alias name="/int signed long" source="/int64_t"/>
+  <alias name="/int signed long long" source="/int64_t"/>
+  <alias name="/long" source="/int64_t"/>
+  <alias name="/long int" source="/int64_t"/>
+  <alias name="/long int long" source="/int64_t"/>
+  <alias name="/long long" source="/int64_t"/>
+  <alias name="/long long int" source="/int64_t"/>
+  <alias name="/long long int signed" source="/int64_t"/>
+  <alias name="/long long signed" source="/int64_t"/>
+  <alias name="/long long signed int" source="/int64_t"/>
+  <alias name="/long signed" source="/int64_t"/>
+  <alias name="/long signed int" source="/int64_t"/>
+  <alias name="/long signed long" source="/int64_t"/>
+  <alias name="/long signed long int" source="/int64_t"/>
+  <alias name="/signed" source="/int32_t"/>
+  <alias name="/signed char" source="/int8_t"/>
+  <alias name="/signed int" source="/int32_t"/>
+  <alias name="/signed int long" source="/int64_t"/>
+  <alias name="/signed int long long" source="/int64_t"/>
+  <alias name="/signed long" source="/int64_t"/>
+  <alias name="/signed long int" source="/int64_t"/>
+  <alias name="/signed long int long" source="/int64_t"/>
+  <alias name="/signed long long" source="/int64_t"/>
+  <alias name="/signed long long int" source="/int64_t"/>
+  <numeric name="/uint16_t" category="uint" size="2">  
+  </numeric>
+  <numeric name="/uint32_t" category="uint" size="4">  
+  </numeric>
+  <numeric name="/uint64_t" category="uint" size="8">  
+  </numeric>
+  <numeric name="/uint8_t" category="uint" size="1">  
+  </numeric>
+  <alias name="/int long unsigned" source="/uint64_t"/>
+  <alias name="/int short unsigned" source="/uint16_t"/>
+  <alias name="/int unsigned" source="/uint32_t"/>
+  <alias name="/int unsigned long long" source="/uint64_t"/>
+  <alias name="/long int unsigned" source="/uint64_t"/>
+  <alias name="/long long int unsigned" source="/uint64_t"/>
+  <alias name="/long long unsigned" source="/uint64_t"/>
+  <alias name="/long long unsigned int" source="/uint64_t"/>
+  <alias name="/long unsigned" source="/uint64_t"/>
+  <alias name="/long unsigned int" source="/uint64_t"/>
+  <alias name="/long unsigned long" source="/uint64_t"/>
+  <alias name="/long unsigned long int" source="/uint64_t"/>
+  <alias name="/short int unsigned" source="/uint16_t"/>
+  <alias name="/short unsigned" source="/uint16_t"/>
+  <alias name="/short unsigned int" source="/uint16_t"/>
+  <alias name="/unsigned" source="/uint32_t"/>
+  <alias name="/unsigned char" source="/uint8_t"/>
+  <alias name="/unsigned int" source="/uint32_t"/>
+  <alias name="/unsigned int long long" source="/uint64_t"/>
+  <alias name="/unsigned long" source="/uint64_t"/>
+  <alias name="/unsigned long int" source="/uint64_t"/>
+  <alias name="/unsigned long int long" source="/uint64_t"/>
+  <alias name="/unsigned long long" source="/uint64_t"/>
+  <alias name="/unsigned long long int" source="/uint64_t"/>
+  <alias name="/unsigned short" source="/uint16_t"/>
+  <alias name="/unsigned short int" source="/uint16_t"/>
+  <compound name="/base/Angle" size="8">
+    <field name="rad" type="/double" offset="0">
+    <metadata key="doc"><![CDATA[angle in radians.
+this value will always be PI < rad <= PI
+
+@note don't use this value directly. It's only public to allow this class
+to be used as an interface type.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Angle.hpp:26]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/SonarBeam.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Angle.hpp:17]]></metadata>
+
+  </compound>
+  <compound name="/base/JointState" size="24">
+    <field name="position" type="/double" offset="0">
+    <metadata key="doc"><![CDATA[Current position of the actuator, in radians for angular
+joints, in m for linear ones
+
+For angular joints that can move more than 360 degrees, this
+accumulates the movement since initialization
+
+If the joint is an angular joint whose motion is constrained to less
+than one full turn, the value should be in [-PI, PI]. base::Angle
+could be used to manipulate it before setting it in this structure
+
+If the joint is an unconstrained angular joint (e.g. a wheel joint),
+the range is [-inf, inf]]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointState.hpp:37]]></metadata>
+
+    </field>
+    <field name="speed" type="/float" offset="8">
+    <metadata key="doc"><![CDATA[Speed in radians per second for angular actuators, in m/s
+for linear ones
+
+This is an instantaneous speed. It means that, considering two
+consecutive JointState samples,
+   (position1 - position0)/(time1 - * time0).toSeconds()
+is not necessarily equal to 'speed']]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointState.hpp:47]]></metadata>
+
+    </field>
+    <field name="effort" type="/float" offset="12">
+    <metadata key="doc"><![CDATA[Torque in N.m for angular joints and N for linear ones]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointState.hpp:51]]></metadata>
+
+    </field>
+    <field name="raw" type="/float" offset="16">
+    <metadata key="doc"><![CDATA[Raw command to/from the actuator, if this is an actuated joint. It
+is commonly a PWM value in [0,1]]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointState.hpp:56]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointState.hpp:20]]></metadata>
+
+  </compound>
+  <alias name="/base/Orientation2D" source="/double"/>
+  <compound name="/base/Pose2D" size="24">
+    <field name="position" type="/base/Vector2d" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:205]]></metadata>
+
+    </field>
+    <field name="orientation" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:206]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Pose.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:204]]></metadata>
+
+  </compound>
+  <compound name="/base/PoseUpdateThreshold" size="16">
+    <field name="distance" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:91]]></metadata>
+
+    </field>
+    <field name="angle" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:92]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Pose.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Pose.hpp:50]]></metadata>
+
+  </compound>
+  <compound name="/base/Temperature" size="8">
+    <field name="kelvin" type="/double" offset="0">
+    <metadata key="doc"><![CDATA[temperature in kelvins
+
+
+@note don't use this value directly. It's only public to allow this class
+to be used as an interface type.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Temperature.hpp:27]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Temperature.hpp:17]]></metadata>
+
+  </compound>
+  <compound name="/base/Time" size="8">
+    <field name="microseconds" type="/int64_t" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Time.hpp:23]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Time.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Time.hpp:18]]></metadata>
+
+  </compound>
+  <compound name="/base/Trajectory" size="96">
+    <field name="speed" type="/double" offset="0">
+    <metadata key="doc"><![CDATA[The speed in which the trajectory should be
+traversed.
+]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Trajectory.hpp:19]]></metadata>
+
+    </field>
+    <field name="spline" type="/base/geometry/Spline&lt;3&gt;" offset="8">
+    <metadata key="doc"><![CDATA[A spline representing the trajectory that should
+be driven.
+]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Trajectory.hpp:34]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Trajectory.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Trajectory.hpp:10]]></metadata>
+
+  </compound>
+  <compound name="/base/Waypoint" size="48">
+    <field name="position" type="/base/Vector3d" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Waypoint.hpp:14]]></metadata>
+
+    </field>
+    <field name="heading" type="/double" offset="24">
+    <metadata key="doc"><![CDATA[heading in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Waypoint.hpp:16]]></metadata>
+
+    </field>
+    <field name="tol_position" type="/double" offset="32">
+    <metadata key="doc"><![CDATA[tollerance of the position in m]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Waypoint.hpp:19]]></metadata>
+
+    </field>
+    <field name="tol_heading" type="/double" offset="40">
+    <metadata key="doc"><![CDATA[tollerance of the heading in rad]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Waypoint.hpp:21]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Waypoint.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/Waypoint.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/base/JointLimitRange" size="48">
+    <field name="min" type="/base/JointState" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointLimitRange.hpp:12]]></metadata>
+
+    </field>
+    <field name="max" type="/base/JointState" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointLimitRange.hpp:13]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/JointLimits.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointLimitRange.hpp:11]]></metadata>
+
+  </compound>
+  <compound name="/base/TimeStamped&lt;/base/commands/Motion2D&gt;" size="24">
+    <field name="translation" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:14]]></metadata>
+
+    </field>
+    <field name="rotation" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:15]]></metadata>
+
+    </field>
+    <field name="time" type="/base/Time" offset="16">
+    <metadata key="doc"><![CDATA[the actual timestamp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/../templates/TimeStamped.hpp:59]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/commands/Motion2D]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/CommandSamples.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/../templates/TimeStamped.hpp:18]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/MotorState" size="32">
+    <field name="current" type="/int32_t" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:30]]></metadata>
+
+    </field>
+    <field name="position" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:31]]></metadata>
+
+    </field>
+    <field name="positionExtern" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:32]]></metadata>
+
+    </field>
+    <field name="pwm" type="/float" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:33]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[\deprecated use base::samples::Joints instead
+
+Represents the state of a single actuator
+
++current+ is the current reading
+
++position+ is the position of the actuated part (i.e. motor + gear),
+in radians. Wether this position is absolute or relative depends on
+the type of encoder on the particular actuator it represents.
+
++positionExtern+ is used in cases where an elastic coupling exists
+between the motor and the actuated part (for instance, the wheel). In
+this case, \c position is before the elasticity and \c positionExtern
+after
+
++pwm+ is the current duty-cycle
+
++error+ is a bitfield representing the actuator state.]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/status.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:29]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/PIDValues" size="16">
+    <field name="kp" type="/float" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:18]]></metadata>
+
+    </field>
+    <field name="ki" type="/float" offset="4">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:19]]></metadata>
+
+    </field>
+    <field name="kd" type="/float" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:20]]></metadata>
+
+    </field>
+    <field name="maxPWM" type="/float" offset="12">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:21]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[\deprecated in Rock, use the PIDSettings class from the control/motor_controller package
+
+Structure holding PID values
+
+The actual meaning of those values will obviously depend on the
+actuator and control electronics.]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:17]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/AdaptativeCommand" size="48">
+    <field name="target" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:78]]></metadata>
+
+    </field>
+    <field name="mode" type="/int32_t" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:80]]></metadata>
+
+    </field>
+    <field name="pid_position" type="/base/actuators/PIDValues" offset="12">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:81]]></metadata>
+
+    </field>
+    <field name="pid_speed" type="/base/actuators/PIDValues" offset="28">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:82]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[\deprecated ]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:77]]></metadata>
+
+  </compound>
+  <compound name="/base/commands/AUVMotion" size="32">
+    <field name="heading" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVMotion.hpp:12]]></metadata>
+
+    </field>
+    <field name="z" type="/double" offset="8">
+    <metadata key="doc"><![CDATA[! counter-clockwise, has to be in -PI/PI)]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVMotion.hpp:14]]></metadata>
+
+    </field>
+    <field name="x_speed" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVMotion.hpp:15]]></metadata>
+
+    </field>
+    <field name="y_speed" type="/double" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVMotion.hpp:16]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/commands/AUVMotion.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVMotion.hpp:11]]></metadata>
+
+  </compound>
+  <compound name="/base/commands/AUVPosition" size="32">
+    <field name="heading" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVPosition.hpp:12]]></metadata>
+
+    </field>
+    <field name="z" type="/double" offset="8">
+    <metadata key="doc"><![CDATA[! counter-clockwise, has to be in -PI/PI)]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVPosition.hpp:14]]></metadata>
+
+    </field>
+    <field name="x" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVPosition.hpp:15]]></metadata>
+
+    </field>
+    <field name="y" type="/double" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVPosition.hpp:16]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/commands/AUVPosition.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/AUVPosition.hpp:11]]></metadata>
+
+  </compound>
+  <compound name="/base/commands/Motion2D" size="16">
+    <field name="translation" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:14]]></metadata>
+
+    </field>
+    <field name="rotation" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/commands/Motion2D.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/base/commands/Speed6D" size="48">
+    <field name="surge" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:13]]></metadata>
+
+    </field>
+    <field name="sway" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:14]]></metadata>
+
+    </field>
+    <field name="heave" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:15]]></metadata>
+
+    </field>
+    <field name="roll" type="/double" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:17]]></metadata>
+
+    </field>
+    <field name="pitch" type="/double" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:18]]></metadata>
+
+    </field>
+    <field name="yaw" type="/double" offset="40">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:19]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/commands/Speed6D.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Speed6D.hpp:12]]></metadata>
+
+  </compound>
+  <alias name="/base/AUVMotionCommand" source="/base/commands/AUVMotion"/>
+  <alias name="/base/AUVPositionCommand" source="/base/commands/AUVPosition"/>
+  <alias name="/base/MotionCommand2D" source="/base/commands/Motion2D"/>
+  <alias name="/base/SpeedCommand6D" source="/base/commands/Speed6D"/>
+  <alias name="/base/samples/DistanceImage/scalar" source="/float"/>
+  <compound name="/base/samples/IMUSensors" size="80">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[Timestamp of the orientation reading ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/IMUSensors.hpp:11]]></metadata>
+
+    </field>
+    <field name="acc" type="/base/Vector3d" offset="8">
+    <metadata key="doc"><![CDATA[raw accelerometer readings ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/IMUSensors.hpp:14]]></metadata>
+
+    </field>
+    <field name="gyro" type="/base/Vector3d" offset="32">
+    <metadata key="doc"><![CDATA[raw gyro reading]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/IMUSensors.hpp:17]]></metadata>
+
+    </field>
+    <field name="mag" type="/base/Vector3d" offset="56">
+    <metadata key="doc"><![CDATA[raw magnetometer reading]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/IMUSensors.hpp:20]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/IMUSensors.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/IMUSensors.hpp:9]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/Motion2D" size="24">
+    <field name="translation" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:14]]></metadata>
+
+    </field>
+    <field name="rotation" type="/double" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/commands/Motion2D.hpp:15]]></metadata>
+
+    </field>
+    <field name="time" type="/base/Time" offset="16">
+    <metadata key="doc"><![CDATA[the actual timestamp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/../templates/TimeStamped.hpp:59]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/TimeStamped</base/commands/Motion2D>]]></metadata>
+<metadata key="doc"><![CDATA[Time stamped version of a Motion2D command]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/CommandSamples.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/CommandSamples.hpp:27]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/RigidBodyAcceleration" size="104">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyAcceleration.hpp:10]]></metadata>
+
+    </field>
+    <field name="acceleration" type="/base/Vector3d" offset="8">
+    <metadata key="doc"><![CDATA[Acceleration in m/s, world fixed frame of reference (East-North-Up) ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyAcceleration.hpp:13]]></metadata>
+
+    </field>
+    <field name="cov_acceleration" type="/base/Matrix3d" offset="32">
+    <metadata key="doc"><![CDATA[Covariance matrix of the acceleration]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyAcceleration.hpp:16]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/RigidBodyAcceleration.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyAcceleration.hpp:9]]></metadata>
+
+  </compound>
+  <alias name="/base/samples/LaserScan/uint32_t" source="/uint32_t"/>
+  <alias name="/base/samples/SonarBeam/uint8_t" source="/uint8_t"/>
+  <compound name="/base/samples/frame/frame_size_t" size="4">
+    <field name="width" type="/uint16_t" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:48]]></metadata>
+
+    </field>
+    <field name="height" type="/uint16_t" offset="2">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:49]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:33]]></metadata>
+
+  </compound>
+  <container name="/std/string" of="/int8_t" size="8" kind="/std/string">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/JointLimitRange&gt;" of="/base/JointLimitRange" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/JointState&gt;" of="/base/JointState" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Time&gt;" of="/base/Time" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Trajectory&gt;" of="/base/Trajectory" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Vector3d&gt;" of="/base/Vector3d" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Vector4d&gt;" of="/base/Vector4d" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Waypoint&gt;" of="/base/Waypoint" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/actuators/AdaptativeCommand&gt;" of="/base/actuators/AdaptativeCommand" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/actuators/DRIVE_MODE&gt;" of="/base/actuators/DRIVE_MODE" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/actuators/MotorState&gt;" of="/base/actuators/MotorState" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/double&gt;" of="/double" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/float&gt;" of="/float" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/uint32_t&gt;" of="/uint32_t" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/uint8_t&gt;" of="/uint8_t" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/std/string&gt;" of="/std/string" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/std/vector&lt;/base/JointState&gt;&gt;" of="/std/vector&lt;/base/JointState&gt;" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <alias name="/std/vector&lt;/unsigned char&gt;" source="/std/vector&lt;/uint8_t&gt;"/>
+  <alias name="/std/vector&lt;/unsigned int&gt;" source="/std/vector&lt;/uint32_t&gt;"/>
+  <alias name="/std/vector&lt;/unsigned&gt;" source="/std/vector&lt;/uint32_t&gt;"/>
+  <compound name="/base/JointLimits" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointLimitRange&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/NamedVector</base/JointLimitRange>]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/JointLimits.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointLimits.hpp:11]]></metadata>
+
+  </compound>
+  <alias name="/base/JointTrajectory" source="/std/vector&lt;/base/JointState&gt;"/>
+  <compound name="/base/JointTransform" size="40">
+    <field name="sourceFrame" type="/std/string" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointTransform.hpp:19]]></metadata>
+
+    </field>
+    <field name="targetFrame" type="/std/string" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointTransform.hpp:20]]></metadata>
+
+    </field>
+    <field name="rotationAxis" type="/base/Vector3d" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointTransform.hpp:21]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/JointTransform.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointTransform.hpp:18]]></metadata>
+
+  </compound>
+  <compound name="/base/JointsTrajectory" size="72">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/std/vector&lt;/base/JointState&gt;&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+    <field name="times" type="/std/vector&lt;/base/Time&gt;" offset="48">
+    <metadata key="doc"><![CDATA[@brief optional array of time values corresponding to the samples of the JointState
+
+This vector needs to be either empty or the same size as each of the
+std::vector<JointState> in the elements vector.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointsTrajectory.hpp:35]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/NamedVector</std/vector</base/JointState>>]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/JointsTrajectory.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointsTrajectory.hpp:28]]></metadata>
+
+  </compound>
+  <compound name="/base/NamedVector&lt;/base/JointLimitRange&gt;" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointLimitRange&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:12]]></metadata>
+
+  </compound>
+  <compound name="/base/NamedVector&lt;/base/JointState&gt;" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointState&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:12]]></metadata>
+
+  </compound>
+  <compound name="/base/NamedVector&lt;/std/vector&lt;/base/JointState&gt;&gt;" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/std/vector&lt;/base/JointState&gt;&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:12]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/AdaptativeCommands" size="32">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:97]]></metadata>
+
+    </field>
+    <field name="commands" type="/std/vector&lt;/base/actuators/AdaptativeCommand&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:98]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[\deprecated
+
+Synchronized set of adaptive commands for a set of actuators
+
+Since this type contains std::vector, one must preallocate it
+and resize the mode and target vectors accordingly before
+updateHook().]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:96]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/Command" size="56">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:47]]></metadata>
+
+    </field>
+    <field name="mode" type="/std/vector&lt;/base/actuators/DRIVE_MODE&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:49]]></metadata>
+
+    </field>
+    <field name="target" type="/std/vector&lt;/double&gt;" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:50]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[\deprecated use base::commands::Joints
+
+Synchronized set of commands for a set of actuators
+
+Since this type contains std::vector, one must preallocate it
+and resize the mode and target vectors accordingly before
+updateHook().]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/commands.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/commands.h:46]]></metadata>
+
+  </compound>
+  <compound name="/base/actuators/Status" size="40">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:56]]></metadata>
+
+    </field>
+    <field name="index" type="/uint64_t" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:57]]></metadata>
+
+    </field>
+    <field name="states" type="/std/vector&lt;/base/actuators/MotorState&gt;" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:58]]></metadata>
+
+    </field>
+  <metadata key="doc"><![CDATA[Synchronized set of actuator states ]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/actuators/status.h]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/backward/base/actuators/status.h:55]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/DistanceImage" size="56">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[original timestamp of the camera image]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:35]]></metadata>
+
+    </field>
+    <field name="width" type="/uint16_t" offset="8">
+    <metadata key="doc"><![CDATA[width (x) value in pixels]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:38]]></metadata>
+
+    </field>
+    <field name="height" type="/uint16_t" offset="10">
+    <metadata key="doc"><![CDATA[height (y) value in pixels]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:40]]></metadata>
+
+    </field>
+    <field name="scale_x" type="/float" offset="12">
+    <metadata key="doc"><![CDATA[scale value to apply to the x axis]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:44]]></metadata>
+
+    </field>
+    <field name="scale_y" type="/float" offset="16">
+    <metadata key="doc"><![CDATA[scale value to apply to the y axis]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:46]]></metadata>
+
+    </field>
+    <field name="center_x" type="/float" offset="20">
+    <metadata key="doc"><![CDATA[center offset to apply to the x axis]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:49]]></metadata>
+
+    </field>
+    <field name="center_y" type="/float" offset="24">
+    <metadata key="doc"><![CDATA[center offset to apply to the y axis]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:51]]></metadata>
+
+    </field>
+    <field name="data" type="/std/vector&lt;/float&gt;" offset="32">
+    <metadata key="doc"><![CDATA[distance values stored in row major order. NaN is used as the no value type.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:54]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/DistanceImage.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/DistanceImage.hpp:33]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/Joints" size="56">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointState&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+    <field name="time" type="/base/Time" offset="48">
+    <metadata key="doc"><![CDATA[The sample timestamp ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Joints.hpp:20]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/NamedVector</base/JointState>]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Joints.hpp:18]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/LaserScan" size="88">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[The timestamp of this reading. The timestamp is the time at which the
+laser passed the zero step (i.e. the step at the back of the device,
+which is distinct from the measurement 0)]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:31]]></metadata>
+
+    </field>
+    <field name="start_angle" type="/double" offset="8">
+    <metadata key="doc"><![CDATA[The angle at which the range readings start. Zero is at the front of
+the device and turns counter-clockwise.
+This value is in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:37]]></metadata>
+
+    </field>
+    <field name="angular_resolution" type="/double" offset="16">
+    <metadata key="doc"><![CDATA[Angle difference between two scan point in radians;]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:41]]></metadata>
+
+    </field>
+    <field name="speed" type="/double" offset="24">
+    <metadata key="doc"><![CDATA[The rotation speed of the laserbeam in radians/seconds]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:45]]></metadata>
+
+    </field>
+    <field name="ranges" type="/std/vector&lt;/uint32_t&gt;" offset="32">
+    <metadata key="doc"><![CDATA[The ranges themselves: the distance to obstacles in millimeters]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:49]]></metadata>
+
+    </field>
+    <field name="minRange" type="/uint32_t" offset="56">
+    <metadata key="doc"><![CDATA[minimal valid range returned by laserscanner ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:52]]></metadata>
+
+    </field>
+    <field name="maxRange" type="/uint32_t" offset="60">
+    <metadata key="doc"><![CDATA[maximal valid range returned by laserscanner ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:55]]></metadata>
+
+    </field>
+    <field name="remission" type="/std/vector&lt;/float&gt;" offset="64">
+    <metadata key="doc"><![CDATA[The remission value from the laserscan.
+This value is not normalised and depends on various factors, like distance,
+angle of incidence and reflectivity of object.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:61]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/LaserScan.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/LaserScan.hpp:24]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/Pointcloud" size="56">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Pointcloud.hpp:15]]></metadata>
+
+    </field>
+    <field name="points" type="/std/vector&lt;/base/Vector3d&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Pointcloud.hpp:17]]></metadata>
+
+    </field>
+    <field name="colors" type="/std/vector&lt;/base/Vector4d&gt;" offset="32">
+    <metadata key="doc"><![CDATA[Colors of each point if availible,
+leave empty if points are uncolored
+otherwise it should have the same size
+than the points vector]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Pointcloud.hpp:25]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Pointcloud.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Pointcloud.hpp:14]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/RigidBodyState" size="416">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:39]]></metadata>
+
+    </field>
+    <field name="sourceFrame" type="/std/string" offset="8">
+    <metadata key="doc"><![CDATA[Name of the source reference frame ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:42]]></metadata>
+
+    </field>
+    <field name="targetFrame" type="/std/string" offset="16">
+    <metadata key="doc"><![CDATA[Name of the target reference frame ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:45]]></metadata>
+
+    </field>
+    <field name="position" type="/base/Vector3d" offset="24">
+    <metadata key="doc"><![CDATA[Position in m of sourceFrame's origin expressed in targetFrame]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:49]]></metadata>
+
+    </field>
+    <field name="cov_position" type="/base/Matrix3d" offset="48">
+    <metadata key="doc"><![CDATA[Covariance matrix of the position]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:52]]></metadata>
+
+    </field>
+    <field name="orientation" type="/base/Quaterniond" offset="120">
+    <metadata key="doc"><![CDATA[Orientation of targetFrame expressed in sourceFrame ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:55]]></metadata>
+
+    </field>
+    <field name="cov_orientation" type="/base/Matrix3d" offset="152">
+    <metadata key="doc"><![CDATA[Covariance matrix of the orientation as an axis/angle manifold in
+body coordinates]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:59]]></metadata>
+
+    </field>
+    <field name="velocity" type="/base/Vector3d" offset="224">
+    <metadata key="doc"><![CDATA[Velocity in m/s of sourceFrame expressed in targetFrame ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:62]]></metadata>
+
+    </field>
+    <field name="cov_velocity" type="/base/Matrix3d" offset="248">
+    <metadata key="doc"><![CDATA[Covariance of the velocity]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:65]]></metadata>
+
+    </field>
+    <field name="angular_velocity" type="/base/Vector3d" offset="320">
+    <metadata key="doc"><![CDATA[Angular Velocity as an axis-angle representation in body fixed frame
+
+The direction of the vector is the axis, its length the speed ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:70]]></metadata>
+
+    </field>
+    <field name="cov_angular_velocity" type="/base/Matrix3d" offset="344">
+    <metadata key="doc"><![CDATA[Covariance of the angular velocity]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:73]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/RigidBodyState.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/RigidBodyState.hpp:32]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/SonarBeam" size="64">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[timestamp of the sonar beam]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:16]]></metadata>
+
+    </field>
+    <field name="bearing" type="/base/Angle" offset="8">
+    <metadata key="doc"><![CDATA[direction of the sonar beam in radians [-pi,+pi]
+zero is at the front]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:20]]></metadata>
+
+    </field>
+    <field name="sampling_interval" type="/double" offset="16">
+    <metadata key="doc"><![CDATA[sampling interval of each range bin in secs]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:23]]></metadata>
+
+    </field>
+    <field name="speed_of_sound" type="/float" offset="24">
+    <metadata key="doc"><![CDATA[speed of sound
+this takes the medium into account]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:27]]></metadata>
+
+    </field>
+    <field name="beamwidth_horizontal" type="/float" offset="28">
+    <metadata key="doc"><![CDATA[horizontal beamwidth of the sonar beam in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:30]]></metadata>
+
+    </field>
+    <field name="beamwidth_vertical" type="/float" offset="32">
+    <metadata key="doc"><![CDATA[vertical beamwidth of the sonar beam in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:33]]></metadata>
+
+    </field>
+    <field name="beam" type="/std/vector&lt;/uint8_t&gt;" offset="40">
+    <metadata key="doc"><![CDATA[received echoes (bins) along the beam]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:36]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/SonarBeam.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarBeam.hpp:12]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/SonarScan" size="120">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[The time at which this sonar scan has been captured]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:325]]></metadata>
+
+    </field>
+    <field name="data" type="/std/vector&lt;/uint8_t&gt;" offset="8">
+    <metadata key="doc"><![CDATA[The raw data of the sonar scan]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:328]]></metadata>
+
+    </field>
+    <field name="time_beams" type="/std/vector&lt;/base/Time&gt;" offset="32">
+    <metadata key="doc"><![CDATA[Time stamp for each sonar beam
+if the time stamp is 1 January 1970
+the beam is regarded as not be set
+vector can be empty in this case time
+is used for all beams]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:335]]></metadata>
+
+    </field>
+    <field name="number_of_beams" type="/uint16_t" offset="56">
+    <metadata key="doc"><![CDATA[number of beams
+this can be interpreted as image width]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:339]]></metadata>
+
+    </field>
+    <field name="number_of_bins" type="/uint16_t" offset="58">
+    <metadata key="doc"><![CDATA[number of bins
+this can be interpreted as image height]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:343]]></metadata>
+
+    </field>
+    <field name="start_bearing" type="/base/Angle" offset="64">
+    <metadata key="doc"><![CDATA[The angle at which the reading starts. Zero is at the front of
+the device and turns counter-clockwise.
+This value is in radians
+
+All beams are stored from left to right to match the memory
+layout of an image !!! Therefore the end bearing is usually
+smaller than the start bearing]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:353]]></metadata>
+
+    </field>
+    <field name="angular_resolution" type="/base/Angle" offset="72">
+    <metadata key="doc"><![CDATA[Angle difference between two beams in radians
+The beams are stored from left to right
+to match the memory layout of an image
+
+This value must be always positive !]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:360]]></metadata>
+
+    </field>
+    <field name="sampling_interval" type="/double" offset="80">
+    <metadata key="doc"><![CDATA[sampling interval of each range bin in secs]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:363]]></metadata>
+
+    </field>
+    <field name="speed_of_sound" type="/float" offset="88">
+    <metadata key="doc"><![CDATA[speed of sound
+this takes the medium into account]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:367]]></metadata>
+
+    </field>
+    <field name="beamwidth_horizontal" type="/base/Angle" offset="96">
+    <metadata key="doc"><![CDATA[horizontal beam width of the sonar beam in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:370]]></metadata>
+
+    </field>
+    <field name="beamwidth_vertical" type="/base/Angle" offset="104">
+    <metadata key="doc"><![CDATA[vertical beam width of the sonar beam in radians]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:373]]></metadata>
+
+    </field>
+    <field name="memory_layout_column" type="/bool" offset="112">
+    <metadata key="doc"><![CDATA[if set to true one sonar beam is stored per column
+otherwise per row]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:377]]></metadata>
+
+    </field>
+    <field name="polar_coordinates" type="/bool" offset="113">
+    <metadata key="doc"><![CDATA[if set to true the bins are interpreted in polar coordinates
+otherwise in Cartesian coordinates
+
+Some imaging sonars store their data in Cartesian rather than
+polar coordinates (BlueView)]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:384]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/SonarScan.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/SonarScan.hpp:23]]></metadata>
+
+  </compound>
+  <alias name="/base/commands/Joints" source="/base/samples/Joints"/>
+  <compound name="/base/samples/frame/frame_attrib_t" size="16">
+    <field name="data_" type="/std/string" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:24]]></metadata>
+
+    </field>
+    <field name="name_" type="/std/string" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:25]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:23]]></metadata>
+
+  </compound>
+  <container name="/std/vector&lt;/base/JointTransform&gt;" of="/base/JointTransform" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/samples/frame/frame_attrib_t&gt;" of="/base/samples/frame/frame_attrib_t" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/Temperature.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <compound name="/base/JointTransformVector" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointTransform&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="base_classes"><![CDATA[/base/NamedVector</base/JointTransform>]]></metadata>
+<metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/JointTransform.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/JointTransform.hpp:29]]></metadata>
+
+  </compound>
+  <compound name="/base/NamedVector&lt;/base/JointTransform&gt;" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="doc"><![CDATA[The names of the elements described in this structure, in the same
+order than the 'elements' field below]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:30]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointTransform&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The element vector ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Joints.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/NamedVector.hpp:12]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/frame/Frame" size="88">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="doc"><![CDATA[The time at which this frame has been captured
+
+This is obviously an estimate]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:509]]></metadata>
+
+    </field>
+    <field name="received_time" type="/base/Time" offset="8">
+    <metadata key="doc"><![CDATA[The time at which this frame has been received on the system ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:511]]></metadata>
+
+    </field>
+    <field name="image" type="/std/vector&lt;/uint8_t&gt;" offset="16">
+    <metadata key="doc"><![CDATA[The raw data ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:514]]></metadata>
+
+    </field>
+    <field name="attributes" type="/std/vector&lt;/base/samples/frame/frame_attrib_t&gt;" offset="40">
+    <metadata key="doc"><![CDATA[Additional metadata ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:516]]></metadata>
+
+    </field>
+    <field name="size" type="/base/samples/frame/frame_size_t" offset="64">
+    <metadata key="doc"><![CDATA[The image size in pixels ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:519]]></metadata>
+
+    </field>
+    <field name="data_depth" type="/uint32_t" offset="68">
+    <metadata key="doc"><![CDATA[The number of effective bits per channel. The number
+of actual bits per channel is always a multiple of
+height (i.e. a 12-bit effective depth is represented
+using 16-bits per channels). The number of greyscale
+levels is 2^(this_number)]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:527]]></metadata>
+
+    </field>
+    <field name="pixel_size" type="/uint32_t" offset="72">
+    <metadata key="doc"><![CDATA[The size of one pixel, in bytes
+
+For instance, for a RGB image with a 8 bit data depth, it would
+be 3. For a 12 bit non-packed image (i.e with each channel
+encoded on 2 bytes), it would be 6.]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:534]]></metadata>
+
+    </field>
+    <field name="row_size" type="/uint32_t" offset="76">
+    <metadata key="doc"><![CDATA[The size of a complete row in bytes]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:538]]></metadata>
+
+    </field>
+    <field name="frame_mode" type="/base/samples/frame/frame_mode_t" offset="80">
+    <metadata key="doc"><![CDATA[The colorspace of the image]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:542]]></metadata>
+
+    </field>
+    <field name="frame_status" type="/base/samples/frame/frame_status_t" offset="84">
+    <metadata key="doc"><![CDATA[Status flag ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:545]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:79]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/frame/FramePair" size="192">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:550]]></metadata>
+
+    </field>
+    <field name="first" type="/base/samples/frame/Frame" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:551]]></metadata>
+
+    </field>
+    <field name="second" type="/base/samples/frame/Frame" offset="96">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:552]]></metadata>
+
+    </field>
+    <field name="id" type="/uint32_t" offset="184">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:553]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/samples/Frame.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/install/include/base/samples/Frame.hpp:549]]></metadata>
+
+  </compound>
+  <compound name="/wrappers/Matrix&lt;/double,2,1&gt;" size="16">
+    <field name="data" type="/double[2]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/wrappers/Matrix&lt;/double,2,2&gt;" size="32">
+    <field name="data" type="/double[4]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Matrix2d" source="/wrappers/Matrix&lt;/double,2,2&gt;"/>
+  <compound name="/wrappers/Matrix&lt;/double,3,1&gt;" size="24">
+    <field name="data" type="/double[3]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/wrappers/Matrix&lt;/double,3,3&gt;" size="72">
+    <field name="data" type="/double[9]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Matrix3d" source="/wrappers/Matrix&lt;/double,3,3&gt;"/>
+  <compound name="/wrappers/Matrix&lt;/double,4,1&gt;" size="32">
+    <field name="data" type="/double[4]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/wrappers/Matrix&lt;/double,4,4&gt;" size="128">
+    <field name="data" type="/double[16]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Matrix4d" source="/wrappers/Matrix&lt;/double,4,4&gt;"/>
+  <alias name="/wrappers/Matrix4x4d" source="/wrappers/Matrix&lt;/double,4,4&gt;"/>
+  <compound name="/wrappers/Matrix&lt;/double,6,1&gt;" size="48">
+    <field name="data" type="/double[6]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/wrappers/Matrix&lt;/double,6,6&gt;" size="288">
+    <field name="data" type="/double[36]" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:13]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Matrix6d" source="/wrappers/Matrix&lt;/double,6,6&gt;"/>
+  <compound name="/wrappers/MatrixX&lt;/double&gt;" size="32">
+    <field name="rows" type="/int32_t" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:23]]></metadata>
+
+    </field>
+    <field name="cols" type="/int32_t" offset="4">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:24]]></metadata>
+
+    </field>
+    <field name="data" type="/std/vector&lt;/double&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:25]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:21]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/MatrixXd" source="/wrappers/MatrixX&lt;/double&gt;"/>
+  <compound name="/wrappers/Quaternion&lt;/double&gt;" size="32">
+    <field name="im" type="/double[3]" offset="0">
+    <metadata key="doc"><![CDATA[store as imaginary and real part, so it comes out clear in the pocosim logs]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:44]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:44]]></metadata>
+
+    </field>
+    <field name="re" type="/double" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:45]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:45]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:42]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/Eigen.hpp:42]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Vector2d" source="/wrappers/Matrix&lt;/double,2,1&gt;"/>
+  <alias name="/wrappers/Vector3d" source="/wrappers/Matrix&lt;/double,3,1&gt;"/>
+  <alias name="/wrappers/Vector4d" source="/wrappers/Matrix&lt;/double,4,1&gt;"/>
+  <alias name="/wrappers/Vector6d" source="/wrappers/Matrix&lt;/double,6,1&gt;"/>
+  <compound name="/wrappers/VectorX&lt;/double&gt;" size="24">
+    <field name="data" type="/std/vector&lt;/double&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:33]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/Eigen.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/Eigen.hpp:31]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Quaterniond" source="/wrappers/Quaternion&lt;/double&gt;"/>
+  <alias name="/wrappers/VectorXd" source="/wrappers/VectorX&lt;/double&gt;"/>
+  <compound name="/base/JointTransform_m" size="40">
+    <field name="sourceFrame" type="/std/string" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransform.hpp:15]]></metadata>
+
+    </field>
+    <field name="targetFrame" type="/std/string" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransform.hpp:16]]></metadata>
+
+    </field>
+    <field name="rotationAxis" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransform.hpp:17]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/JointTransform.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransform.hpp:14]]></metadata>
+
+  </compound>
+  <compound name="/base/Pose2D_m" size="24">
+    <field name="position" type="/wrappers/Matrix&lt;/double,2,1&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose2D.hpp:14]]></metadata>
+
+    </field>
+    <field name="orientation" type="/double" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose2D.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/Pose2D.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose2D.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/base/Pose_m" size="56">
+    <field name="position" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose.hpp:14]]></metadata>
+
+    </field>
+    <field name="orientation" type="/wrappers/Quaternion&lt;/double&gt;" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/Pose.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pose.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/base/Waypoint_m" size="48">
+    <field name="position" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Waypoint.hpp:14]]></metadata>
+
+    </field>
+    <field name="heading" type="/double" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Waypoint.hpp:15]]></metadata>
+
+    </field>
+    <field name="tol_position" type="/double" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Waypoint.hpp:16]]></metadata>
+
+    </field>
+    <field name="tol_heading" type="/double" offset="40">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Waypoint.hpp:17]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/Waypoint.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Waypoint.hpp:13]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/IMUSensors_m" size="80">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/IMUSensors.hpp:16]]></metadata>
+
+    </field>
+    <field name="acc" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/IMUSensors.hpp:17]]></metadata>
+
+    </field>
+    <field name="gyro" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/IMUSensors.hpp:18]]></metadata>
+
+    </field>
+    <field name="mag" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="56">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/IMUSensors.hpp:19]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/IMUSensors.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/IMUSensors.hpp:15]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/RigidBodyAcceleration_m" size="104">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyAcceleration.hpp:16]]></metadata>
+
+    </field>
+    <field name="acceleration" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyAcceleration.hpp:17]]></metadata>
+
+    </field>
+    <field name="cov_acceleration" type="/wrappers/Matrix&lt;/double,3,3&gt;" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyAcceleration.hpp:18]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/RigidBodyAcceleration.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyAcceleration.hpp:15]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/RigidBodyState_m" size="416">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:17]]></metadata>
+
+    </field>
+    <field name="sourceFrame" type="/std/string" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:18]]></metadata>
+
+    </field>
+    <field name="targetFrame" type="/std/string" offset="16">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:19]]></metadata>
+
+    </field>
+    <field name="position" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:20]]></metadata>
+
+    </field>
+    <field name="cov_position" type="/wrappers/Matrix&lt;/double,3,3&gt;" offset="48">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:21]]></metadata>
+
+    </field>
+    <field name="orientation" type="/wrappers/Quaternion&lt;/double&gt;" offset="120">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:22]]></metadata>
+
+    </field>
+    <field name="cov_orientation" type="/wrappers/Matrix&lt;/double,3,3&gt;" offset="152">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:23]]></metadata>
+
+    </field>
+    <field name="velocity" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="224">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:24]]></metadata>
+
+    </field>
+    <field name="cov_velocity" type="/wrappers/Matrix&lt;/double,3,3&gt;" offset="248">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:25]]></metadata>
+
+    </field>
+    <field name="angular_velocity" type="/wrappers/Matrix&lt;/double,3,1&gt;" offset="320">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:26]]></metadata>
+
+    </field>
+    <field name="cov_angular_velocity" type="/wrappers/Matrix&lt;/double,3,3&gt;" offset="344">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:27]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/RigidBodyState.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/RigidBodyState.hpp:16]]></metadata>
+
+  </compound>
+  <container name="/std/vector&lt;/base/JointTransform_m&gt;" of="/base/JointTransform_m" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/vector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/base/Waypoint_m&gt;" of="/base/Waypoint_m" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/vector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/wrappers/Matrix&lt;/double,3,1&gt;&gt;" of="/wrappers/Matrix&lt;/double,3,1&gt;" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/vector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <container name="/std/vector&lt;/wrappers/Matrix&lt;/double,4,1&gt;&gt;" of="/wrappers/Matrix&lt;/double,4,1&gt;" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/vector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <alias name="/std/orogen_typekits_mtype_std_vector__base_JointTransform_" source="/std/vector&lt;/base/JointTransform_m&gt;"/>
+  <alias name="/std/orogen_typekits_mtype_std_vector__base_Waypoint_" source="/std/vector&lt;/base/Waypoint_m&gt;"/>
+  <alias name="/std/vector&lt;/wrappers/Vector4d&gt;" source="/std/vector&lt;/wrappers/Matrix&lt;/double,4,1&gt;&gt;"/>
+  <compound name="/base/JointTransformVector_m" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransformVector.hpp:15]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointTransform_m&gt;" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransformVector.hpp:16]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/JointTransformVector.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/JointTransformVector.hpp:14]]></metadata>
+
+  </compound>
+  <compound name="/base/NamedVector__base_JointTransform__m" size="48">
+    <field name="names" type="/std/vector&lt;/std/string&gt;" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/NamedVector__base_JointTransform_.hpp:15]]></metadata>
+
+    </field>
+    <field name="elements" type="/std/vector&lt;/base/JointTransform_m&gt;" offset="24">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/NamedVector__base_JointTransform_.hpp:16]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/NamedVector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/NamedVector__base_JointTransform_.hpp:14]]></metadata>
+
+  </compound>
+  <compound name="/base/samples/Pointcloud_m" size="56">
+    <field name="time" type="/base/Time" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pointcloud.hpp:17]]></metadata>
+
+    </field>
+    <field name="points" type="/std/vector&lt;/wrappers/Matrix&lt;/double,3,1&gt;&gt;" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pointcloud.hpp:18]]></metadata>
+
+    </field>
+    <field name="colors" type="/std/vector&lt;/wrappers/Matrix&lt;/double,4,1&gt;&gt;" offset="32">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pointcloud.hpp:19]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/Pointcloud.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Pointcloud.hpp:16]]></metadata>
+
+  </compound>
+  <alias name="/wrappers/Matrix&lt;/double,2,1&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,2,2&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,3,1&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,3,3&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,4,1&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,4,4&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,6,1&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/Matrix&lt;/double,6,6&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/MatrixX&lt;/double&gt;/Scalar" source="/double"/>
+  <alias name="/wrappers/VectorX&lt;/double&gt;/Scalar" source="/double"/>
+  <enum name="/wrappers/geometry/SplineType">
+    <value symbol="DEGENERATE" value="0"/>
+    <value symbol="POLYNOMIAL_BEZIER" value="3"/>
+    <value symbol="POLYNOMIAL_BSPLINE" value="1"/>
+    <value symbol="RATIONAL_BEZIER" value="4"/>
+    <value symbol="RATIONAL_BSPLINE" value="2"/>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/geometry/Spline.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:14]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:14]]></metadata>
+
+  </enum>
+  <compound name="/wrappers/geometry/Spline" size="72">
+    <field name="geometric_resolution" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:25]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:25]]></metadata>
+
+    </field>
+    <field name="dimension" type="/int32_t" offset="8">
+    <metadata key="doc"><![CDATA[The dimension in which the curve lies ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:28]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:28]]></metadata>
+
+    </field>
+    <field name="curve_order" type="/int32_t" offset="12">
+    <metadata key="doc"><![CDATA[The curve order ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:31]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:31]]></metadata>
+
+    </field>
+    <field name="kind" type="/wrappers/geometry/SplineType" offset="16">
+    <metadata key="doc"><![CDATA[The type of the curve ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:34]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:34]]></metadata>
+
+    </field>
+    <field name="knots" type="/std/vector&lt;/double&gt;" offset="24">
+    <metadata key="doc"><![CDATA[The curve knots. This is vertex_count + curve_order values ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:37]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:37]]></metadata>
+
+    </field>
+    <field name="vertices" type="/std/vector&lt;/double&gt;" offset="48">
+    <metadata key="doc"><![CDATA[The vertices, as vertex_count * dimension coordinates if kind is
+non-rational and vertex_count * (dimension + 1) otherwise. ]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:41]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:41]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/wrappers/geometry/Spline.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/wrappers/geometry/Spline.hpp:24]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/base/wrappers/geometry/Spline.hpp:24]]></metadata>
+
+  </compound>
+  <compound name="/base/Trajectory_m" size="80">
+    <field name="speed" type="/double" offset="0">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Trajectory.hpp:14]]></metadata>
+
+    </field>
+    <field name="spline" type="/wrappers/geometry/Spline" offset="8">
+    <metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Trajectory.hpp:15]]></metadata>
+
+    </field>
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/Trajectory.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/home/doudou/dev/rock/toolchain-devel/orogen_cleanup/base/orogen/types/.orogen/typekit/types/base/m_types/Trajectory.hpp:13]]></metadata>
+
+  </compound>
+  <container name="/std/vector&lt;/base/Trajectory_m&gt;" of="/base/Trajectory_m" size="24" kind="/std/vector">
+  <metadata key="orogen_defining_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_exporting_typekits"><![CDATA[base]]></metadata>
+<metadata key="orogen_include"><![CDATA[base:base/m_types/vector__base_JointTransform_.hpp]]></metadata>
+<metadata key="source_file_line"><![CDATA[/usr/include/c++/4.7/bits/stl_vector.h:209]]></metadata>
+
+  </container>
+  <alias name="/std/orogen_typekits_mtype_std_vector__base_Trajectory_" source="/std/vector&lt;/base/Trajectory_m&gt;"/>
+</typelib>

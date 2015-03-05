@@ -2,7 +2,7 @@
 
 #include "tasks/<%= task.basename %>Base.hpp"
 
-using namespace <%= component.name %>;
+using namespace <%= project.name %>;
 
 <% code_before, code_after =
    task.base_implementation_code.partition(&:first)

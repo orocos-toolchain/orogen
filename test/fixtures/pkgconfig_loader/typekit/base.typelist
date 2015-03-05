@@ -1,0 +1,9 @@
+/base/JointLimitRange 0
+/base/JointLimits 1
+/base/JointState 1
+/base/JointTrajectory 0
+/base/JointTransform 1
+/base/JointTransformVector 1
+/base/JointTransformVector_m 0
+/base/JointTransform_m 0
+/base/JointsTrajectory 1

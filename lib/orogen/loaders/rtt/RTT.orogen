@@ -1,0 +1,17 @@
+name "RTT"
+
+self.default_task_superclass = false
+
+external_task_context "TaskContext" do
+    abstract
+    root_model
+
+    rtt_states = ['INIT', 'PRE_OPERATIONAL', 'FATAL_ERROR', 'EXCEPTION', 'STOPPED',
+        'RUNNING', 'RUNTIME_ERROR'].
+        map { |v| [v, :toplevel] }
+
+    # Define the standard RTT states, but hack to *not* enable the extended
+    # state support
+    instance_variable_set :@states, rtt_states
+end
+

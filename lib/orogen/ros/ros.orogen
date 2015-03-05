@@ -1,0 +1,8 @@
+name "ROS"
+
+self.default_task_superclass = false
+
+external_task_context "Node" do
+    abstract
+end
+

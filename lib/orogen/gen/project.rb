@@ -3,8 +3,9 @@ require 'utilrb/pkgconfig'
 require 'utilrb/kernel/load_dsl_file'
 require 'metaruby/dsls/doc'
 
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         def self.extended_states=(value);  @extended_states = value end
         def self.extended_states_enabled?; @extended_states end
         @extended_states = true
@@ -98,17 +99,17 @@ module Orocos
 
             # If true, #find_type will create a new Null type when unknown types
             # are found. This is used to use orogen specifications before
-            # writing down the components.
+            # writing down the projects.
             attr_predicate :define_dummy_types?, true
 
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
-                Orocos::Generation.orocos_target.dup
+                RTT_CPP.orocos_target.dup
             end
 
             def to_s
-                "#<Orocos::Project: #{name}>"
+                "#<#{self.class.name}: #{name}>"
             end
             def inspect; to_s end
 
@@ -193,14 +194,14 @@ module Orocos
                 # Cannot completely validate the spec, since we may not yet have
                 # the m-types. Do what we can, we'll do full blown validation
                 # later
-                sizes = Orocos::Spec::Port.validate_max_sizes_spec(nil, values)
+                sizes = Spec::Port.validate_max_sizes_spec(nil, values)
                 @max_sizes[type.name].merge!(sizes, &block)
             end
 
             def validate_max_sizes_spec
                 max_sizes.dup.each do |type, sizes|
                     type = intermediate_type_for(type)
-                    sizes = Orocos::Spec::Port.validate_max_sizes_spec(type, sizes)
+                    sizes = Spec::Port.validate_max_sizes_spec(type, sizes)
                     max_sizes[type.name].merge!(sizes)
                 end
             end
@@ -283,8 +284,8 @@ module Orocos
 
             def self.using_rtt_typekit(obj)
                 if !@rtt_typekit
-                    rtt_tlb = File.expand_path('orocos.tlb', Orocos::OROGEN_LIB_DIR)
-                    rtt_typelist = File.expand_path('orocos.typelist', Orocos::OROGEN_LIB_DIR)
+                    rtt_tlb = File.expand_path('orocos.tlb', OROGEN_LIB_DIR)
+                    rtt_typelist = File.expand_path('orocos.typelist', OROGEN_LIB_DIR)
                     @rtt_typekit = RTTTypekit.from_raw_data(
                         nil, 'rtt', nil,
                         File.read(rtt_tlb),
@@ -296,7 +297,7 @@ module Orocos
             # Returns the TaskContext object for the default task contexts
             # superclass (i.e. RTT::TaskContext)
             def default_task_superclass
-                find_task_context "RTT::TaskContext"
+                Project.standard_tasks.find { |t| t.name == "RTT::TaskContext" }
             end
 
             # Returns the typekit object that corresponds to +typekit_name+, or
@@ -398,6 +399,10 @@ module Orocos
                 task_model
             end
 
+            def task_model_from_name(name)
+                find_task_context(name)
+            end
+
             # Returns true if there is a registered task context with the given
             # name, and false otherwise
             def has_task_context?(name)
@@ -457,7 +462,7 @@ module Orocos
             end
 
             def using_plugin(name)
-                Orocos.load_plugin(name)
+                OroGen.load_orogen_plugin(name)
             end
 
             # Import an orogen-generated typekit to be used by this project.
@@ -537,13 +542,17 @@ module Orocos
 
                 typekits   = imported_typekits_for(type.name)
                 if !typekits.empty?
-                    Orocos::Generation.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
+                    OroGen.debug { "#{type.name} is exported by #{typekits.map(&:name).join(", ")}" }
                 end
 
                 if !typekits.empty? && !typekits.any? { |tk| tk.interface_type?(type.name) }
                     raise ConfigError, "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
                 end
                 type
+            end
+
+            def resolve_type(typename)
+                find_type(typename)
             end
 	    
             # Find the Typelib::Type object for +name+. +name+ can be either a
@@ -609,25 +618,21 @@ module Orocos
                 if !deffile
                     raise ArgumentError, "there is no orogen file for this project, cannot generate"
                 end
-                if !File.file?(deffile)
-                    Orocos::Generation.warn "#{deffile} does not exist, assuming that we are generating a stub project"
-                end
 
 		# For consistency in templates
 		project = self
-                component = self # backward compatibility reasons
 
                 # First, generate a to-be-installed version of the orogen file.
                 # We do that to add command-line options like corba
                 # enable/disable and extended state support.
                 if File.file?(deffile)
-                    orogen_file = Generation.render_template "project.orogen", binding
-                    orogen_file = Generation.save_automatic(File.basename(deffile), orogen_file)
+                    orogen_file = RTT_CPP.render_template "project.orogen", binding
+                    orogen_file = RTT_CPP.save_automatic(File.basename(deffile), orogen_file)
                     # In any case, touch the target file for the sake of
                     # the check-uptodate targets
                     FileUtils.touch(orogen_file)
                 else
-                    dir = Orocos::Generation::AUTOMATIC_AREA_NAME
+                    dir = AUTOMATIC_AREA_NAME
                     FileUtils.mkdir_p dir
                     FileUtils.touch(File.join(dir, File.basename(deffile)))
                 end
@@ -704,7 +709,6 @@ module Orocos
             # Generate the CMake build system for this project
 	    def generate_build_system # :nodoc:
 		project = self
-                component = self # backward compatibility reasons
 
 		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
                 target_dir = Generation::AUTOMATIC_AREA_NAME
@@ -896,7 +900,7 @@ module Orocos
                     typekit.name     = name
                     typekit.version  = version
                     typekit.base_dir = base_dir
-                    typekit.type_export_policy Orocos::Generation.default_type_export_policy
+                    typekit.type_export_policy RTT_CPP.default_type_export_policy
                     if base_dir
                         typekit.user_dir      = File.join(base_dir, 'typekit')
                         typekit.templates_dir = File.join(base_dir, 'templates', 'typekit')
@@ -989,7 +993,7 @@ module Orocos
                     raise ArgumentError, "task names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
                 end
 
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
 
                 # If we have a typekit, resolve all pending loads
                 if typekit
@@ -998,15 +1002,17 @@ module Orocos
 
 
                 task = external_task_context(name, options) do
-                    Orocos::Spec::TaskContext.apply_default_extensions(self)
-                    instance_eval(&block)
+                    Spec::TaskContext.apply_default_extensions(self)
+                    if block_given?
+                        instance_eval(&block)
+                    end
                 end
                 if extended_states?
                     task.extended_state_support
                 end
 
                 if !task.abstract?
-                    if define_default_deployments?
+                    if define_default_deployments? && enabled_transports.include?('corba')
                         simple_deployment(Generation.default_deployment_name(task.name), task.name)
                     end
                 end
@@ -1016,7 +1022,7 @@ module Orocos
 
             # Declares a task context that is being imported, not defined
             #
-            # @options options [Class] type (Orocos::Spec::TaskContext) the
+            # @options options [Class] type (Spec::TaskContext) the
             #   class of the created task context
             def external_task_context(name, options = Hash.new, &block)
 		if has_task_context?(name)
@@ -1026,7 +1032,7 @@ module Orocos
 		end
 
                 options = Kernel.validate_options options,
-                    :class => Orocos::Spec::TaskContext
+                    :class => Spec::TaskContext
 
 		new_task = options[:class].new(self, "#{self.name}::#{name}")
                 Spec.load_documentation(new_task, /^task_context/)
@@ -1049,7 +1055,7 @@ module Orocos
 
                 pkg, description = orogen_project_description(name)
 
-                Orocos.info "loading oroGen project #{name} on #{self.name}"
+                OroGen.info "loading oroGen project #{name} on #{self.name}"
                 lib = ImportedProject.new(self, pkg)
                 lib.define_dummy_types = options[:define_dummy_types]
                 if File.file?(description)
@@ -1084,7 +1090,7 @@ module Orocos
             
             # Called to store a loaded project for reuse later
             def register_loaded_project(name, obj)
-                Orocos.info "registering oroGen project #{name}" 
+                OroGen.info "registering oroGen project #{name}" 
                 loaded_orogen_projects[name] = obj
             end
 
@@ -1154,7 +1160,7 @@ module Orocos
             def has_task_library?(name)
                 orogen_project_description(name)
                 true
-            rescue Orocos::Generation::Project::MissingTaskLibrary
+            rescue MissingTaskLibrary
                 false
             end
 
@@ -1221,8 +1227,8 @@ module Orocos
 
 	    # DEPRECATED. Use #deployment instead
             def static_deployment(&block)
-                Orocos.warn "WARN: static_deployment is deprecated, use #deployment(name) instead"
-                Orocos.warn "WARN: static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
+                OroGen::Gen::RTT_CPP.warn "static_deployment is deprecated, use #deployment(name) instead"
+                OroGen::Gen::RTT_CPP.warn "static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
 		deployment = deployment("test_#{name}", &block)
 		deployment.do_not_install
 		deployment
@@ -1281,7 +1287,7 @@ module Orocos
 
             # Returns the deployment model with the given name
             #
-            # @return [Orocos::Spec::Deployment,nil] the model found, or nil if
+            # @return [Spec::Deployment,nil] the model found, or nil if
             #   none is registered with that name
             def find_deployment_by_name(name)
                 deployers.find { |obj| obj.name == name }
@@ -1345,13 +1351,13 @@ module Orocos
             # Apply the project description included in +file+ to +self+
             def load(file, verbose = true)
                 self.deffile = File.expand_path(file)
-                Kernel.eval_dsl_file(deffile, self, Orocos::Generation, verbose)
+                Kernel.eval_dsl_file(deffile, self, [OroGen, RTT_CPP], verbose)
                 self
             end
 
             def eval(name, file_contents, verbose = true)
                 self.deffile = "#{name}.orogen"
-                Kernel.eval_dsl_file_content(deffile, file_contents, self, Orocos::Generation, verbose)
+                Kernel.eval_dsl_file_content(deffile, file_contents, self, [OroGen, RTT_CPP], verbose)
                 self
             end
 
@@ -1374,13 +1380,12 @@ module Orocos
             # Enable the given transports
             def enable_extension(extensions)
                 extensions.each do |ext|
-                    Orocos::Spec::TaskContext.default_extensions << ext
+                    Spec::TaskContext.default_extensions << ext
                 end
             end
 
 	end
-
-        Component = Project
+    end
     end
 end
 

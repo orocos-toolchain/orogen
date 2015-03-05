@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         class Attribute < ConfigurationObject
         end

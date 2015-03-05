@@ -1,5 +1,5 @@
-#include "Opaques.hpp"
-
+#include <opaque/typekit/OpaqueTypes.hpp>
+#include <opaque/typekit/Opaques.hpp>
 
 void orogen_typekits::toIntermediate(TestOpaque::Point2D& intermediate, NotOrogenCompatible::Point2D const& real_type)
 {

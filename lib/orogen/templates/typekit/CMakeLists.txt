@@ -49,8 +49,8 @@ orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=1.99.4
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
        typegen_bin = 'typegen' %>
-    <%= typegen_bin %> <%= Orocos::Generation.command_line_options.join(" ") %>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= Orocos::Generation.relative_generation_directory %>)
+   <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= RTT_CPP.relative_generation_directory %>)
 
 <% end %>
 # END if typekit.standalone?
@@ -101,7 +101,8 @@ add_library(${libname} SHARED
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
-target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
+set_target_properties(${libname} PROPERTIES LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
+set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES ${OrocosRTT_LIBRARIES})
 if(WITH_RPATH AND APPLE)
   set_target_properties( ${libname} PROPERTIES
     INSTALL_NAME_DIR "@rpath"
@@ -152,6 +153,9 @@ set(TK_STAMP "${CMAKE_CURRENT_SOURCE_DIR}/stamp")
 get_directory_property(include_path INCLUDE_DIRECTORIES)
 foreach(dep <%= typekit.included_files.to_set.sort.join(" ") %>)
     find_file(dep_full_path ${dep} PATHS ${include_path})
+    if (NOT dep_full_path)
+        message(FATAL_ERROR "cannot find ${dep} in ${include_path}. This should never happen, report this as an oroGen bug")
+    endif()
     list(APPEND TYPEKIT_SOURCE_HEADERS ${dep_full_path})
     unset(dep_full_path CACHE)
 endforeach()

@@ -1,5 +1,6 @@
 #! /usr/bin/env ruby
 require 'orogen'
+require 'orogen/gen'
 require 'optparse'
 require 'pathname'
 
@@ -8,13 +9,15 @@ Typelib.load_type_plugins = false
 
 DEFAULT_TRANSPORTS = %w{corba typelib mqueue}
 
-typekit = Orocos::Generation::Typekit.new
-typekit_loader = Orocos::Generation::Project.new
+rtt_cpp = OroGen::Gen::RTT_CPP
+
+typekit = rtt_cpp::Typekit.new
+typekit_loader = rtt_cpp::Project.new
 
 transports = DEFAULT_TRANSPORTS.dup.to_set
 
 parser = OptionParser.new do |opt|
-    available_transports = Orocos::Generation::Typekit.plugins.keys
+    available_transports = rtt_cpp::Typekit.plugins.keys
     available_transports.delete('type_info')
     available_transports = available_transports.sort.join(", ")
     opt.banner = <<-EOF
@@ -57,8 +60,8 @@ this installation of typegen knows the following transports: #{available_transpo
         end
         typekit.automatic_dir = File.expand_path(dir)
     end
-    opt.on("-v", "--verbose") { Orocos::Generation.logger.level = Logger::INFO }
-    opt.on("-d", "--debug")   { Orocos::Generation.logger.level = Logger::DEBUG }
+    opt.on("-v", "--verbose") { rtt_cpp.logger.level = Logger::INFO }
+    opt.on("-d", "--debug")   { rtt_cpp.logger.level = Logger::DEBUG }
     opt.on('--help') do
         puts opt
         exit(0)
@@ -82,9 +85,9 @@ typekit.name      = remaining.shift
 if !typekit.automatic_dir
     typekit.automatic_dir = typekit.name
 end
-Orocos::Generation.generation_directory = Dir.pwd
-Orocos::Generation.relative_generation_directory = Pathname.new(Dir.pwd).relative_path_from(Pathname.new(typekit.automatic_dir))
-Orocos::Generation.command_line_options = original_options
+rtt_cpp.generation_directory = Dir.pwd
+rtt_cpp.relative_generation_directory = Pathname.new(Dir.pwd).relative_path_from(Pathname.new(typekit.automatic_dir))
+rtt_cpp.command_line_options = original_options
 transports.each do |transport_name|
     typekit.enable_plugin(transport_name)
 end

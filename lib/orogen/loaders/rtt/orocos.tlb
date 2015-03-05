@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<typelib>
+  <numeric name="/int8_t" category="sint" size="1" />
+  <numeric name="/int64_t" category="sint" size="8" />
+  <numeric name="/uint64_t" category="uint" size="8" />
+  <null name="/nil" />
+  <alias name="/int64" source="/int64_t"/>
+  <alias name="/uint64" source="/uint64_t"/>
+  <container name="/std/string" of="/int8_t" size="0" kind="/std/string">
+  <metadata key="orogen_include"><![CDATA[:string]]></metadata>
+  </container>
+  <alias name="/string" source="/std/string"/>
+  <null name="/void"/>
+  <numeric name="/double" category="float" size="8" />
+  <container name="/std/vector&lt;/double&gt;" of="/double" size="0" kind="/std/vector">
+  <metadata key="orogen_include"><![CDATA[:vector]]></metadata>
+  </container>
+  <alias name="/array" source="/std/vector&lt;/double&gt;"/>
+</typelib>

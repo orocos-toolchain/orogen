@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module HTML
         # Rendering object that converts a Typelib type, along with the typekit
         # information, into a HTML page.
@@ -116,6 +116,18 @@ module Orocos
                 definition_template.result(binding)
             end
 
+            def render_type_link(type)
+                if type < Typelib::ArrayType
+                    "#{render_type_link(type.deference)}[#{type.length}]"
+                elsif type < Typelib::ContainerType
+                    "#{type.container_kind}&lt;#{render_type_link(type.deference)}&gt;"
+                elsif type < Typelib::NumericType
+                    type.name
+                else
+                    page.link_to(type)
+                end
+            end
+
             def render(type, options = Hash.new)
                 _, push_options = Kernel.filter_options options, :external_objects => nil
                 @type = type
@@ -124,6 +136,7 @@ module Orocos
                           rescue Orocos::TypekitTypeNotFound
                           end
 
+                @intermediate_type, @ruby_type = nil
                 if base.contains_opaques?
                     @intermediate_type = typekit.intermediate_type_for(type)
                     if has_convertions?(intermediate_type)
@@ -133,7 +146,7 @@ module Orocos
                     @ruby_type = base
                 end
 
-                page.push(nil, template.result(binding))
+                page.push(nil, template.result(binding), push_options)
             end
         end
     end

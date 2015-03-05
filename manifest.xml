@@ -18,7 +18,6 @@
     <depend package="utilrb" />
     <depend package="metaruby" />
     <depend_optional package="kramdown" />
-    <rosdep name="nokogiri" />
     <rosdep name="rake" />
     <rosdep name="ruby" />
 </package>

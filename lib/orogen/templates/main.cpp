@@ -19,10 +19,10 @@
 #include <rtt/transports/mqueue/TransportPlugin.hpp>
 <% end %>
 
-<% if component.typekit || !component.used_typekits.empty? %>
+<% if project.typekit || !project.used_typekits.empty? %>
 #include <rtt/types/TypekitPlugin.hpp>
 <% end %>
-<% if typekit = component.typekit %>
+<% if typekit = project.typekit %>
 #include <<%= typekit.name %>/typekit/Plugin.hpp>
 <% deployer.transports.each do |transport_name| %>
 #include "typekit/transports/<%= transport_name %>/TransportPlugin.hpp"
@@ -182,8 +182,8 @@ int ORO_main(int argc, char* argv[])
    RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
    <% end %>
 
-   <% if component.typekit %>
-   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
+   <% if project.typekit %>
+   RTT::types::TypekitRepository::Import( new orogen_typekits::<%= project.name %>TypekitPlugin );
    <% deployer.transports.each do |transport_name| %>
    RTT::types::TypekitRepository::Import( new <%= typekit.transport_plugin_name(transport_name) %> );
    <% end %>
@@ -192,7 +192,7 @@ int ORO_main(int argc, char* argv[])
    <% next if tk.virtual? %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
        <% deployer.transports.each do |transport_name| %>
-   RTT::types::TypekitRepository::Import( new <%= Orocos::Generation::Typekit.transport_plugin_name(transport_name, tk.name) %> );
+   RTT::types::TypekitRepository::Import( new <%= RTT_CPP::Typekit.transport_plugin_name(transport_name, tk.name) %> );
        <% end %>
    <% end %>
 
@@ -302,7 +302,9 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
 <% end %>
 
-<% deployer.peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
+<% all_peers = deployer.peers.dup.to_a
+   all_peers.concat deployer.each_task.inject(Array.new) { |a, m| a.concat m.slaves.map { |s| [m, s] } }
+   all_peers.sort_by { |a, b| [a.name, b.name] }.each do |a, b| %>
     task_<%= a.name %>->connectPeers(task_<%= b.name %>.get());
 <% end %>
 

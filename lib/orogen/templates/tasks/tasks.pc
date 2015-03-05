@@ -8,29 +8,29 @@ includedir=${prefix}/include/orocos
 <% # Get all typekits that are needed to define the tasks, and list them in the
    # includes. We don't have to link explicitely to them, unless we're using
    # them explicitely (and therefore we will link to them anyway)
-  used_typekits = component.self_tasks.
+  used_typekits = project.self_tasks.
             inject(ValueSet.new) { |set, t| set | t.used_typekits }
 %>
 
-project_name=<%= component.name %>
-deffile=${prefix}/share/orogen/<%= File.basename(component.deffile) %>
-task_models=<%= component.self_tasks.map(&:name).sort.join(",") %>
-typekits=<%= component.name if component.typekit %> <%= used_typekits.map { |tk| tk.name }.compact.sort.join(" ") %>
+project_name=<%= project.name %>
+deffile=${prefix}/share/orogen/<%= File.basename(project.deffile) %>
+task_models=<%= project.self_tasks.map(&:name).sort.join(",") %>
+typekits=<%= project.name if project.typekit %> <%= used_typekits.map { |tk| tk.name }.compact.sort.join(" ") %>
 
-Name: <%= component.name %>Tasks
-Version: <%= component.version %>
-Description: tasks defined for the <%= component.name %> component
-Requires: @<%= component.name.upcase %>_TASKLIB_REQUIRES@
+Name: <%= project.name %>Tasks
+Version: <%= project.version %>
+Description: tasks defined for the <%= project.name %> oroGen project
+Requires: @<%= project.name.upcase %>_TASKLIB_REQUIRES@
 <%
-  libs = component.tasklib_used_task_libraries.map { |tk| tk.tasklib_pkg.libs if tk.tasklib_pkg }.compact.to_set
+  libs = project.tasklib_used_task_libraries.map { |tk| tk.tasklib_pkg.libs if tk.tasklib_pkg }.compact.to_set
 %>
-Libs: <%= libs.to_a.sort.join(" ") %> -L${libdir} -l<%= component.name %>-tasks-<%= component.orocos_target %>
+Libs: <%= libs.to_a.sort.join(" ") %> -L${libdir} -l<%= project.name %>-tasks-<%= project.orocos_target %>
 <%
-  cflags = component.tasklib_used_task_libraries.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
-  cflags |= component.used_typekits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+  cflags = project.tasklib_used_task_libraries.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
+  cflags |= project.used_typekits.map { |tk| tk.pkg.cflags if tk.pkg }.compact.to_set
 %>
-<% if component.extended_state_support? %>
-<%   cflags << "-I${includedir}/#{component.name}/types" %>
+<% if project.extended_state_support? %>
+<%   cflags << "-I${includedir}/#{project.name}/types" %>
 <% end %>
 Cflags: -I${includedir} <%= cflags.to_a.sort.join(" ") %>
 

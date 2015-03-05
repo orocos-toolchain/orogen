@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
     
         class << self
@@ -93,8 +93,8 @@ module Orocos
 
                 if !hash.empty?
                     raise ArgumentError, "unknown policy specification options #{hash.keys.join(", ")}"
-                elsif type == :buffer && policy.size == 0
-                    raise ArgumentError, "you have to specify the buffer size"
+                elsif type == :buffer && policy.size <= 0
+                    raise ArgumentError, "you have to specify a buffer size"
                 end
 
                 policy
@@ -160,9 +160,9 @@ module Orocos
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    Orocos::Spec::default_rt_minimal_trigger_latency
+                    Spec::default_rt_minimal_trigger_latency
                 else
-                    Orocos::Spec::default_nonrt_minimal_trigger_latency
+                    Spec::default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -182,9 +182,9 @@ module Orocos
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        Orocos::Spec::default_rt_worstcase_trigger_latency
+                        Spec::default_rt_worstcase_trigger_latency
                     else
-                        Orocos::Spec::default_nonrt_worstcase_trigger_latency
+                        Spec::default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
@@ -231,8 +231,6 @@ module Orocos
 
             # The Project object this task is part of
             def project; task_model.project end
-            # Backward compatibility only. Use #project instead
-            def component; project end
 
             ActivityDefinition = Struct.new :name, :class_name, :header
 
@@ -363,9 +361,9 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             # Marks this task as being "sequential". Sequential tasks are
-            # thread-less, and are triggered by the component that is calling
+            # thread-less, and are triggered by the task context that is calling
             # step() on them, or -- in the case of port-driven tasks -- by the
-            # component that wrote on their read ports.
+            # task context that wrote on their read ports.
             def sequential
                 activity_type 'Sequential', 'RTT::extras::SequentialActivity', 'rtt/extras/SequentialActivity.hpp'
                 activity_setup do
@@ -374,12 +372,26 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     EOD
                 end
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="SequentialActivity" />
                     EOD
                 end
 
                 self
+            end
+
+            def slave_of(master)
+                activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
+                self.master = master
+                master.slaves << self
+                activity_setup do
+                    <<-EOD
+#{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(activity_#{master.name},task_#{name}->engine());
+                    EOD
+                end
+                activity_xml do
+                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
+                end
             end
 
             def activity_setup(&block)
@@ -390,10 +402,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @activity_xml = block
             end
 
-            # Call to make the deployer start this task when the component is
+            # Call to make the deployer start this task when the task context is
             # launched
             def start; @start = true; self end
-            # True if this task should be started when the component is
+            # True if this task should be started when the task context is
             # started. Note that the deployer must honor the initial_state of
             # the underlying task context (i.e. call configure() if
             # initial_state is PreOperational)
@@ -417,32 +429,11 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # True if this task should be deployed using a realtime scheduler,
             # and false otherwise
             def realtime?; @realtime end
-
-	    # Returns the Orocos scheduler constant name for this task's
-	    # scheduler class. Call #realtime and #non_realtime to change the
-	    # task scheduling class
-	    def rtt_scheduler
-		if @realtime then 'ORO_SCHED_RT'
-		else 'ORO_SCHED_OTHER'
-		end
-	    end
 	    # Marks this task as being part of the realtime scheduling class
 	    def realtime; @realtime = true; self end
 	    # Marks this task as being part of the non-realtime scheduling
 	    # class (the default)
 	    def non_realtime; @realtime = false; self end
-
-	    # Returns the Orocos value for this task's priority
-	    def rtt_priority
-		case @priority
-		when :highest
-		    'RTT::os::HighestPriority'
-		when :lowest
-		    'RTT::os::LowestPriority'
-		when Integer
-		    @priority
-		end
-	    end
 
             def pretty_print(pp) # :nodoc:
                 pp.text "#{name}[#{task_model.name}]"
@@ -480,10 +471,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     end
                 end
                 
-                if project.deffile
-                    check_for_stray_dots(project.deffile, name, args)
-                end
-
                 return super
             end
         end
@@ -497,8 +484,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    attr_reader :name
             # The underlying Project object
             attr_reader :project
-            # Backward compatibility only
-            def component; project end
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
@@ -614,10 +599,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # activity). See TaskDeployment documentation for available options.
             def task(name, klass)
                 if klass.respond_to?(:to_str)
-                    begin task_context = project.find_task_context(klass)
-                    rescue ArgumentError
-                        raise ArgumentError, "#{klass} is not a known task context model"
-                    end
+                    task_context = project.task_model_from_name(klass)
                 else task_context = klass
                 end
 
@@ -625,10 +607,20 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
                 end
 
-                name = Generation.verify_valid_identifier(name)
+                name = OroGen.verify_valid_identifier(name)
+                if task = find_task_by_name(name)
+                    raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
+                end
                 deployment = TaskDeployment.new(name, task_context)
                 task_activities << deployment
                 deployment
+            end
+
+            # Enumerates the tasks defined on this deployment
+            #
+            # @yieldparam [TaskDeployment] task a deployed task
+            def each_task(&block)
+                task_activities.each(&block)
             end
 
             # Returns the deployed task that has this name
@@ -664,39 +656,27 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             #handels theActivity creation order to be sure that all activities are created in the right order
             def activity_ordered_tasks(ordered=Array.new)
                 oldsize = ordered.size()
-                task_activities.each do |task|
-                    if((task.master == nil or ordered.include?(task.master)) and not ordered.include?(task))
+                (task_activities - ordered).each do |task|
+                    if !task.master || ordered.include?(task.master)
                         ordered << task
                     end
                 end
-                if(oldsize == ordered.size())
-                    raise InternalError, "Could not Create order in where the Activities of The deployment #{name} should be created." <<
-                        "Did you created a loop among master<->slave activities?"
-
-                elsif(ordered.size() != task_activities.size()) 
-                    return activity_ordered_tasks(ordered)
-                else
+                if ordered.size == task_activities.size
                     return ordered
+                elsif oldsize == ordered.size()
+                    activities = task_activities.map do |task|
+                        "\n  #{task.name} (master: #{task.master ? task.master.name : "none"})"
+                    end
+                    raise ArgumentError, "I cannot find an order in which to create the deployed tasks of #{name} during deployment" <<
+                        "Did you created a loop among master and slave activities ?. The #{activities.size} deployed tasks are:#{activities.join("\n  ")}"
+                else
+                    return activity_ordered_tasks(ordered)
                 end
             end
 
             # Define an master slave avtivity between tasks
-            def set_master_slave_activity(master,slave)
-                #First create and peer connection between the master and the slave
-                add_peers(master,slave)
-
-                #Setting up the SlaveActivity
-                slave.activity_type 'SlaveActivity', 'RTT::extras::SlaveActivity', 'rtt/extras/SlaveActivity.hpp'
-                slave.master = master
-                master.slaves << slave
-                slave.activity_setup do
-                    result = <<-EOD
-#{slave.activity_type.class_name}* activity_#{slave.name} = new #{slave.activity_type.class_name}(activity_#{master.name},task_#{slave.name}->engine());
-                    EOD
-                end
-                slave.activity_xml do
-                    "<struct name=\"#{name}\" type=\"SlaveActivity\" />"
-                end
+            def set_master_slave_activity(master, slave)
+                slave.slave_of(master)
                 self
             end
 
@@ -705,10 +685,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             def add_default_logger
-                if !project.used_task_libraries.find { |t| t.name == "logger" }
-                    project.using_task_library "logger"
-                end
-
+                project.using_task_library "logger"
                 task("#{name}_Logger", 'logger::Logger')
             end
 
@@ -746,7 +723,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             #   browse -> currently_browsed_task
             #   browse(task) -> self
             #
-            # Sets up a TaskBrowser component to browse the given task, which
+            # Sets up a TaskBrowser to browse the given task, which
             # is started when all tasks have been initialized. This is incompatible
             # with the use of CORBA and only one browser can be defined.
             dsl_attribute :browse do |task|

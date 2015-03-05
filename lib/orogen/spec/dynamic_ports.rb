@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         module DynamicPort
             def instanciate(name, type = nil)

@@ -1,4 +1,4 @@
-module Orocos
+module OroGen
     module Spec
         # Specification for an input port
         class InputPort < Port
@@ -49,13 +49,13 @@ module Orocos
             # This should not be useful in general
             def needs_data_connection; @required_connection_type = :data; self end
 
-            # Returns true if the component requires connections to this port to
+            # Returns true if the task context requires connections to this port to
             # be reliable (i.e. non-lossy).
             #
             # See #needs_reliable_policy for more information
             def needs_reliable_connection?; @needs_reliable_connection end
 
-            # Declares that the components requires a non-lossy policy
+            # Declares that the task context requires a non-lossy policy
             #
             # This is different from #requires_buffered_connection as a data
             # policy could be used if the period of the connection's source is

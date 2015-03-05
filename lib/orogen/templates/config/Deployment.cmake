@@ -1,6 +1,6 @@
 # Task files could be using headers in tasks/ so add the relevant directory in
 # our include path
-include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= component.name %>)
+include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= project.name %>)
 include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
 
 <% dependencies = deployer.dependencies %>
@@ -22,10 +22,10 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 add_definitions(-DRTT_COMPONENT)
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
-<% if component.typekit %>
-target_link_libraries(<%= deployer.name %> <%= component.name %>-typekit-${OROCOS_TARGET})
+<% if project.typekit %>
+target_link_libraries(<%= deployer.name %> <%= project.name %>-typekit-${OROCOS_TARGET})
 <% deployer.transports.each do |transport_name| %>
-target_link_libraries(<%= deployer.name %> <%= component.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> <%= project.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
 <% end %>
 <% end %>
 
@@ -41,8 +41,8 @@ target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-typekit_LIBRARY})
 <% deployer.rtt_transports.each do |transport_name| %>
 target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-<%= transport_name %>_LIBRARY})
 <% end %>
-<% if !component.self_tasks.empty? %>
-target_link_libraries(<%= deployer.name %> <%= component.name %>-tasks-${OROCOS_TARGET})
+<% if !project.self_tasks.empty? %>
+target_link_libraries(<%= deployer.name %> <%= project.name %>-tasks-${OROCOS_TARGET})
 <% end %>
 <%= Generation.cmake_pkgconfig_link_noncorba(deployer.name, dependencies) %>
 
@@ -60,6 +60,8 @@ add_dependencies(<%= deployer.name %>
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)
+<% if deployer.install? %>
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= deployer.name %>.pc
     DESTINATION lib/pkgconfig)
+<% end %>
 

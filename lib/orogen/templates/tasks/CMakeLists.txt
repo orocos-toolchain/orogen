@@ -1,23 +1,25 @@
 # Generated from orogen/lib/orogen/templates/tasks/CMakeLists.txt
 
-include(<%= component.name %>TaskLib)
-ADD_LIBRARY(${<%= component.name.upcase %>_TASKLIB_NAME} SHARED 
-    ${<%= component.name.upcase %>_TASKLIB_SOURCES})
-<% if component.typekit %>
-add_dependencies(${<%= component.name.upcase %>_TASKLIB_NAME}
+include(<%= project.name %>TaskLib)
+ADD_LIBRARY(${<%= project.name.upcase %>_TASKLIB_NAME} SHARED 
+    ${<%= project.name.upcase %>_TASKLIB_SOURCES})
+<% if project.typekit %>
+add_dependencies(${<%= project.name.upcase %>_TASKLIB_NAME}
     regen-typekit)
 <% end %>
 
-TARGET_LINK_LIBRARIES(${<%= component.name.upcase %>_TASKLIB_NAME}
+TARGET_LINK_LIBRARIES(${<%= project.name.upcase %>_TASKLIB_NAME}
     ${OrocosRTT_LIBRARIES}
-    ${<%= component.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES})
-SET_TARGET_PROPERTIES(${<%= component.name.upcase %>_TASKLIB_NAME}
-    PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= component.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
+    ${<%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES})
+SET_TARGET_PROPERTIES(${<%= project.name.upcase %>_TASKLIB_NAME}
+    PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
+SET_TARGET_PROPERTIES(${<%= project.name.upcase %>_TASKLIB_NAME}
+    PROPERTIES INTERFACE_LINK_LIBRARIES "${<%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
 
-INSTALL(TARGETS ${<%= component.name.upcase %>_TASKLIB_NAME}
+INSTALL(TARGETS ${<%= project.name.upcase %>_TASKLIB_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib/orocos)
 
-INSTALL(FILES ${<%= component.name.upcase %>_TASKLIB_HEADERS}
-    DESTINATION include/orocos/<%= component.name.downcase %>)
+INSTALL(FILES ${<%= project.name.upcase %>_TASKLIB_HEADERS}
+    DESTINATION include/orocos/<%= project.name.downcase %>)
 

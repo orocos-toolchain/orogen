@@ -1,8 +1,8 @@
 #define OROCOS_TARGET gnulinux
 #include <rtt/types/TypekitPlugin.hpp>
 #include <rtt/typekit/RealTimeTypekit.hpp>
-#include "Types.hpp"
-#include "Plugin.hpp"
+#include <opaque/typekit/Types.hpp>
+#include <opaque/typekit/Plugin.hpp>
 
 #ifdef WITH_CORBA
 #include <omniORB4/CORBA.h>
@@ -17,7 +17,7 @@
 #include <rtt/typelib/TypelibMarshallerBase.hpp>
 #endif
 
-#include ".orogen/typekit/OpaqueConvertions.hpp"
+#include <opaque/typekit/OpaqueConvertions.hpp>
 
 #include <rtt/os/main.h>
 #include <rtt/types/Types.hpp>

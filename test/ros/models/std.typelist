@@ -1,0 +1,79 @@
+/bool 1
+/char 1
+/double 1
+/float 1
+/int 1
+/int long long 1
+/int long unsigned 1
+/int short unsigned 1
+/int signed 1
+/int signed long 1
+/int signed long long 1
+/int signed short 1
+/int unsigned 1
+/int unsigned long long 1
+/int16_t 1
+/int32_t 1
+/int64_t 1
+/int8_t 1
+/long 1
+/long int 1
+/long int long 1
+/long int unsigned 1
+/long long 1
+/long long int 1
+/long long int signed 1
+/long long int unsigned 1
+/long long signed 1
+/long long signed int 1
+/long long unsigned 1
+/long long unsigned int 1
+/long signed 1
+/long signed int 1
+/long signed long 1
+/long signed long int 1
+/long unsigned 1
+/long unsigned int 1
+/long unsigned long 1
+/long unsigned long int 1
+/metadata/Component 1
+/metadata/InterfaceObject 0
+/metadata/KeyValue 0
+/short 1
+/short int 1
+/short int unsigned 1
+/short signed 1
+/short signed int 1
+/short unsigned 1
+/short unsigned int 1
+/signed 1
+/signed char 1
+/signed int 1
+/signed int long 1
+/signed int long long 1
+/signed int short 1
+/signed long 1
+/signed long int 1
+/signed long int long 1
+/signed long long 1
+/signed long long int 1
+/signed short 1
+/signed short int 1
+/std/string 1
+/std/vector</metadata/InterfaceObject> 0
+/std/vector</metadata/KeyValue> 0
+/uint16_t 1
+/uint32_t 1
+/uint64_t 1
+/uint8_t 1
+/unsigned 1
+/unsigned char 1
+/unsigned int 1
+/unsigned int long long 1
+/unsigned long 1
+/unsigned long int 1
+/unsigned long int long 1
+/unsigned long long 1
+/unsigned long long int 1
+/unsigned short 1
+/unsigned short int 1

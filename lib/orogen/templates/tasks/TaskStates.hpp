@@ -1,11 +1,11 @@
 /* Generated from orogen/lib/orogen/templates/tasks/TaskStates.hpp */
 
-#ifndef <%= component.name %>_TASKS_STATES
-#define <%= component.name %>_TASKS_STATES
+#ifndef <%= project.name %>_TASKS_STATES
+#define <%= project.name %>_TASKS_STATES
 
-namespace <%= component.name %>
+namespace <%= project.name %>
 {
-    <% component.self_tasks.
+    <% project.self_tasks.
         find_all(&:extended_state_support?).
 
         each do |task| %>

@@ -1,7 +1,8 @@
-module Orocos
-    module Generation
+module OroGen
+    module Gen
+    module RTT_CPP
         # Instances of this class represent a typekit that has been imported
-        # using Component#using_typekit.
+        # using {Project#using_typekit}
         class ImportedTypekit
             attr_reader :main_project
             attr_reader :name
@@ -47,12 +48,12 @@ module Orocos
                               typekit_interface_typelist)
 
                 # Now initialize the opaque definitions
-                doc = Nokogiri::XML(registry_xml)
-                doc.xpath('//opaque').each do |opaque_entry|
-                    base_type_name  = opaque_entry['name']
-                    inter_type_name = opaque_entry['marshal_as']
-                    includes        = opaque_entry['includes']
-                    needs_copy      = opaque_entry['needs_copy']
+                doc = REXML::Document.new(registry_xml)
+                doc.each_element('//opaque') do |opaque_entry|
+                    base_type_name  = opaque_entry.attributes['name']
+                    inter_type_name = opaque_entry.attributes['marshal_as']
+                    includes        = opaque_entry.attributes['includes']
+                    needs_copy      = opaque_entry.attributes['needs_copy']
                     spec = OpaqueDefinition.new(
                         typekit_registry.get(base_type_name),
                         inter_type_name,
@@ -185,15 +186,15 @@ module Orocos
         #
         # For the task contexts imported this way,
         # TaskContext#external_definition?  returns true.
-        class ImportedProject < Component
-            # The main Component instance that groups all the imported task
+        class ImportedProject < Project
+            # The main {Project} instance that groups all the imported task
             # libraries
             attr_reader :main_project
             # The pkg-config file defining this oroGen project
             attr_reader :pkg
             # The pkg-config file for the task library of this oroGen project
             def tasklib_pkg_name
-                "#{name}-tasks-#{Orocos::Generation.orocos_target}"
+                "#{name}-tasks-#{RTT_CPP.orocos_target}"
             end
 
             def tasklib_pkg
@@ -332,9 +333,9 @@ module Orocos
             def generate_build_system; raise NotImplementedError end
 
             def to_s
-                "#<Orocos::Generation::ImportedProject: #{name} on #{main_project.name}>"
+                "#<OroGen::Gen::RTT_CPP::ImportedProject: #{name} on #{main_project.name}>"
             end
         end
     end
+    end
 end
-

@@ -11,11 +11,41 @@ rescue LoadError
     exit 1
 end
 
-require 'logger'
+require 'utilrb/logger'
+
+module OroGen
+    OROGEN_LIB_DIR = File.expand_path('orogen', File.dirname(__FILE__))
+    extend Logger::Root("OroGen", Logger::WARN)
+
+    module Spec
+    end
+    module Gen
+        module RTT_CPP
+        end
+    end
+    # Code-generation support for the different supported RTT transports
+    module TypekitMarshallers
+        extend Logger::Hierarchy
+    end
+end
+
+module Orocos
+    Spec = OroGen::Spec
+    Generation = OroGen::Gen::RTT_CPP
+    TypekitMarshallers = OroGen::TypekitMarshallers
+end
+
+require 'utilrb/pkgconfig'
+require 'metaruby/dsls/doc'
+require 'orogen/typenames'
+require 'rexml/document'
+
 require 'orogen/version'
+require 'orogen/exceptions'
 require 'orogen/base'
-
+require 'orogen/check_for_stray_dots'
+require 'orogen/plugins'
+require 'orogen/loaders'
 require 'orogen/spec'
-require 'orogen/gen'
 
-Orocos.load_orogen_plugins
+OroGen.load_orogen_plugins

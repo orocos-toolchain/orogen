@@ -17,7 +17,7 @@ Unknown to oroGen (this is an opaque type)
         <% if doc = type.field_metadata[field_name].get('doc').first %>
             <div class="doc-above"><%= Kramdown::Document.new(doc).to_html %></div>
         <% end %>
-            <b><%= field_name %></b>: <%= page.link_to(field_type) %>
+            <b><%= field_name %></b>: <%= render_type_link(field_type) %>
         </li>
     <% end %>
 </ul>
@@ -27,14 +27,9 @@ Unknown to oroGen (this is an opaque type)
         <%= page.render_item(key, value) %>
     <% end %>
 </ul>
-<% elsif type < Typelib::ArrayType %>
+<% else %>
 <ul class="body-header-list">
-    <li><%= page.link_to(type.deference) %>[<%= type.length %>]</li>
+    <li><%= render_type_link(type) %></li>
 </ul>
-<% elsif type < Typelib::ContainerType %>
-<ul class="body-header-list">
-    <li><%= type.container_kind %>&lt;<%= page.link_to(type.deference) %>&gt;</li>
-</ul>
-<% else raise ArgumentError, "don't know how to display #{type.name} (#{type.ancestors.map(&:name).join(", ")})" %>
 <% end %>
 
