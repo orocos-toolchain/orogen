@@ -86,7 +86,12 @@ result.slice!(0, result.length() -2)
 {
     initTypes();
     
-    initFromURIOrTaskname(location, is_ior);
+    try {
+        initFromURIOrTaskname(location, is_ior);
+    } catch (...)
+    {
+        throw std::runtime_error("Error : Failed to lookup task context " + location);
+    }
 }
 
 void <%= task.basename %>::synchronize()
