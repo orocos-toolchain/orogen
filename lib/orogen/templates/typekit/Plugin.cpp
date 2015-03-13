@@ -44,7 +44,7 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadOperators()
 bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadConstructors()
 { return true; }
 std::string orogen_typekits::<%= typekit.name %>TypekitPlugin::getName()
-{ return "/orogen/<%= typekit.name %>"; }
+{ return "<%= typekit.name %>"; }
 
 ORO_TYPEKIT_PLUGIN(orogen_typekits::<%= typekit.name %>TypekitPlugin);
 
