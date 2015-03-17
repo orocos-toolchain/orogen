@@ -79,6 +79,8 @@ module OroGen
             typekit.save_automatic("transports", "mqueue", "#{typekit.name}-transport-mqueue.pc.in", pkg_config)
             code = Gen::RTT_CPP.render_template "typekit", "mqueue", "CMakeLists.txt", binding
             typekit.save_automatic("transports", "mqueue", "CMakeLists.txt", code)
+            cmake_build = Gen::RTT_CPP.render_template "typekit", "mqueue", "build.cmake", binding
+            typekit.save_automatic("transports", "mqueue", "build.cmake", cmake_build)
 
             # We generate our own CMake code, no need to export anything to the
             # main typekit code

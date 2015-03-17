@@ -90,6 +90,8 @@ module OroGen
             typekit.save_automatic("transports", "corba", "#{typekit.name}-transport-corba.pc.in", pkg_config)
             code = Gen::RTT_CPP.render_template "typekit", "corba", "CMakeLists.txt", binding
             typekit.save_automatic("transports", "corba", "CMakeLists.txt", code)
+            cmake_build = Gen::RTT_CPP.render_template "typekit", "corba", "build.cmake", binding
+            typekit.save_automatic("transports", "corba", "build.cmake", cmake_build)
 
             # We generate our own CMake code, no need to export anything to the
             # main typekit code
