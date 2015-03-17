@@ -31,7 +31,7 @@ set(libname <%= typekit.name %>-typekit)
 orocos_typekit(${libname}
     <%= relatives = []
         implementation_files.each do |file|
-        relatives << typekit.cmake_relative_path(file)
+        relatives << typekit.relative_path(file)
         end
         relatives.sort.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+filepath }.join("\n    ") %>
     ${TYPEKIT_ADDITIONAL_SOURCES}
@@ -51,11 +51,11 @@ install(FILES
 
 install(FILES
     <% if typekit.has_opaques_with_templates? %>
-    ${CMAKE_CURRENT_LIST_DIR}/typekit/Opaques.hpp
+    ${PROJECT_SOURCE_DIR}/typekit/Opaques.hpp
     <% end %>
     <%= relatives = []
         plugin_header_files.each do |file|
-        relatives << typekit.cmake_relative_path(file)
+        relatives << typekit.relative_path(file)
     end
     relatives.sort.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+filepath }.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)

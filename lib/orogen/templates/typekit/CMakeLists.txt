@@ -9,9 +9,6 @@ if(NOT ${PROJECT_NAME} STREQUAL "<%= typekit.name %>")
   cmake_minimum_required(VERSION 2.6)
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/config")
-include(OrogenPkgCheckModules)
-
 # In Orogen components, the build target is specified at generation time
 # But we allow to override in case of typegen/USE_OROCOS_RTT:
 if (NOT OROCOS_TARGET)

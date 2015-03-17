@@ -2113,6 +2113,9 @@ module OroGen
                     "#include <#{inc}>"
                 end.sort.join("\n") + "\n"
             end
+            def relative_path(file, *subdir)
+                "#{Pathname.new(file).relative_path_from(Pathname.new(File.join(automatic_dir, *subdir)))}"
+            end
 	end
     end
     end

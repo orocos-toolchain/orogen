@@ -22,7 +22,7 @@ set(MQueue_FILES "")
 # Generate the MQueue transport
 set(libname_mqueue <%= typekit.name %>-transport-mqueue)
 orocos_typekit(${libname_mqueue} SHARED
-    <%= impl.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+filepath }.join("\n    ") %>
+    <%= impl.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+(File.basename filepath) }.join("\n    ") %>
     ${MQueue_FILES})
 target_link_libraries(${libname_mqueue}
     <%= typekit.name %>-typekit
@@ -37,7 +37,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/<%= typekit.name %>-transport-mqueue.pc
 
 install(FILES ${PKG_CONFIG_FILE_MQueue} DESTINATION lib/pkgconfig)
 install(FILES
-    <%= headers.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+filepath }.join("\n   ") %>
+    <%= headers.map { |filepath| '${CMAKE_CURRENT_LIST_DIR}/'+(File.basename filepath) }.join("\n   ") %>
     DESTINATION include/orocos/<%= typekit.name %>/transports/mqueue)
 else()
 message(WARNING "Mqueue transport is not supported on OSX platforms")
