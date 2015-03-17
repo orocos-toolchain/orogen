@@ -159,25 +159,14 @@ module OroGen
             def virtual?; false end
         end
 
-        class RTTTypekit < ImportedTypekit
-            RTT_INTERFACE_TYPELIST = %w{/bool /double /float /int32_t}
-            def initialize(*args)
-                super
-                @typelist = registry.each.
-                    find_all { |t| t < Typelib::NumericType || t < Typelib::NullType }.
-                    map(&:name).to_set
-                @interface_typelist = RTT_INTERFACE_TYPELIST
-            end
-
+        module RTTTypekit
+            def pkg; end
             def pkg_name; end
             def pkg_transport_name(transport_name); end
             def include_dirs; Set.new end
             def types_dir; nil end
             def virtual?; true end
-
-            def defines_array_of?(*args)
-                false
-            end
+            def defines_array_of?(*args); false end
         end
 
         # Instances of this class represent a task library loaded in a

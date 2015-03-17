@@ -282,7 +282,7 @@ module OroGen
                         interface_typelist << type.name
                     end
                     type
-                else raise
+                else super
                 end
             end
         end

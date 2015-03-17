@@ -207,11 +207,6 @@ module OroGen
             end
 
             @@standard_tasks = nil
-            @@standard_task_specs = { "rtt.orogen" => OROGEN_LIB_DIR, "ocl.orogen" => OROGEN_LIB_DIR }
-
-            def self.add_standard_task_spec(filename, directory)
-                @@standard_task_specs[filename] = directory
-            end
 
             # The set of standard project defined by RTT and OCL. They are
             # defined as orogen-specification in the <tt>rtt.orogen</tt> and
@@ -221,9 +216,8 @@ module OroGen
                     @@standard_tasks
                 else
                     @@standard_tasks = []
-                    @@standard_task_specs.each do |orogen, dir|
-                        project = ImportedProject.load(nil, nil, File.expand_path(orogen, dir))
-                        project.orogen_project = false
+                    OroGen::Loaders::RTT.standard_projects.each do |project|
+                        def project.orogen_project?; false end
                         @@standard_tasks.concat project.tasks.values
                     end
                 end
@@ -283,15 +277,12 @@ module OroGen
 	    end
 
             def self.using_rtt_typekit(obj)
-                if !@rtt_typekit
-                    rtt_tlb = File.expand_path('orocos.tlb', OROGEN_LIB_DIR)
-                    rtt_typelist = File.expand_path('orocos.typelist', OROGEN_LIB_DIR)
-                    @rtt_typekit = RTTTypekit.from_raw_data(
-                        nil, 'rtt', nil,
-                        File.read(rtt_tlb),
-                        File.read(rtt_typelist))
+                OroGen::Loaders::RTT.standard_typekits.each do |tk|
+                    if tk.name == 'orocos'
+                        tk.extend RTTTypekit
+                    end
+                    obj.using_typekit(tk)
                 end
-                obj.using_typekit(@rtt_typekit)
             end
 
             # Returns the TaskContext object for the default task contexts
