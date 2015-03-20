@@ -49,10 +49,7 @@ void <%= task.basename %>Initializer::initTypes()
     RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
     <% end %>
 
-    <% if component.typekit 
-        puts("Foo")
-        puts(component.used_typekits)
-        puts component.object_id %>
+    <% if component.typekit %>
     RTT::types::TypekitRepository::Import( new orogen_typekits::<%= component.name %>TypekitPlugin );
         <% component.enabled_transports.each do |transport_name| %>
     RTT::types::TypekitRepository::Import( new <%= typekit.transport_plugin_name(transport_name) %> );
@@ -60,7 +57,6 @@ void <%= task.basename %>Initializer::initTypes()
     <% end %>
     <% component.used_typekits.each do |tk| %>
         <% next if tk.virtual? %>
-        <% puts("Used Tk task is #{tk.name}") %>
         <% next if tk.name == "logger" %>
 
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= tk.name %>TypekitPlugin );
