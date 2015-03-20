@@ -7,7 +7,7 @@ add_definitions(-DRTT_COMPONENT)
 
 <% 
     pkg_conf_deps = ["orocos_cpp_base"]
-    pkg_conf_deps.concat(component.get_pkg_config_deps(false))
+    pkg_conf_deps.concat(dependencies(false))
 %>
 
 <% pkg_conf_deps.each do |dependency| %>

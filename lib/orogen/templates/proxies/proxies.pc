@@ -21,7 +21,7 @@ Name: <%= component.name %>Tasks
 Version: <%= component.version %>
 Description: tasks defined for the <%= component.name %> component
 Requires: orocos_cpp_base @<%= component.name.upcase %>_TASKLIB_REQUIRES@ \
-<% component.get_pkg_config_deps().each do |dependency| %>
+<% dependencies().each do |dependency| %>
      <%=dependency%> \
 <% end %>
 
