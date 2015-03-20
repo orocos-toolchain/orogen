@@ -35,6 +35,7 @@ require 'orogen/gen/typekit'
 require 'orogen/marshallers'
 require 'orogen/gen/deployment'
 require 'orogen/gen/tasks'
+require 'orogen/gen/cpp_proxies'
 require 'orogen/gen/project'
 require 'orogen/gen/imports'
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::ROS::Plugin)

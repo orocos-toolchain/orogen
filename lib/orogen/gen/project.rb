@@ -493,29 +493,6 @@ module OroGen
 
             include OpaqueHandling
 
-            def get_pkg_config_deps(includeSelf = true)
-                list = used_typekits.dup
-                list.each do |tk|
-                    puts("List #{tk.name}")
-                end
-                if(includeSelf)
-                    puts("Typekit is #{typekit.name}")
-                    list << typekit if typekit
-                end
-                result = []
-                list.each do |tk|
-                    next if tk.name == "rtt"
-                    next if tk.name == "logger"
-                    result << "#{tk.name}-typekit-gnulinux"
-                    enabled_transports.each do |transport_name|
-                        result << "#{tk.name}-transport-#{transport_name}-gnulinux"
-                    end
-                end
-                result
-            end
-
-
-            
             # A Typelib::Registry object defining all the types that are defined
             # in the RTT, as for instance vector<double> and string.
             def rtt_registry; Project.rtt_registry end
@@ -695,14 +672,21 @@ module OroGen
                 Generation.save_automatic "orogen-project-#{name}.pc.in", pc
 
 		if !self_tasks.empty?
+                    
 		    self_tasks.each { |t| t.generate }
 
 		    deployer = Generation.render_template "tasks", "DeployerComponent.cpp", binding
 		    Generation.save_automatic "tasks", "DeployerComponent.cpp", deployer
 		    pc = Generation.render_template "tasks", "tasks.pc", binding
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
+
+                    self_tasks.each do |t| 
+                        proxies = Orocos::Generation::CppProxyGeneration.new(component, t)
+                        proxies.generate();
+                    end
 		end
 
+                
                 ignorefile = Generation.render_template "gitignore", binding
                 Generation.save_user ".gitignore", ignorefile
 
