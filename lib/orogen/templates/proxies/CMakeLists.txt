@@ -11,7 +11,7 @@ add_definitions(-DRTT_COMPONENT)
 %>
 
 <% pkg_conf_deps.each do |dependency| %>
-pkg_check_modules(<%= dependency.upcase%> REQUIRED <%= dependency%>)
+orogen_pkg_check_modules(<%= dependency.upcase%> REQUIRED <%= dependency%>)
 <% end %>
 
 include(<%= project.name %>TaskLib)
