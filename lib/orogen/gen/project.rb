@@ -684,10 +684,10 @@ module OroGen
 		    pc = Generation.render_template "tasks", "tasks.pc", binding
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 
-                    if(Orocos::Generation.cpp_proxies?)
+                    if Orocos::Generation.cpp_proxies?
                         self_tasks.each do |t| 
                             proxies = Orocos::Generation::CppProxyGeneration.new(self, t)
-                            proxies.generate();
+                            proxies.generate
                         end
                     end
 		end
