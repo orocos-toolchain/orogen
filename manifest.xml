@@ -16,7 +16,7 @@
     <depend package="typelib" />
     <depend package="rtt_typelib" />
     <depend package="tools/metaruby" />
-    <depend package="tools/orocos_cpp_base" />
+    <depend package="tools/orocos_cpp_base" optional="1" />
     <depend package="kramdown" optional="1" />
     <depend package="libxslt" />
     <depend package="nokogiri" />
