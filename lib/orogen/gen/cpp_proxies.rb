@@ -3,28 +3,26 @@ require 'set'
 module Orocos
     module Generation
         class CppProxyGeneration
-            attr_reader :component
+            attr_reader :project
+            attr_reader :proxy_gen
             attr_reader :task
             def initialize(cmp, t)
-                @component = cmp
+                @project = cmp
                 @task = t
-            end
-            
-            def foo
-                puts("FOOOOOOOO")
+                @proxy_gen = self
             end
             
             def dependencies(includeSelf = true)
-                list = component.used_typekits.dup
+                list = project.used_typekits.dup
                 if(includeSelf)
-                    list << component.typekit if component.typekit
+                    list << project.typekit if project.typekit
                 end
                 result = []
                 list.each do |tk|
                     next if tk.name == "rtt"
                     next if tk.name == "logger"
                     result << "#{tk.name}-typekit-gnulinux"
-                    component.enabled_transports.each do |transport_name|
+                    project.enabled_transports.each do |transport_name|
                         result << "#{tk.name}-transport-#{transport_name}-gnulinux"
                     end
                 end
@@ -42,9 +40,7 @@ module Orocos
                 Generation.save_automatic('proxies', "CMakeLists.txt", cmake)
                 
                 pc = Generation.render_template "proxies", "proxies.pc", binding
-                Generation.save_automatic "proxies", "#{component.name}-proxies.pc.in", pc
-
-                
+                Generation.save_automatic "proxies", "#{project.name}-proxies.pc.in", pc
             end
         end
     end

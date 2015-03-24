@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/proxies/Task.hpp */
 
-#ifndef <%= component.name.upcase %>_<%= task.basename.upcase %>_PROXY_TASK_HPP
-#define <%= component.name.upcase %>_<%= task.basename.upcase %>_PROXY_TASK_HPP
+#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_PROXY_TASK_HPP
+#define <%= project.name.upcase %>_<%= task.basename.upcase %>_PROXY_TASK_HPP
 
 
 #include <rtt/transports/corba/TaskContextProxy.hpp>
@@ -15,7 +15,7 @@
 #include <orocos_cpp_base/ProxyPort.hpp>
 <% end %>
 <% if task.extended_state_support? %>
-#include <<%= component.typekit.name %>/TaskStates.hpp>
+#include <<%= project.typekit.name %>/TaskStates.hpp>
 <% end %>
 
 
@@ -26,12 +26,12 @@
 <% task.implemented_classes.sort.each do |class_name, include_file| %>
 #include <<%= include_file %>> // to get <%= class_name %>
 <% end %>
-<% if component.typekit %>
-#include "<%= component.typekit.name %>/typekit/Types.hpp"
+<% if project.typekit %>
+#include "<%= project.typekit.name %>/typekit/Types.hpp"
 <% end %>
 
 
-namespace <%= component.name %> {
+namespace <%= project.name %> {
 
 namespace proxies {
     
