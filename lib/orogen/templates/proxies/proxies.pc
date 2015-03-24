@@ -21,8 +21,8 @@ Name: <%= project.name %>Tasks
 Version: <%= project.version %>
 Description: tasks defined for the <%= project.name %> project
 Requires: orocos_cpp_base @<%= project.name.upcase %>_TASKLIB_REQUIRES@ \
-<% dependencies().each do |dependency| %>
-     <%=dependency%> \
+<% proxy_gen.dependencies.each do |dependency| %>
+     <%=dependency.pkg_name%> \
 <% end %>
 
 

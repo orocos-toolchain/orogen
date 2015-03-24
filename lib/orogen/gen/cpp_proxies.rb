@@ -13,19 +13,46 @@ module Orocos
             end
             
             def dependencies(includeSelf = true)
-                list = project.used_typekits.dup
-                if(includeSelf)
-                    list << project.typekit if project.typekit
-                end
                 result = []
-                list.each do |tk|
-                    next if tk.name == "rtt"
-                    next if tk.name == "logger"
-                    result << "#{tk.name}-typekit-gnulinux"
+                if(includeSelf and project.typekit)
+                    tk = project.typekit
+                    result << BuildDependency.new(
+                        "#{tk.name}_TYPEKIT",
+                        "#{tk.name}-typekit-gnulinux").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                        
                     project.enabled_transports.each do |transport_name|
-                        result << "#{tk.name}-transport-#{transport_name}-gnulinux"
+                        result << BuildDependency.new(
+                                "#{tk.name}_TRANSPORT_#{transport_name.upcase}",
+                                "#{tk.name}-transport-#{transport_name}-gnulinux").
+                                in_context('core', 'include').
+                                in_context('core', 'link')
                     end
                 end
+                project.used_typekits.each do |tk|
+                    next if tk.name == "rtt"
+                    next if tk.name == "logger"
+                    result << BuildDependency.new(
+                        "#{tk.name}_TYPEKIT",
+                        tk.pkg_name).
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                        
+                    project.enabled_transports.each do |transport_name|
+                        result << BuildDependency.new(
+                            "#{tk.name}_TRANSPORT_#{transport_name.upcase}",
+                            tk.pkg_transport_name(transport_name)).
+                            in_context('core', 'include').
+                            in_context('core', 'link')
+                    end                    
+                end
+                result << BuildDependency.new(
+                            "orocos_cpp_base",
+                            "orocos_cpp_base").
+                            in_context('core', 'include').
+                            in_context('core', 'link')
+                
                 result
             end
 
