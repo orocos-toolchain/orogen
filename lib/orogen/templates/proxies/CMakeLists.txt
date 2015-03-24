@@ -6,13 +6,9 @@ SET(PROXYLIB_NAME <%= project.name %>-proxies)
 add_definitions(-DRTT_COMPONENT)
 
 <% 
-    pkg_conf_deps = ["orocos_cpp_base"]
-    pkg_conf_deps.concat(proxy_gen.dependencies(false))
+    pkg_conf_deps = proxy_gen.dependencies(false)
 %>
-
-<% pkg_conf_deps.each do |dependency| %>
-orogen_pkg_check_modules(<%= dependency.upcase%> REQUIRED <%= dependency%>)
-<% end %>
+<%= Orocos::Generation.cmake_pkgconfig_require(pkg_conf_deps) %>
 
 include(<%= project.name %>TaskLib)
 
@@ -29,19 +25,9 @@ add_dependencies(${PROXYLIB_NAME}
     regen-typekit)
 <% end %>
 
-TARGET_LINK_LIBRARIES(${PROXYLIB_NAME}
-    ${OROCOS_CPP_LIBRARIES}
-    ${OrocosRTT_LIBRARIES}
-<% pkg_conf_deps.each do |dependency| %>
-    ${<%=dependency.upcase%>_LIBRARIES}
-<% end %>
-<% if project.typekit %>
-    <%= project.name %>-typekit-${OROCOS_TARGET}
-<% project.enabled_transports.each do |transport_name| %>
-    <%= project.name %>-transport-<%= transport_name %>-${OROCOS_TARGET}
-<% end %>
-<% end %>
-)
+
+
+<%= Orocos::Generation.cmake_pkgconfig_link('core', '${PROXYLIB_NAME}', pkg_conf_deps) %>
 
 SET_TARGET_PROPERTIES(${PROXYLIB_NAME}
     PROPERTIES LINK_INTERFACE_LIBRARIES "${<%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES}")
