@@ -9,6 +9,10 @@ module Orocos
         def self.extended_states_enabled?; @extended_states end
         @extended_states = true
 
+        def self.cpp_proxies=(value);  @cpp_proxies = value end
+        def self.cpp_proxies?; @cpp_proxies end
+        @cpp_proxies = true
+
         def self.define_default_deployments=(value);  @define_default_deployments = value end
         def self.define_default_deployments_enabled?; @define_default_deployments end
         @define_default_deployments = true
@@ -684,9 +688,11 @@ module Orocos
 		    pc = Generation.render_template "tasks", "tasks.pc", binding
 		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
 
-                    self_tasks.each do |t| 
-                        proxies = Orocos::Generation::CppProxyGeneration.new(component, t)
-                        proxies.generate();
+                    if(Orocos::Generation.cpp_proxies?)
+                        self_tasks.each do |t| 
+                            proxies = Orocos::Generation::CppProxyGeneration.new(self, t)
+                            proxies.generate();
+                        end
                     end
 		end
 
