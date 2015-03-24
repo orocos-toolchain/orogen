@@ -4,7 +4,7 @@
         Orocos Realtime Toolkit. Moreover, it generates the specified modules,
         thus offering an easy and fast development process.
     </description>
-    <author>Sylvain Joyeux/sylvain.joyeux@m4x.org</author>
+    <maintainer>Sylvain Joyeux/sylvain.joyeux@m4x.org</maintainer>
     <copyright>
         DFKI/robotik@dfki.de
         Sylvain Joyeux/sylvain.joyeux@m4x.org
