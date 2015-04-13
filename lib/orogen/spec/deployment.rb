@@ -607,8 +607,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
                 end
 
-                name = OroGen.verify_valid_identifier(name)
-                if task = find_task_by_name(name)
+                if find_task_by_name(name)
                     raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
                 end
                 deployment = TaskDeployment.new(name, task_context)
