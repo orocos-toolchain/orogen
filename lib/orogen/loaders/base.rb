@@ -297,11 +297,15 @@ module OroGen
             # @return [Model<Typelib::Type>] the corresponding type in
             #   {#registry}
             # @raise Typelib::NotFound if the type cannot be found
-            def resolve_type(type)
-                type = type.name if type.respond_to?(:name)
-                registry.get(type)
+            def resolve_type(type, options = Hash.new)
+                typename =
+                    if type.respond_to?(:name)
+                        type.name
+                    else type
+                    end
+                registry.get(typename)
             rescue Typelib::NotFound => e
-                if define_dummy_types?
+                if define_dummy_types? || options[:define_dummy_type]
                     type = registry.create_null(typename)
                     interface_typelist << typename
                     return type
