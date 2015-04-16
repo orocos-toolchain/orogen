@@ -36,6 +36,8 @@ module OroGen
 	    attr_reader :task
 	    # The operation name
 	    attr_reader :name
+	    # Implementation of the operation
+	    attr_accessor :base_body
             # True if this operation runs its associated C++ method in caller
             # thread (default is false)
             #
