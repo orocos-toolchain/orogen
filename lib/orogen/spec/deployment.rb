@@ -756,28 +756,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @lock_timeout_period_factor = [10,factor.to_i].max
             end
 
-            def used_task_libraries
-                task_models = Set.new
-                task_activities.each do |task|
-                    task_models |= task.task_model.ancestors.to_set
-                end
-                task_models.delete_if do |task|
-                    !task.project.orogen_project?
-                end
-
-                dependencies = Hash.new
-                task_models.each do |model|
-                    if p = dependencies[model.project.name]
-                        if p != model.project
-                            raise InternalError, "found two Project objects that seem to refer to the same project: #{p.name}"
-                        end
-                    else
-                        dependencies[model.project.name] = model.project
-                    end
-                end
-                dependencies.values
-            end
-
             # Displays this deployment's definition nicely
             def pretty_print(pp) # :nodoc:
                 pp.text "------- #{name} ------"

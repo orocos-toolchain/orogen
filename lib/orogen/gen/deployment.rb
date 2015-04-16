@@ -133,6 +133,28 @@ module OroGen
                 result.to_a.sort_by { |dep| dep.var_name }
             end
 
+            def used_task_libraries
+                task_models = Set.new
+                task_activities.each do |task|
+                    task_models |= task.task_model.ancestors.to_set
+                end
+                task_models.delete_if do |task|
+                    !task.project.orogen_project?
+                end
+
+                dependencies = Hash.new
+                task_models.each do |model|
+                    if p = dependencies[model.project.name]
+                        if p != model.project
+                            raise InternalError, "found two Project objects that seem to refer to the same project: #{p.name}"
+                        end
+                    else
+                        dependencies[model.project.name] = model.project
+                    end
+                end
+                dependencies.values
+            end
+
             def to_deployer_xml
                 result = []
                 result << <<-EOHEADER
