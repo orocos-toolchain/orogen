@@ -18,6 +18,7 @@
     <depend package="utilrb" />
     <depend package="metaruby" />
     <depend_optional package="kramdown" />
+    <depend_optional package="orocos_cpp_base" />
     <rosdep name="rake" />
     <rosdep name="ruby" />
 </package>
