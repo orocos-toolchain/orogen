@@ -2,6 +2,8 @@
 
 cmake_minimum_required(VERSION 2.8.3)
 
+set(OROCOS_PKG_DIR "${OROCOS_SUFFIX}/${PROJECT_NAME}")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/config")
 include(OrogenPkgCheckModules)
 

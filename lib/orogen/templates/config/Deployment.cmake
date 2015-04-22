@@ -23,9 +23,9 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_definitions(-DRTT_COMPONENT)
 add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if project.typekit %>
-target_link_libraries(<%= deployer.name %> <%= project.name %>-typekit-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> <%= project.name %>-typekit)
 <% deployer.transports.each do |transport_name| %>
-target_link_libraries(<%= deployer.name %> <%= project.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> <%= project.name %>-transport-<%= transport_name %>)
 <% end %>
 <% end %>
 

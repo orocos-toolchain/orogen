@@ -32,7 +32,7 @@ include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>
 <% if project.typekit %>
 include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
 list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
-    <%= project.name %>-typekit-${OROCOS_TARGET})
+    <%= project.name %>-typekit)
 <% end %>
 
 <%= dependencies = project.tasklib_dependencies
