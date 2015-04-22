@@ -151,12 +151,18 @@ module OroGen
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
+            # True if QT is used within this Task
+            attr_reader :uses_qt
+
             # Call to declare that this task model is not meant to run in
             # practice
             def abstract; @abstract = true; end
             # True if this task model is only meant to declare an interface, and
             # should not be deployed
             def abstract?; @abstract end
+
+            def use_qt; @uses_qt = true; end
+            def uses_qt?; @uses_qt; end
 
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a

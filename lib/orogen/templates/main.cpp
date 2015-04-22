@@ -36,6 +36,7 @@
     <% end %>
 <% end %>
 
+
 <% task_activities = deployer.task_activities.sort_by(&:name) %>
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
@@ -61,6 +62,13 @@
 <% end %>
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
+
+bool exiting;
+<% if uses_qt? %>
+#include <pthread.h>
+#include <QApplication>
+QApplication *qapp;
+<% end %>
 
 namespace orogen
 {
@@ -143,9 +151,26 @@ void sigint_quit_orb(int)
 }
 <% end %>
 
+
+void *oro_thread(void *p){
+    while(!exiting){
+        uint8_t dummy;
+        int read_count = read(sigint_com[0], &dummy, 1);
+        if (read_count == 1)
+            exiting=true;
+    }
+<% if uses_qt? %>
+    qapp->exit();
+<% end %>
+    return NULL;
+}
+
 int ORO_main(int argc, char* argv[])
 {
    po::options_description desc("Options");
+<% if uses_qt? %>
+    qapp = new QApplication(argc,argv);
+<% end %>
 
    desc.add_options()
         ("help", "show all available options supported by this deployment")
@@ -399,13 +424,15 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     <% else %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
-    while (true)
-    {
-        uint8_t dummy;
-        int read_count = read(sigint_com[0], &dummy, 1);
-        if (read_count == 1)
-            break;
-    }
+
+    exiting= false;
+    <% if uses_qt? %>
+    pthread_t thr;
+    pthread_create(&thr,NULL, oro_thread,NULL);
+    qapp->exec();
+    <% else %>
+    oro_thread(NULL);
+    <% end %>
 
     RTT::corba::TaskContextServer::ShutdownOrb();
     RTT::corba::TaskContextServer::DestroyOrb();
