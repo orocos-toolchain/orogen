@@ -112,7 +112,7 @@ add_custom_target(<%= typekit.name %>-regen
    <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/<%= RTT_CPP.relative_generation_directory %>)
 
-if(NOT TARGET regen)
-    add_custom_target(regen)
-endif()
-add_dependencies(regen <%= typekit.name %>-regen)
+#if(NOT TARGET regen)
+#    add_custom_target(regen)
+#endif()
+#add_dependencies(regen <%= typekit.name %>-regen)
