@@ -512,6 +512,27 @@ module OroGen
                 return enum_for(__method__) if !block_given?
                 nil
             end
+
+            def typelib_type_for(t)
+                if t.respond_to?(:name)
+                    return t if !t.contains_opaques?
+                    t = t.name
+                end
+
+                if registry.include?(t)
+                    type = registry.get(t)
+                    if type.contains_opaques?
+                        intermediate_type_for(type)
+                    elsif type.null?
+                        # 't' is an opaque type and there are no typelib marshallers
+                        # to convert it to something we can manipulate, raise
+                        raise Typelib::NotFound, "#{t} is a null type and there are no typelib marshallers registered in RTT to convert it to a typelib-compatible type"
+                    else type
+                    end
+                else
+                    raise Typelib::NotFound, "#{t} cannot be found in the currently loaded registries"
+                end
+            end
         end
     end
 end

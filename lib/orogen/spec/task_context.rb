@@ -39,7 +39,13 @@ module OroGen
         # {Gen::RTT_CPP::TaskContextGeneration}
 	class TaskContext
 	    # The oroGen project this task is part of
+            #
+            # @return [Project]
 	    attr_reader :project
+            # The loader that has been used to load this task context
+            #
+            # @return [Loaders::Base]
+            def loader; project.loader end
 
             ## :method: doc
             # :call-seq:
