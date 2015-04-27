@@ -222,7 +222,7 @@ int ORO_main(int argc, char* argv[])
 
             const std::string& ren_str = ren_vec.at(i);
 
-            unsigned int colon_pos = ren_str.find(':');
+            size_t colon_pos = ren_str.find(':');
             if ( colon_pos == std::string::npos ) continue;
 
             rename_map.insert( std::pair<std::string, std::string>( 
