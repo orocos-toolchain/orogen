@@ -121,6 +121,10 @@ module OroGen
             # True if the orocos target is xenomai
             def xenomai?; orocos_target == 'xenomai' end
 
+            def enable_namespace(value); @disabled_namespaces.delete(value) end
+            def disable_namespace(value); @disabled_namespaces << value end
+            def namespace_disabled?(value); @disabled_namespaces.include?(value) end
+
             # :method: version
             #
 	    # The version number of this project. Defaults to "0.0"
@@ -277,6 +281,7 @@ module OroGen
                 Project.using_rtt_typekit(self)
 
                 @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
+                @disabled_namespaces = ['test']
 	    end
 
             def self.using_rtt_typekit(obj)
@@ -981,6 +986,10 @@ module OroGen
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
 	    def task_context(name, options = Hash.new, &block)
+                if namespace_disabled?(name.split("::")[0..-2].join("::"))
+                    return nil
+                end
+
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name as the project"
                 elsif name !~ /^(\w+::)*\w+$/
