@@ -477,6 +477,7 @@ EOF
 	    #   subclass of the Base class.
 	    def generate
                 return if external_definition?
+                
 
                 if superclass.name == "RTT::TaskContext"
                     hidden_operation("getModelName").
@@ -502,6 +503,13 @@ EOF
 
                 if(has_dynamic_attributes?)
                     create_dynamic_updater("updateDynamicAttributes",superclass.has_dynamic_attributes?)
+                end
+                
+                
+                extensions.each do |ext|
+                    if ext.respond_to?(:early_register_for_generation)
+                        ext.early_register_for_generation(self)
+                    end
                 end
 
                 self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
