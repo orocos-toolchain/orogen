@@ -1254,7 +1254,7 @@ module OroGen
                     raise ArgumentError, "there is already a deployment named '#{name}' in this oroGen project"
                 end
 
-                deployer = Spec::Deployment.new(self, name, &block)
+                deployer = RTT_CPP::Deployment.new(self, name, &block)
                 @enabled_transports.each do |t|
                     deployer.enable_transport(t)
                 end
