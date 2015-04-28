@@ -29,7 +29,7 @@ module OroGen
                     #Adding user method cal to updateDynamicProperties
                     task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
 
-                    setter_operation.base_body= <<EOF
+                    setter_operation.base_body <<EOF
 //      The following steps happen within the base Implementation:
 //       if the task is not configured yet, update the classical property and return true
 //       if the task is configured OR running so far, call the user method to update the value
@@ -175,6 +175,10 @@ EOF
         # Module that is used to add code generation functionality to
         # Spec::Operation
         module OperationGeneration
+
+            dsl_attribute(:body) { |value| value.to_s }
+            dsl_attribute(:base_body) { |value| value.to_s }
+
             def initialize
 		@method_name = self.name.dup
 		method_name[0, 1] = method_name[0, 1].downcase
@@ -215,9 +219,6 @@ EOF
 
 		arglist.join(", ")
 	    end
-
-            attr_accessor :body
-            attr_accessor :base_body
 
 	    # call-seq:
 	    #	method_name new_name -> self
@@ -478,14 +479,16 @@ EOF
                 return if external_definition?
 
                 if superclass.name == "RTT::TaskContext"
-                    hidden_operation("getModelName", "    return \"#{name}\";").
+                    hidden_operation("getModelName").
                         returns("std::string").
                         doc("returns the oroGen model name for this task").
+                        base_body("    return \"#{name}\";").
                         runs_in_caller_thread
 
                     add_base_implementation_code("#ifdef HAS_GETTID\n#include <sys/syscall.h>\n#endif")
-                    hidden_operation("__orogen_getTID", "    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
+                    hidden_operation("__orogen_getTID").
                         returns("int").
+                        base_body("    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
                         doc("returns the PID for this task")
                 else
                     add_base_method("std::string", "getModelName","").
