@@ -764,10 +764,14 @@ module OroGen
 
             # Defines an operation whose implementation is in the Base class
             # (i.e. "hidden" from the user)
-            def hidden_operation(name, body)
+            def hidden_operation(name, body=nil)
                 op = operation(name)
                 op.hidden = true
-                op.base_body = body
+                if body
+                    OroGen.warn "body argument for hidden_operation '#{self.name}'.'#{name}' is deprecated, please set the body during generation phase"
+                    OroGen.warn "If you call this from a plugin, define the implementation within your :early_register_for_generation method"
+                    op.base_body = body
+                end
                 op
             end
 
