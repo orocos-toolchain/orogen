@@ -280,6 +280,10 @@ module OroGen
 
             def task_context(name, &block) # :nodoc:
                 task = super
+                if !task
+                    #Task might not be created because it's namespace is disabled
+                    return
+                end
                 task.external_definition = true
                 task
             end

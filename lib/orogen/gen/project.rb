@@ -102,6 +102,9 @@ module OroGen
             # writing down the projects.
             attr_predicate :define_dummy_types?, true
 
+            #returns all the disabled namespaces
+            attr_reader :disabled_namespaces
+
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target

@@ -1,11 +1,13 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
 
-#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
-#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#ifndef <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#define <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_HPP
 
-#include "<%= project.name.downcase %>/<%= task.basename %>Base.hpp"
+#include "<%= project.name.downcase %>/<%= task.basepath %><%= task.basename %>Base.hpp"
 
-namespace <%= project.name %> {
+<% task.full_namespace.split("::").each do |space| %>
+namespace <%= space %>{
+<% end %>
 
     /*! \class <%= task.basename %> 
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
@@ -106,7 +108,9 @@ namespace <%= project.name %> {
          */
         void cleanupHook();
     };
+<% task.full_namespace.split("::").each do |space| %>
 }
+<% end %>
 
 #endif
 

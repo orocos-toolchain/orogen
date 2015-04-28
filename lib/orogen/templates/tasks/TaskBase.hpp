@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/TaskBase.hpp */
 
-#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
-#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
+#ifndef <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
+#define <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_BASE_HPP
 
 #include <<%= task.superclass.header_file %>>
 
@@ -35,7 +35,9 @@
 
 <%= code_before.sort.join("\n") %>
 
-namespace <%= project.name %> {
+<% task.full_namespace.split("::").each do |space| %>
+namespace <%= space %>{
+<% end %>
     class <%= task.basename %>;
     /** The oroGen-generated part of <%= task.name %>
      *
@@ -106,7 +108,10 @@ namespace <%= project.name %> {
         <%= (is_boolean ? 'bool' : 'void') %> <%= hook_name %>Hook();
 <% end %>
     };
+
+<% task.full_namespace.split("::").each do |space| %>
 }
+<% end %>
 
 <%= code_after.sort.join("\n") %>
 

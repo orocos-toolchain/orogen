@@ -300,21 +300,34 @@ EOF
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
 	module TaskContextGeneration
+
+            # This method generates the relative basepath for generation of all files
+            def basepath
+                s = File.join(namespace.split("::").join(File::SEPARATOR))
+                if !s.empty?
+                    s = s + File::SEPARATOR
+                end
+                s
+            end
+
             # The name of the header file containing the C++ code which defines
             # this task context
             def header_file
-                if external_definition?
-                    library_name, name = self.name.split("::")
-                    File.join("#{library_name.downcase}", "#{name}.hpp")
-                else
-                    File.join("#{project.name.downcase}", "#{basename}.hpp")
-                end
+                project_name = self.name.split("::").first
+                File.join(project_name.downcase, basepath, "#{basename}.hpp")
+            end
+
+            def full_namespace
+                self.name.split("::")[0..-2].join("::")
+            end
+
+            def namespace
+                self.name.split("::")[1..-2].join("::")
             end
 
             # Returns the name without an eventual library name
             def basename
-                library_name, name = self.name.split("::")
-                name || library_name
+                self.name.split("::").last
             end
 
             # True if we are generating for Linux
@@ -524,13 +537,13 @@ EOF
 
 		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
 		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
-		Generation.save_automatic "tasks", "#{basename}Base.cpp", base_code_cpp
-		Generation.save_automatic "tasks", "#{basename}Base.hpp", base_code_hpp
+		Generation.save_automatic "tasks",basepath, "#{basename}Base.cpp", base_code_cpp
+		Generation.save_automatic "tasks",basepath, "#{basename}Base.hpp", base_code_hpp
 
 		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
 		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
-		file_cpp = Generation.save_user "tasks", "#{basename}.cpp", code_cpp
-		file_hpp = Generation.save_user "tasks", "#{basename}.hpp", code_hpp
+		file_cpp = Generation.save_user "tasks",basepath, "#{basename}.cpp", code_cpp
+		file_hpp = Generation.save_user "tasks",basepath, "#{basename}.hpp", code_hpp
 
                 # Validate constructors of old task files
                 validate_constructors(file_cpp, basename)
@@ -538,11 +551,12 @@ EOF
 
                 fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
                 FileUtils.mkdir_p fake_install_dir
+                FileUtils.mkdir_p File.join(fake_install_dir, basepath)
 
-                FileUtils.ln_sf File.join(project.base_dir, "tasks", "#{basename}.hpp"),
-                    File.join(fake_install_dir, "#{basename}.hpp")
-                FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks", "#{basename}Base.hpp"),
-                    File.join(fake_install_dir, "#{basename}Base.hpp")
+                FileUtils.ln_sf File.join(project.base_dir, "tasks",basepath, "#{basename}.hpp"),
+                    File.join(fake_install_dir, basepath, "#{basename}.hpp")
+                FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks",basepath, "#{basename}Base.hpp"),
+                    File.join(fake_install_dir, basepath ,"#{basename}Base.hpp")
 
 		self
 	    end
