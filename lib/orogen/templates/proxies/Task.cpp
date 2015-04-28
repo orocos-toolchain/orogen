@@ -78,7 +78,7 @@ task.each_port do |port|
     result << "#{port.name}(getPort(\"#{port.name}\")),\n"
 end
 
-task.each_property do |property|
+task.each_property.to_a.uniq{|s| s.name}.each do |property|
     result << "#{property.name}(*(dynamic_cast<RTT::Property< #{property.type.cxx_name} > *>(getProperty(\"#{property.name}\")))),\n"
 end
 

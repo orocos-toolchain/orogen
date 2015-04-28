@@ -71,7 +71,7 @@ result
 
 <%= 
 result = ""
-task.each_property do |property|
+task.each_property.to_a.uniq{|s| s.name}.each do |property|
     result << "        RTT::Property< #{property.type.cxx_name} > &#{property.name};\n"
 end
 result
