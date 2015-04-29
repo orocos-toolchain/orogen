@@ -491,6 +491,21 @@ EOF
                         returns("int").
                         base_body("    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
                         doc("returns the PID for this task")
+
+                    if extended_state_support?
+                        method = "    std::vector<std::string> ret;\n"
+                        states = each_state.to_a
+                        states.each_with_index do |(state_name, state_type), i|
+                            method += "    ret.push_back(\"#{state_local_value_name(state_name, state_type)}\"); \n"
+                        end
+                        method += "    return ret;"
+
+                        hidden_operation("getExtendedStateMapping").
+                            returns("std::vector<std::string>").
+                            base_body(method).
+                            doc("returns a vector of string, that corresponds to the extended task states on the state port").
+                            runs_in_caller_thread
+                    end
                 else
                     add_base_method("std::string", "getModelName","").
                         body("    return \"#{name}\";")
@@ -542,7 +557,7 @@ EOF
 		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
 		file_cpp = Generation.save_user "tasks", "#{basename}.cpp", code_cpp
 		file_hpp = Generation.save_user "tasks", "#{basename}.hpp", code_hpp
-
+                
                 # Validate constructors of old task files
                 validate_constructors(file_cpp, basename)
                 validate_constructors(file_hpp, basename)

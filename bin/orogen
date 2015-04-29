@@ -34,6 +34,10 @@ parser = OptionParser.new do |opt|
         project.extended_states = flag
     end
 
+    opt.on("--[no-]cpp_proxies", "disable or enable cpp proxy generation for all tasks defined in this project (enabled by default)") do |flag|
+        Orocos::Generation.cpp_proxies = flag
+    end
+
     opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         no_transports = true
     end
