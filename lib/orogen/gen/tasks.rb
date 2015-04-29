@@ -500,8 +500,9 @@ EOF
                         end
                         method += "    return ret;"
 
-                        hidden_operation("getExtendedStateMapping", method).
+                        hidden_operation("getExtendedStateMapping").
                             returns("std::vector<std::string>").
+                            base_body(method).
                             doc("returns a vector of string, that corresponds to the extended task states on the state port").
                             runs_in_caller_thread
                     end
