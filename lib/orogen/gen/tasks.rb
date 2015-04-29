@@ -243,7 +243,7 @@ EOF
                 end
 
                 if hidden? && !self.base_body
-                    raise InternalError, "a hidden operation must have a body"
+                    raise InternalError, "a hidden operation with name #{name} must have a body"
                 end
 
 
