@@ -1327,7 +1327,7 @@ module OroGen
                         io.puts "#include <#{path}>"
                     end
                     io.flush
-                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]) do |io|
+                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, "-m64", io.path]) do |io|
                         io.read
                     end
                     if !$?.success?
