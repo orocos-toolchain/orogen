@@ -4,6 +4,7 @@
 #include <iostream>
 #include <rtt/internal/GlobalEngine.hpp>
 #include <rtt/TaskContext.hpp>
+#include <rtt/plugin/PluginLoader.hpp>
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
@@ -168,6 +169,12 @@ int ORO_main(int argc, char* argv[])
    }
 
 
+   const char *ldLibPath = getenv("LD_LIBRARY_PATH");
+   if(ldLibPath)
+   {
+       RTT::plugin::PluginLoader::Instance()->setPluginPath(ldLibPath);
+   }   
+   
    <% if deployer.loglevel %>
    if ( log().getLogLevel() < Logger::<%= deployer.loglevel %> ) {
        log().setLogLevel( Logger::<%= deployer.loglevel %> );
