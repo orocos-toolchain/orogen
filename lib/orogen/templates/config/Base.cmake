@@ -2,17 +2,17 @@ include(OrogenPkgCheckModules)
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
     <%= ruby_bin %> -S orogen <%= RTT_CPP.command_line_options.join(" ") %> <%= project.deffile %>
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../)
 
 add_custom_command(
-    OUTPUT ${PROJECT_SOURCE_DIR}/<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>
+    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/../../<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>
     DEPENDS <%= project.deffile %>
     COMMENT "oroGen specification file changed. Run make regen first."
     COMMAND /bin/false)
 
 <% if File.file?(project.deffile) %>
 add_custom_target(check-uptodate ALL
-    DEPENDS "${PROJECT_SOURCE_DIR}/<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>")
+    DEPENDS "${CMAKE_CURRENT_LIST_DIR}/../../<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>")
 <% else %>
 add_custom_target(check-uptodate ALL)
 <% end %>
@@ -69,33 +69,33 @@ ENDIF ( DOXYGEN_FOUND )
 orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=2.1.0")
 
 # Add generic include directories
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR})
 
 <% if project.typekit %>
 # Take care of the typekit
-ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
+ADD_SUBDIRECTORY( ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
 add_dependencies(check-uptodate check-typekit-uptodate)
 <% end %>
 
 # Take care of the task library
 <% if !project.self_tasks.empty? %>
-ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
+ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/tasks)
 <% end %>
 
-configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= project.name %>.pc.in
+configure_file(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= project.name %>.pc.in
     orogen-project-<%= project.name %>.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= project.name %>.pc
     DESTINATION lib/pkgconfig)
 
-INSTALL(FILES ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>
+INSTALL(FILES ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>
     DESTINATION share/orogen)
 
 # Finally, add deployment code
 <% project.deployers.each do |deployer| %>
-include(<%= Generation::AUTOMATIC_AREA_NAME %>/config/<%= deployer.name %>Deployment.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/config/<%= deployer.name %>Deployment.cmake)
 <% end %>
 
 # Install typelib and/or Roby plugins

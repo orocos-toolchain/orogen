@@ -1,7 +1,7 @@
 # Task files could be using headers in tasks/ so add the relevant directory in
 # our include path
-include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= project.name %>)
-include_directories(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/<%= project.name %>)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>)
 
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
@@ -21,7 +21,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
 add_definitions(-DRTT_COMPONENT)
-add_executable(<%= deployer.name %> ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
+add_executable(<%= deployer.name %> ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if project.typekit %>
 target_link_libraries(<%= deployer.name %> <%= project.name %>-typekit)
 <% deployer.transports.each do |transport_name| %>
@@ -58,7 +58,7 @@ install(TARGETS <%= deployer.name %>
 add_dependencies(<%= deployer.name %>
     check-uptodate)
 
-configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
+configure_file(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)
 <% if deployer.install? %>
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-<%= deployer.name %>.pc

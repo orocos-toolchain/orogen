@@ -27,10 +27,10 @@
 # These variables are used in tasks/CMakeLists.txt to actually build the shared
 # object.
 
-include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>)
 
 <% if project.typekit %>
-include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
 list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
     <%= project.name %>-typekit)
 <% end %>
@@ -45,7 +45,7 @@ list(APPEND <%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def
 <% end %>
 <% end %>
 
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
+CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
@@ -57,9 +57,9 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TAR
      if !task_files.empty?
 	 task_files << "\n    "
      end
-     task_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.cpp"
+     task_files << "${CMAKE_CURRENT_LIST_DIR}/../../#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.cpp"
      task_files << "#{task.basename}.cpp"
-     include_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.hpp"
+     include_files << "${CMAKE_CURRENT_LIST_DIR}/../../#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.hpp"
      include_files << "#{task.basename}.hpp"
    end
 %>
@@ -67,7 +67,7 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TAR
 add_definitions(-DRTT_COMPONENT)
 set(<%= project.name.upcase %>_TASKLIB_NAME <%= project.name %>-tasks-${OROCOS_TARGET})
 set(<%= project.name.upcase %>_TASKLIB_SOURCES
-    ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/DeployerComponent.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/DeployerComponent.cpp
     <%= task_files.sort.join(";") %>)
 set(<%= project.name.upcase %>_TASKLIB_HEADERS <%= include_files.sort.join(";") %>)
 include_directories(${OrocosRTT_INCLUDE_DIRS})
