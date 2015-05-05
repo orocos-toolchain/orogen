@@ -522,6 +522,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 :debug => 'Debug'
             }
 
+            def uses_qt?
+                task_activities.any?{|t| t.task_model.uses_qt?}
+            end
+
             #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
             def load_type(typename)
                 if !project.imported_typekits_for(typename).map(&:name)[0]
