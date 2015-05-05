@@ -380,7 +380,6 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     sigint_handler.sa_handler = &sigint_quit_orb;
     sigemptyset(&sigint_handler.sa_mask);
     sigint_handler.sa_flags     = 0;
-    sigint_handler.sa_restorer  = 0;
     if (-1 == sigaction(SIGINT, &sigint_handler, 0))
     {
         std::cerr << "failed to install SIGINT handler" << std::endl;
