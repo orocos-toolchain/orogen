@@ -2,6 +2,8 @@ module OroGen
     module Loaders
         # A launcher that aggregates other launchers
         class Aggregate < Base
+            class DuplicateLoader < ArgumentError; end
+
             # @return [Array]
             attr_reader :loaders
 
@@ -23,7 +25,7 @@ module OroGen
 
             def add(loader)
                 if loaders.include?(loader)
-                    raise ArgumentError, "#{loader} is already a child of #{self}"
+                    raise DuplicateLoader, "#{loader} is already a child of #{self}"
                 end
                 @loaders << loader
             end
