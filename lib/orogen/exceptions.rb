@@ -3,6 +3,7 @@ module OroGen
 
     class ProjectNotFound < NotFound; end
     class TypekitNotFound < NotFound; end
+    class DefinitionTypekitNotFound < TypekitNotFound; end
     class TaskModelNotFound < NotFound; end
     class TaskLibraryNotFound < NotFound; end
     class DeploymentModelNotFound < NotFound; end
@@ -42,5 +43,8 @@ module OroGen
     end
 
     class AlreadyRegistered < RuntimeError
+    end
+
+    class AmbiguousName < ArgumentError
     end
 end

@@ -96,7 +96,7 @@ module OroGen
 
                 Loaders::Project.new(project).__eval__(path, text)
                 if project.name != name
-                    raise RuntimeError, "inconsistency: got project #{project.name} while loading #{name}"
+                    raise InternalError, "inconsistency: got project #{project.name} while loading #{name}"
                 end
                 register_project_model(project)
                 project
@@ -209,7 +209,7 @@ module OroGen
                     if deployment_names.empty?
                         raise DeployedTaskModelNotFound, "cannot find a deployed task called #{name}"
                     elsif deployment_names.size > 1
-                        raise OroGen::AmbiguousName, "more than one deployment defines a deployed task called #{name}: #{deployment_names.map(&:name).sort.join(", ")}"
+                        raise AmbiguousName, "more than one deployment defines a deployed task called #{name}: #{deployment_names.map(&:name).sort.join(", ")}"
                     end
                     deployment = deployment_model_from_name(deployment_names.first)
                 end
@@ -237,7 +237,7 @@ module OroGen
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
                 typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
                 if typekit.name != name
-                    raise RuntimeError, "inconsistency: got typekit #{typekit.name} while loading #{name}"
+                    raise InternalError, "inconsistency: got typekit #{typekit.name} while loading #{name}"
                 end
 
                 register_typekit_model(typekit)
@@ -320,8 +320,8 @@ module OroGen
             #   are returned. Otherwise, every typekit that have it in their
             #   registry are returned.
             #
-            # @return [Array<Spec::Typekit>] the list of typekits
-            # @raise [ArgumentError] if no typekits define this type
+            # @return [Set<Spec::Typekit>] the list of typekits
+            # @raise [DefinitionTypekitNotFound] if no typekits define this type
             def imported_typekits_for(typename, options = Hash.new)
                 options = Kernel.validate_options options,
                     :definition_typekits => true
@@ -330,16 +330,16 @@ module OroGen
 		end
                 if typekits = typekits_by_type_name[typename]
                     if options[:definition_typekits]
-                        definition_typekits = typekits.find_all { |tk| tk.typelist.include?(typename) }
+                        definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
                         if definition_typekits.empty?
-                            raise ArgumentError, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and :definition_typekits is true"
+                            raise DefinitionTypekitNotFound, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and I cannot find it. definition_typekits is true, I raise"
                         end
-                        return definition_typekits
+                        return definition_typekits.to_set
                     else
                         return typekits
                     end
                 end
-                raise ArgumentError, "#{typename} is not defined by any typekits loaded so far"
+                raise DefinitionTypekitNotFound, "#{typename} is not defined by any typekits loaded so far"
             end
 
             # Returns the type object for +typename+, validating that we can use
