@@ -138,11 +138,11 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::Serv
 int sigint_com[2];
 void sigint_quit_orb(int)
 {
-    uint8_t dummy = 0;
+    char dummy = 0;
     unsigned int sent = 0;
-    while(sent < sizeof(uint8_t))
+    while(sent < sizeof(dummy))
     {
-	int ret = write(sigint_com[1], &dummy, sizeof(uint8_t));
+	int ret = write(sigint_com[1], &dummy, sizeof(dummy));
 	if(ret < 0)
 	{
 	    std::cerr << "Failed to signal quit to orb" << std::endl;
@@ -156,8 +156,8 @@ void sigint_quit_orb(int)
 
 void *oro_thread(void *p){
     while(!exiting){
-        uint8_t dummy;
-        int read_count = read(sigint_com[0], &dummy, 1);
+        char dummy;
+        int read_count = read(sigint_com[0], &dummy, sizeof(dummy));
         if (read_count == 1)
             exiting=true;
     }
