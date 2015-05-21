@@ -1341,12 +1341,11 @@ module OroGen
                 preprocessed.each_line do |line|
                     if line =~ /# (\d+) "(.*)"(?: (\d))?/
                         lineno, file, mode = Integer($1), $2, $3
+
                         if mode == "1"
                             toplevel_file =
-                                if toplevel_files.include? file
-                                    file
-                                else
-                                    current_file.last[0]
+                                if toplevel_files.include?(file) then file
+                                else current_file.last[0]
                                 end
                             current_file.push [toplevel_file, file, lineno]
                         elsif mode == "2"
@@ -1407,15 +1406,7 @@ module OroGen
                 file_registry.merge opaque_registry
 
                 preprocess_options, options = make_load_options(loads, user_options)
-                preprocessed = ""
-                include_mappings = Hash.new
-
-                loads.each do |l|
-                    _, incl_mapp = resolve_toplevel_include_mapping([l], preprocess_options)
-                    include_mappings.merge!(incl_mapp)
-                end
-                preprocessed , _ = resolve_toplevel_include_mapping(loads, preprocess_options)
-
+                preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
 
                 include_path = include_dirs.map { |d| Pathname.new(d) }
                 pending_loads_to_relative = loads.inject(Hash.new) do |map, path|
