@@ -297,11 +297,15 @@ module OroGen
             # @return [Model<Typelib::Type>] the corresponding type in
             #   {#registry}
             # @raise Typelib::NotFound if the type cannot be found
-            def resolve_type(type)
-                type = type.name if type.respond_to?(:name)
-                registry.get(type)
+            def resolve_type(type, options = Hash.new)
+                typename =
+                    if type.respond_to?(:name)
+                        type.name
+                    else type
+                    end
+                registry.get(typename)
             rescue Typelib::NotFound => e
-                if define_dummy_types?
+                if define_dummy_types? || options[:define_dummy_type]
                     type = registry.create_null(typename)
                     interface_typelist << typename
                     return type
@@ -507,6 +511,27 @@ module OroGen
             def each_available_project_name
                 return enum_for(__method__) if !block_given?
                 nil
+            end
+
+            def typelib_type_for(t)
+                if t.respond_to?(:name)
+                    return t if !t.contains_opaques?
+                    t = t.name
+                end
+
+                if registry.include?(t)
+                    type = registry.get(t)
+                    if type.contains_opaques?
+                        intermediate_type_for(type)
+                    elsif type.null?
+                        # 't' is an opaque type and there are no typelib marshallers
+                        # to convert it to something we can manipulate, raise
+                        raise Typelib::NotFound, "#{t} is a null type and there are no typelib marshallers registered in RTT to convert it to a typelib-compatible type"
+                    else type
+                    end
+                else
+                    raise Typelib::NotFound, "#{t} cannot be found in the currently loaded registries"
+                end
             end
         end
     end

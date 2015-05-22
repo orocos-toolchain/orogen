@@ -51,7 +51,12 @@ module OroGen
             end
         end
 
-        module DeploymentGeneration
+        class Deployment < Spec::Deployment
+            def task(name, klass)
+                name = OroGen.verify_valid_identifier(name)
+                super(name, klass)
+            end
+
             def dependencies
                 result = []
                 result << BuildDependency.new(
@@ -199,7 +204,6 @@ module OroGen
         end
 
         Spec::TaskDeployment.include TaskDeploymentGeneration
-        Spec::Deployment.include DeploymentGeneration
     end
     end
 end

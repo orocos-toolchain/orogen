@@ -1,6 +1,6 @@
 module OroGen
     module Loaders
-        module RTT
+        class RTT < PkgConfig
             DIR = File.join(File.expand_path(File.dirname(__FILE__)), 'rtt')
             STANDARD_PROJECT_SPECS = { "RTT" => DIR, "OCL" => DIR }
             STANDARD_TYPEKIT_SPECS = { "orocos" => DIR }
@@ -13,6 +13,10 @@ module OroGen
                     loader.register_typekit(dir, name)
                 end
                 loader
+            end
+
+            def initialize(orocos_target = ENV['OROCOS_TARGET'], root_loader = self)
+                super
             end
 
             def self.standard_projects
@@ -57,6 +61,11 @@ module OroGen
                 standard_projects.each do |proj|
                     loader.register_project_model(proj)
                 end
+            end
+
+            def clear
+                super
+                RTT.setup_loader(self)
             end
         end
     end

@@ -522,6 +522,10 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 :debug => 'Debug'
             }
 
+            def uses_qt?
+                task_activities.any?{|t| t.task_model.uses_qt?}
+            end
+
             #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
             def load_type(typename)
                 if !project.imported_typekits_for(typename).map(&:name)[0]
@@ -607,8 +611,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
                 end
 
-                name = OroGen.verify_valid_identifier(name)
-                if task = find_task_by_name(name)
+                if find_task_by_name(name)
                     raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
                 end
                 deployment = TaskDeployment.new(name, task_context)
