@@ -296,6 +296,14 @@ module OroGen
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
+            # Returns a blank task context model, possibly with a name
+            def self.blank(name = nil)
+                loader = Loaders::Base.new
+                project = Project.new(loader)
+                project.default_task_superclass = false
+                TaskContext.new(project, name)
+            end
+
 	    # Create a new task context in the given project and with
 	    # the given name. If a block is given, it is evaluated
 	    # in the context of the newly created TaskContext object.
