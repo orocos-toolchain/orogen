@@ -30,6 +30,13 @@ module OroGen
             # @return [Set<String>]
             attr_reader :enabled_transports
 
+            def self.blank
+                loader = Loaders::Base.new
+                project = Project.new(loader)
+                project.default_task_superclass = false
+                project
+            end
+
             def initialize(loader)
                 @loader = loader
                 @tasks = Hash.new
