@@ -104,7 +104,12 @@ module OroGen
             end
 
 
+            # @deprecated use {#include} instead
             def includes?(type)
+                include?(type)
+            end
+
+            def include?(type)
                 typename = if type.respond_to?(:name) then type.name
                            else type.to_str
                            end
@@ -257,6 +262,10 @@ module OroGen
                 "#<OroGen::Spec::Typekit #{name}>"
             end
 
+            def inspect
+                "#<OroGen::Spec::Typekit #{name}>"
+            end
+
             def respond_to_missing?(m, include_private = false)
                 if super then return super
                 elsif m.to_s =~ /^create_(interface_)?(\w+)$/
@@ -282,7 +291,7 @@ module OroGen
                         interface_typelist << type.name
                     end
                     type
-                else raise
+                else super
                 end
             end
         end

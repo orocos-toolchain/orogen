@@ -31,6 +31,12 @@ module OroGen
                     @standard_typekits = STANDARD_TYPEKIT_SPECS.map do |name, _|
                         typekit = loader.typekit_model_from_name(name)
                         typekit.virtual = true
+                        # Some fine-tuning :( Super-HACK
+                        if name == 'orocos'
+                            type = typekit.registry.create_container '/std/string', '/std/string'
+                            type.metadata.set 'orogen_include', 'string'
+                            typekit.registry.alias '/string', '/std/string'
+                        end
                         typekit
                     end
                 end
