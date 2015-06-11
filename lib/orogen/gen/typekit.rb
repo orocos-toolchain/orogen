@@ -1327,7 +1327,11 @@ module OroGen
                         io.puts "#include <#{path}>"
                     end
                     io.flush
-                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, "-m64", io.path]) do |io|
+                    arch_type = "-m64"
+                    if 1.size == 4
+                      arch_type = "-m32"
+                    end
+                    result = IO.popen(["gccxml", "--preprocess", arch_type, *includes, *defines, io.path]) do |io|
                         io.read
                     end
                     if !$?.success?
