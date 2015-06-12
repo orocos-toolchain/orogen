@@ -533,6 +533,10 @@ module OroGen
                     raise Typelib::NotFound, "#{t} cannot be found in the currently loaded registries"
                 end
             end
+
+            def inspect
+                to_s
+            end
         end
     end
 end
