@@ -333,6 +333,10 @@ module OroGen
                 return enum_for(__method__) if !block_given?
                 deployers.each_value(&proc)
             end
+
+            def to_s
+                "#<#{super}: name=#{name} loader=#{loader}>"
+            end
         end
     end
 end
