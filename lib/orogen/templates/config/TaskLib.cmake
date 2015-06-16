@@ -27,10 +27,10 @@
 # These variables are used in tasks/CMakeLists.txt to actually build the shared
 # object.
 
-include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 <% if project.typekit %>
-include_directories(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/typekit)
 list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
     <%= project.name %>-typekit-${OROCOS_TARGET})
 <% end %>
@@ -45,7 +45,7 @@ list(APPEND <%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def
 <% end %>
 <% end %>
 
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/../<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
@@ -57,10 +57,10 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TAR
      if !task_files.empty?
 	 task_files << "\n    "
      end
-     task_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.cpp"
-     task_files << "#{task.basename}.cpp"
-     include_files << "${CMAKE_SOURCE_DIR}/#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basename}Base.hpp"
-     include_files << "#{task.basename}.hpp"
+     task_files << "${CMAKE_CURRENT_SOURCE_DIR}/../#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basepath}/#{task.basename}Base.cpp"
+     task_files << "#{task.basepath}#{task.basename}.cpp"
+     include_files << "${CMAKE_CURRENT_SOURCE_DIR}/../#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basepath}/#{task.basename}Base.hpp"
+     include_files << "#{task.basepath}#{task.basename}.hpp"
    end
 %>
 

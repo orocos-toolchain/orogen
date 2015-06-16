@@ -3,6 +3,10 @@ enable_transports('<%= project.enabled_transports.sort.join("', '") %>')
 <% end %>
 self.extended_states = <%= RTT_CPP.extended_states_enabled? %>
 
+<% disabled_namespaces.each do |d| %>
+self.disable_namespace "<%= d %>"
+<% end %>
+
 Spec::TaskContext.disable_default_extensions
 
 <% used_typekits.each do |tk| %>

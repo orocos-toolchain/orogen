@@ -29,6 +29,9 @@ module OroGen
             # The set of transport names that are enabled in this project
             # @return [Set<String>]
             attr_reader :enabled_transports
+            #returns all the disabled namespaces
+            attr_reader :disabled_namespaces
+
 
             def self.blank
                 loader = Loaders::Base.new
@@ -45,7 +48,12 @@ module OroGen
                 @define_default_deployments = true
                 @enabled_transports = Set.new
                 @max_sizes = Hash.new
+                @disabled_namespaces = Array.new
             end
+
+            def enable_namespace(value); @disabled_namespaces.delete(value) end
+            def disable_namespace(value); @disabled_namespaces << value end
+            def namespace_disabled?(value); @disabled_namespaces.include?(value) end
 
 	    # Gets or sets the project's name
             #
@@ -143,6 +151,10 @@ module OroGen
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
 	    def task_context(name, options = Hash.new, &block)
+                if namespace_disabled?(name.split("::")[0..-2].join("::"))
+                    return
+                end
+
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name as the project"
                 elsif name !~ /^(\w+::)*\w+$/

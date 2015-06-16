@@ -1,8 +1,8 @@
 /* Generated from orogen/lib/orogen/templates/tasks/TAskBase.cpp */
 
-#include "tasks/<%= task.basename %>Base.hpp"
+#include "tasks/<%= File.join(task.namespace, task.basename) %>Base.hpp"
 
-using namespace <%= project.name %>;
+using namespace <%= task.full_namespace%>;
 
 <% code_before, code_after =
    task.base_implementation_code.partition(&:first)
