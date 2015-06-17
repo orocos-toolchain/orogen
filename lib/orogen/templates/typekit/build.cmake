@@ -43,6 +43,7 @@ orocos_typekit(${libname}
 target_link_libraries(${libname} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
 target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES)
 set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES "")
+set_target_properties(${libname} PROPERTIES COMPILE_FLAGS "-Wno-unused-private-field")
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_LIST_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
