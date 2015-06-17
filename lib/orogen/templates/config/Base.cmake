@@ -74,10 +74,9 @@ INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR})
 
 <% if project.typekit %>
 # Take care of the typekit
-ADD_SUBDIRECTORY( ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit ${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
+include(${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/build.cmake)
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_LIST_DIR}/../../<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
-add_dependencies(check-uptodate check-typekit-uptodate)
 <% end %>
 
 # Take care of the task library

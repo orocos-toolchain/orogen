@@ -105,6 +105,7 @@ add_custom_command(
     COMMAND /bin/false)
 add_custom_target(<%= typekit.name %>-check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} <%= typekit.name %>-check-typekit-uptodate)
+add_dependencies(check-uptodate <%= typekit.name %>-check-typekit-uptodate)
 
 add_custom_target(<%= typekit.name %>-regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME']
