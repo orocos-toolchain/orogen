@@ -108,7 +108,7 @@ install(FILES Types.hpp Opaques.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
     <% if typekit.has_opaques_with_templates? %>
-    typekit/Opaques.hpp
+    ${PROJECT_SOURCE_DIR}/typekit/Opaques.hpp
     <% end %>
     <%= relatives = []
         plugin_header_files.each do |file|
