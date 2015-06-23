@@ -104,7 +104,12 @@ module OroGen
             end
 
 
+            # @deprecated use {#include} instead
             def includes?(type)
+                include?(type)
+            end
+
+            def include?(type)
                 typename = if type.respond_to?(:name) then type.name
                            else type.to_str
                            end
@@ -254,6 +259,10 @@ module OroGen
             end
 
             def to_s
+                "#<OroGen::Spec::Typekit #{name}>"
+            end
+
+            def inspect
                 "#<OroGen::Spec::Typekit #{name}>"
             end
 
