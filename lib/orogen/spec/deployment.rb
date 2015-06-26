@@ -435,6 +435,13 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    # class (the default)
 	    def non_realtime; @realtime = false; self end
 
+            def to_s
+                "#<#{self.class} name=#{name} model=#{task_model}>"
+            end
+            def inspect
+                to_s
+            end
+
             def pretty_print(pp) # :nodoc:
                 pp.text "#{name}[#{task_model.name}]"
                 pp.nest(2) do
@@ -521,6 +528,14 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 :info => 'Info',
                 :debug => 'Debug'
             }
+
+            def to_s
+                "#<#{self.class} name=#{name} tasks=#{task_activities.map { |t| "#{t}" }.join(", ")}>"
+            end
+
+            def inspect
+                to_s
+            end
 
             def uses_qt?
                 task_activities.any?{|t| t.task_model.uses_qt?}
