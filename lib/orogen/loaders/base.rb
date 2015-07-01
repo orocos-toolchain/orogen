@@ -370,7 +370,7 @@ module OroGen
             # @param (see Spec::Typekit#intermediate_type?)
             # @return (see Spec::Typekit#intermediate_type?)
             def intermediate_type?(type)
-                imported_typekits_for(type, :definition_typekits => false).
+                imported_typekits_for(type, definition_typekits: false).
                     any? { |tk| tk.intermediate_type?(type) }
             end
 
@@ -380,8 +380,9 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
-                imported_typekits_for(type, :definition_typekits => false).
+                type = imported_typekits_for(type, definition_typekits: false).
                     first.opaque_type_for(type)
+                registry.get(type.name)
             end
 
             # Returns the intermediate type that is paired with the given type
@@ -390,8 +391,9 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
-                imported_typekits_for(type, :definition_typekits => false).
+                type = imported_typekits_for(type, definition_typekits: false).
                     first.intermediate_type_for(type)
+                registry.get(type.name)
             end
 
             # Returns whether this type is a m-type (intermediate type generated
@@ -401,7 +403,7 @@ module OroGen
             # @raise (see Spec::Typekit#m_type?)
             # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
-                imported_typekits_for(type, :definition_typekits => false).
+                imported_typekits_for(type, definition_typekits: false).
                     first.m_type?(type)
             end
 
