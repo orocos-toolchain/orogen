@@ -147,6 +147,11 @@ module OroGen
             # @return [Array<TaskDeployment>]
             attr_reader :slaves
 
+            def initialize_copy(old)
+                super
+                @slaves = slaves.dup
+            end
+
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
             # and the time updateHook() is actually called, based on its
@@ -522,6 +527,16 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @manually_loaded_types = Set.new
                 @lock_timeout_no_period = nil
                 @lock_timeout_period_factor =  nil
+            end
+
+            def initialize_copy(old)
+                super
+                @task_activities = @task_activities.dup
+
+
+                @transports = @transports.dup
+                @peers = @peers.dup
+                @manually_loaded_types = @manually_loaded_types.dup
             end
 
             KNOWN_LOG_LEVELS = {
