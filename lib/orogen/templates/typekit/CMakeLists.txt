@@ -35,7 +35,7 @@ endif (CXX_SUPPORTS_WALL)
 option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
 if(WITH_RPATH)
     include(RPATHHandling)
-    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos:${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
+    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/lib/orocos;${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
 endif(WITH_RPATH)
 
 # Set the build type to debug by default
@@ -105,8 +105,8 @@ set_target_properties(${libname} PROPERTIES LINK_INTERFACE_LIBRARIES ${OrocosRTT
 set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES ${OrocosRTT_LIBRARIES})
 if(WITH_RPATH AND APPLE)
   set_target_properties( ${libname} PROPERTIES
-    INSTALL_NAME_DIR "@rpath"
-    LINK_FLAGS "-Wl,-rpath ${CMAKE_INSTALL_PREFIX}/lib -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos -rpath ${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
+    INSTALL_NAME_DIR "@rpath")
+    SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 endif()
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
