@@ -85,6 +85,10 @@ add_dependencies(check-uptodate check-typekit-uptodate)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/tasks)
 <% end %>
 
+<% additional_plugin_source_dirs.each do  |dir| %>
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= dir %>)
+<% end %>
+
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= project.name %>.pc.in
     orogen-project-<%= project.name %>.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/orogen-project-<%= project.name %>.pc
