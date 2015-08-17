@@ -305,6 +305,22 @@ module OroGen
                 project.used_typekits.find { |tk| tk.name == typekit_name }
             end
 
+            # Returns all subdirectores that task-extens want to add
+            # This is used within the CMake-list generation to add
+            # custom targets to the build process
+            def additional_plugin_source_dirs
+                dirs = []
+                tasks.each do |name,task|
+                    task.extensions.each do |ext|
+                        next if !ext.respond_to? "each_auto_gen_source_directory"
+                        ext.each_auto_gen_source_directory do |elem|
+                            dirs << elem
+                        end
+                    end
+                end
+                dirs.uniq
+            end
+
             # The set of typekits that are already loaded on this oroGen project
             attr_reader :loaded_typekits
 

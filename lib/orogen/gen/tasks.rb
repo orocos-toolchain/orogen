@@ -517,11 +517,15 @@ EOF
                 if(has_dynamic_attributes?)
                     create_dynamic_updater("updateDynamicAttributes",superclass.has_dynamic_attributes?)
                 end
-                
-                
+
+
                 extensions.each do |ext|
                     if ext.respond_to?(:early_register_for_generation)
+                        OroGen.warn "The plugin #{ext.name} defines a \"early_register_for_generation\" hook, this got renamed to \"pre_generation_hook\" please adapt the code or contact the developer."
                         ext.early_register_for_generation(self)
+                    end
+                    if ext.respond_to?(:pre_generation_hook)
+                        ext.pre_generation_hook(self)
                     end
                 end
 
@@ -530,7 +534,11 @@ EOF
                 new_operations.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
                 extensions.each do |ext|
+                    if ext.respond_to?(:generation_hook)
+                        ext.generation_hook(self)
+                    end
                     if ext.respond_to?(:register_for_generation)
+                        OroGen.warn "The plugin #{ext.name} defines a \"register_for_generation\" hook, this got renamed to \"generation_hook\" please adapt the code or contact the developer."
                         ext.register_for_generation(self)
                     end
                 end
@@ -545,6 +553,12 @@ EOF
 
 		# Make this task be available in templates as 'task'
 		task = self
+
+                extensions.each do |ext|
+                    if ext.respond_to?(:post_generation_hook)
+                        ext.post_generation_hook(self)
+                    end
+                end
 
 		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
 		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
