@@ -1294,6 +1294,9 @@ module OroGen
                 if metadata.include?('orogen_include')
                     return metadata.get('orogen_include')
                 end
+                if(type <= Typelib::NumericType)
+                    return []
+                end
                 nil
             end
 
