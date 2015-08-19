@@ -1504,7 +1504,7 @@ module OroGen
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
 
-                Tempfile.open("orogen-pending-loads_") do |io|
+                Tempfile.open(["orogen-pending-loads_",".hpp"]) do |io|
                     io.write preprocessed
                     io.flush
 
