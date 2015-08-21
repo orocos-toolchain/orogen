@@ -281,9 +281,14 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         task_name = rename_map[task_name];
     else
         task_name = prefix + task_name;
-    
+
+#if __cplusplus < 201103L
     std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(
             orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
+#else
+    std::unique_ptr<RTT::TaskContext> task_<%= task.name%>(
+            orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
+#endif
 
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
