@@ -101,7 +101,7 @@ namespace <%= space %>{
             <% end %>
         };
         <% end %>
-        
+
 	<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
 	<%= task.basename %>Base(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>);
         ~<%= task.basename %>Base();
