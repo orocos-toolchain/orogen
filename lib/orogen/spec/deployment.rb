@@ -637,10 +637,6 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 else task_context = klass
                 end
 
-                if task_context.abstract?
-                    raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
-                end
-
                 if find_task_by_name(name)
                     raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
                 end
