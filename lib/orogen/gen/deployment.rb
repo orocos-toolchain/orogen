@@ -54,7 +54,15 @@ module OroGen
         class Deployment < Spec::Deployment
             def task(name, klass)
                 name = OroGen.verify_valid_identifier(name)
-                super(name, klass)
+                if klass.respond_to?(:to_str)
+                    task_context = project.task_model_from_name(klass)
+                else task_context = klass
+                end
+
+                if task_context.abstract?
+                    raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
+                end
+                super(name, task_context)
             end
 
             def dependencies
