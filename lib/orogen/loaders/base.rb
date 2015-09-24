@@ -47,6 +47,17 @@ module OroGen
             # @return [Array<#call>]
             attr_reader :project_load_callbacks
 
+            # @api private
+            #
+            # Cached parsed XML from the typekits
+            #
+            # This is to avoid repeatedly parsing the same XML. It is really
+            # useful only on test suites which tend to clear and reload loaders
+            # at each setup/teardown
+            attr_reader :typekit_xml_cache
+
+            TypekitXMLCacheEntry = Struct.new :text, :rexml
+
             def initialize(root_loader = self)
                 @root_loader = root_loader || self
                 if root_loader != self
@@ -54,6 +65,7 @@ module OroGen
                 end
                 @typekit_load_callbacks = Array.new
                 @project_load_callbacks = Array.new
+                @typekit_xml_cache = Hash.new
                 clear
             end
 
@@ -235,7 +247,14 @@ module OroGen
                 end
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
-                typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
+                if (cached = typekit_xml_cache[name]) && (registry_xml == cached.text)
+                    parsed_xml = cached.rexml
+                else
+                    parsed_xml = REXML::Document.new(registry_xml)
+                    typekit_xml_cache[name] = TypekitXMLCacheEntry.new(registry_xml, parsed_xml)
+                end
+                typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt,
+                                                      parsed_xml: parsed_xml)
                 if typekit.name != name
                     raise InternalError, "inconsistency: got typekit #{typekit.name} while loading #{name}"
                 end
