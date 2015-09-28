@@ -1,5 +1,5 @@
 require 'utilrb/module/attr_predicate'
-require 'utilrb/value_set'
+require 'set'
 
 module OroGen
     module Spec

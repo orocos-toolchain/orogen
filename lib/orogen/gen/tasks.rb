@@ -198,7 +198,7 @@ EOF
 	    end
 
             # Returns the set of types that this operation uses, as a
-            # ValueSet of Typelib::Type classes.
+            # Set of Typelib::Type classes.
             def used_types
                 [return_type.first].compact + arguments.map { |_, t, _| t }
             end
@@ -420,7 +420,7 @@ EOF
             def interface_types
                 (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
                     map { |obj| obj.used_types }.
-                    flatten.to_value_set.to_a
+                    flatten.to_set.to_a
             end
 
 
@@ -434,7 +434,7 @@ EOF
                     types.any? do |type|
                         tk.includes?(type.name)
                     end
-                end.to_value_set
+                end.to_set
             end
 
             # Validate the constructors of the task files
