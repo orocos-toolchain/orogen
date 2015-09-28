@@ -9,7 +9,7 @@ includedir=${prefix}/include/orocos
    # includes. We don't have to link explicitely to them, unless we're using
    # them explicitely (and therefore we will link to them anyway)
   used_typekits = project.self_tasks.
-            inject(ValueSet.new) { |set, t| set | t.used_typekits }
+            inject(Set.new) { |set, t| set | t.used_typekits }
 %>
 
 project_name=<%= project.name %>

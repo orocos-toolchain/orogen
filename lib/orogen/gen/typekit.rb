@@ -674,7 +674,7 @@ module OroGen
             #
             # See also #type_export_policy
             def export_types(*selection)
-                @selected_types |= selection.map { |name| find_type(name) }.to_value_set
+                @selected_types |= selection.map { |name| find_type(name) }.to_set
             rescue Typelib::NotFound => e
                 raise ConfigError, e.message, e.backtrace
             end
@@ -868,8 +868,8 @@ module OroGen
                 @pending_loads        = Array.new
 
                 type_export_policy :all
-                @selected_types = ValueSet.new
-                @excluded_types = ValueSet.new
+                @selected_types = Set.new
+                @excluded_types = Set.new
                 Project.using_rtt_typekit(self)
 	    end
 
@@ -1908,11 +1908,11 @@ module OroGen
 
             # Makes sure that a set of type objects comes from the same registry
             #
-            # In order to use ValueSet, we must make sure that all type objects
-            # come from the same registry. This method takes a ValueSet of types
+            # In order to use Set, we must make sure that all type objects
+            # come from the same registry. This method takes a Set of types
             # and converts all of them to the type coming from +registry+
             def map_typeset_to_registry(registry, types)
-                types.map { |t| find_type(t) }.to_value_set
+                types.map { |t| find_type(t) }.to_set
             end
 
 	    def generate
@@ -1944,7 +1944,7 @@ module OroGen
                 # dumped registry
                 @registry = normalize_registry
 		minimal_registry = @registry.dup
-                generated_types = self_types.to_value_set
+                generated_types = self_types.to_set
 
                 self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
 
@@ -1994,10 +1994,10 @@ module OroGen
                     if type_export_policy == :all
                         generated_types.find_all do |type|
                             !m_type?(type) && !(type <= Typelib::NumericType)
-                        end.to_value_set
+                        end.to_set
 
                     elsif type_export_policy == :used
-                        used_types = project.self_tasks.inject(ValueSet.new) do |result, task|
+                        used_types = project.self_tasks.inject(Set.new) do |result, task|
                             result | map_typeset_to_registry(registry, task.interface_types)
                         end
                         (used_types & generated_types)
