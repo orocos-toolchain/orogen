@@ -128,12 +128,14 @@ module OroGen
                 @available_typekits = Hash.new
                 @available_types = Hash.new
 
-                Utilrb::PkgConfig.each_package(/^orogen-project-/) do |pkg_name|
+                all_packages = Utilrb::PkgConfig.enum_for(:each_package).to_a
+
+                all_packages.grep(/^orogen-project-/).each do |pkg_name|
                     pkg = Utilrb::PkgConfig.new(pkg_name)
                     add_project_from(pkg)
                 end
 
-                Utilrb::PkgConfig.each_package(/-tasks-#{orocos_target}$/) do |pkg_name|
+                all_packages.grep(/-tasks-#{orocos_target}$/).each do |pkg_name|
                     pkg = Utilrb::PkgConfig.new(pkg_name)
                     tasklib_name = pkg_name.gsub(/-tasks-#{orocos_target}$/, '')
 
@@ -149,7 +151,7 @@ module OroGen
                         each { |class_name| available_task_models[class_name] = tasklib_name }
                 end
 
-                Utilrb::PkgConfig.each_package(/^orogen-\w+$/) do |pkg_name|
+                all_packages.grep(/^orogen-\w+$/).each do |pkg_name|
                     pkg = Utilrb::PkgConfig.new(pkg_name)
                     deployment_name = pkg_name.gsub(/^orogen-/, '')
 
@@ -174,7 +176,7 @@ module OroGen
                     end
                 end
 
-                Utilrb::PkgConfig.each_package(/-typekit-#{orocos_target}$/) do |pkg_name|
+                all_packages.grep(/-typekit-#{orocos_target}$/).each do |pkg_name|
                     pkg = Utilrb::PkgConfig.new(pkg_name)
                     typekit_name = pkg_name.gsub(/-typekit-#{orocos_target}$/, '')
 

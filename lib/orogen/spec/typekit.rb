@@ -43,7 +43,7 @@ module OroGen
                 return typekit_typelist, typekit_interface_typelist
             end
 
-            def self.from_raw_data(loader, name, registry_xml, typelist_txt)
+            def self.from_raw_data(loader, name, registry_xml, typelist_txt, parsed_xml: nil)
                 typekit_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(typekit_registry)
                 typekit_registry.merge_xml(registry_xml)
@@ -55,8 +55,8 @@ module OroGen
                               typekit_interface_typelist)
 
                 # Now initialize the opaque definitions
-                doc = REXML::Document.new(registry_xml)
-                doc.each_element('//opaque') do |opaque_entry|
+                parsed_xml ||= REXML::Document.new(registry_xml)
+                parsed_xml.each_element('//opaque') do |opaque_entry|
                     base_type_name  = opaque_entry.attributes['name']
                     inter_type_name = opaque_entry.attributes['marshal_as']
                     includes        = opaque_entry.attributes['includes']
