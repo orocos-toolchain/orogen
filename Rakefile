@@ -40,6 +40,7 @@ begin
             ['flexmock', '>= 0.8.6']
     end
 
+    Rake.clear_tasks(/^default$/)
     namespace 'dist' do
         Rake.clear_tasks(/dist:publish_docs/)
         Rake.clear_tasks(/dist:(re|clobber_|)docs/)
@@ -64,7 +65,6 @@ rescue Exception => e
     end
 end
 
-Rake.clear_tasks(/^default$/)
 task :default => :setup
 
 require 'utilrb/doc/rake'
