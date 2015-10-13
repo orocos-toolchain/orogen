@@ -510,6 +510,7 @@ module OroGen
             # @param [String] model_name the name of the task model to look for
             # @return [String,nil]
             def find_task_library_from_task_model_name(name)
+                raise NotImplementedError, "#{self.class} does not implement #find_task_library_from_task_model_name"
             end
 
             # Returns the project that defines the given deployment
