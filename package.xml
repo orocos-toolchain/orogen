@@ -1,6 +1,6 @@
 <package>
   <name>orogen</name>
-  <version>1.1.1</version>
+  <version>2.9.0</version>
   <description>
     orogen offers a specification interface for components developped in the
     Orocos Realtime Toolkit. Moreover, it generates the specified modules,
