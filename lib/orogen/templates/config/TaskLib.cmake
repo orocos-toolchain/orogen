@@ -45,7 +45,7 @@ list(APPEND <%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def
 <% end %>
 <% end %>
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/../<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
