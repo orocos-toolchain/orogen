@@ -12,5 +12,10 @@ MACRO(CMAKE_USE_FULL_RPATH install_rpath)
     # add the automatically determined parts of the RPATH
     # which point to directories outside the build tree to the install RPATH
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    if(APPLE)
+        SET(CMAKE_INSTALL_NAME_DIR "@rpath")
+        Set(CMAKE_MACOSX_RPATH ON)
+    endif(APPLE)
 ENDMACRO(CMAKE_USE_FULL_RPATH)
 
