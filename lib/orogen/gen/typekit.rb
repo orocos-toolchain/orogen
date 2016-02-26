@@ -1499,6 +1499,10 @@ module OroGen
                 # earlier) so that the importer can fill-in some of the
                 # metadata, like doc and source_file_line.
                 options[:include_paths] = include_dirs
+                
+                #if the user defined additional compiler defines, hand them over to the importer 
+                #because defines might change how the code looks (e.g. some methods might be #ifdef guarded)
+                options[:define] = preprocess_options[:define]
 
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
