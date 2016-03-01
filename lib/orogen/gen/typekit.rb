@@ -375,7 +375,7 @@ module OroGen
                 type = find_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-                if result = opaques.find { |opaque_def| opaque_def.type == type }
+                if result = opaques.find { |opaque_def| opaque_def.type.eql? type }
 		    result
 		else
 		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
@@ -411,7 +411,7 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true).eql? type }
                     opaque_def.type
                 end
             end
