@@ -1186,10 +1186,10 @@ module OroGen
 
                 # Get the full path for +file+
                 file =
-                    if File.exists?(file) # Local file
+                    if File.file?(file) # Local file
                         File.expand_path(file)
                     else # File from used libraries/task libraries
-                        dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
+                        dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
                         if !dir
                             raise LoadError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
                         end
