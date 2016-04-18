@@ -38,6 +38,7 @@ end
 require 'utilrb/pkgconfig'
 require 'metaruby/dsls/doc'
 require 'orogen/typenames'
+require 'rexml/streamlistener'
 require 'rexml/document'
 
 require 'orogen/version'
