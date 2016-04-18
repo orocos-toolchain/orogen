@@ -48,7 +48,6 @@ module OroGen
             #   does not use it.
             def initialize(orocos_target, root_loader = self)
                 @orocos_target = orocos_target
-                update
                 super(root_loader)
             end
 
