@@ -21,7 +21,7 @@ module OroGen
             attr_reader :orocos_target
             # @return [Hash<String,Project>] the set of known projects
             attr_reader :available_projects
-            # @return [Hash<String,Utilrb::PkgConfig>] the set of known typekits
+            # @return [Set] the set of known typekits
             attr_reader :available_typekits
             # @return [Hash<String,Utilrb::PkgConfig>] the set of known task libraries
             attr_reader :available_task_libraries
@@ -62,40 +62,37 @@ module OroGen
             #   (orogen-project-NAME)
             # @return [Project] the registered project
             def add_project_from(pkg)
-                project = pkg.project_name
-                if project.empty?
-                    warn "#{pkg.name}.pc does not have a project_name field"
-                end
-                if description = available_projects[project]
-                    return description
-                end
-
-                if pkg.deffile.empty?
-                    warn "#{pkg.name}.pc does not have a deffile field"
-                else
-                    available_projects[pkg.project_name] = Project.new(pkg, pkg.deffile)
-                end
             end
 
             def has_project?(name)
-                available_projects.has_key?(name)
+                available_projects.include?(name)
             end
 
             def has_typekit?(name)
-                available_typekits.has_key?(name)
+                available_typekits.include?(name)
             end
 
             def project_model_text_from_name(name)
-                name = name.to_str
-                if !(pkg = available_projects[name])
-                    raise ProjectNotFound, "cannot find an installed oroGen project called #{name}"
+                begin
+                    pkg = Utilrb::PkgConfig.get("orogen-project-#{name}", minimal: true)
+                rescue Utilrb::PkgConfig::NotFound
+                    raise ProjectNotFound, "cannot find a project called #{name}"
                 end
-                return File.read(pkg.orogen_path), pkg.orogen_path
+
+                project = pkg.project_name
+                if project.empty?
+                    warn "#{pkg.name}.pc does not have a project_name field"
+                elsif pkg.deffile.empty?
+                    warn "#{pkg.name}.pc does not have a deffile field"
+                end
+                return File.read(pkg.deffile), pkg.deffile
             end
 
             def typekit_model_text_from_name(name)
-                if !(pkg = available_typekits[name])
-                    raise TypekitNotFound, "cannot find an installed typekit called #{name}"
+                begin
+                    pkg = Utilrb::PkgConfig.get("#{name}-typekit-#{orocos_target}", minimal: true)
+                rescue Utilrb::PkgConfig::NotFound
+                    raise TypekitNotFound, "cannot find a typekit called #{name}"
                 end
 
                 registry = File.read(pkg.type_registry)
@@ -109,9 +106,7 @@ module OroGen
             end
 
             def find_project_from_deployment_name(deployment_name)
-                if pkg = available_deployments[deployment_name]
-                    pkg.project_name
-                end
+                available_deployments[deployment_name]
             end
 
             def find_deployments_from_deployed_task_name(name)
@@ -119,44 +114,46 @@ module OroGen
             end
 
             def update
-                @available_projects = Hash.new
-                @available_task_libraries = Hash.new
+                @available_projects = Set.new
+                @available_task_libraries = Set.new
                 @available_deployments = Hash.new
                 @available_deployed_tasks = Hash.new
                 @available_task_models = Hash.new
-                @available_typekits = Hash.new
+                @available_typekits = Set.new
                 @available_types = Hash.new
 
-                all_packages = Utilrb::PkgConfig.enum_for(:each_package).to_a
+                all_packages = Utilrb::PkgConfig.each_package.to_a
+
+                project_pkgconfig = Hash.new
 
                 all_packages.grep(/^orogen-project-/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.new(pkg_name)
-                    add_project_from(pkg)
+                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
+                    project_pkgconfig[pkg.project_name] = pkg
+                    available_projects << pkg.project_name
                 end
 
                 all_packages.grep(/-tasks-#{orocos_target}$/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.new(pkg_name)
-                    tasklib_name = pkg_name.gsub(/-tasks-#{orocos_target}$/, '')
+                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
 
                     # Verify that the corresponding orogen project is indeed
                     # available. If not, just ignore the library
-                    if !available_projects.has_key?(pkg.project_name)
-                        OroGen.warn "found task library #{tasklib_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                    if !available_projects.include?(pkg.project_name)
+                        OroGen.warn "found task library #{pkg.project_name}, but the corresponding oroGen project could not be found. Consider deleting #{pkg.path}."
                         next
                     end
 
-                    available_task_libraries[tasklib_name] = pkg
+                    available_task_libraries << pkg.project_name
                     pkg.task_models.split(",").
-                        each { |class_name| available_task_models[class_name] = tasklib_name }
+                        each { |class_name| available_task_models[class_name] = pkg.project_name }
                 end
 
                 all_packages.grep(/^orogen-\w+$/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.new(pkg_name)
+                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
                     deployment_name = pkg_name.gsub(/^orogen-/, '')
 
                     # Verify that the corresponding orogen project is indeed
                     # available. If not, just ignore the library
-                    if !available_projects.has_key?(pkg.project_name)
+                    if !available_projects.include?(pkg.project_name)
                         OroGen.warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
                         next
                     elsif !pkg.deployed_tasks
@@ -168,7 +165,7 @@ module OroGen
                         next
                     end
 
-                    available_deployments[deployment_name] = pkg
+                    available_deployments[deployment_name] = pkg.project_name
                     pkg.deployed_tasks.split(',').each do |deployed_task_name|
                         available_deployed_tasks[deployed_task_name] ||= Set.new
                         available_deployed_tasks[deployed_task_name] << deployment_name
@@ -176,17 +173,16 @@ module OroGen
                 end
 
                 all_packages.grep(/-typekit-#{orocos_target}$/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.new(pkg_name)
-                    typekit_name = pkg_name.gsub(/-typekit-#{orocos_target}$/, '')
+                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
 
-                    if !available_projects.has_key?(pkg.project_name)
-                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
+                    if !has_project?(pkg.project_name)
+                        OroGen.warn "found typekit #{pkg.project_name}, but the corresponding oroGen project could not be found. Consider deleting #{pkg.path}."
                         next
-                    elsif !available_projects[pkg.project_name].pkg.type_registry
-                        OroGen.warn "found typekit #{typekit_name}, but the corresponding oroGen project #{pkg.project_name} does not have a typekit. Consider deleting #{pkg.path}."
+                    elsif !project_pkgconfig[pkg.project_name].type_registry
+                        OroGen.warn "found typekit #{pkg.project_name}, but the corresponding oroGen project does not have a typekit. Consider deleting #{pkg.path}."
                         next
                     end
-                    available_typekits[typekit_name] = pkg
+                    available_typekits << pkg.project_name
 
                     typelist = pkg.type_registry.gsub(/tlb$/, 'typelist')
                     typelist, typelist_exported =
@@ -194,16 +190,16 @@ module OroGen
                     typelist = typelist - typelist_exported
                     typelist.compact.each do |typename|
                         if existing = available_types[typename]
-                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}, registering #{existing[0]} as the responsible typekit"
+                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{pkg.project_name}, registering #{existing[0]} as the responsible typekit"
                         else
-                            available_types[typename] = Type.new(typekit_name, false)
+                            available_types[typename] = Type.new(pkg.project_name, false)
                         end
                     end
                     typelist_exported.compact.each do |typename|
                         if existing = available_types[typename]
-                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{typekit_name}, registering #{typekit_name} as it exports the type but #{existing[0]} does not"
+                            OroGen.info "#{typename} is defined by both #{existing[0]} and #{pkg.project_name}, registering #{pkg.project_name} as it exports the type but #{existing[0]} does not"
                         end
-                        available_types[typename] = Type.new(typekit_name, true)
+                        available_types[typename] = Type.new(pkg.project_name, true)
                     end
                 end
             end
@@ -244,11 +240,11 @@ module OroGen
             end
 
             def each_available_project_name(&block)
-                return available_projects.each_key(&block)
+                return available_projects.each(&block)
             end
 
             def each_available_typekit_name(&block)
-                return available_typekits.each_key(&block)
+                return available_typekits.each(&block)
             end
 
             def each_available_deployment_name(&block)
