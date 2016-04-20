@@ -38,6 +38,9 @@ module OroGen
             # @return [Hash<String,Type>] the set of known
             #   deployments on a per-task-model basis
             attr_reader :available_types
+            # @return [Hash<String,String>] the path to the binary on a
+            #   per-deployment basis
+            attr_reader :deployment_binfiles
 
             # @param [String] orocos_target the orocos target we are loading for
             # @param root_loader the root loader. Other loaders might pass it
@@ -117,6 +120,7 @@ module OroGen
                 @available_projects = Set.new
                 @available_task_libraries = Set.new
                 @available_deployments = Hash.new
+                @deployment_binfiles = Hash.new
                 @available_deployed_tasks = Hash.new
                 @available_task_models = Hash.new
                 @available_typekits = Set.new
@@ -166,6 +170,7 @@ module OroGen
                     end
 
                     available_deployments[deployment_name] = pkg.project_name
+                    deployment_binfiles[deployment_name] = pkg.binfile
                     pkg.deployed_tasks.split(',').each do |deployed_task_name|
                         available_deployed_tasks[deployed_task_name] ||= Set.new
                         available_deployed_tasks[deployed_task_name] << deployment_name
