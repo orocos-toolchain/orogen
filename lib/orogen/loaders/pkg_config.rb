@@ -19,17 +19,15 @@ module OroGen
 
             # @return [String] the name of the orocos target we are looking for
             attr_reader :orocos_target
-            # @return [Hash<String,Project>] the set of known projects
+            # @return [Hash<String,Boolean>] a cache of project presence flags
             attr_reader :available_projects
             # @return [Set] the set of known typekits
             attr_reader :available_typekits
-            # @return [Hash<String,Utilrb::PkgConfig>] the set of known task libraries
-            attr_reader :available_task_libraries
             # @return [Hash<String,String>] the set of known task
             #   models, as a mapping from the task model to the name of the task
             #   library that defines it
             attr_reader :available_task_models
-            # @return [Hash<String,Utilrb::PkgConfig>] the set of known
+            # @return [Hash<String,DeploymentInfo>] the set of known
             #   deployments
             attr_reader :available_deployments
             # @return [Hash<String,Set<String>>] the set of known
@@ -38,9 +36,6 @@ module OroGen
             # @return [Hash<String,Type>] the set of known
             #   deployments on a per-task-model basis
             attr_reader :available_types
-            # @return [Hash<String,String>] the path to the binary on a
-            #   per-deployment basis
-            attr_reader :deployment_binfiles
 
             # @param [String] orocos_target the orocos target we are loading for
             # @param root_loader the root loader. Other loaders might pass it
@@ -56,7 +51,12 @@ module OroGen
 
             def clear
                 super
-                update
+                @available_projects = Hash.new
+                @available_typekits = Hash.new
+                @available_task_models = Hash.new
+                @available_deployments = Hash.new
+                @available_deployed_tasks = Hash.new
+                @available_types = nil
             end
 
             # Registers a project from its pkg-config object
@@ -66,19 +66,42 @@ module OroGen
             # @return [Project] the registered project
             def add_project_from(pkg)
             end
+            
+            def find_pkgconfig(name, minimal: true)
+                Utilrb::PkgConfig.get(name, minimal: minimal)
+            rescue Utilrb::PkgConfig::NotFound
+            end
+
+            def has_pkgconfig?(name)
+                !!find_pkgconfig(name, minimal: true)
+            end
 
             def has_project?(name)
-                available_projects.include?(name)
+                if available_projects.has_key?(name)
+                    available_projects[name]
+                else
+                    available_projects[name] = has_pkgconfig?("orogen-project-#{name}")
+                end
             end
 
             def has_typekit?(name)
-                available_typekits.include?(name)
+                if available_typekits.has_key?(name)
+                    available_typekits[name]
+                elsif !has_pkgconfig?("#{name}-typekit-#{orocos_target}")
+                    available_typekits[name] = false
+                elsif !(project_pkg = find_pkgconfig("orogen-project-#{name}"))
+                    available_typekits[name] = false
+                else
+                    available_typekits[name] = !!project_pkg.type_registry
+                end
             end
 
             def project_model_text_from_name(name)
                 begin
                     pkg = Utilrb::PkgConfig.get("orogen-project-#{name}", minimal: true)
+                    available_projects[name] = true
                 rescue Utilrb::PkgConfig::NotFound
+                    available_projects[name] = false
                     raise ProjectNotFound, "cannot find a project called #{name}"
                 end
 
@@ -94,7 +117,9 @@ module OroGen
             def typekit_model_text_from_name(name)
                 begin
                     pkg = Utilrb::PkgConfig.get("#{name}-typekit-#{orocos_target}", minimal: true)
+                    available_typekits[name] = true
                 rescue Utilrb::PkgConfig::NotFound
+                    available_typekits[name] = false
                     raise TypekitNotFound, "cannot find a typekit called #{name}"
                 end
 
@@ -105,62 +130,62 @@ module OroGen
             end
 
             def find_task_library_from_task_model_name(model_name)
-                available_task_models[model_name]
+                if available_task_models.has_key?(model_name)
+                    return available_task_models[model_name]
+                end
+
+                project_name = model_name.split('::').first
+                project_pkg = find_pkgconfig("orogen-project-#{project_name}")
+
+                if project_pkg
+                    project_pkg.task_models.split(',').each do |project_task_name|
+                        available_task_models[project_task_name] = project_name
+                    end
+                end
+
+                if available_task_models.has_key?(model_name)
+                    available_task_models[model_name]
+                else
+                    available_task_models[model_name] = nil
+                end
             end
 
+            DeploymentInfo = Struct.new :project_name, :binfile
+
             def find_project_from_deployment_name(deployment_name)
-                available_deployments[deployment_name]
+                if available_deployments.has_key?(deployment_name)
+                    return available_deployments[deployment_name].project_name
+                end
+                
+                if deployment_pkg = find_pkgconfig("orogen-#{deployment_name}")
+                    if has_project?(deployment_pkg.project_name)
+                        info = DeploymentInfo.new(deployment_pkg.project_name, deployment_pkg.binfile)
+                        available_deployments[deployment_name] = info
+                        info.project_name
+                    else
+                        available_deployments[deployment_name] = nil
+                    end
+                else
+                    available_deployments[deployment_name] = nil
+                end
+            end
+
+            def find_deployment_binfile(deployment_name)
+                if find_project_from_deployment_name(deployment_name)
+                    available_deployments[deployment_name].binfile
+                end
             end
 
             def find_deployments_from_deployed_task_name(name)
-                available_deployed_tasks[name] || Set.new
-            end
-
-            def update
-                @available_projects = Set.new
-                @available_task_libraries = Set.new
-                @available_deployments = Hash.new
-                @deployment_binfiles = Hash.new
-                @available_deployed_tasks = Hash.new
-                @available_task_models = Hash.new
-                @available_typekits = Set.new
-                @available_types = Hash.new
-
-                all_packages = Utilrb::PkgConfig.each_package.to_a
-
-                project_pkgconfig = Hash.new
-
-                all_packages.grep(/^orogen-project-/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
-                    project_pkgconfig[pkg.project_name] = pkg
-                    available_projects << pkg.project_name
+                if available_deployed_tasks.has_key?(name)
+                    return available_deployed_tasks[name]
                 end
 
-                all_packages.grep(/-tasks-#{orocos_target}$/).each do |pkg_name|
-                    pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
-
-                    # Verify that the corresponding orogen project is indeed
-                    # available. If not, just ignore the library
-                    if !available_projects.include?(pkg.project_name)
-                        OroGen.warn "found task library #{pkg.project_name}, but the corresponding oroGen project could not be found. Consider deleting #{pkg.path}."
-                        next
-                    end
-
-                    available_task_libraries << pkg.project_name
-                    pkg.task_models.split(",").
-                        each { |class_name| available_task_models[class_name] = pkg.project_name }
-                end
-
-                all_packages.grep(/^orogen-\w+$/).each do |pkg_name|
+                Utilrb::PkgConfig.each_package(/^orogen-\w+$/) do |pkg_name|
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
                     deployment_name = pkg_name.gsub(/^orogen-/, '')
 
-                    # Verify that the corresponding orogen project is indeed
-                    # available. If not, just ignore the library
-                    if !available_projects.include?(pkg.project_name)
-                        OroGen.warn "found deployment #{deployment_name}, but the corresponding oroGen project #{pkg.project_name} could not be found. Consider deleting #{pkg.path}."
-                        next
-                    elsif !pkg.deployed_tasks
+                    if !pkg.deployed_tasks
                         # oroGen has a bug, in which it installed the pkg-config
                         # file for deployments that were not meant to be
                         # installed.
@@ -169,25 +194,20 @@ module OroGen
                         next
                     end
 
-                    available_deployments[deployment_name] = pkg.project_name
-                    deployment_binfiles[deployment_name] = pkg.binfile
                     pkg.deployed_tasks.split(',').each do |deployed_task_name|
                         available_deployed_tasks[deployed_task_name] ||= Set.new
                         available_deployed_tasks[deployed_task_name] << deployment_name
                     end
                 end
+                available_deployed_tasks[name] ||= Set.new
+            end
 
-                all_packages.grep(/-typekit-#{orocos_target}$/).each do |pkg_name|
+            def load_available_types
+                @available_types = Hash.new
+
+                Utilrb::PkgConfig.each_package(/-typekit-#{orocos_target}$/) do |pkg_name|
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
-
-                    if !has_project?(pkg.project_name)
-                        OroGen.warn "found typekit #{pkg.project_name}, but the corresponding oroGen project could not be found. Consider deleting #{pkg.path}."
-                        next
-                    elsif !project_pkgconfig[pkg.project_name].type_registry
-                        OroGen.warn "found typekit #{pkg.project_name}, but the corresponding oroGen project does not have a typekit. Consider deleting #{pkg.path}."
-                        next
-                    end
-                    available_typekits << pkg.project_name
+                    next if !pkg.type_registry
 
                     typelist = pkg.type_registry.gsub(/tlb$/, 'typelist')
                     typelist, typelist_exported =
@@ -232,28 +252,47 @@ module OroGen
                     end
                 end
 
-                typekit = available_types[typename]
+                if !available_types
+                    load_available_types
+                end
 
+                typekit = available_types[typename]
                 if !typekit
                     raise NotTypekitType.new(typename), "no type #{typename} has been registered in an oroGen project"
                 elsif exported && !typekit.exported
-                    typekits = imported_typekits_for(typename)
-                    raise NotExportedType.new(typename, typekits), "the type #{typename} is registered in the #{typekits.map(&:name).sort.join(", ")} typekit, but it is not exported to the RTT type system"
+                    begin
+                        typekits = imported_typekits_for(typename)
+                        raise NotExportedType.new(typename, typekits), "the type #{typename} is registered in the #{typekits.map(&:name).sort.join(", ")} typekit, but it is not exported to the RTT type system"
+                    rescue DefinitionTypekitNotFound
+                        raise NotExportedType.new(typename, []), "the type #{typename} is not exported to the RTT type system"
+                    end
                 else
                     typekit_model_from_name(typekit.name)
                 end
             end
 
-            def each_available_project_name(&block)
-                return available_projects.each(&block)
+            def each_available_project_name
+                return enum_for(__method__) if !block_given?
+                rx = /^orogen-project-/
+                Utilrb::PkgConfig.each_package(rx) do |pkg_name|
+                    yield(pkg_name.gsub(rx, ''))
+                end
             end
 
             def each_available_typekit_name(&block)
-                return available_typekits.each(&block)
+                return enum_for(__method__) if !block_given?
+                rx = /-typekit-#{orocos_target}$/
+                Utilrb::PkgConfig.each_package(rx) do |pkg_name|
+                    yield(pkg_name.gsub(rx, ''))
+                end
             end
 
             def each_available_deployment_name(&block)
-                return available_deployments.each_key(&block)
+                return enum_for(__method__) if !block_given?
+                rx = /^orogen-\w+$/
+                Utilrb::PkgConfig.each_package(rx) do |pkg_name|
+                    yield(pkg_name.gsub(/^orogen-/, ''))
+                end
             end
         end
     end
