@@ -135,7 +135,7 @@ module OroGen
                 end
 
                 project_name = model_name.split('::').first
-                project_pkg = find_pkgconfig("orogen-project-#{project_name}")
+                project_pkg = find_pkgconfig("#{project_name}-tasks-#{orocos_target}")
 
                 if project_pkg
                     project_pkg.task_models.split(',').each do |project_task_name|
@@ -176,10 +176,8 @@ module OroGen
                 end
             end
 
-            def find_deployments_from_deployed_task_name(name)
-                if available_deployed_tasks.has_key?(name)
-                    return available_deployed_tasks[name]
-                end
+            def load_available_deployed_tasks
+                @available_deployed_tasks = Hash.new
 
                 Utilrb::PkgConfig.each_package(/^orogen-\w+$/) do |pkg_name|
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
@@ -199,7 +197,17 @@ module OroGen
                         available_deployed_tasks[deployed_task_name] << deployment_name
                     end
                 end
-                available_deployed_tasks[name] ||= Set.new
+            end
+
+            def find_deployments_from_deployed_task_name(name)
+                if !available_deployed_tasks
+                    load_available_deployed_tasks
+                end
+
+                if available_deployed_tasks.has_key?(name)
+                    return available_deployed_tasks[name]
+                else return Set.new
+                end
             end
 
             def load_available_types
@@ -287,11 +295,56 @@ module OroGen
                 end
             end
 
+            def each_available_task_model_name(&block)
+                return enum_for(__method__) if !block_given?
+                each_available_project_name do |project_name|
+                    begin
+                        pkg = Utilrb::PkgConfig.new("#{project_name}-tasks-#{orocos_target}")
+                    rescue Utilrb::PkgConfig::NotFound
+                        next
+                    end
+                    pkg.task_models.split(',').each do |model_name|
+                        yield(model_name, project_name)
+                    end
+                end
+            end
+
             def each_available_deployment_name(&block)
                 return enum_for(__method__) if !block_given?
                 rx = /^orogen-\w+$/
                 Utilrb::PkgConfig.each_package(rx) do |pkg_name|
                     yield(pkg_name.gsub(/^orogen-/, ''))
+                end
+            end
+
+            def each_available_deployed_task_name(&block)
+                return enum_for(__method__) if !block_given?
+
+                if !available_deployed_tasks
+                    load_available_deployed_tasks
+                end
+                available_deployed_tasks.each do |deployed_task_name, deployments|
+                    deployments.each do |deployment_name|
+                        yield(deployed_task_name, deployment_name)
+                    end
+                end
+            end
+
+            # Enumerate the types available on this system
+            #
+            # @yieldparam [String] type_name the name of the type
+            # @yieldparam [String] typekit_name the name of one typekit that
+            #   defines it
+            # @yieldparam [Boolean] exported whether this type is exported or
+            #   not
+            def each_available_type_name(&block)
+                return enum_for(__method__) if !block_given?
+
+                if !available_types
+                    load_available_types
+                end
+                available_types.each do |type_name, type_info|
+                    yield(type_name, type_info.name, type_info.exported)
                 end
             end
         end
