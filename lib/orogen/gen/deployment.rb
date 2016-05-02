@@ -97,6 +97,12 @@ module OroGen
                         in_context('core', 'include').
                         in_context('core', 'link')
                 end
+                if transports.include? 'typelib'
+                    result << BuildDependency.new(
+                        "RTT_TYPELIB", "rtt_typelib-#{Generation.orocos_target}").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                end
 
                 used_typekits.each do |tk|
                     next if tk.virtual?
