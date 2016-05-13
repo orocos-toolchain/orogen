@@ -167,6 +167,10 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
+                elsif type <= Typelib::ContainerType
+                    if opaque_deference = find_opaque_for_intermediate(type.deference)
+                        resolve_type("#{type.container_kind}<#{opaque_deference.name}>")
+                    end
                 elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate).eql? type }
                     opaque_def.type
                 end
