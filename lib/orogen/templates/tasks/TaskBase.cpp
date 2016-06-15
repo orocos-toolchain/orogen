@@ -37,19 +37,6 @@ using namespace <%= project.name %>;
     setupComponentInterface();
 }
 
-<%= task.basename %>Base::<%= task.basename %>Base(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
-<% if task.superclass.fixed_initial_state? %>
-    : ::<%= task.superclass.name %>(name, engine)
-<% elsif task.needs_configuration? %>
-    : ::<%= task.superclass.name %>(name, engine, TaskCore::PreOperational)
-<% else %>
-    : ::<%= task.superclass.name %>(name, engine, state)
-<% end %>
-<%= initializer_list %>
-{
-    setupComponentInterface();
-}
-
 <%= task.basename %>Base::~<%= task.basename %>Base()
 {
 <%= task.self_base_members.
