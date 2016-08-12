@@ -10,6 +10,21 @@ add_custom_command(
     COMMENT "oroGen specification file changed. Run make regen first."
     COMMAND /bin/false)
 
+OPTION(OROGEN_USE_CXX11 "Compile package using the C++11 standard" ON)
+    
+if(OROGEN_USE_CXX11)
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+    CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+    if(COMPILER_SUPPORTS_CXX11)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    elseif(COMPILER_SUPPORTS_CXX0X)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    else()
+        message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+    endif()
+endif(OROGEN_USE_CXX11)
+    
 <% if File.file?(project.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>")
