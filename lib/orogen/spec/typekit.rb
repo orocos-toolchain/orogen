@@ -43,7 +43,32 @@ module OroGen
                 return typekit_typelist, typekit_interface_typelist
             end
 
-            def self.from_raw_data(loader, name, registry_xml, typelist_txt, parsed_xml: nil)
+            class OpaqueInfoListener
+                include REXML::StreamListener
+                attr_reader :registry, :typekit_registry, :opaques
+
+                def initialize(typekit_registry)
+                    @registry = Typelib::Registry.new
+                    @typekit_registry = typekit_registry
+                    @opaques = Array.new
+                end
+
+                def tag_start(name, attributes)
+                    return if name != 'opaque'
+                    base_type_name  = attributes['name']
+                    inter_type_name = attributes['marshal_as']
+                    includes        = attributes['includes']
+                    needs_copy      = attributes['needs_copy']
+                    opaques << OpaqueDefinition.new(
+                        typekit_registry.get(base_type_name),
+                        inter_type_name,
+                        Hash[include: includes.split(':'), needs_copy: (needs_copy == '1')],
+                        nil)
+                    registry.merge(typekit_registry.minimal(base_type_name))
+                end
+            end
+
+            def self.from_raw_data(loader, name, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(typekit_registry)
                 typekit_registry.merge_xml(registry_xml)
@@ -54,22 +79,10 @@ module OroGen
                               typekit_typelist,
                               typekit_interface_typelist)
 
-                # Now initialize the opaque definitions
-                parsed_xml ||= REXML::Document.new(registry_xml)
-                parsed_xml.each_element('//opaque') do |opaque_entry|
-                    base_type_name  = opaque_entry.attributes['name']
-                    inter_type_name = opaque_entry.attributes['marshal_as']
-                    includes        = opaque_entry.attributes['includes']
-                    needs_copy      = opaque_entry.attributes['needs_copy']
-                    spec = OpaqueDefinition.new(
-                        typekit_registry.get(base_type_name),
-                        inter_type_name,
-                        { :include => includes.split(':'), :needs_copy => (needs_copy == '1') },
-                        nil)
-
-                    typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))
-                    typekit.opaques << spec
-                end
+                listener = OpaqueInfoListener.new(typekit_registry)
+                REXML::Document.parse_stream(registry_xml, listener)
+                typekit.opaques.concat(listener.opaques)
+                typekit.opaque_registry.merge(listener.registry)
 
                 typekit
             end

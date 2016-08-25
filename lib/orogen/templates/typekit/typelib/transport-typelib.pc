@@ -13,9 +13,7 @@ type_registry=@TYPEKIT_REGISTRY@
 
 Name: <%= typekit.name %>TypelibTransport
 Version: <%= typekit.version %>
-<% unless typekit.internal_dependencies.empty? %>
-Requires: <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
-<% end %>
+Requires: rtt_typelib-@OROCOS_TARGET@ <%= typekit.internal_dependencies.map { |n, v| v ? "#{n} >= #{v}" : n.to_s }.join(", ") %>
 Description: <%= typekit.name %> types support for the Orocos type system
 Libs: -L${libdir} -l@libname_typelib@
 Cflags: -I${includedir}

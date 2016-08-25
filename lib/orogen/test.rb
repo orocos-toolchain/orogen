@@ -1,12 +1,9 @@
-require 'minitest/autorun'
-require 'flexmock/test_unit'
-require 'minitest/spec'
-
 # simplecov must be loaded FIRST. Only the files required after it gets loaded
 # will be profiled !!!
 if ENV['TEST_ENABLE_COVERAGE'] == '1'
     begin
         require 'simplecov'
+        SimpleCov.start
     rescue LoadError
         require 'orogen'
         OroGen.warn "coverage is disabled because the 'simplecov' gem cannot be loaded"
@@ -16,6 +13,9 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
     end
 end
 
+require 'minitest/autorun'
+require 'flexmock/test_unit'
+require 'minitest/spec'
 require 'orogen'
 
 if ENV['TEST_ENABLE_PRY'] != '0'
