@@ -14,7 +14,7 @@ if ENV['TEST_ENABLE_COVERAGE'] == '1'
 end
 
 require 'minitest/autorun'
-require 'flexmock/test_unit'
+require 'flexmock/minitest'
 require 'minitest/spec'
 require 'orogen'
 
@@ -59,11 +59,6 @@ module OroGen
             OroGen::Spec::Project.new(loader)
         end
 
-        if defined? FlexMock
-            include FlexMock::ArgumentTypes
-            include FlexMock::MockContainer
-        end
-
         def setup
             # Setup code for all the tests
         end
@@ -72,15 +67,6 @@ module OroGen
             # Teardown code for all the tests
         end
     end
-end
-
-# Workaround a problem with flexmock and minitest not being compatible with each
-# other (currently). See github.com/jimweirich/flexmock/issues/15.
-if defined?(FlexMock) && !FlexMock::TestUnitFrameworkAdapter.method_defined?(:assertions)
-    class FlexMock::TestUnitFrameworkAdapter
-        attr_accessor :assertions
-    end
-    FlexMock.framework_adapter.assertions = 0
 end
 
 module Minitest

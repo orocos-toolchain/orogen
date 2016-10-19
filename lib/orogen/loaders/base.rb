@@ -259,8 +259,30 @@ module OroGen
                 end
 
                 registry.merge typekit.registry
+
+                typekit.registry.each(with_aliases: false) do |type|
+                    self_type = registry.get(type.name)
+                    self_type.metadata.add('orogen:typekits', typekit.name)
+                    if typekit.include?(type.name)
+                        self_type.metadata.add('orogen:definition_typekits', typekit.name)
+                    end
+
+                    if type.contains_opaques?
+                        intermediate_type_name = typekit.intermediate_type_name_for(type)
+                        intermediate_type = registry.get(intermediate_type_name)
+                        self_type.metadata.add('orogen:intermediate_type',
+                                          intermediate_type_name)
+                        intermediate_type.metadata.add('orogen:intermediate_type_of',
+                                                       type.name)
+                        if !type.opaque?
+                            intermediate_type.metadata.set('orogen:generated_type',
+                                                           'true')
+                        end
+                    end
+                end
+
                 @interface_typelist |= typekit.interface_typelist
-                typekit.registry.each(:with_aliases => true) do |typename, _|
+                typekit.registry.each(with_aliases: true) do |typename, _|
                     typekits_by_type_name[typename] ||= Set.new
                     typekits_by_type_name[typename] << typekit
                 end
@@ -307,7 +329,7 @@ module OroGen
             rescue Typelib::NotFound => e
                 if define_dummy_types? || options[:define_dummy_type]
                     type = registry.create_null(typename)
-                    interface_typelist << typename
+                    register_type_model(type, interface: true)
                     return type
                 else raise e, "#{e.message} using #{self}", e.backtrace
                 end
@@ -368,8 +390,7 @@ module OroGen
             # @param (see Spec::Typekit#intermediate_type?)
             # @return (see Spec::Typekit#intermediate_type?)
             def intermediate_type?(type)
-                imported_typekits_for(type, definition_typekits: false).
-                    any? { |tk| tk.intermediate_type?(type) }
+                !type.metadata.get('orogen:intermediate_type_of').empty?
             end
 
             # Returns the opaque type that is paired with the given type
@@ -378,9 +399,8 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
-                type = imported_typekits_for(type, definition_typekits: false).
-                    first.opaque_type_for(type)
-                registry.get(type.name)
+                opaques = type.metadata.get('orogen:intermediate_type_of')
+                registry.get(opaques.first || type.name)
             end
 
             # Returns the intermediate type that is paired with the given type
@@ -389,9 +409,8 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
-                type = imported_typekits_for(type, definition_typekits: false).
-                    first.intermediate_type_for(type)
-                registry.get(type.name)
+                intermediates = type.metadata.get('orogen:intermediate_type')
+                registry.get(intermediates.first || type.name)
             end
 
             # Returns whether this type is a m-type (intermediate type generated
@@ -401,8 +420,7 @@ module OroGen
             # @raise (see Spec::Typekit#m_type?)
             # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
-                imported_typekits_for(type, definition_typekits: false).
-                    first.m_type?(type)
+                type.metadata.get('orogen:generated_type') == ['true']
             end
 
             # Registers this project's subobjects
