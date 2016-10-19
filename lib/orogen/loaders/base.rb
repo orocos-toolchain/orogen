@@ -322,14 +322,12 @@ module OroGen
             #
             # @return [Set<Spec::Typekit>] the list of typekits
             # @raise [DefinitionTypekitNotFound] if no typekits define this type
-            def imported_typekits_for(typename, options = Hash.new)
-                options = Kernel.validate_options options,
-                    :definition_typekits => true
+            def imported_typekits_for(typename, definition_typekits: true)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
                 if typekits = typekits_by_type_name[typename]
-                    if options[:definition_typekits]
+                    if definition_typekits
                         definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
                         if definition_typekits.empty?
                             raise DefinitionTypekitNotFound, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and I cannot find it. definition_typekits is true, I raise"
