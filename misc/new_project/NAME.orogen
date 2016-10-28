@@ -15,6 +15,7 @@ import_types_from "NAMETypes.hpp"
 
 # If this project uses data types that are defined in other oroGen projects,
 # these projects should be imported there as well.
+import_types_from "std"
 # import_types_from "base"
 
 # Declare a new task context (i.e., a component)
