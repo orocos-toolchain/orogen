@@ -390,6 +390,7 @@ module OroGen
             # @param (see Spec::Typekit#intermediate_type?)
             # @return (see Spec::Typekit#intermediate_type?)
             def intermediate_type?(type)
+                type = resolve_type(type)
                 !type.metadata.get('orogen:intermediate_type_of').empty?
             end
 
@@ -399,6 +400,7 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
+                type = resolve_type(type)
                 opaques = type.metadata.get('orogen:intermediate_type_of')
                 registry.get(opaques.first || type.name)
             end
@@ -409,6 +411,7 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
+                type = resolve_type(type)
                 intermediates = type.metadata.get('orogen:intermediate_type')
                 registry.get(intermediates.first || type.name)
             end
@@ -420,6 +423,7 @@ module OroGen
             # @raise (see Spec::Typekit#m_type?)
             # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
+                type = resolve_type(type)
                 type.metadata.get('orogen:generated_type') == ['true']
             end
 
