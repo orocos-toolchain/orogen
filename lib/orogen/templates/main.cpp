@@ -201,14 +201,6 @@ int ORO_main(int argc, char* argv[])
    }
    <% end %>
 
-   RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
-   <% if deployer.transports.include?('corba') %>
-   RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
-   <% end %>
-   <% if deployer.transports.include?('mqueue') %>
-   RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
-   <% end %>
-
    <% if project.typekit %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= project.name %>TypekitPlugin );
    <% deployer.transports.each do |transport_name| %>
@@ -221,6 +213,14 @@ int ORO_main(int argc, char* argv[])
        <% deployer.transports.each do |transport_name| %>
    RTT::types::TypekitRepository::Import( new <%= RTT_CPP::Typekit.transport_plugin_name(transport_name, tk.name) %> );
        <% end %>
+   <% end %>
+
+   RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
+   <% if deployer.transports.include?('corba') %>
+   RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
+   <% end %>
+   <% if deployer.transports.include?('mqueue') %>
+   RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
    <% end %>
 
 <% if deployer.corba_enabled? %>
