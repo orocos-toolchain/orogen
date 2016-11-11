@@ -260,6 +260,26 @@ module OroGen
                 Float(value)
             end
 
+            def sequential?
+                activity_type.name == 'Sequential'
+            end
+
+            def triggered?
+                activity_type.name == 'Triggered' && period == 0
+            end
+
+            def periodic?
+                activity_type.name == 'Triggered' && period != 0
+            end
+
+            def fd_driven?
+                activity_type.name == 'FileDescriptorActivity'
+            end
+
+            def slave?
+                activity_type.name == 'SlaveActivity'
+            end
+
             # Makes this task's activity driven by a file descriptor. The underlying
             # task context must be a subclass of FileDescriptorActivity::Provider
             def fd_driven
