@@ -67,6 +67,72 @@ describe OroGen::Loaders::Base do
         end
     end
 
+    describe "#register_typekit_model" do
+        attr_reader :typekit, :loader
+        before do
+            @typekit = OroGen::Spec::Typekit.new(nil, 'test')
+            @loader = OroGen::Loaders::Base.new
+        end
+
+        it "stores the name of the registered typekit in its type's orogen:typekits metadata" do
+            typekit.create_null '/test'
+            loader.register_typekit_model(typekit)
+            assert_equal ['test'], loader.resolve_type('/test').metadata.get('orogen:typekits')
+        end
+
+        describe "opaque-intermediate relations" do
+            def self.common(context)
+                context.it "stores the links between opaques and intermediates in the metadata" do
+                    loader.register_typekit_model(typekit)
+                    assert_equal ['/intermediate'], loader.resolve_type('/test').
+                        metadata.get('orogen:intermediate_type')
+                    assert_equal ['/test'], loader.resolve_type('/intermediate').
+                        metadata.get('orogen:intermediate_type_of')
+                end
+            end
+
+            describe "plain opaques" do
+                before do
+                    opaque = typekit.create_opaque '/test', 10
+                    typekit.create_null '/intermediate'
+                    flexmock(typekit).should_receive(:intermediate_type_name_for).
+                        with(opaque).and_return('/intermediate')
+                end
+
+                common(self)
+
+                it "does not set the orogen:generated_type metadata" do
+                    loader.register_typekit_model(typekit)
+                    assert_equal [], loader.resolve_type('/intermediate').
+                        metadata.get('orogen:generated_type')
+                end
+            end
+
+            describe "types that contain opaques" do
+                before do
+                    opaque_t = typekit.create_opaque '/opaque', 10
+                    test_t   = typekit.create_compound '/test' do |c|
+                        c.add 'field', '/opaque'
+                    end
+                    typekit.create_null '/field_intermediate'
+                    typekit.create_null '/intermediate'
+                    flexmock(typekit).should_receive(:intermediate_type_name_for).
+                        with(opaque_t).and_return('/field_intermediate')
+                    flexmock(typekit).should_receive(:intermediate_type_name_for).
+                        with(test_t).and_return('/intermediate')
+                end
+
+                common(self)
+
+                it "sets the orogen:generated_type to 'true'" do
+                    loader.register_typekit_model(typekit)
+                    assert_equal ['true'], loader.resolve_type('/intermediate').
+                        metadata.get('orogen:generated_type')
+                end
+            end
+        end
+    end
+
     describe "#imported_typekits_for" do
         attr_reader :registry, :typekit, :definition_typekit
         before do
