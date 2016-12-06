@@ -178,14 +178,13 @@ module OroGen
                     if path.empty? then path = ["[]"]
                     else path[-1] = "#{path[-1]}[]"
                     end
+
                     element = sample_t.deference.new
                     if !initialize_max_size_sample(path, element, max_sizes)
                         return false
                     end
-
-                    max_size.times do
-                        sample << element
-                    end
+                    
+                    Typelib.copy(sample, sample.class.of_size(max_size, element))
                     return true
 
                 elsif sample.kind_of?(Typelib::ArrayType)
