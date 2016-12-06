@@ -13,7 +13,7 @@ module OroGen
             def type_name; type.name end
             # The port name as it is registered on RTT
             def orocos_type_name
-                Typelib::Registry.rtt_typename(type)
+                type.name
             end
 
             # Converts this model into a representation that can be fed to e.g.
