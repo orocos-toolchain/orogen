@@ -25,6 +25,7 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
 {
     RTT::types::TypeInfoRepository::shared_ptr ti_repository = RTT::types::TypeInfoRepository::Instance();
 
+    <% if !registered_types.empty? %>
     RTT::types::TypeInfoGenerator* ti = 0;
     <% registered_types.each do |type| %>
         <% if type < Typelib::ArrayType %>
@@ -34,6 +35,7 @@ bool orogen_typekits::<%= typekit.name %>TypekitPlugin::loadTypes()
     ti = <%= type.method_name(true) %>_TypeInfo();
     ti_repository->addType( ti );
         <% end %>
+    <% end %>
     <% end %>
 
     return true;

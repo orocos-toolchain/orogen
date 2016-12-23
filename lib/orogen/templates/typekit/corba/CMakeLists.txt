@@ -36,6 +36,10 @@ set(libname_corba <%= typekit.name %>-transport-corba-${OROCOS_TARGET})
 add_library(${libname_corba} SHARED
     <%= impl.join("\n    ") %>
     ${CORBA_FILES})
+if (CXX_SUPPORTS_WUNUSED_VARIABLE)
+    set_source_files_properties(${CORBA_FILES} TARGET_COMPILE_OPTIONS "-Wno-unused-variable")
+endif()
+
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosCORBA_LIBRARIES})
