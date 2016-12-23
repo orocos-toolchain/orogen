@@ -185,11 +185,12 @@ module OroGen
                 else
                     @superclass = task_context
                 end
-                @default_activity  = @superclass.default_activity.dup
-                @required_activity = @superclass.required_activity?
                 if !superclass
                     raise ArgumentError, "no such task context #{task_context}"
                 end
+
+                @default_activity  = @superclass.default_activity.dup
+                @required_activity = @superclass.required_activity?
             end
 
             # Declares that this task context is a root model and
