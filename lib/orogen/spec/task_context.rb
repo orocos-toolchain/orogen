@@ -624,7 +624,7 @@ module OroGen
                     raise ArgumentError, "unknown state type #{type.inspect}"
                 end
 
-                if !extended_state_support?
+                if !extended_state_support? && (type != :toplevel)
                     extended_state_support
                 end
 
@@ -634,7 +634,9 @@ module OroGen
                     end
                 else
                     @states << [name, type]
-                    @states = @states.sort_by { |n, _| n }
+                    if type != :toplevel
+                        @states = @states.sort_by { |n, _| n }
+                    end
                 end
             end
 
@@ -688,25 +690,34 @@ module OroGen
             end
 
             # Enumerates each state defined on this task context.
-            def each_state(&block)
-                if block_given?
-                    superclass.each_state(&block) if superclass
-                    @states.each(&block)
-                else
-                    enum_for(:each_state)
+            #
+            # @param [Boolean] with_superclass whether only states defined on
+            #   this level of the task hierarchy should be enumerated, or the
+            #   states from the superclass too.
+            # @yieldparam [String] name the state name
+            # @yieldparam [Symbol] type the state type, one of {STATE_TYPES}
+            def each_state(with_superclass: true, &block)
+                return enum_for(__method__) if !block
+
+                if superclass && with_superclass
+                    superclass.each_state(&block)
                 end
+                @states.each(&block)
             end
 
-            # call-seq:
-            #   states -> set of states
-            #
-            # Declares a toplevel state. It should be used only to declare RTT's
-            # TaskContext states.
+            # @deprecated use {toplevel_state} to define toplevel states on root
+            #   models, and {#each_state} to enumerate the states
             def states(*state_names) # :nodoc:
                 if state_names.empty?
                     return @states
                 end
 
+                toplevel_states(*state_names)
+            end
+
+            # Define the state machine's toplevel states, usually used only on a
+            # root model
+            def toplevel_states(*state_names)
                 state_names.each do |name|
                     define_state(name, :toplevel)
                 end
