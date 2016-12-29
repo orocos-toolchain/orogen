@@ -2,7 +2,7 @@
 
 #include "<%= task.basename %>.hpp"
 
-using namespace <%= task.project.name %>;
+using namespace <%= task.full_namespace %>;
 
 <%= task.basename %>::<%= task.basename %>(std::string const& name<%= ", TaskCore::TaskState initial_state" unless task.fixed_initial_state? %>)
     : <%= task.basename %>Base(name<%= ", initial_state" unless task.fixed_initial_state? %>)

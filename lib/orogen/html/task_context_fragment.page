@@ -35,7 +35,12 @@
      <%     if p.doc %>
          <div class="doc-above"><%= Kramdown::Document.new(p.doc).to_html %></div>
      <%     end %>
-         <b><%= p.name %></b>: <%= page.link_to(p.type) %>
+     <% flags = %w{static needs_reliable_connection}.find_all do |flag_name|
+            p.respond_to?("#{flag_name}?") && p.send("#{flag_name}?")
+        end
+        flags = ("<i>[" + flags.join(",") + "]</i>" if !flags.empty?)
+     %>
+         <b><%= p.name %></b><%= flags %>: <%= page.link_to(p.type) %>
      </li>
      <% end %>
   <% end %>

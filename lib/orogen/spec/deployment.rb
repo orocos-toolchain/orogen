@@ -147,6 +147,11 @@ module OroGen
             # @return [Array<TaskDeployment>]
             attr_reader :slaves
 
+            def initialize_copy(old)
+                super
+                @slaves = slaves.dup
+            end
+
             # Returns the minimal latency between the time the task gets
             # triggered (for instance because of data on an input event port),
             # and the time updateHook() is actually called, based on its
@@ -253,6 +258,26 @@ module OroGen
 
             dsl_attribute :stop_timeout do |value|
                 Float(value)
+            end
+
+            def sequential?
+                activity_type.name == 'Sequential'
+            end
+
+            def triggered?
+                activity_type.name == 'Triggered' && period == 0
+            end
+
+            def periodic?
+                activity_type.name == 'Triggered' && period != 0
+            end
+
+            def fd_driven?
+                activity_type.name == 'FileDescriptorActivity'
+            end
+
+            def slave?
+                activity_type.name == 'SlaveActivity'
             end
 
             # Makes this task's activity driven by a file descriptor. The underlying
@@ -435,6 +460,13 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 	    # class (the default)
 	    def non_realtime; @realtime = false; self end
 
+            def to_s
+                "#<#{self.class} name=#{name} model=#{task_model}>"
+            end
+            def inspect
+                to_s
+            end
+
             def pretty_print(pp) # :nodoc:
                 pp.text "#{name}[#{task_model.name}]"
                 pp.nest(2) do
@@ -517,10 +549,32 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @lock_timeout_period_factor =  nil
             end
 
+            def initialize_copy(old)
+                super
+                @task_activities = @task_activities.dup
+
+
+                @transports = @transports.dup
+                @peers = @peers.dup
+                @manually_loaded_types = @manually_loaded_types.dup
+            end
+
             KNOWN_LOG_LEVELS = {
                 :info => 'Info',
                 :debug => 'Debug'
             }
+
+            def to_s
+                "#<#{self.class} name=#{name} tasks=#{task_activities.map { |t| "#{t}" }.join(", ")}>"
+            end
+
+            def inspect
+                to_s
+            end
+
+            def uses_qt?
+                task_activities.any?{|t| t.task_model.uses_qt?}
+            end
 
             #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
             def load_type(typename)
@@ -603,12 +657,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 else task_context = klass
                 end
 
-                if task_context.abstract?
-                    raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
-                end
-
-                name = OroGen.verify_valid_identifier(name)
-                if task = find_task_by_name(name)
+                if find_task_by_name(name)
                     raise ArgumentError, "there is already a task #{name} on the deployment #{self.name}"
                 end
                 deployment = TaskDeployment.new(name, task_context)

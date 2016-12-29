@@ -81,6 +81,7 @@ parser = OptionParser.new do |opt|
         OroGen::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = value
     end
 
+    opt.on("-t", "--tests")   { project.enable_namespace "test"}
     opt.on("-v", "--verbose") { rtt_cpp.logger.level = Logger::INFO; verbosity = 1 }
     opt.on("-d", "--debug")   { rtt_cpp.logger.level = Logger::DEBUG; verbosity = 2 }
     opt.on("-h", "--help", "this help message") do
@@ -102,9 +103,10 @@ parser = OptionParser.new do |opt|
     end
 
     opt.on("-V", "--version", "displays the current orogen version") do
-        puts "orogen v#{rtt_cpp::VERSION}"
+        puts "orogen v#{OroGen::VERSION}"
         puts "Copyright 2008-2010 DFKI"
         STDOUT.flush
+        exit 0
     end
 end
 

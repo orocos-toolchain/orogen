@@ -53,14 +53,27 @@ module OroGen
                 raise ProjectNotFound, "there is no project named #{name} on #{self}"
             end
 
-            def find_task_library_from_task_model_name(name)
+            def task_model_from_name(name)
+                if model = loaded_task_models[name]
+                    return model
+                end
+
+                OroGen::Loaders.debug "Aggregate: resolving task model #{name} on #{loaders.map(&:to_s).join(",")}"
                 loaders.each do |l|
-                    next if !l.respond_to?(:find_task_library_from_task_model_name)
-                    if tasklib_name = l.find_task_library_from_task_model_name(name)
-                        return tasklib_name
+                    begin
+                        # We assume that the sub-loaders are created with self
+                        # as root loader. They will therefore register
+                        # themselves on self
+                        return loaded_task_models[name] = l.task_model_from_name(name)
+                    rescue ProjectNotFound => e
+                        Loaders.debug "  not available on #{l}: #{e}"
                     end
                 end
-                nil
+                raise TaskModelNotFound, "there is no task model named #{name} on #{self}"
+            end
+
+            def find_task_library_from_task_model_name(name)
+                raise NotImplementedError
             end
 
             def find_project_from_deployment_name(name)

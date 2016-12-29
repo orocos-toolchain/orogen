@@ -259,8 +259,30 @@ module OroGen
                 end
 
                 registry.merge typekit.registry
+
+                typekit.registry.each(with_aliases: false) do |type|
+                    self_type = registry.get(type.name)
+                    self_type.metadata.add('orogen:typekits', typekit.name)
+                    if typekit.include?(type.name)
+                        self_type.metadata.add('orogen:definition_typekits', typekit.name)
+                    end
+
+                    if type.contains_opaques?
+                        intermediate_type_name = typekit.intermediate_type_name_for(type)
+                        intermediate_type = registry.get(intermediate_type_name)
+                        self_type.metadata.add('orogen:intermediate_type',
+                                          intermediate_type_name)
+                        intermediate_type.metadata.add('orogen:intermediate_type_of',
+                                                       type.name)
+                        if !type.opaque?
+                            intermediate_type.metadata.set('orogen:generated_type',
+                                                           'true')
+                        end
+                    end
+                end
+
                 @interface_typelist |= typekit.interface_typelist
-                typekit.registry.each(:with_aliases => true) do |typename, _|
+                typekit.registry.each(with_aliases: true) do |typename, _|
                     typekits_by_type_name[typename] ||= Set.new
                     typekits_by_type_name[typename] << typekit
                 end
@@ -297,13 +319,17 @@ module OroGen
             # @return [Model<Typelib::Type>] the corresponding type in
             #   {#registry}
             # @raise Typelib::NotFound if the type cannot be found
-            def resolve_type(type)
-                type = type.name if type.respond_to?(:name)
-                registry.get(type)
+            def resolve_type(type, options = Hash.new)
+                typename =
+                    if type.respond_to?(:name)
+                        type.name
+                    else type
+                    end
+                registry.get(typename)
             rescue Typelib::NotFound => e
-                if define_dummy_types?
+                if define_dummy_types? || options[:define_dummy_type]
                     type = registry.create_null(typename)
-                    interface_typelist << typename
+                    register_type_model(type, interface: true)
                     return type
                 else raise e, "#{e.message} using #{self}", e.backtrace
                 end
@@ -318,14 +344,12 @@ module OroGen
             #
             # @return [Set<Spec::Typekit>] the list of typekits
             # @raise [DefinitionTypekitNotFound] if no typekits define this type
-            def imported_typekits_for(typename, options = Hash.new)
-                options = Kernel.validate_options options,
-                    :definition_typekits => true
+            def imported_typekits_for(typename, definition_typekits: true)
 		if typename.respond_to?(:name)
 		    typename = typename.name
 		end
                 if typekits = typekits_by_type_name[typename]
-                    if options[:definition_typekits]
+                    if definition_typekits
                         definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
                         if definition_typekits.empty?
                             raise DefinitionTypekitNotFound, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and I cannot find it. definition_typekits is true, I raise"
@@ -366,8 +390,8 @@ module OroGen
             # @param (see Spec::Typekit#intermediate_type?)
             # @return (see Spec::Typekit#intermediate_type?)
             def intermediate_type?(type)
-                imported_typekits_for(type, :definition_typekits => false).
-                    any? { |tk| tk.intermediate_type?(type) }
+                type = resolve_type(type)
+                !type.metadata.get('orogen:intermediate_type_of').empty?
             end
 
             # Returns the opaque type that is paired with the given type
@@ -376,8 +400,9 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
-                imported_typekits_for(type, :definition_typekits => false).
-                    first.opaque_type_for(type)
+                type = resolve_type(type)
+                opaques = type.metadata.get('orogen:intermediate_type_of')
+                registry.get(opaques.first || type.name)
             end
 
             # Returns the intermediate type that is paired with the given type
@@ -386,8 +411,9 @@ module OroGen
             # @raise (see Spec::Typekit#opaque_type_for)
             # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
-                imported_typekits_for(type, :definition_typekits => false).
-                    first.intermediate_type_for(type)
+                type = resolve_type(type)
+                intermediates = type.metadata.get('orogen:intermediate_type')
+                registry.get(intermediates.first || type.name)
             end
 
             # Returns whether this type is a m-type (intermediate type generated
@@ -397,8 +423,8 @@ module OroGen
             # @raise (see Spec::Typekit#m_type?)
             # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
-                imported_typekits_for(type, :definition_typekits => false).
-                    first.m_type?(type)
+                type = resolve_type(type)
+                type.metadata.get('orogen:generated_type') == ['true']
             end
 
             # Registers this project's subobjects
@@ -485,6 +511,7 @@ module OroGen
             # @param [String] model_name the name of the task model to look for
             # @return [String,nil]
             def find_task_library_from_task_model_name(name)
+                raise NotImplementedError, "#{self.class} does not implement #find_task_library_from_task_model_name"
             end
 
             # Returns the project that defines the given deployment
@@ -507,6 +534,31 @@ module OroGen
             def each_available_project_name
                 return enum_for(__method__) if !block_given?
                 nil
+            end
+
+            def typelib_type_for(t)
+                if t.respond_to?(:name)
+                    return t if !t.contains_opaques?
+                    t = t.name
+                end
+
+                if registry.include?(t)
+                    type = registry.get(t)
+                    if type.contains_opaques?
+                        intermediate_type_for(type)
+                    elsif type.null?
+                        # 't' is an opaque type and there are no typelib marshallers
+                        # to convert it to something we can manipulate, raise
+                        raise Typelib::NotFound, "#{t} is a null type and there are no typelib marshallers registered in RTT to convert it to a typelib-compatible type"
+                    else type
+                    end
+                else
+                    raise Typelib::NotFound, "#{t} cannot be found in the currently loaded registries"
+                end
+            end
+
+            def inspect
+                to_s
             end
         end
     end

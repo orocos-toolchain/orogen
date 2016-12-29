@@ -43,6 +43,31 @@ module OroGen
                 return typekit_typelist, typekit_interface_typelist
             end
 
+            class OpaqueInfoListener
+                include REXML::StreamListener
+                attr_reader :registry, :typekit_registry, :opaques
+
+                def initialize(typekit_registry)
+                    @registry = Typelib::Registry.new
+                    @typekit_registry = typekit_registry
+                    @opaques = Array.new
+                end
+
+                def tag_start(name, attributes)
+                    return if name != 'opaque'
+                    base_type_name  = attributes['name']
+                    inter_type_name = attributes['marshal_as']
+                    includes        = attributes['includes']
+                    needs_copy      = attributes['needs_copy']
+                    opaques << OpaqueDefinition.new(
+                        typekit_registry.get(base_type_name),
+                        inter_type_name,
+                        Hash[include: includes.split(':'), needs_copy: (needs_copy == '1')],
+                        nil)
+                    registry.merge(typekit_registry.minimal(base_type_name))
+                end
+            end
+
             def self.from_raw_data(loader, name, registry_xml, typelist_txt)
                 typekit_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(typekit_registry)
@@ -54,22 +79,10 @@ module OroGen
                               typekit_typelist,
                               typekit_interface_typelist)
 
-                # Now initialize the opaque definitions
-                doc = REXML::Document.new(registry_xml)
-                doc.each_element('//opaque') do |opaque_entry|
-                    base_type_name  = opaque_entry.attributes['name']
-                    inter_type_name = opaque_entry.attributes['marshal_as']
-                    includes        = opaque_entry.attributes['includes']
-                    needs_copy      = opaque_entry.attributes['needs_copy']
-                    spec = OpaqueDefinition.new(
-                        typekit_registry.get(base_type_name),
-                        inter_type_name,
-                        { :include => includes.split(':'), :needs_copy => (needs_copy == '1') },
-                        nil)
-
-                    typekit.opaque_registry.merge(typekit_registry.minimal(base_type_name))
-                    typekit.opaques << spec
-                end
+                listener = OpaqueInfoListener.new(typekit_registry)
+                REXML::Document.parse_stream(registry_xml, listener)
+                typekit.opaques.concat(listener.opaques)
+                typekit.opaque_registry.merge(listener.registry)
 
                 typekit
             end
@@ -131,7 +144,7 @@ module OroGen
                 type = resolve_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-                if result = opaques.find { |opaque_def| opaque_def.type == type }
+                if result = opaques.find { |opaque_def| opaque_def.type.eql? type }
 		    result
 		else
 		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
@@ -167,7 +180,11 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate) == type }
+                elsif type <= Typelib::ContainerType
+                    if opaque_deference = find_opaque_for_intermediate(type.deference)
+                        resolve_type("#{type.container_kind}<#{opaque_deference.name}>")
+                    end
+                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate).eql? type }
                     opaque_def.type
                 end
             end

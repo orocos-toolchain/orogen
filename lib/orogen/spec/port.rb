@@ -13,7 +13,7 @@ module OroGen
             def type_name; type.name end
             # The port name as it is registered on RTT
             def orocos_type_name
-                Typelib::Registry.rtt_typename(type)
+                type.name
             end
 
             # Converts this model into a representation that can be fed to e.g.
@@ -178,14 +178,13 @@ module OroGen
                     if path.empty? then path = ["[]"]
                     else path[-1] = "#{path[-1]}[]"
                     end
+
                     element = sample_t.deference.new
                     if !initialize_max_size_sample(path, element, max_sizes)
                         return false
                     end
-
-                    max_size.times do
-                        sample << element
-                    end
+                    
+                    Typelib.copy(sample, sample.class.of_size(max_size, element))
                     return true
 
                 elsif sample.kind_of?(Typelib::ArrayType)

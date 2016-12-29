@@ -102,6 +102,9 @@ module OroGen
             # writing down the projects.
             attr_predicate :define_dummy_types?, true
 
+            #returns all the disabled namespaces
+            attr_reader :disabled_namespaces
+
             # The target operating system for orocos. Uses the OROCOS_TARGET
             # environment variable, if set, and defaults to gnulinux otherwise.
             def orocos_target
@@ -117,6 +120,10 @@ module OroGen
             def linux?; orocos_target == 'gnulinux' end
             # True if the orocos target is xenomai
             def xenomai?; orocos_target == 'xenomai' end
+
+            def enable_namespace(value); @disabled_namespaces.delete(value) end
+            def disable_namespace(value); @disabled_namespaces << value end
+            def namespace_disabled?(value); @disabled_namespaces.include?(value) end
 
             # :method: version
             #
@@ -274,6 +281,7 @@ module OroGen
                 Project.using_rtt_typekit(self)
 
                 @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
+                @disabled_namespaces = ['test']
 	    end
 
             def self.using_rtt_typekit(obj)
@@ -295,6 +303,22 @@ module OroGen
             # nil if there is none
             def find_typekit(typekit_name)
                 project.used_typekits.find { |tk| tk.name == typekit_name }
+            end
+
+            # Returns all subdirectores that task-extens want to add
+            # This is used within the CMake-list generation to add
+            # custom targets to the build process
+            def additional_plugin_source_dirs
+                dirs = []
+                tasks.each do |name,task|
+                    task.extensions.each do |ext|
+                        next if !ext.respond_to? "each_auto_gen_source_directory"
+                        ext.each_auto_gen_source_directory do |elem|
+                            dirs << elem
+                        end
+                    end
+                end
+                dirs.uniq
             end
 
             # The set of typekits that are already loaded on this oroGen project
@@ -978,6 +1002,10 @@ module OroGen
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
 	    def task_context(name, options = Hash.new, &block)
+                if namespace_disabled?(name.split("::")[0..-2].join("::"))
+                    return nil
+                end
+
                 if name == self.name
                     raise ArgumentError, "a task cannot have the same name as the project"
                 elsif name !~ /^(\w+::)*\w+$/
@@ -1254,7 +1282,7 @@ module OroGen
                     raise ArgumentError, "there is already a deployment named '#{name}' in this oroGen project"
                 end
 
-                deployer = Spec::Deployment.new(self, name, &block)
+                deployer = RTT_CPP::Deployment.new(self, name, &block)
                 @enabled_transports.each do |t|
                     deployer.enable_transport(t)
                 end

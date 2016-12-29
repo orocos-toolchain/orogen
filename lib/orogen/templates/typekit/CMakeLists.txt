@@ -10,7 +10,6 @@ if(NOT ${PROJECT_NAME} STREQUAL "<%= typekit.name %>")
 endif()
 
 SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")
-include(OrogenPkgCheckModules)
 
 # In Orogen components, the build target is specified at generation time
 # But we allow to override in case of typegen/USE_OROCOS_RTT:
@@ -38,7 +37,7 @@ endif (CXX_SUPPORTS_WALL)
 option(WITH_RPATH "enables or disables embedding RPath information in binaries" ON)
 if(WITH_RPATH)
     include(RPATHHandling)
-    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/orocos:${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
+    CMAKE_USE_FULL_RPATH("${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/lib/orocos;${CMAKE_INSTALL_PREFIX}/lib/orocos${OROCOS_PKG_DIR}/types")
 endif(WITH_RPATH)
 
 # Set the build type to debug by default
@@ -72,7 +71,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 <% if typekit.has_opaques_with_templates? %>
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/typekit)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/typekit)
 <% end %>
 
 # Now set up the dependencies
@@ -99,8 +98,6 @@ orocos_typekit(${libname}
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
 target_link_libraries(${libname} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
-target_link_libraries(${libname} LINK_INTERFACE_LIBRARIES)
-set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
@@ -128,10 +125,8 @@ install(FILES
 install(FILES <%= source_file.to_path %>
     DESTINATION include/orocos/<%= target_dir %>)
 <% end %>
-
 install(FILES ${PKG_CONFIG_FILE}
     DESTINATION lib/pkgconfig)
-
 install(FILES <%= typekit.name %>.tlb
     <%= typekit.name %>.typelist
     DESTINATION share/orogen)
@@ -160,4 +155,7 @@ add_custom_command(
     COMMAND /bin/false)
 add_custom_target(<%= typekit.name %>-check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} <%= typekit.name %>-check-typekit-uptodate)
-
+if(NOT TARGET check-typekit-uptodate)
+    add_custom_target(check-typekit-uptodate)
+endif()
+add_dependencies(check-typekit-uptodate <%= typekit.name %>-check-typekit-uptodate)

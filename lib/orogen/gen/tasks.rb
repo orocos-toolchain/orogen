@@ -29,7 +29,7 @@ module OroGen
                     #Adding user method cal to updateDynamicProperties
                     task.add_code_to_base_method_before "updateDynamicProperties","        if(!set#{name.capitalize}(_#{name}.get())) return false;\n"
 
-                    setter_operation.base_body= <<EOF
+                    setter_operation.base_body <<EOF
 //      The following steps happen within the base Implementation:
 //       if the task is not configured yet, update the classical property and return true
 //       if the task is configured OR running so far, call the user method to update the value
@@ -175,6 +175,10 @@ EOF
         # Module that is used to add code generation functionality to
         # Spec::Operation
         module OperationGeneration
+
+            dsl_attribute(:body) { |value| value.to_s }
+            dsl_attribute(:base_body) { |value| value.to_s }
+
             def initialize
 		@method_name = self.name.dup
 		method_name[0, 1] = method_name[0, 1].downcase
@@ -194,7 +198,7 @@ EOF
 	    end
 
             # Returns the set of types that this operation uses, as a
-            # ValueSet of Typelib::Type classes.
+            # Set of Typelib::Type classes.
             def used_types
                 [return_type.first].compact + arguments.map { |_, t, _| t }
             end
@@ -215,9 +219,6 @@ EOF
 
 		arglist.join(", ")
 	    end
-
-            attr_accessor :body
-            attr_accessor :base_body
 
 	    # call-seq:
 	    #	method_name new_name -> self
@@ -242,7 +243,7 @@ EOF
                 end
 
                 if hidden? && !self.base_body
-                    raise InternalError, "a hidden operation must have a body"
+                    raise InternalError, "a hidden operation with name #{name} must have a body"
                 end
 
 
@@ -300,21 +301,34 @@ EOF
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
 	module TaskContextGeneration
+
+            # This method generates the relative basepath for generation of all files
+            def basepath
+                s = File.join(namespace.split("::").join(File::SEPARATOR))
+                if !s.empty?
+                    s = s + File::SEPARATOR
+                end
+                s
+            end
+
             # The name of the header file containing the C++ code which defines
             # this task context
             def header_file
-                if external_definition?
-                    library_name, name = self.name.split("::")
-                    File.join("#{library_name.downcase}", "#{name}.hpp")
-                else
-                    File.join("#{project.name.downcase}", "#{basename}.hpp")
-                end
+                project_name = self.name.split("::").first
+                File.join(project_name.downcase, basepath, "#{basename}.hpp")
+            end
+
+            def full_namespace
+                self.name.split("::")[0..-2].join("::")
+            end
+
+            def namespace
+                self.name.split("::")[1..-2].join("::")
             end
 
             # Returns the name without an eventual library name
             def basename
-                library_name, name = self.name.split("::")
-                name || library_name
+                self.name.split("::").last
             end
 
             # True if we are generating for Linux
@@ -406,7 +420,7 @@ EOF
             def interface_types
                 (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
                     map { |obj| obj.used_types }.
-                    flatten.to_value_set.to_a
+                    flatten.to_set.to_a
             end
 
 
@@ -420,7 +434,7 @@ EOF
                     types.any? do |type|
                         tk.includes?(type.name)
                     end
-                end.to_value_set
+                end.to_set
             end
 
             # Validate the constructors of the task files
@@ -476,16 +490,19 @@ EOF
 	    #   subclass of the Base class.
 	    def generate
                 return if external_definition?
+                
 
                 if superclass.name == "RTT::TaskContext"
-                    hidden_operation("getModelName", "    return \"#{name}\";").
+                    hidden_operation("getModelName").
                         returns("std::string").
                         doc("returns the oroGen model name for this task").
+                        base_body("    return \"#{name}\";").
                         runs_in_caller_thread
 
                     add_base_implementation_code("#ifdef HAS_GETTID\n#include <sys/syscall.h>\n#endif")
-                    hidden_operation("__orogen_getTID", "    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
+                    hidden_operation("__orogen_getTID").
                         returns("int").
+                        base_body("    #ifdef HAS_GETTID\nreturn syscall(SYS_gettid);\n#else\nreturn 0;\n#endif").
                         doc("returns the PID for this task")
                 else
                     add_base_method("std::string", "getModelName","").
@@ -501,12 +518,27 @@ EOF
                     create_dynamic_updater("updateDynamicAttributes",superclass.has_dynamic_attributes?)
                 end
 
+
+                extensions.each do |ext|
+                    if ext.respond_to?(:early_register_for_generation)
+                        OroGen.warn "The plugin #{ext.name} defines a \"early_register_for_generation\" hook, this got renamed to \"pre_generation_hook\" please adapt the code or contact the developer."
+                        ext.early_register_for_generation(self)
+                    end
+                    if ext.respond_to?(:pre_generation_hook)
+                        ext.pre_generation_hook(self)
+                    end
+                end
+
                 self_properties.each(&:register_for_generation) #needs to be called before operations, because it adds code to them
                 self_attributes.each(&:register_for_generation)
                 new_operations.each(&:register_for_generation)
                 self_ports.each(&:register_for_generation)
                 extensions.each do |ext|
+                    if ext.respond_to?(:generation_hook)
+                        ext.generation_hook(self)
+                    end
                     if ext.respond_to?(:register_for_generation)
+                        OroGen.warn "The plugin #{ext.name} defines a \"register_for_generation\" hook, this got renamed to \"generation_hook\" please adapt the code or contact the developer."
                         ext.register_for_generation(self)
                     end
                 end
@@ -522,15 +554,21 @@ EOF
 		# Make this task be available in templates as 'task'
 		task = self
 
+                extensions.each do |ext|
+                    if ext.respond_to?(:post_generation_hook)
+                        ext.post_generation_hook(self)
+                    end
+                end
+
 		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
 		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
-		Generation.save_automatic "tasks", "#{basename}Base.cpp", base_code_cpp
-		Generation.save_automatic "tasks", "#{basename}Base.hpp", base_code_hpp
+		Generation.save_automatic "tasks",basepath, "#{basename}Base.cpp", base_code_cpp
+		Generation.save_automatic "tasks",basepath, "#{basename}Base.hpp", base_code_hpp
 
 		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
 		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
-		file_cpp = Generation.save_user "tasks", "#{basename}.cpp", code_cpp
-		file_hpp = Generation.save_user "tasks", "#{basename}.hpp", code_hpp
+		file_cpp = Generation.save_user "tasks",basepath, "#{basename}.cpp", code_cpp
+		file_hpp = Generation.save_user "tasks",basepath, "#{basename}.hpp", code_hpp
 
                 # Validate constructors of old task files
                 validate_constructors(file_cpp, basename)
@@ -538,11 +576,12 @@ EOF
 
                 fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
                 FileUtils.mkdir_p fake_install_dir
+                FileUtils.mkdir_p File.join(fake_install_dir, basepath)
 
-                FileUtils.ln_sf File.join(project.base_dir, "tasks", "#{basename}.hpp"),
-                    File.join(fake_install_dir, "#{basename}.hpp")
-                FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks", "#{basename}Base.hpp"),
-                    File.join(fake_install_dir, "#{basename}Base.hpp")
+                FileUtils.ln_sf File.join(project.base_dir, "tasks",basepath, "#{basename}.hpp"),
+                    File.join(fake_install_dir, basepath, "#{basename}.hpp")
+                FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks",basepath, "#{basename}Base.hpp"),
+                    File.join(fake_install_dir, basepath ,"#{basename}Base.hpp")
 
 		self
 	    end

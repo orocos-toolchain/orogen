@@ -1,5 +1,5 @@
 require 'utilrb/module/attr_predicate'
-require 'utilrb/value_set'
+require 'set'
 
 module OroGen
     module Spec
@@ -28,7 +28,9 @@ module OroGen
             def type_name; type.name end
 
             # The type name as registered on RTT
-            def orocos_type_name; Typelib::Registry.rtt_typename(type) end
+            def orocos_type_name
+                type.name
+            end
 
 	    # The property's default value
 	    attr_reader :default_value

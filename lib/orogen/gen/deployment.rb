@@ -51,7 +51,20 @@ module OroGen
             end
         end
 
-        module DeploymentGeneration
+        class Deployment < Spec::Deployment
+            def task(name, klass)
+                name = OroGen.verify_valid_identifier(name)
+                if klass.respond_to?(:to_str)
+                    task_context = project.task_model_from_name(klass)
+                else task_context = klass
+                end
+
+                if task_context.abstract?
+                    raise ArgumentError, "cannot create a deployment for #{task_context.name}, as it is abstract"
+                end
+                super(name, task_context)
+            end
+
             def dependencies
                 result = []
                 result << BuildDependency.new(
@@ -81,6 +94,12 @@ module OroGen
                         in_context('core', 'link')
                     result << BuildDependency.new(
                         "ROSCPP", "roscpp").
+                        in_context('core', 'include').
+                        in_context('core', 'link')
+                end
+                if transports.include? 'typelib'
+                    result << BuildDependency.new(
+                        "RTT_TYPELIB", "rtt_typelib-#{Generation.orocos_target}").
                         in_context('core', 'include').
                         in_context('core', 'link')
                 end
@@ -199,7 +218,6 @@ module OroGen
         end
 
         Spec::TaskDeployment.include TaskDeploymentGeneration
-        Spec::Deployment.include DeploymentGeneration
     end
     end
 end

@@ -36,6 +36,7 @@
     <% end %>
 <% end %>
 
+
 <% task_activities = deployer.task_activities.sort_by(&:name) %>
 <% if deployer.corba_enabled? %>
 #include <rtt/transports/corba/ApplicationServer.hpp>
@@ -61,6 +62,15 @@
 <% end %>
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
+
+bool exiting;
+<% if uses_qt? %>
+#include <pthread.h>
+#include <QApplication>
+QApplication *qapp;
+<% end %>
+
+#include <string.h>
 
 namespace orogen
 {
@@ -128,11 +138,11 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::Serv
 int sigint_com[2];
 void sigint_quit_orb(int)
 {
-    uint8_t dummy = 0;
+    char dummy = 0;
     unsigned int sent = 0;
-    while(sent < sizeof(uint8_t))
+    while(sent < sizeof(dummy))
     {
-	int ret = write(sigint_com[1], &dummy, sizeof(uint8_t));
+	int ret = write(sigint_com[1], &dummy, sizeof(dummy));
 	if(ret < 0)
 	{
 	    std::cerr << "Failed to signal quit to orb" << std::endl;
@@ -143,9 +153,26 @@ void sigint_quit_orb(int)
 }
 <% end %>
 
+
+void *oro_thread(void *p){
+    while(!exiting){
+        char dummy;
+        int read_count = read(sigint_com[0], &dummy, sizeof(dummy));
+        if (read_count == 1)
+            exiting=true;
+    }
+<% if uses_qt? %>
+    qapp->exit();
+<% end %>
+    return NULL;
+}
+
 int ORO_main(int argc, char* argv[])
 {
    po::options_description desc("Options");
+<% if uses_qt? %>
+    qapp = new QApplication(argc,argv);
+<% end %>
 
    desc.add_options()
         ("help", "show all available options supported by this deployment")
@@ -174,14 +201,6 @@ int ORO_main(int argc, char* argv[])
    }
    <% end %>
 
-   RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
-   <% if deployer.transports.include?('corba') %>
-   RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
-   <% end %>
-   <% if deployer.transports.include?('mqueue') %>
-   RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
-   <% end %>
-
    <% if project.typekit %>
    RTT::types::TypekitRepository::Import( new orogen_typekits::<%= project.name %>TypekitPlugin );
    <% deployer.transports.each do |transport_name| %>
@@ -194,6 +213,14 @@ int ORO_main(int argc, char* argv[])
        <% deployer.transports.each do |transport_name| %>
    RTT::types::TypekitRepository::Import( new <%= RTT_CPP::Typekit.transport_plugin_name(transport_name, tk.name) %> );
        <% end %>
+   <% end %>
+
+   RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
+   <% if deployer.transports.include?('corba') %>
+   RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
+   <% end %>
+   <% if deployer.transports.include?('mqueue') %>
+   RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
    <% end %>
 
 <% if deployer.corba_enabled? %>
@@ -222,7 +249,7 @@ int ORO_main(int argc, char* argv[])
 
             const std::string& ren_str = ren_vec.at(i);
 
-            unsigned int colon_pos = ren_str.find(':');
+            size_t colon_pos = ren_str.find(':');
             if ( colon_pos == std::string::npos ) continue;
 
             rename_map.insert( std::pair<std::string, std::string>( 
@@ -254,9 +281,14 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         task_name = rename_map[task_name];
     else
         task_name = prefix + task_name;
-    
+
+#if __cplusplus < 201103L
     std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(
             orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
+#else
+    std::unique_ptr<RTT::TaskContext> task_<%= task.name%>(
+            orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
+#endif
 
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
@@ -377,10 +409,9 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     }
 
     struct sigaction sigint_handler;
+    memset(&sigint_handler, 0, sizeof(sigint_handler));
     sigint_handler.sa_handler = &sigint_quit_orb;
     sigemptyset(&sigint_handler.sa_mask);
-    sigint_handler.sa_flags     = 0;
-    sigint_handler.sa_restorer  = 0;
     if (-1 == sigaction(SIGINT, &sigint_handler, 0))
     {
         std::cerr << "failed to install SIGINT handler" << std::endl;
@@ -399,13 +430,15 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     <% else %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
-    while (true)
-    {
-        uint8_t dummy;
-        int read_count = read(sigint_com[0], &dummy, 1);
-        if (read_count == 1)
-            break;
-    }
+
+    exiting= false;
+    <% if uses_qt? %>
+    pthread_t thr;
+    pthread_create(&thr,NULL, oro_thread,NULL);
+    qapp->exec();
+    <% else %>
+    oro_thread(NULL);
+    <% end %>
 
     RTT::corba::TaskContextServer::ShutdownOrb();
     RTT::corba::TaskContextServer::DestroyOrb();

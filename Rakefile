@@ -40,6 +40,7 @@ begin
             ['flexmock', '>= 0.8.6']
     end
 
+    Rake.clear_tasks(/^default$/)
     namespace 'dist' do
         Rake.clear_tasks(/dist:publish_docs/)
         Rake.clear_tasks(/dist:(re|clobber_|)docs/)
@@ -52,7 +53,7 @@ begin
             end
         end
     end
-    hoe_spec.test_globs = ['test/suite.rb']
+    config.test_globs = ['test/suite.rb']
 
     task :doc => :yard
 rescue LoadError
@@ -64,7 +65,6 @@ rescue Exception => e
     end
 end
 
-Rake.clear_tasks(/^default$/)
 task :default => :setup
 
 require 'utilrb/doc/rake'

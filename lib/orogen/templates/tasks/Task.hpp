@@ -1,13 +1,15 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
 
-#ifndef <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
-#define <%= project.name.upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#ifndef <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_HPP
+#define <%= task.full_namespace.tr(":","_").upcase %>_<%= task.basename.upcase %>_TASK_HPP
 
-#include "<%= project.name.downcase %>/<%= task.basename %>Base.hpp"
+#include "<%= project.name.downcase %>/<%= task.basepath %><%= task.basename %>Base.hpp"
 
-namespace <%= project.name %> {
+<% task.full_namespace.split("::").each do |space| %>
+namespace <%= space %>{
+<% end %>
 
-    /*! \class <%= task.basename %> 
+    /*! \class <%= task.basename %>
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
      * Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification.
      * In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.
@@ -19,7 +21,7 @@ namespace <%= project.name %> {
          task('custom_task_name','<%= "#{project.name}::#{task.basename}" %>')
      end
      \endverbatim
-     *  It can be dynamically adapted when the deployment is called with a prefix argument. 
+     *  It can be dynamically adapted when the deployment is called with a prefix argument.
      */
     class <%= task.basename %> : public <%= task.basename %>Base
     {
@@ -70,7 +72,7 @@ namespace <%= project.name %> {
          *
          * The error(), exception() and fatal() calls, when called in this hook,
          * allow to get into the associated RunTimeError, Exception and
-         * FatalError states. 
+         * FatalError states.
          *
          * In the first case, updateHook() is still called, and recover() allows
          * you to go back into the Running state.  In the second case, the
@@ -99,7 +101,9 @@ namespace <%= project.name %> {
          */
         void cleanupHook();
     };
+<% task.full_namespace.split("::").each do |space| %>
 }
+<% end %>
 
 #endif
 

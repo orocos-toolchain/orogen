@@ -20,11 +20,16 @@ module OroGen
 	#
 	# Returns the full path for the template path1/path2/.../file_name.
 	# Templates names are the path relative to the template base directory,
-	# which is the orocos/templates directory directly in Orocos.rb
-	# sources.
+	# which is the orocos/templates directory directly in orogen sources.
+        #
+        # Alternative, if an absolute path it passed, it will be directly returned
 	def self.template_path(*path)
-	    reldir = File.join('orogen', 'templates', *path)
-	    File.expand_path(reldir, base_dir)
+            if Pathname.new(File.join(*path)).absolute?
+                File.join(*path)
+            else
+                reldir = File.join('orogen', 'templates', *path)
+                File.expand_path(reldir, base_dir)
+            end
 	end
 
 	# call-seq:

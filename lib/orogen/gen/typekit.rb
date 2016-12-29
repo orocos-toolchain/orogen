@@ -7,6 +7,86 @@ require 'utilrb/kernel/options'
 
 module Typelib
     class Type
+        def self.normalize_typename(name)
+            "/" + Typelib.split_typename(name).map do |part|
+                normalize_typename_part(part)
+            end.join("/")
+        end
+
+        def self.normalize_typename_part(name)
+            # Remove all trailing array modifiers first
+            if name =~ /(.*)(\[\d+\]+)$/
+                name, array_modifiers = $1, $2
+            end
+
+            name, template_arguments = Typelib::CXX.parse_template(name)
+            template_arguments.map! do |arg|
+                arg =
+                    if arg !~ /^\d+$/ && arg[0, 1] != "/"
+                        "/#{arg}"
+                    else arg
+                    end
+            end
+
+            if !template_arguments.empty?
+                "#{name}<#{template_arguments.join(",")}>#{array_modifiers}"
+            else
+                "#{name}#{array_modifiers}"
+            end
+        end
+
+        def self.normalize_cxxname(name)
+            if name =~ /::/
+                raise Orocos::Generation::InternalError, "normalize_cxxname called with a C++ type name (#{name})"
+            end
+
+            if name =~ /(.*)((?:\[\d+\])+)$/
+                name = $1
+                suffix = $2
+            else
+                suffix = ''
+            end
+
+            converted = Typelib.split_typename(name).map do |p|
+                normalize_cxxname_part(p)
+            end
+            if converted.size == 1
+                "#{converted.first}#{suffix}"
+            else
+                "::" + converted.join("::") + suffix
+            end
+        end
+
+        def self.normalize_cxxname_part(name)
+            name, template_arguments = Typelib::CXX.parse_template(name)
+
+            name = name.gsub('/', '::')
+            if name =~ /^::(.*)/
+                name = $1
+            end
+
+            if !template_arguments.empty?
+                template_arguments.map! do |arg|
+                    if arg !~ /^\d+$/
+                        normalize_cxxname(arg)
+                    else arg
+                    end
+                end
+
+                "#{name}< #{template_arguments.join(", ")} >"
+            else name
+            end
+        end
+
+        def self.cxx_name
+            normalize_cxxname(name)
+        end
+        def self.cxx_basename
+            normalize_cxxname(basename)
+        end
+        def self.cxx_namespace
+            namespace('::')
+        end
         def self.name_as_word
             cxx_name.gsub(/[^\w+]/, '_')
         end
@@ -295,7 +375,7 @@ module OroGen
                 type = find_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-                if result = opaques.find { |opaque_def| opaque_def.type == type }
+                if result = opaques.find { |opaque_def| opaque_def.type.eql? type }
 		    result
 		else
 		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
@@ -331,7 +411,7 @@ module OroGen
                         end
                         @intermediate_to_opaque[type.name]
                     end
-                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true) == type }
+                elsif opaque_def = opaques.find { |spec| find_type(spec.intermediate, true).eql? type }
                     opaque_def.type
                 end
             end
@@ -594,7 +674,7 @@ module OroGen
             #
             # See also #type_export_policy
             def export_types(*selection)
-                @selected_types |= selection.map { |name| find_type(name) }.to_value_set
+                @selected_types |= selection.map { |name| find_type(name) }.to_set
             rescue Typelib::NotFound => e
                 raise ConfigError, e.message, e.backtrace
             end
@@ -677,7 +757,7 @@ module OroGen
                     return registry.build(type_name)
                 end
 
-                container_name, template_arguments = Typelib::GCCXMLLoader.parse_template(type_name)
+                container_name, template_arguments = Typelib::CXX.parse_template(type_name)
                 if template_arguments.size == 1
                     element_type = find_type(template_arguments[0], true)
                     if project
@@ -788,8 +868,8 @@ module OroGen
                 @pending_loads        = Array.new
 
                 type_export_policy :all
-                @selected_types = ValueSet.new
-                @excluded_types = ValueSet.new
+                @selected_types = Set.new
+                @excluded_types = Set.new
                 Project.using_rtt_typekit(self)
 	    end
 
@@ -1106,10 +1186,10 @@ module OroGen
 
                 # Get the full path for +file+
                 file =
-                    if File.exists?(file) # Local file
+                    if File.file?(file) # Local file
                         File.expand_path(file)
                     else # File from used libraries/task libraries
-                        dir = include_dirs.find { |dir| File.exists?(File.join(dir, file)) }
+                        dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
                         if !dir
                             raise LoadError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
                         end
@@ -1292,7 +1372,7 @@ module OroGen
             def resolve_registry_includes(registry, file_to_include)
                 queue = Array.new
                 registry.each do |type|
-                    _, template_args = Typelib::GCCXMLLoader.parse_template(type.name)
+                    _, template_args = Typelib::CXX.parse_template(type.name)
                     template_args = template_args.map do |type_name|
                         if registry.include?(type_name)
                             registry.get(type_name)
@@ -1319,22 +1399,7 @@ module OroGen
             end
 
             def resolve_toplevel_include_mapping(toplevel_files, options)
-                includes = options[:include].map { |v| "-I#{v}" }
-                defines  = options[:define].map { |v| "-D#{v}" }
-
-                preprocessed = Tempfile.open('orogen_gccxml_input') do |io|
-                    toplevel_files.each do |path|
-                        io.puts "#include <#{path}>"
-                    end
-                    io.flush
-                    result = IO.popen(["gccxml", "--preprocess", *includes, *defines, io.path]) do |io|
-                        io.read
-                    end
-                    if !$?.success?
-                        raise ArgumentError, "failed to preprocess #{toplevel_files.join(" ")}"
-                    end
-                    result
-                end
+                preprocessed = Typelib::CXX.preprocess(toplevel_files, 'c', options)
 
                 owners = Hash.new { |h,k| h[k] = Array.new }
                 current_file = [[]]
@@ -1347,7 +1412,20 @@ module OroGen
                                 if toplevel_files.include?(file) then file
                                 else current_file.last[0]
                                 end
-                            current_file.push [toplevel_file, file, lineno]
+                            # the gccxml-importer always reported "flattened"
+                            # filepath, like "/usr/include/c++/4.9/bits".
+                            # clang++ does print
+                            # "/usr/lib/gcc/x86_64-linux-gnu/4.9/../../../../include/c++/4.9/bits/stl_vector.h"
+                            # into the preprocessed output (read here), so we
+                            # have to flattend the path. this can fail for
+                            # "built-in" for examples, thus the rescue.
+                            begin
+                                current_file.push [toplevel_file, File.realpath(file), lineno]
+                            rescue Errno::ENOENT
+                                # now file is smth like "<built-in>" or
+                                # similar, at it anyways...
+                                current_file.push [toplevel_file, file, lineno]
+                            end
                         elsif mode == "2"
                             current_file.pop
                         end
@@ -1366,7 +1444,7 @@ module OroGen
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
-                options[:define] = ['EIGEN_DONT_VECTORIZE', "OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
+                options[:define] = ["OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
 
                 options[:include] = self.include_dirs.dup
                 options = options.merge(user_options) do |key, a, b|
@@ -1414,11 +1492,23 @@ module OroGen
                     map
                 end
 
+                # add this to the options hash so the the called importer-tool
+                # is able to reuse the include-directories while parsing the c++ code.
+                # it needs the full list of files (and not the preprocessed
+                # content return from "resolve_toplevel_include_mapping()"
+                # earlier) so that the importer can fill-in some of the
+                # metadata, like doc and source_file_line.
+                options[:include_paths] = include_dirs
+                
+                #if the user defined additional compiler defines, hand them over to the importer 
+                #because defines might change how the code looks (e.g. some methods might be #ifdef guarded)
+                options[:define] = preprocess_options[:define]
+
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
 
-                Tempfile.open("orogen_pending_loads") do |io|
+                Tempfile.open(["orogen-pending-loads_",".hpp"]) do |io|
                     io.write preprocessed
                     io.flush
 
@@ -1822,11 +1912,11 @@ module OroGen
 
             # Makes sure that a set of type objects comes from the same registry
             #
-            # In order to use ValueSet, we must make sure that all type objects
-            # come from the same registry. This method takes a ValueSet of types
+            # In order to use Set, we must make sure that all type objects
+            # come from the same registry. This method takes a Set of types
             # and converts all of them to the type coming from +registry+
             def map_typeset_to_registry(registry, types)
-                types.map { |t| find_type(t) }.to_value_set
+                types.map { |t| find_type(t) }.to_set
             end
 
 	    def generate
@@ -1858,7 +1948,7 @@ module OroGen
                 # dumped registry
                 @registry = normalize_registry
 		minimal_registry = @registry.dup
-                generated_types = self_types.to_value_set
+                generated_types = self_types.to_set
 
                 self_opaques = self.self_opaques.sort_by { |opdef| opdef.type.name }
 
@@ -1908,10 +1998,10 @@ module OroGen
                     if type_export_policy == :all
                         generated_types.find_all do |type|
                             !m_type?(type) && !(type <= Typelib::NumericType)
-                        end.to_value_set
+                        end.to_set
 
                     elsif type_export_policy == :used
-                        used_types = project.self_tasks.inject(ValueSet.new) do |result, task|
+                        used_types = project.self_tasks.inject(Set.new) do |result, task|
                             result | map_typeset_to_registry(registry, task.interface_types)
                         end
                         (used_types & generated_types)

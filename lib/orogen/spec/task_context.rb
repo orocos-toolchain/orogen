@@ -39,7 +39,13 @@ module OroGen
         # {Gen::RTT_CPP::TaskContextGeneration}
 	class TaskContext
 	    # The oroGen project this task is part of
+            #
+            # @return [Project]
 	    attr_reader :project
+            # The loader that has been used to load this task context
+            #
+            # @return [Loaders::Base]
+            def loader; project.loader end
 
             ## :method: doc
             # :call-seq:
@@ -151,12 +157,18 @@ module OroGen
             # A set of Port objects that can be created at runtime
             attr_reader :dynamic_ports
 
+            # True if QT is used within this Task
+            attr_reader :uses_qt
+
             # Call to declare that this task model is not meant to run in
             # practice
             def abstract; @abstract = true; end
             # True if this task model is only meant to declare an interface, and
             # should not be deployed
             def abstract?; @abstract end
+
+            def use_qt; @uses_qt = true; end
+            def uses_qt?; @uses_qt; end
 
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
@@ -283,6 +295,14 @@ module OroGen
             
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
+
+            # Returns a blank task context model, possibly with a name
+            def self.blank(name = nil)
+                loader = Loaders::Base.new
+                project = Project.new(loader)
+                project.default_task_superclass = false
+                TaskContext.new(project, name)
+            end
 
 	    # Create a new task context in the given project and with
 	    # the given name. If a block is given, it is evaluated
@@ -758,10 +778,14 @@ module OroGen
 
             # Defines an operation whose implementation is in the Base class
             # (i.e. "hidden" from the user)
-            def hidden_operation(name, body)
+            def hidden_operation(name, body=nil)
                 op = operation(name)
                 op.hidden = true
-                op.base_body = body
+                if body
+                    OroGen.warn "body argument for hidden_operation '#{self.name}'.'#{name}' is deprecated, please set the body during generation phase"
+                    OroGen.warn "If you call this from a plugin, define the implementation within your :early_register_for_generation method"
+                    op.base_body(body)
+                end
                 op
             end
 

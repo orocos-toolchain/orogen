@@ -69,20 +69,24 @@ ENDIF ( DOXYGEN_FOUND )
 orogen_pkg_check_modules(OrocosRTT REQUIRED "orocos-rtt-${OROCOS_TARGET}>=2.1.0")
 
 # Add generic include directories
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/)
 
 <% if project.typekit %>
 # Take care of the typekit
-ADD_SUBDIRECTORY( ${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
+ADD_SUBDIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
 add_dependencies(check-uptodate check-typekit-uptodate)
 <% end %>
 
 # Take care of the task library
 <% if !project.self_tasks.empty? %>
-ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/tasks)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/tasks)
+<% end %>
+
+<% additional_plugin_source_dirs.each do  |dir| %>
+ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= dir %>)
 <% end %>
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/orogen-project-<%= project.name %>.pc.in

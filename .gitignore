@@ -13,3 +13,4 @@ webgen.cache
 test/wc
 *.orig
 doc
+coverage
