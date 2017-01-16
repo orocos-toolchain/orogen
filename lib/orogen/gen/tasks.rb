@@ -152,6 +152,10 @@ EOF
                     setup << "_#{name}.keepNextWrittenValue(false);"
                 end
 
+                type.metadata.get('orogen:cxx_port_codegen:constructor').each do |code|
+                    setup << code % [name]
+                end
+
                 task.add_base_construction("output_port", "_#{name}",
                         setup.join("\n"))
             end
