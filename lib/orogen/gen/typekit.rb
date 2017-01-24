@@ -996,6 +996,13 @@ module OroGen
                 base_type.metadata.get('orogen_include').each do |or_inc|
                     opaque.metadata.add('orogen_include', or_inc)
                 end
+                # Tell the port codegen that we must set a non-empty smart
+                # pointer, or connections will fail.
+                #
+                # It's up to the user to set something more meaningful, but we
+                # at least guarantee that things will work
+                opaque.metadata.add 'orogen:cxx_port_codegen:constructor',
+                    "_%s.setDataSample(#{opaque.cxx_name}(new #{base_type.cxx_name}));"
                 opaque
             end
 
