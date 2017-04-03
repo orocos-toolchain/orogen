@@ -148,31 +148,26 @@ Deinitializer& operator << (Deinitializer& deinit, RTT::corba::CorbaDispatcher& 
 }
 <% end %>
 
-<% if deployer.corba_enabled? %>
 int sigint_com[2];
-void sigint_quit_orb(int)
+void catch_interrupt_signal_and_forward(int)
 {
     char dummy = 0;
-    unsigned int sent = 0;
-    while(sent < sizeof(dummy))
+    int ret = write(sigint_com[1], &dummy, 1);
+    if(ret < 0)
     {
-	int ret = write(sigint_com[1], &dummy, sizeof(dummy));
-	if(ret < 0)
-	{
-	    cerr << "Failed to signal quit to orb" << endl;
-	    break;
-	}
-	sent += ret;
+        const char* error_msg = "Failed to signal quit to orb";
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
+        write(2, error_msg, strlen(error_msg) + 1);
+#pragma GCC diagnostic pop
     }
 }
-<% end %>
-
-void *oro_thread(bool *exiting){
-    while(!*exiting){
-        char dummy;
-        int read_count = read(sigint_com[0], &dummy, sizeof(dummy));
-        if (read_count == 1)
-            *exiting=true;
+void *wait_for_interrupt(int const* fd){
+    char dummy;
+    while(true) {
+        int read_count = read(*fd, &dummy, 1);
+        if (read_count > 0)
+            break;
     }
 <% if uses_qt? %>
     qapp->exit();
@@ -437,7 +432,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 
     struct sigaction sigint_handler;
     memset(&sigint_handler, 0, sizeof(sigint_handler));
-    sigint_handler.sa_handler = &sigint_quit_orb;
+    sigint_handler.sa_handler = &catch_interrupt_signal_and_forward;
     sigemptyset(&sigint_handler.sa_mask);
     if (-1 == sigaction(SIGINT, &sigint_handler, 0))
     {
@@ -458,13 +453,12 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
 
-    bool exiting = false;
     <% if uses_qt? %>
     pthread_t thr;
-    pthread_create(&thr,NULL, oro_thread, &exiting);
+    pthread_create(&thr,NULL, wait_for_interrupt, &sigint_com[0]);
     qapp->exec();
     <% else %>
-    oro_thread(&exiting);
+    wait_for_interrupt(&sigint_com[0]);
     <% end %>
 
     RTT::corba::TaskContextServer::ShutdownOrb();
