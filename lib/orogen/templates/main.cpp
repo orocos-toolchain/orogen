@@ -93,8 +93,10 @@ class Deinitializer
     friend Deinitializer& operator << (Deinitializer&, servicediscovery::avahi::ServiceDiscovery&);
     vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
 #endif
-<% end %>
 
+    friend Deinitializer& operator << (Deinitializer&, RTT::corba::CorbaDispatcher&);
+    vector<RTT::corba::CorbaDispatcher*> m_corba_dispatchers;
+<% end %>
 
 public:
     ~Deinitializer()
@@ -113,7 +115,13 @@ public:
             (*sit)->stop();
             delete *sit;
         }
-#endif 
+
+        for (vector<RTT::corba::CorbaDispatcher*>::const_iterator it = m_corba_dispatchers.begin();
+                it != m_corba_dispatchers.end(); ++it)
+        {
+            RTT::corba::CorbaDispatcher::Release(*it);
+        }
+#endif
 <% end %>
     }
 };
@@ -132,6 +140,12 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::Serv
     return deinit;
 }
 #endif 
+
+Deinitializer& operator << (Deinitializer& deinit, RTT::corba::CorbaDispatcher& dispatcher)
+{
+    deinit.m_corba_dispatchers.push_back(&dispatcher);
+    return deinit;
+}
 <% end %>
 
 <% if deployer.corba_enabled? %>
@@ -153,8 +167,7 @@ void sigint_quit_orb(int)
 }
 <% end %>
 
-
-void *oro_thread(void *exiting){
+void *oro_thread(bool *exiting){
     while(!*exiting){
         char dummy;
         int read_count = read(sigint_com[0], &dummy, sizeof(dummy));
@@ -181,6 +194,7 @@ int ORO_main(int argc, char* argv[])
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
         ("sd-domain", po::value<string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
+        ("corba-dispatcher", po::value< vector<string> >(), "dispatchers that should be instanciated")
 <% end %>
         ("with-ros", po::value<bool>()->default_value(false), "also publish the task as ROS node, default is false")
         ("rename", po::value< vector<string> >(), "rename a task of the deployment: --rename oldname:newname");
@@ -228,29 +242,30 @@ int ORO_main(int argc, char* argv[])
 <% end %>
 
     string prefix = "";
-
     if( vm.count("prefix")) 
         prefix = vm["prefix"].as<string>();
 
     bool with_ros = false;
-
     if( vm.count("with-ros"))
 	with_ros = vm["with-ros"].as<bool>();
 
-    string task_name;
+    vector<string> dispatchers;
+    if (vm.count("corba-dispatcher"))
+        dispatchers = vm["corba-dispatcher"].as<vector <string> >();
 
     map<string, string> rename_map;
-
     if ( vm.count("rename") ) {
-
         const vector< string>& ren_vec = vm["rename"].as<vector <string> >();
 
         for ( unsigned int i = 0; i < ren_vec.size(); i++) {
-
             const string& ren_str = ren_vec.at(i);
 
             size_t colon_pos = ren_str.find(':');
-            if ( colon_pos == string::npos ) continue;
+            if ( colon_pos == string::npos )
+            {
+                cerr << "invalid rename argument '" << ren_str << "': expected from_name:to_name but could not find a colon" << endl;
+                return -1;
+            }
 
             rename_map.insert( pair<string, string>( 
                 ren_str.substr(0,colon_pos), ren_str.substr(colon_pos+1) ));
@@ -274,6 +289,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
 RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 <% end %>
 
+    string task_name;
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
@@ -289,21 +305,35 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     unique_ptr<RTT::TaskContext> task_<%= task.name%>(
             orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
 #endif
+<% end %>
 
+    Deinitializer deinit;
+
+<% task_activities.each do |task| %>
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
     <% if task.realtime? %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+    deinit << *RTT::corba::CorbaDispatcher::Acquire( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
     <% else %>
-    RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
+    deinit << *RTT::corba::CorbaDispatcher::Acquire( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
     <% end %>
+    for (vector<string>::const_iterator dispatcher_it = dispatchers.begin(); dispatcher_it != dispatchers.end(); ++dispatcher_it)
+    {
+        string dispatcher_name = *dispatcher_it;
+        int scheduler = ORO_SCHED_OTHER;
+        if (dispatcher_name.find("rt:") == 0)
+        {
+            scheduler = ORO_SCHED_RT;
+            dispatcher_name = dispatcher_name.substr(3, string::npos);
+        }
+        deinit << *RTT::corba::CorbaDispatcher::Acquire( dispatcher_name, scheduler, RTT::os::LowestPriority );
+    }
     <% end %>
-
 <% end %>
 
-//Create all Activities afterwards to be sure all tasks are created. The Activitied are also handeld by the deployment because
-//the order needs to be known since slav activities are useable
-//
+    // Create all Activities afterwards to be sure all tasks are created. The
+    // Activitied are also handeld by the deployment because the order needs to be
+    // known since slav activities are useable
 <% activity_ordered_tasks.each do |task| %>
     <%= task.generate_activity_setup %>
     <% if timeout = task.stop_timeout %>
@@ -316,19 +346,16 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 <% end %>
 
 
-
-   Deinitializer deinit;
-
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<string>());
-    sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
-    sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
-    servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
-    deinit << *sd_<%= task.name%>;
-    sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
+        servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<string>());
+        sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
+        sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
+        servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
+        deinit << *sd_<%= task.name%>;
+        sd_<%= task.name%>->start(sd_conf_<%= task.name%>);
 <% end %>
     }
 #endif // OROGEN_SERVICE_DISCOVERY_ACTIVATED
