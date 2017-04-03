@@ -72,10 +72,12 @@ QApplication *qapp;
 
 #include <string.h>
 
+using namespace std;
+
 namespace orogen
 {
 <% task_activities.each do |task| %>
-    extern RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name);
+    extern RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(string const& instance_name);
 <% end %>
 }
 
@@ -84,14 +86,13 @@ namespace po = boost::program_options;
 class Deinitializer
 {
     friend Deinitializer& operator << (Deinitializer&, RTT::base::ActivityInterface&);
+    vector<RTT::base::ActivityInterface*> m_activities;
 
-    std::vector<RTT::base::ActivityInterface*> m_activities;
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     friend Deinitializer& operator << (Deinitializer&, servicediscovery::avahi::ServiceDiscovery&);
-
-    std::vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
+    vector<servicediscovery::avahi::ServiceDiscovery*> m_service_discoveries;
 #endif
 <% end %>
 
@@ -99,7 +100,7 @@ class Deinitializer
 public:
     ~Deinitializer()
     {
-        for (std::vector<RTT::base::ActivityInterface*>::const_iterator it = m_activities.begin();
+        for (vector<RTT::base::ActivityInterface*>::const_iterator it = m_activities.begin();
                 it != m_activities.end(); ++it)
         {
             (*it)->stop();
@@ -107,7 +108,7 @@ public:
 
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-        for(std::vector<servicediscovery::avahi::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
+        for(vector<servicediscovery::avahi::ServiceDiscovery*>::iterator sit = m_service_discoveries.begin();
                 sit != m_service_discoveries.end(); ++sit)
         {
             (*sit)->stop();
@@ -145,7 +146,7 @@ void sigint_quit_orb(int)
 	int ret = write(sigint_com[1], &dummy, sizeof(dummy));
 	if(ret < 0)
 	{
-	    std::cerr << "Failed to signal quit to orb" << std::endl;
+	    cerr << "Failed to signal quit to orb" << endl;
 	    break;
 	}
 	sent += ret;
@@ -176,21 +177,21 @@ int ORO_main(int argc, char* argv[])
 
    desc.add_options()
         ("help", "show all available options supported by this deployment")
-        ("prefix", po::value<std::string>(), "Sets a prefix for all TaskContext names")
+        ("prefix", po::value<string>(), "Sets a prefix for all TaskContext names")
 <% if deployer.corba_enabled? %>
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
-        ("sd-domain", po::value<std::string>(), "set service discovery domain")
+        ("sd-domain", po::value<string>(), "set service discovery domain")
 #endif // OROGEN_SERVICE_DISOCVERY_ACTIVATED
 <% end %>
         ("with-ros", po::value<bool>()->default_value(false), "also publish the task as ROS node, default is false")
-        ("rename", po::value< std::vector<std::string> >(), "rename a task of the deployment: --rename oldname:newname");
+        ("rename", po::value< vector<string> >(), "rename a task of the deployment: --rename oldname:newname");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
    po::notify(vm);
 
    if(vm.count("help")) {
-       std::cout << desc << std::endl;
+       cout << desc << endl;
        return 0;
    }
 
@@ -227,32 +228,32 @@ int ORO_main(int argc, char* argv[])
     RTT::corba::ApplicationServer::InitOrb(argc, argv);
 <% end %>
 
-    std::string prefix = "";
+    string prefix = "";
 
     if( vm.count("prefix")) 
-        prefix = vm["prefix"].as<std::string>();
+        prefix = vm["prefix"].as<string>();
 
     bool with_ros = false;
 
     if( vm.count("with-ros"))
 	with_ros = vm["with-ros"].as<bool>();
 
-    std::string task_name;
+    string task_name;
 
-    std::map<std::string, std::string> rename_map;
+    map<string, string> rename_map;
 
     if ( vm.count("rename") ) {
 
-        const std::vector< std::string>& ren_vec = vm["rename"].as<std::vector <std::string> >();
+        const vector< string>& ren_vec = vm["rename"].as<vector <string> >();
 
         for ( unsigned int i = 0; i < ren_vec.size(); i++) {
 
-            const std::string& ren_str = ren_vec.at(i);
+            const string& ren_str = ren_vec.at(i);
 
             size_t colon_pos = ren_str.find(':');
-            if ( colon_pos == std::string::npos ) continue;
+            if ( colon_pos == string::npos ) continue;
 
-            rename_map.insert( std::pair<std::string, std::string>( 
+            rename_map.insert( pair<string, string>( 
                 ren_str.substr(0,colon_pos), ren_str.substr(colon_pos+1) ));
         }
     }    
@@ -283,10 +284,10 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         task_name = prefix + task_name;
 
 #if __cplusplus < 201103L
-    std::auto_ptr<RTT::TaskContext> task_<%= task.name%>(
+    auto_ptr<RTT::TaskContext> task_<%= task.name%>(
             orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
 #else
-    std::unique_ptr<RTT::TaskContext> task_<%= task.name%>(
+    unique_ptr<RTT::TaskContext> task_<%= task.name%>(
             orogen::create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(task_name));
 #endif
 
@@ -323,7 +324,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 #ifdef OROGEN_SERVICE_DISCOVERY_ACTIVATED
     if( vm.count("sd-domain") ) {
 <% task_activities.each do |task| %>
-    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<std::string>());
+    servicediscovery::avahi::ServiceConfiguration sd_conf_<%= task.name%>(task_<%= task.name%>->getName(), vm["sd-domain"].as<string>());
     sd_conf_<%= task.name%>.setDescription("IOR", RTT::corba::TaskContextServer::getIOR(task_<%= task.name%>.get()));
     sd_conf_<%= task.name%>.setDescription("TASK_MODEL","<%= task.task_model.name %>");
     servicediscovery::avahi::ServiceDiscovery* sd_<%= task.name%> = new servicediscovery::avahi::ServiceDiscovery();
@@ -395,7 +396,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         spinner.start();
         RTT::log(RTT::Info)<<"ROS node spinner started"<<RTT::endlog();
 <% else %>
-        throw std::runtime_error("Requesting to start as ROS node, but the support for 'ros' transport is not available. Recompile with 'ros' transport option!");
+        throw runtime_error("Requesting to start as ROS node, but the support for 'ros' transport is not available. Recompile with 'ros' transport option!");
 <% end %>
     }
 
@@ -404,7 +405,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         so, as we can't shutdown the ORB from the signal handler */
     if (pipe(sigint_com) == -1)
     {
-        std::cerr << "failed to setup SIGINT handler: " << strerror(errno) << std::endl;
+        cerr << "failed to setup SIGINT handler: " << strerror(errno) << endl;
         return 1;
     }
 
@@ -414,7 +415,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     sigemptyset(&sigint_handler.sa_mask);
     if (-1 == sigaction(SIGINT, &sigint_handler, 0))
     {
-        std::cerr << "failed to install SIGINT handler" << std::endl;
+        cerr << "failed to install SIGINT handler" << endl;
         return 1;
     }
     sigset_t unblock_sigint;
@@ -422,7 +423,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     sigaddset(&unblock_sigint, SIGINT);
     if (-1 == sigprocmask(SIG_UNBLOCK, &unblock_sigint, NULL))
     {
-        std::cerr << "failed to install SIGINT handler" << std::endl;
+        cerr << "failed to install SIGINT handler" << endl;
         return 1;
     }
     <% if has_realtime %>
