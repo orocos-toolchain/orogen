@@ -63,7 +63,6 @@
 #include <rtt/Logger.hpp>
 #include <rtt/base/ActivityInterface.hpp>
 
-bool exiting;
 <% if uses_qt? %>
 #include <pthread.h>
 #include <QApplication>
@@ -155,12 +154,12 @@ void sigint_quit_orb(int)
 <% end %>
 
 
-void *oro_thread(void *p){
-    while(!exiting){
+void *oro_thread(void *exiting){
+    while(!*exiting){
         char dummy;
         int read_count = read(sigint_com[0], &dummy, sizeof(dummy));
         if (read_count == 1)
-            exiting=true;
+            *exiting=true;
     }
 <% if uses_qt? %>
     qapp->exit();
@@ -432,13 +431,13 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
 
-    exiting= false;
+    bool exiting = false;
     <% if uses_qt? %>
     pthread_t thr;
-    pthread_create(&thr,NULL, oro_thread,NULL);
+    pthread_create(&thr,NULL, oro_thread, &exiting);
     qapp->exec();
     <% else %>
-    oro_thread(NULL);
+    oro_thread(&exiting);
     <% end %>
 
     RTT::corba::TaskContextServer::ShutdownOrb();
