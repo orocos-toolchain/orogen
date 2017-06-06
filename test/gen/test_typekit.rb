@@ -259,5 +259,29 @@ describe OroGen::Gen::RTT_CPP::Typekit do
             assert !reg.include?("/VectorTest")
             assert !reg.include?("/ArrayTest")
         end
+        it "properly canonizes method name" do
+            typenames = ["/std/vector<double*>",
+                         "/int64_t[100]",
+                         "/std/pair<int,double>"
+            ]
+            expected =  ["/std/vector_LT_double_P__GT_",
+                         "/int64_t_BROPEN_100_BRCLOSE_",
+                         "/std/pair_LT_int_COMMA_double_GT_"
+            ]
+
+            mocktype = flexmock(Typelib::Type)
+            flexmock(mocktype).should_receive(:full_name).and_return(*typenames)
+            flexmock(mocktype).should_receive(:name).and_return(*typenames)
+
+            typenames.each_with_index do |typename, index|
+                method_name = mocktype.method_name()
+                expected_method_name = expected[index]
+
+                assert method_name == expected_method_name,
+                    "Canonized method name for '#{typename}':
+                        '#{method_name}', expected was
+                        '#{expected_method_name}'"
+            end
+        end
     end
 end
