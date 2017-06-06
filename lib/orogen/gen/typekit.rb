@@ -7,6 +7,15 @@ require 'utilrb/kernel/options'
 
 module Typelib
     class Type
+        MARKER_TO_METHOD_STRING = {
+            '*' => "_P_",
+            "[" => "_BROPEN_",
+            "]" => "_BRCLOSE_",
+            "," => "_COMMA_",
+            "<" => "_LT_",
+            ">" => "_GT_"}
+
+        
         def self.normalize_typename(name)
             "/" + Typelib.split_typename(name).map do |part|
                 normalize_typename_part(part)
@@ -98,7 +107,7 @@ module Typelib
             base = if fullname then full_name('_', true)
                    else basename('_')
                    end
-            base.gsub(/[<>\[\], ]/, '_')
+            base.gsub(/[<>\[\]\*, ]/) { |s| MARKER_TO_METHOD_STRING[s] } 
         end
 
 	def self.contains_int64?
