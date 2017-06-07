@@ -19,7 +19,10 @@
     <depend package="metaruby" />
     <depend_optional package="hoe-yard" />
     <depend_optional package="kramdown" />
-    <rosdep name="rake" />
-    <rosdep name="ruby" />
+    <depend name="rake" />
+    <depend name="ruby" />
+
+    <test_depend package="minitest" />
+    <test_depend package="flexmock" />
 </package>
 
