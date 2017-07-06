@@ -5,7 +5,7 @@
       <%= typekit.name %>-typekit description
     </description>
     <!--NOTE: set the license and author before you publish this code-->
-    <license></license>
+    <license>LGPLv2+</license>
     <author>Unknown Author</author>
     <maintainer email="unknown@maintainer.com">Unknown Author</maintainer>
 
