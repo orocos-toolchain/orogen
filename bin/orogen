@@ -136,7 +136,7 @@ if files.first == "create"
         STDERR.puts "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
     end
     FileUtils.mkdir_p path
-    Dir.glob(File.join(rtt_cpp.base_dir, "..", "misc", "new_project", "*")) do |input_file|
+    Dir.glob(File.join(rtt_cpp.base_dir, "orogen", "templates", "new_project", "*")) do |input_file|
         output_file = File.basename(input_file.gsub('NAME', name))
         output_file = File.join(path, output_file)
         
