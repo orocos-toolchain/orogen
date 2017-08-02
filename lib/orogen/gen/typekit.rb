@@ -1471,7 +1471,18 @@ module OroGen
 
                 opaque_names = opaques.map { |opdef| opdef.type.name }
                 options[:opaques] = opaque_names
-                Kernel.filter_options options, :include, :define
+
+                # In principle, the import stage should not need any of the
+                # include and defines since it is given the preprocessed file.
+                # However, the clang importer breaks this and re-preprocesses
+                # the file.
+                #
+                # This works around it by passing the flags to both stages.
+                preprocess_options = Hash.new
+                preprocess_options[:rawflags]      = options.fetch(:rawflags, Array.new)
+                preprocess_options[:include_paths] = options.fetch(:include, Array.new)
+                preprocess_options[:define]        = options.fetch(:define, Array.new)
+                return preprocess_options, options
             end
 
             def has_pending_loads?
@@ -1501,18 +1512,6 @@ module OroGen
                     map[path] = resolve_full_include_path_to_relative(path, include_path)
                     map
                 end
-
-                # add this to the options hash so the the called importer-tool
-                # is able to reuse the include-directories while parsing the c++ code.
-                # it needs the full list of files (and not the preprocessed
-                # content return from "resolve_toplevel_include_mapping()"
-                # earlier) so that the importer can fill-in some of the
-                # metadata, like doc and source_file_line.
-                options[:include_paths] = include_dirs
-                
-                #if the user defined additional compiler defines, hand them over to the importer 
-                #because defines might change how the code looks (e.g. some methods might be #ifdef guarded)
-                options[:define] = preprocess_options[:define]
 
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
