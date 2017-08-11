@@ -1526,6 +1526,7 @@ module OroGen
                         file_registry.import(io.path, 'c', options)
                         filter_unsupported_types(file_registry)
                         resolve_registry_includes(file_registry, include_mappings)
+                        validate_related_types(file_registry)
                         registry.merge(file_registry)
                         if project
                             project.registry.merge(file_registry)
@@ -1539,6 +1540,28 @@ module OroGen
                     self.loads.concat(loads.to_a)
                 end
 	    end
+
+            METADATA_RELATED_TYPES = ['bitfield']
+            def validate_related_types(registry)
+                validate_metadata = lambda do |context, md, metadata_key|
+                    md.get(metadata_key).each do |typename|
+                        if !registry.include?(typename)
+                            raise ArgumentError, "#{context} refers to #{typename} through the #{metadata_key} metadata, but this type is not defined"
+                        end
+                    end
+                end
+
+                METADATA_RELATED_TYPES.each do |metadata_key|
+                    registry.each do |type|
+                        validate_metadata.call(type.name, type.metadata, metadata_key)
+                        if type.respond_to?(:field_metadata)
+                            type.field_metadata.each do |field_name, field_metadata|
+                                validate_metadata.call("#{type.name}.#{field_name}", field_metadata, metadata_key)
+                            end
+                        end
+                    end
+                end
+            end
 
             # Packages defined in this typekit on which the typekit should
             # depend. See #internal_dependency.
