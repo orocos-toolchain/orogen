@@ -1777,6 +1777,7 @@ module OroGen
                 self_opaques.each do |opaque_def|
                     begin
                         t = find_type(opaque_def.intermediate)
+                        copy_metadata_to_intermediate_type(opaque_def.type.metadata, t.metadata)
                         if t.contains_opaques?
                             raise ConfigError, "the type #{opaque_def.intermediate} is used as an intermediate type for #{opaque_def.type.name}, but it is an opaque or contains opaques"
                         end
@@ -1815,8 +1816,27 @@ module OroGen
 
                     path = Generation.save_automatic 'typekit', 'types', self.name, "m_types", "#{type.method_name(true)}.hpp", marshalling_code
                     self.load(path, true, options)
+
+                    m_type = intermediate_type_for(type)
+                    copy_metadata_to_intermediate_type(type.metadata, m_type.metadata)
+                    if type.respond_to?(:field_metadata) && m_type.respond_to?(:field_metadata)
+                        m_type.field_metadata.each do |field_name, field_metadata|
+                            copy_metadata_to_intermediate_type(type.field_metadata[field_name], m_type.field_metadata[field_name])
+                        end
+                    end
+                    m_type.metadata.set 'orogen:m_type', '1'
+                    m_type.metadata.add 'orogen:intermediate_for', type.name
                 end
                 true
+            end
+
+            COPY_METADATA_EXCLUDED_KEYS = %w{source_file_line cxx_name orogen_include}
+            def copy_metadata_to_intermediate_type(source, dest)
+                source.each do |key, values|
+                    if !COPY_METADATA_EXCLUDED_KEYS.include?(key)
+                        dest.set(key, *values)
+                    end
+                end
             end
 
             def do_import(registry, path, kind, options)
