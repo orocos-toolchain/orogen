@@ -1212,7 +1212,6 @@ module OroGen
                 include_path = include_dirs.map { |d| Pathname.new(d) }
                 inc = resolve_full_include_path_to_relative(file, include_path)
                 included_files << inc
-                user_options[:rawflags] = self.used_libraries.map do |lib| lib.raw_cflags end.flatten.uniq
 
                 this_options = [add, user_options]
                 if pending_load_options != this_options
