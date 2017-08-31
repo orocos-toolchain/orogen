@@ -160,7 +160,7 @@ module OroGen
             def pretty_print(pp)
                 pp.text name
                 pp.nest(2) do
-                    if !self.doc
+                    if self.doc
                         pp.breakable
                         pp.text self.doc
                     end
