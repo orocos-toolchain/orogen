@@ -16,6 +16,11 @@ module OroGen
                 type.name
             end
 
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+                yield type
+            end
+
             # Converts this model into a representation that can be fed to e.g.
             # a JSON dump, that is a hash with pure ruby key / values.
             #

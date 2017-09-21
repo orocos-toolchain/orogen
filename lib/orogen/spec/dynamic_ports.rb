@@ -15,6 +15,11 @@ module OroGen
 
             def dynamic?; true end
 
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+                super if type
+            end
+
             def pretty_print(pp)
                 pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{if type then type.name else "any type" end}"
             end

@@ -52,7 +52,9 @@ EOF
         module PropertyGeneration
             include ConfigurationObjectGeneration
 
-            def used_types; [type] end
+            def used_types
+                each_interface_type.to_a
+            end
 
             def register_for_generation
                 constructor = []
@@ -77,7 +79,9 @@ EOF
         module AttributeGeneration
             include ConfigurationObjectGeneration
 
-            def used_types; [type] end
+            def used_types
+                each_interface_type.to_a
+            end
 
             def register_for_generation
                 constructor = []
@@ -98,9 +102,7 @@ EOF
         # Module that is used to add code generation functionality to Spec::Port
         module PortGeneration
             def used_types
-                if type then [type]
-                else []
-                end
+                each_interface_type.to_a
             end
 
             def register_for_generation
@@ -204,7 +206,7 @@ EOF
             # Returns the set of types that this operation uses, as a
             # Set of Typelib::Type classes.
             def used_types
-                [return_type.first].compact + arguments.map { |_, t, _| t }
+                each_interface_type.to_a
             end
 
 	    # Returns the argument part of the C++ signature for this callable
@@ -422,11 +424,8 @@ EOF
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
             def interface_types
-                (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
-                    map { |obj| obj.used_types }.
-                    flatten.to_set.to_a
+                each_interface_type.to_a
             end
-
 
             # Returns the set of typekits that define the types used in this
             # task's interface. They are required at compile and link time

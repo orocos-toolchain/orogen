@@ -1381,6 +1381,21 @@ module OroGen
                     operations: each_operation.map(&:to_h)
                 ]
             end
+
+            # Enumerate all the types that are used on this component's
+            # interface
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+
+                seen = Set.new
+                (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
+                    each do |obj|
+                        if !seen.include?(obj)
+                            obj.each_interface_type { |t| yield(t) }
+                            seen << obj
+                        end
+                    end
+            end
 	end
     end
 end
