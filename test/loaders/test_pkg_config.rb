@@ -381,5 +381,104 @@ describe OroGen::Loaders::PkgConfig do
             assert_raises(OroGen::TypekitNotFound) { loader.typekit_model_text_from_name('base') }
         end
     end
+
+    describe "#task_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-tasks-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-tasks-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-tasks-oroarch', pkg
+            assert_equal path, @loader.task_library_path_from_name('test')
+        end
+
+        it "raises if the task library does not exist" do
+            assert_raises(OroGen::TaskLibraryNotFound) do
+                @loader.task_library_path_from_name('test')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-tasks-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-tasks-oroarch.so')
+            stub_pkgconfig_package 'test-tasks-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.task_library_path_from_name('test')
+            end
+        end
+    end
+
+    describe "#typekit_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-typekit-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-typekit-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-typekit-oroarch', pkg
+            assert_equal path, @loader.typekit_library_path_from_name('test')
+        end
+
+        it "raises if the typekit does not exist" do
+            assert_raises(OroGen::TypekitNotFound) do
+                @loader.typekit_library_path_from_name('test')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-typekit-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-typekit-oroarch.so')
+            stub_pkgconfig_package 'test-typekit-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.typekit_library_path_from_name('test')
+            end
+        end
+    end
+
+    describe "#transport_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-transport-trsp-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-transport-trsp-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-transport-trsp-oroarch', pkg
+            assert_equal path, @loader.transport_library_path_from_name('test', 'trsp')
+        end
+
+        it "raises if the transport does not exist" do
+            assert_raises(OroGen::TransportNotFound) do
+                @loader.transport_library_path_from_name('test', 'trsp')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-transport-trsp-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-transport-trsp-oroarch.so')
+            stub_pkgconfig_package 'test-transport-trsp-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.transport_library_path_from_name('test', 'trsp')
+            end
+        end
+    end
 end
 
