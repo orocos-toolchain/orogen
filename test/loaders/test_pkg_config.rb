@@ -276,7 +276,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deployed_tasks => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
-            stub_pkgconfig_package("orogen-project-base", pkg)
+            stub_pkgconfig_package("base-tasks-oroarch", pkg)
             stub_orogen_pkgconfig_final
         end
         let(:loader) { OroGen::Loaders::PkgConfig.new('oroarch') }

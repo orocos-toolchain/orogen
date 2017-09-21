@@ -288,7 +288,7 @@ module OroGen
             end
 
             def find_deployments_from_deployed_task_name(name)
-                if !available_deployed_tasks
+                if available_deployed_tasks.empty?
                     load_available_deployed_tasks
                 end
 
@@ -408,7 +408,7 @@ module OroGen
             def each_available_deployed_task_name(&block)
                 return enum_for(__method__) if !block_given?
 
-                if !available_deployed_tasks
+                if available_deployed_tasks.empty?
                     load_available_deployed_tasks
                 end
                 available_deployed_tasks.each do |deployed_task_name, deployments|
