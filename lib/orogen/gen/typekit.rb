@@ -1833,7 +1833,7 @@ module OroGen
             COPY_METADATA_EXCLUDED_KEYS = %w{source_file_line cxx_name orogen_include}
             def copy_metadata_to_intermediate_type(source, dest)
                 source.each do |key, values|
-                    if !COPY_METADATA_EXCLUDED_KEYS.include?(key)
+                    if key !~ /codegen/ && !COPY_METADATA_EXCLUDED_KEYS.include?(key)
                         dest.set(key, *values)
                     end
                 end
