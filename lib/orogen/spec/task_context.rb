@@ -176,8 +176,10 @@ module OroGen
             # scope of the enclosing Project object -- i.e. either defined in
             # it, or imported by a Project#using_task_library call.
             def subclasses(task_context)
+                OroGen.warn_deprecated __method__, "in #{project.name}: use task_context \"Name\", subclasses: \"Parent\" do .. end instead"
+
                 if task_context.respond_to?(:to_str)
-                    if @superclass != project.default_task_superclass
+                    if @superclass && (@superclass != project.default_task_superclass)
                         raise OroGen::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
@@ -311,16 +313,30 @@ module OroGen
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use {Project#task_context} for that.
-	    def initialize(project, name = nil)
+            def initialize(project, name = nil, subclasses: project.default_task_superclass)
                 @project  = project
 
-                @superclass = project.default_task_superclass
+                if subclasses
+                    @superclass =
+                        if subclasses.respond_to?(:to_str)
+                            project.task_model_from_name subclasses
+                        else
+                            subclasses
+                        end
+                    @default_activity  = @superclass.default_activity.dup
+                    @required_activity = @superclass.required_activity?
+                else
+                    @superclass = false
+                    default_activity 'triggered'
+                    @required_activity = false
+                end
+
                 @implemented_classes = []
 		@name = name
+
                 # This is an array, as we don't want to have it reordered
                 # unnecessarily
                 @states = Array.new
-                default_activity 'triggered'
 
 		@properties = Hash.new
 		@attributes = Hash.new

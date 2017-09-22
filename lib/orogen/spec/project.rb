@@ -150,7 +150,7 @@ module OroGen
             #
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
-	    def task_context(name, options = Hash.new, &block)
+	    def task_context(name, subclasses: default_task_superclass, **options, &block)
                 if namespace_disabled?(name.split("::")[0..-2].join("::"))
                     return
                 end
@@ -163,7 +163,7 @@ module OroGen
 
                 name = OroGen.verify_valid_identifier(name)
 
-                task = external_task_context(name, options, &block)
+                task = external_task_context(name, subclasses: subclasses, **options, &block)
                 task.extended_state_support
                 self_tasks[task.name] = task
 
@@ -178,11 +178,10 @@ module OroGen
             #
             # @options options [Class] type ({TaskContext}) the
             #   class of the created task context
-            def external_task_context(name, options = Hash.new, &block)
-                options = Kernel.validate_options options,
-                    :class => TaskContext
+            def external_task_context(name, subclasses: default_task_superclass, **options, &block)
+                component_class = options.fetch(:class, TaskContext)
 
-		new_task = options[:class].new(self, "#{self.name}::#{name}")
+		new_task = component_class.new(self, "#{self.name}::#{name}", subclasses: subclasses)
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
                 loader.loaded_task_models[new_task.name] = new_task
