@@ -90,6 +90,15 @@ module OroGen
                 nil
             end
 
+            def find_task_library_from_task_model_name(name)
+                each_project do |project|
+                    if project.find_task_context(name)
+                        return project.name
+                    end
+                end
+                nil
+            end
+
             def find_project_from_deployment_name(name)
                 each_project do |project|
                     if project.find_deployment_by_name(name)
