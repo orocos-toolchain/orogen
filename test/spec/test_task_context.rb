@@ -146,7 +146,7 @@ describe OroGen::Spec::TaskContext do
             assert_equal :runtime, task.state_kind('TEST')
         end
         it "returns nil if the state is not known" do
-            assert_equal nil, task.state_kind('test')
+            assert_nil task.state_kind('test')
         end
     end
 
