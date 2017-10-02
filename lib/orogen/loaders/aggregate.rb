@@ -140,11 +140,11 @@ module OroGen
             end
 
             def has_typekit?(name)
-                loaders.any? { |l| l.has_typekit?(name) }
+                super || loaders.any? { |l| l.has_typekit?(name) }
             end
 
             def has_project?(name)
-                loaders.any? { |l| l.has_project?(name) }
+                super || loaders.any? { |l| l.has_project?(name) }
             end
 
             # Enumerates the names of all available projects

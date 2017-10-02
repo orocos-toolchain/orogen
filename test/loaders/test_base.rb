@@ -5,10 +5,6 @@ describe OroGen::Loaders::Base do
 
     before do
         @loader = flexmock(OroGen::Loaders::Base.new)
-        loader.should_receive(:has_typekit?).
-            and_return(false).by_default
-        loader.should_receive(:has_project?).
-            and_return(false).by_default
     end
 
     describe "#project_model_from_name" do
@@ -27,6 +23,40 @@ describe OroGen::Loaders::Base do
             model = loader.project_model_from_name('test')
             assert_equal 'test', model.name
             assert model.self_tasks['test::Task']
+        end
+    end
+
+    describe "#project_model_from_text" do
+        before do
+            OroGen::Loaders::RTT.setup_loader(loader)
+
+            @project = loader.project_model_from_text(<<-END)
+            name 'test'
+            task_context 'Task' do
+            end
+            END
+        end
+
+        it "validates the consistency between expected and actual name" do
+            assert_raises(ArgumentError) do
+                loader.project_model_from_text(<<-END, name: 'blo')
+                name 'bla'
+                END
+            end
+        end
+
+        it "registers the project model after having parsed it" do
+            assert_equal 'test', @project.name
+            assert_same @project.find_task_context('test::Task'),
+                loader.task_model_from_name('test::Task')
+        end
+
+        it "makes the project available to #project_model_from_name" do
+            assert_same @project, loader.project_model_from_name('test')
+        end
+
+        it "registers the project as being available" do
+            assert loader.has_project?('test')
         end
     end
 
@@ -78,6 +108,12 @@ describe OroGen::Loaders::Base do
             typekit.create_null '/test'
             loader.register_typekit_model(typekit)
             assert_equal ['test'], loader.resolve_type('/test').metadata.get('orogen:typekits')
+        end
+
+        it "is available after registration" do
+            typekit.create_null '/test'
+            loader.register_typekit_model(typekit)
+            assert loader.has_typekit?('test')
         end
 
         describe "opaque-intermediate relations" do

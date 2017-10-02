@@ -94,7 +94,9 @@ module OroGen
             end
 
             def has_project?(name)
-                if available_projects.has_key?(name)
+                if super
+                    true
+                elsif available_projects.has_key?(name)
                     available_projects[name]
                 else
                     available_projects[name] = has_pkgconfig?("orogen-project-#{name}")
@@ -102,7 +104,9 @@ module OroGen
             end
 
             def has_typekit?(name)
-                if available_typekits.has_key?(name)
+                if super
+                    true
+                elsif available_typekits.has_key?(name)
                     available_typekits[name]
                 elsif !has_pkgconfig?("#{name}-typekit-#{orocos_target}")
                     available_typekits[name] = false

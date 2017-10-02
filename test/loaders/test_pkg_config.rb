@@ -69,11 +69,22 @@ describe OroGen::Loaders::PkgConfig do
             flexmock(Utilrb::PkgConfig).should_receive(:get).never
             assert !loader.has_project?('test')
         end
+        it "returns true if the project has been directly registered" do
+            loader.project_model_from_text(<<-END)
+            name 'directly_registered'
+            END
+            assert loader.has_project?('directly_registered')
+        end
     end
 
     describe "#has_typekit?" do
         let(:loader) { OroGen::Loaders::PkgConfig.new('oroarch') }
 
+        it "returns true if the typekit has been directly registered" do
+            typekit = OroGen::Spec::Typekit.new(nil, 'directly_registered')
+            loader.register_typekit_model(typekit)
+            assert loader.has_typekit?('directly_registered')
+        end
         it "returns true if the typekit is available and caches the result" do
             stub_orogen_pkgconfig 'base'
             stub_orogen_pkgconfig_final
