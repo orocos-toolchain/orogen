@@ -60,6 +60,16 @@ module OroGen
                 super()
 	    end
 
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+                if ret = return_type.first
+                    yield(ret)
+                end
+                arguments.each do |_, t, _|
+                    yield(t)
+                end
+            end
+
             # Declares that the C++ method associated with this operation should
             # be executed in the caller thread (default is callee thread)
             #

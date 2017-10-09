@@ -1,5 +1,22 @@
 module OroGen
     module Loaders
+        @macos =  RbConfig::CONFIG["host_os"] =~%r!([Dd]arwin)!
+        def self.macos?
+            @macos
+        end
+
+        @windows = RbConfig::CONFIG["host_os"] =~%r!(msdos|mswin|djgpp|mingw|[Ww]indows)!
+        def self.windows?
+            @windows
+        end
+
+        def self.shared_library_suffix
+            if macos? then 'dylib'
+            elsif windows? then 'dll'
+            else 'so'
+            end
+        end
+
         # A loader that accesses the information from the pkg-config files
         # installed by oroGen.
         #
@@ -77,7 +94,9 @@ module OroGen
             end
 
             def has_project?(name)
-                if available_projects.has_key?(name)
+                if super
+                    true
+                elsif available_projects.has_key?(name)
                     available_projects[name]
                 else
                     available_projects[name] = has_pkgconfig?("orogen-project-#{name}")
@@ -85,7 +104,9 @@ module OroGen
             end
 
             def has_typekit?(name)
-                if available_typekits.has_key?(name)
+                if super
+                    true
+                elsif available_typekits.has_key?(name)
                     available_typekits[name]
                 elsif !has_pkgconfig?("#{name}-typekit-#{orocos_target}")
                     available_typekits[name] = false
@@ -116,11 +137,11 @@ module OroGen
 
             def typekit_model_text_from_name(name)
                 begin
-                    pkg = Utilrb::PkgConfig.get("#{name}-typekit-#{orocos_target}", minimal: true)
+                    pkg = resolve_typekit_package(name, minimal: true)
                     available_typekits[name] = true
-                rescue Utilrb::PkgConfig::NotFound
+                rescue TypekitNotFound
                     available_typekits[name] = false
-                    raise TypekitNotFound, "cannot find a typekit called #{name}"
+                    raise
                 end
 
                 registry = File.read(pkg.type_registry)
@@ -148,6 +169,77 @@ module OroGen
                 else
                     available_task_models[model_name] = nil
                 end
+            end
+
+            # Return the pkgconfig description for a given task library package
+            #
+            # @param [String] name
+            # @return [Utilrb::PkgConfig] the package
+            # @raise TaskLibraryNotFound if the package cannot be found
+            def resolve_task_library_package(name, minimal: false)
+                Utilrb::PkgConfig.get("#{name}-tasks-#{orocos_target}", minimal: minimal)
+            rescue Utilrb::PkgConfig::NotFound
+                raise TaskLibraryNotFound, "the '#{name}' typekit is not available to pkgconfig"
+            end
+
+            # Return the pkgconfig description for a given typekit package
+            #
+            # @param [String] name
+            # @return [Utilrb::PkgConfig] the package
+            # @raise TypekitNotFound if the package cannot be found
+            def resolve_typekit_package(name, minimal: false)
+                Utilrb::PkgConfig.get("#{name}-typekit-#{orocos_target}", minimal: minimal)
+            rescue Utilrb::PkgConfig::NotFound
+                raise TypekitNotFound, "the '#{name}' typekit is not available to pkgconfig"
+            end
+
+            # Return the pkgconfig description for a given transport package
+            #
+            # @param [String] name
+            # @return [Utilrb::PkgConfig] the package
+            # @raise TransportNotFound if the package cannot be found
+            def resolve_transport_package(typekit_name, transport_name, minimal: false)
+                Utilrb::PkgConfig.get("#{typekit_name}-transport-#{transport_name}-#{orocos_target}", minimal: minimal)
+            rescue Utilrb::PkgConfig::NotFound
+                raise TransportNotFound, "the '#{transport_name}' transport for the '#{typekit_name}' typekit is not available to pkgconfig"
+            end
+
+            # @api private
+            # 
+            # Resolve the full path to a library from a pkg-config package
+            #
+            # @param [Utilrb::PkgConfig] package the package whose library dirs
+            #   will be used for resolution
+            # @param [String] library_name the library name, without a possible
+            #   "lib" prefix and the platform-specific suffix
+            # @return [String] the resolved path
+            # @raise LibraryNotFound if the library cannot be found
+            def resolve_package_library(package, library_name)
+                libname = "lib#{library_name}.#{Loaders.shared_library_suffix}"
+                package.library_dirs.each do |dir|
+                    if File.exist?(path = File.join(dir, libname))
+                        return path
+                    end
+                end
+                raise LibraryNotFound, "cannot find #{library_name} from #{package.name}"
+            end
+
+            # Return the full path to a task library's installed shared library
+            def task_library_path_from_name(tasklib_name)
+                libpkg = resolve_task_library_package(tasklib_name)
+                resolve_package_library(libpkg, libpkg.name)
+            end
+
+            # Return the full path to a typekit's installed shared library
+            def typekit_library_path_from_name(typekit_name)
+                libpkg = resolve_typekit_package(typekit_name)
+                resolve_package_library(libpkg, libpkg.name)
+            end
+
+            # Return the full path to a transport's installed shared library
+            def transport_library_path_from_name(typekit_name, transport_name)
+                libpkg = resolve_transport_package(typekit_name, transport_name)
+                resolve_package_library(libpkg, libpkg.name)
             end
 
             DeploymentInfo = Struct.new :project_name, :binfile
@@ -200,7 +292,7 @@ module OroGen
             end
 
             def find_deployments_from_deployed_task_name(name)
-                if !available_deployed_tasks
+                if available_deployed_tasks.empty?
                     load_available_deployed_tasks
                 end
 
@@ -320,7 +412,7 @@ module OroGen
             def each_available_deployed_task_name(&block)
                 return enum_for(__method__) if !block_given?
 
-                if !available_deployed_tasks
+                if available_deployed_tasks.empty?
                     load_available_deployed_tasks
                 end
                 available_deployed_tasks.each do |deployed_task_name, deployments|

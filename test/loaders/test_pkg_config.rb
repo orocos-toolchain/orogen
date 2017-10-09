@@ -69,11 +69,22 @@ describe OroGen::Loaders::PkgConfig do
             flexmock(Utilrb::PkgConfig).should_receive(:get).never
             assert !loader.has_project?('test')
         end
+        it "returns true if the project has been directly registered" do
+            loader.project_model_from_text(<<-END)
+            name 'directly_registered'
+            END
+            assert loader.has_project?('directly_registered')
+        end
     end
 
     describe "#has_typekit?" do
         let(:loader) { OroGen::Loaders::PkgConfig.new('oroarch') }
 
+        it "returns true if the typekit has been directly registered" do
+            typekit = OroGen::Spec::Typekit.new(nil, 'directly_registered')
+            loader.register_typekit_model(typekit)
+            assert loader.has_typekit?('directly_registered')
+        end
         it "returns true if the typekit is available and caches the result" do
             stub_orogen_pkgconfig 'base'
             stub_orogen_pkgconfig_final
@@ -276,7 +287,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deployed_tasks => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
-            stub_pkgconfig_package("orogen-project-base", pkg)
+            stub_pkgconfig_package("base-tasks-oroarch", pkg)
             stub_orogen_pkgconfig_final
         end
         let(:loader) { OroGen::Loaders::PkgConfig.new('oroarch') }
@@ -379,6 +390,105 @@ describe OroGen::Loaders::PkgConfig do
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
             assert_raises(OroGen::TypekitNotFound) { loader.typekit_model_text_from_name('base') }
+        end
+    end
+
+    describe "#task_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-tasks-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-tasks-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-tasks-oroarch', pkg
+            assert_equal path, @loader.task_library_path_from_name('test')
+        end
+
+        it "raises if the task library does not exist" do
+            assert_raises(OroGen::TaskLibraryNotFound) do
+                @loader.task_library_path_from_name('test')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-tasks-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-tasks-oroarch.so')
+            stub_pkgconfig_package 'test-tasks-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.task_library_path_from_name('test')
+            end
+        end
+    end
+
+    describe "#typekit_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-typekit-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-typekit-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-typekit-oroarch', pkg
+            assert_equal path, @loader.typekit_library_path_from_name('test')
+        end
+
+        it "raises if the typekit does not exist" do
+            assert_raises(OroGen::TypekitNotFound) do
+                @loader.typekit_library_path_from_name('test')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-typekit-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-typekit-oroarch.so')
+            stub_pkgconfig_package 'test-typekit-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.typekit_library_path_from_name('test')
+            end
+        end
+    end
+
+    describe "#transport_library_path_from_name" do
+        before do
+            FileUtils.mkdir_p(@env_dir = Dir.mktmpdir)
+            @loader = OroGen::Loaders::PkgConfig.new('oroarch')
+        end
+        after do
+            FileUtils.rm_rf @env_dir
+        end
+
+        it "resolves an existing library from the pkg-config description" do
+            pkg  = flexmock(name: 'test-transport-trsp-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-transport-trsp-oroarch.so')
+            FileUtils.touch path
+            stub_pkgconfig_package 'test-transport-trsp-oroarch', pkg
+            assert_equal path, @loader.transport_library_path_from_name('test', 'trsp')
+        end
+
+        it "raises if the transport does not exist" do
+            assert_raises(OroGen::TransportNotFound) do
+                @loader.transport_library_path_from_name('test', 'trsp')
+            end
+        end
+
+        it "raises if the library cannot be found on disk" do
+            pkg  = flexmock(name: 'test-transport-trsp-oroarch', library_dirs: [@env_dir])
+            path = File.join(@env_dir, 'libtest-transport-trsp-oroarch.so')
+            stub_pkgconfig_package 'test-transport-trsp-oroarch', pkg
+            assert_raises(OroGen::LibraryNotFound) do
+                @loader.transport_library_path_from_name('test', 'trsp')
+            end
         end
     end
 end

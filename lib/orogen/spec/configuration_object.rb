@@ -79,6 +79,11 @@ module OroGen
                 pp.text "#{name}:#{type.name}#{default}"
             end
 
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+                yield type
+            end
+
 	    # call-seq:
 	    #	doc new_doc -> self
             #	doc ->  current_doc

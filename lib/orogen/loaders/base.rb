@@ -84,8 +84,11 @@ module OroGen
                 name = name.to_str
 
                 text, path = project_model_text_from_name(name)
-
                 OroGen.info "loading oroGen project #{name}"
+                project_model_from_text(text, name: name, path: path)
+            end
+
+            def project_model_from_text(text, name: nil, path: nil)
                 project = Spec::Project.new(root_loader)
                 project.typekit =
                     if has_typekit?(name)
@@ -95,8 +98,8 @@ module OroGen
                     end
 
                 Loaders::Project.new(project).__eval__(path, text)
-                if project.name != name
-                    raise InternalError, "inconsistency: got project #{project.name} while loading #{name}"
+                if name && (project.name != name)
+                    raise ArgumentError, "got project #{project.name} while loading #{name}"
                 end
                 register_project_model(project)
                 project
@@ -495,7 +498,7 @@ module OroGen
             # @param [String] name the project name
             # @return [Boolean]
             def has_project?(name)
-                raise NotImplementedError
+                loaded_projects.has_key?(name)
             end
 
             # Tests if a typekit with that name exists
@@ -503,7 +506,7 @@ module OroGen
             # @param [String] name the typekit name
             # @return [Boolean]
             def has_typekit?(name)
-                raise NotImplementedError
+                loaded_typekits.has_key?(name)
             end
 
             # Returns the task library name in which a task model is defined
