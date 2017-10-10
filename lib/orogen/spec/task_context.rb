@@ -13,13 +13,16 @@ module OroGen
         # common methods
         class TaskModelExtension
             attr_reader :name
+            attr_reader :task
 
             def initialize(name = nil)
                 @name = name
             end
 
             def supercall(default, m, *args, &block)
-                if self.name && @super_ext || (@super_ext = task.superclass.find_extension(self.name))
+                if !task.superclass
+                    default
+                elsif self.name && @super_ext || (@super_ext = task.superclass.find_extension(self.name))
                     @super_ext.send(m, *args, &block)
                 else
                     default
@@ -30,6 +33,7 @@ module OroGen
             #
             # @param [TaskContext]
             def registered_on(task_context)
+                @task = task_context
             end
         end
 
@@ -99,7 +103,7 @@ module OroGen
             # if there is already one.
             def register_extension(obj)
                 if (old = find_extension(obj.name, false)) && old != obj
-                    raise ArgumentError, "there is already an extension called #{name}: #{old}"
+                    raise ArgumentError, "there is already an extension called #{obj.name}: #{old}"
                 else
                     extensions << obj
                     obj.registered_on(self)
@@ -115,7 +119,7 @@ module OroGen
 
                 seen = Set.new
                 klass = self
-                while klass
+                begin
                     klass.extensions.each do |ext|
                         if !seen.include?(ext.name)
                             seen << ext.name
@@ -123,7 +127,7 @@ module OroGen
                         end
                     end
                     klass = klass.superclass
-                end
+                end while (klass && with_subclasses)
             end
 
             # Returns the extension named +name+, or nil if there is none

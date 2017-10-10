@@ -285,4 +285,86 @@ describe OroGen::Spec::TaskContext do
             assert_equal expected_states, h[:states]
         end
     end
+
+    describe "extension support" do
+        before do
+            @supertask = OroGen::Spec::TaskContext.new(create_dummy_project, "test::SuperTask")
+            @task = OroGen::Spec::TaskContext.new(create_dummy_project, "test::Task")
+            @task.subclasses @supertask
+            @ext = OroGen::Spec::TaskModelExtension.new('test')
+        end
+
+        it "registers a new extension" do
+            @task.register_extension @ext
+            assert_equal @ext, @task.find_extension('test')
+            assert @task.has_extension?('test')
+        end
+
+        it "allows to register the same extension twice" do
+            @task.register_extension @ext
+            @task.register_extension @ext
+        end
+
+        it "does not allow to register two different extensions with the same name" do
+            @task.register_extension @ext
+            ext = OroGen::Spec::TaskModelExtension.new('test')
+            e = assert_raises(ArgumentError) do
+                @task.register_extension ext
+            end
+            assert_equal "there is already an extension called test: #{@ext}", e.message
+        end
+
+        it "gives access on self to extensions registered in the superclass by default" do
+            @task.superclass.register_extension @ext
+            assert_equal @ext, @task.find_extension('test')
+        end
+
+        it "does not return extensionss registered in the superclass if find_extension's argument is false" do
+            @task.superclass.register_extension @ext
+            assert_nil @task.find_extension('test', false)
+        end
+
+        it "enumerates extensions" do
+            @task.register_extension @ext
+            assert_equal [@ext], @task.each_extension.to_a
+        end
+
+        it "enumerates extensions from superclasses as well by default" do
+            @task.superclass.register_extension @ext
+            assert_equal [@ext], @task.each_extension.to_a
+        end
+
+        it "enumerates extensions from self even if the each_extension argument is false" do
+            @task.register_extension @ext
+            assert_equal [@ext], @task.each_extension(false).to_a
+        end
+
+        it "does not enumerate extensions from superclasses if the each_extension argument is false" do
+            @task.superclass.register_extension @ext
+            assert_equal [], @task.each_extension(false).to_a
+        end
+
+        describe "#supercall" do
+            it "calls the superclass' return value if it has the matching extension" do
+                super_ext = OroGen::Spec::TaskModelExtension.new('test')
+                @task.superclass.register_extension super_ext
+                @task.register_extension @ext
+                flexmock(super_ext).should_receive(:test_call).once.and_return(ret = flexmock)
+                assert_equal ret, @ext.supercall(flexmock, :test_call)
+            end
+
+            it "returns the default value if the superclass does not have the matching extension" do
+                @task.register_extension @ext
+                default = flexmock
+                assert_equal default, @ext.supercall(default, :test_call)
+            end
+
+            it "returns the default value if the superclass is the root model" do
+                @task.register_extension @ext
+                flexmock(@task).should_receive(:superclass).and_return(nil)
+                default = flexmock
+                assert_equal default, @ext.supercall(default, :test_call)
+            end
+        end
+    end
 end
