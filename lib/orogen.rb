@@ -42,6 +42,7 @@ require 'rexml/streamlistener'
 require 'rexml/document'
 
 require 'orogen/version'
+require 'orogen/warn_deprecated'
 require 'orogen/exceptions'
 require 'orogen/base'
 require 'orogen/check_for_stray_dots'

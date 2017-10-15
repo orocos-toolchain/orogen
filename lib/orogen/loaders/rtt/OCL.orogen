@@ -6,13 +6,11 @@ context = external_task_context "ReportingComponent" do
     fixed_initial_state
 end
 
-external_task_context 'TCPReporting' do
-    subclasses "ReportingComponent"
+external_task_context 'TCPReporting', subclasses: 'ReportingComponent' do
     property 'port', 'int', 3142
 end
 
-external_task_context 'FileReporting' do
-    subclasses "ReportingComponent"
+external_task_context 'FileReporting', subclasses: 'ReportingComponent' do
     property 'ReportFile', 'std/string'
 end
 

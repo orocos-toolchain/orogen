@@ -173,7 +173,7 @@ describe OroGen::Spec::TaskContext do
         it "can enumerate states from the superclass" do
             superclass = project.task_context "Base"
             superclass.send("#{type}_states", "STATE0")
-            task.subclasses superclass
+            task = project.task_context 'Subtask', subclasses: superclass
             task.send("#{type}_states", "STATE1")
             assert_equal ["STATE0", "STATE1"], task.send("each_#{type}_state").to_a
         end
@@ -245,8 +245,7 @@ describe OroGen::Spec::TaskContext do
             attr_reader :parent_task
             before do
                 @parent_task = task
-                @task = OroGen::Spec::TaskContext.new(parent_task.project)
-                task.subclasses parent_task
+                @task = OroGen::Spec::TaskContext.new(parent_task.project, subclasses: parent_task)
             end
 
             describe "#each_dynamic_input_port" do

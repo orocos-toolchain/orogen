@@ -1001,7 +1001,7 @@ module OroGen
             #
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
-	    def task_context(name, options = Hash.new, &block)
+	    def task_context(name, **options, &block)
                 if namespace_disabled?(name.split("::")[0..-2].join("::"))
                     return nil
                 end
@@ -1020,7 +1020,7 @@ module OroGen
                 end
 
 
-                task = external_task_context(name, options) do
+                task = external_task_context(name, **options) do
                     Spec::TaskContext.apply_default_extensions(self)
                     if block_given?
                         instance_eval(&block)
@@ -1043,17 +1043,15 @@ module OroGen
             #
             # @options options [Class] type (Spec::TaskContext) the
             #   class of the created task context
-            def external_task_context(name, options = Hash.new, &block)
+            def external_task_context(name, **options, &block)
 		if has_task_context?(name)
 		    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
 		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
 		end
 
-                options = Kernel.validate_options options,
-                    :class => Spec::TaskContext
-
-		new_task = options[:class].new(self, "#{self.name}::#{name}")
+                klass = options.fetch(:class, Spec::TaskContext)
+		new_task = klass.new(self, "#{self.name}::#{name}", **options)
                 Spec.load_documentation(new_task, /^task_context/)
 		new_task.instance_eval(&block) if block_given?
 		tasks[new_task.name] = new_task
