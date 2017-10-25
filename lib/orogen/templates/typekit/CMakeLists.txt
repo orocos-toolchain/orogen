@@ -165,6 +165,9 @@ add_custom_command(
     DEPENDS ${TYPEKIT_SOURCE_HEADERS}
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
+
+if (NOT DISABLE_REGEN_CHECK)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} check-typekit-uptodate)
+endif()
 

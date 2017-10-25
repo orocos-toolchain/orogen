@@ -65,8 +65,10 @@ install(TARGETS <%= deployer.name %>
     RUNTIME DESTINATION bin)
 <% end %>
 
+if (NOT DISABLE_REGEN_CHECK)
 add_dependencies(<%= deployer.name %>
     check-uptodate)
+endif()
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)

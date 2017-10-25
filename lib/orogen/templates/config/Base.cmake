@@ -10,12 +10,16 @@ add_custom_command(
     COMMENT "oroGen specification file changed. Run make regen first."
     COMMAND /bin/false)
 
+option(DISABLE_REGEN_CHECK "disable the check that verifies whether regen should be run" OFF)
+
+if (NOT DISABLE_REGEN_CHECK)
 <% if File.file?(project.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>")
 <% else %>
 add_custom_target(check-uptodate ALL)
 <% end %>
+endif()
 
 # In Orogen project, the build target is specified at generation time
 set(OROCOS_TARGET "<%= project.orocos_target %>")
@@ -78,7 +82,9 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC
 ADD_SUBDIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
+if (NOT DISABLE_REGEN_CHECK)
 add_dependencies(check-uptodate check-typekit-uptodate)
+endif()
 <% end %>
 
 # Take care of the task library
