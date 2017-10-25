@@ -56,7 +56,9 @@ set_target_properties(${libname_corba} PROPERTIES INTERFACE_LINK_LIBRARIES ${Oro
 SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-corba-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
 
-install(TARGETS ${libname_corba} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
+install(TARGETS ${libname_corba}
+    ARCHIVE DESTINATION lib/orocos${OROCOS_PKG_DIR}/types
+    LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)
 install(FILES
     <%= headers.join("\n   ") %>

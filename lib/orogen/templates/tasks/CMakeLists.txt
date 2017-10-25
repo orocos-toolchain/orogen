@@ -28,6 +28,7 @@ SET_TARGET_PROPERTIES(${<%= project.name.upcase %>_TASKLIB_NAME}
 
 INSTALL(TARGETS ${<%= project.name.upcase %>_TASKLIB_NAME}
     RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION lib/orocos
     LIBRARY DESTINATION lib/orocos)
 
 INSTALL(FILES ${<%= project.name.upcase %>_TASKLIB_HEADERS}

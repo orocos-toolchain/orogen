@@ -112,7 +112,9 @@ endif()
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
-install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
+install(TARGETS ${libname}
+    ARCHIVE DESTINATION lib/orocos${OROCOS_PKG_DIR}/types
+    LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES Types.hpp Opaques.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
