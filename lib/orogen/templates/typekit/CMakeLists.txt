@@ -62,8 +62,13 @@ if ( IS_ROS_PACKAGE )
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos${OROCOS_SUFFIX}/types)
 endif( IS_ROS_PACKAGE ) 
 
-execute_process(COMMAND cmake -E create_symlink
-    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
+if (WIN32)
+    execute_process(COMMAND mklink /D ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>
+        ${CMAKE_CURRENT_BINARY_DIR})
+else()
+    execute_process(COMMAND cmake -E create_symlink
+        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
+endif()
 
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
