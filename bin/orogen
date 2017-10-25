@@ -65,7 +65,7 @@ parser = OptionParser.new do |opt|
 
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
         target = target.to_s
-        if target !~ /^(gnulinux|xenomai)$/
+        if target !~ /^(gnulinux|xenomai|win32)$/
             STDERR.puts "unknown target '#{target}', possible values are gnulinux and xenomai"
             exit 1
         end
