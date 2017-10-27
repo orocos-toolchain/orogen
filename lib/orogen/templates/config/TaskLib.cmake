@@ -35,7 +35,7 @@ list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES
     <%= project.name %>-typekit-${OROCOS_TARGET})
 <% end %>
 
-<% fake_install_dir = File.join(AUTOMATIC_AREA_NAME, "__include_tree__", project.name)
+<% fake_install_dir = File.join("__include_tree__", project.name)
    project.self_tasks.each do |task|
      basepath = task.basepath
      basename = task.basename
@@ -48,6 +48,7 @@ orogen_create_symlink(
     "${PROJECT_BINARY_DIR}/<%= symlink_target_path %>/<%= task.basename %>Base.hpp"
     "${PROJECT_SOURCE_DIR}/<%= AUTOMATIC_AREA_NAME %>/<%= symlink_source_path %>/<%= task.basename %>Base.hpp")
 <% end %>
+include_directories(${PROJECT_BINARY_DIR}/__include_tree__)
 
 <% dependencies = project.tasklib_dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
