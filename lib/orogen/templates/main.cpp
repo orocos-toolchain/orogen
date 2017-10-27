@@ -216,6 +216,7 @@ int ORO_main(int argc, char* argv[])
        <% end %>
    <% end %>
 
+<% if !project.win32? %>
    RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
    <% if deployer.transports.include?('corba') %>
    RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
@@ -223,6 +224,7 @@ int ORO_main(int argc, char* argv[])
    <% if deployer.transports.include?('mqueue') %>
    RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
    <% end %>
+<% end %>
 
 <% if deployer.corba_enabled? %>
     RTT::corba::ApplicationServer::InitOrb(argc, argv);
