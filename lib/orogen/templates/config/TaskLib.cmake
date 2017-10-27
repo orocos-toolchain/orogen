@@ -35,23 +35,36 @@ list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES
     <%= project.name %>-typekit-${OROCOS_TARGET})
 <% end %>
 
-<%= dependencies = project.tasklib_dependencies
-    Generation.cmake_pkgconfig_require(dependencies) %>
+<% fake_install_dir = File.join(AUTOMATIC_AREA_NAME, "__include_tree__", project.name)
+   project.self_tasks.each do |task|
+     basepath = task.basepath
+     basename = task.basename
+     symlink_target_path = File.join(fake_install_dir, basepath)
+     symlink_source_path = File.join('tasks', basepath) %>
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/<%= symlink_target_path %>/<%= task.basename %>.hpp"
+    "${PROJECT_SOURCE_DIR}/<%= symlink_source_path %>/<%= task.basename %>.hpp")
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/<%= symlink_target_path %>/<%= task.basename %>Base.hpp"
+    "${PROJECT_SOURCE_DIR}/<%= AUTOMATIC_AREA_NAME %>/<%= symlink_source_path %>/<%= task.basename %>Base.hpp")
+<% end %>
+
+<% dependencies = project.tasklib_dependencies %>
+<%= Generation.cmake_pkgconfig_require(dependencies) %>
 <% dependencies.each do |dep_def|
-   next if !dep_def.in_context?('link') %>
+     next if !dep_def.in_context?('link') %>
 list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
-<% if dep_def.var_name =~ /TASKLIB/ %>
+<%   if dep_def.var_name =~ /TASKLIB/ %>
 list(APPEND <%= project.name.upcase %>_TASKLIB_INTERFACE_LIBRARIES ${<%= dep_def.var_name %>_LIBRARIES})
-<% end %>
-<% end %>
+<%   end
+   end %>
 
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/tasks/<%= project.name %>-tasks.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TARGET}.pc
     DESTINATION lib/pkgconfig)
 
-<% 
-   include_files = []
+<% include_files = []
    task_files = []
    project.self_tasks.each do |task| 
      if !task_files.empty?
@@ -61,8 +74,7 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= project.name %>-tasks-${OROCOS_TAR
      task_files << "#{task.basepath}#{task.basename}.cpp"
      include_files << "${CMAKE_CURRENT_SOURCE_DIR}/../#{Generation::AUTOMATIC_AREA_NAME}/tasks/#{task.basepath}/#{task.basename}Base.hpp"
      include_files << "#{task.basepath}#{task.basename}.hpp"
-   end
-%>
+   end %>
 
 add_definitions(-DRTT_COMPONENT)
 set(<%= project.name.upcase %>_TASKLIB_NAME <%= project.name %>-tasks-${OROCOS_TARGET})

@@ -1,4 +1,4 @@
-include(OrogenPkgCheckModules)
+include(OroGenTools)
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
     <%= ruby_bin %> -S orogen <%= RTT_CPP.command_line_options.join(" ") %> <%= project.deffile %>

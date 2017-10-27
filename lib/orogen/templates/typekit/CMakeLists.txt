@@ -51,10 +51,17 @@ ADD_CUSTOM_TARGET(regen
        typegen_bin = 'typegen' %>
    <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= RTT_CPP.relative_generation_directory %>)
-
 <% end %>
 # END if typekit.standalone?
 ##
+
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__typekit_dir__/<%= typekit.name %>/typekit"
+    "${CMAKE_CURRENT_SOURCE_DIR}")
+
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__transports_dir__/<%= typekit.name %>/transports"
+    "${CMAKE_CURRENT_BINARY_DIR}/transports")
 
 # Manually define '-DIS_ROS_PACKAGE' or include the UseOrocos.cmake file to automatically detect&set this flag.
 if ( IS_ROS_PACKAGE )
@@ -62,17 +69,25 @@ if ( IS_ROS_PACKAGE )
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos${OROCOS_SUFFIX}/types)
 endif( IS_ROS_PACKAGE ) 
 
-if (WIN32)
-    execute_process(COMMAND mklink /D ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>
-        ${CMAKE_CURRENT_BINARY_DIR})
-else()
-    execute_process(COMMAND cmake -E create_symlink
-        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
-endif()
+# NOTE: CMAKE_CURRENT_SOURCE_DIR / CMAKE_CURRENT_BINARY_DIR in this file refer
+# to the typekit's #automatic_dir. Use #automatic2user_dir to go to the user dir
+<% if typekit.has_opaques_with_templates? %>
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__include_dir__/<%= typekit.name %>/typekit/Opaques.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.relative_path_from_automatic(typekit.user_dir) %>/Opaques.hpp")
+<% end %>
 
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+<% typekit.local_loads_symlinks.each do |target, link|
+     target = typekit.relative_path_from_automatic(target) %>
+orogen_create_symlink("${CMAKE_CURRENT_BINARY_DIR}/__include_dir__/<%= link %>" "<%= target %>")
+<% end %>
+
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__typekit_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__transports_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
