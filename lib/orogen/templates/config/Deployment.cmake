@@ -9,6 +9,10 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__transports_dir__)
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
 
+<%= if deployer.corba_enabled?
+Generation.cmake_pkgconfig_require(dependencies, 'corba')
+end %>
+
 # Link directories need to be set before(!) providing the target
 orogen_pkg_check_modules(service_discovery service_discovery)
 if(service_discovery_FOUND)
