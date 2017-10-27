@@ -1,7 +1,10 @@
 # Task files could be using headers in tasks/ so add the relevant directory in
 # our include path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= project.name %>)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__include_tree__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/.orogen/typekit/__include_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/.orogen/typekit/__include_dir__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__typekit_dir__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__transports_dir__)
 
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>

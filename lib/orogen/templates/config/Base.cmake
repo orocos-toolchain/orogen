@@ -26,9 +26,17 @@ set(OROCOS_TARGET "<%= project.orocos_target %>")
 
 # Enable -Wall for compilers that know it
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-Wall" CXX_SUPPORTS_WALL)
-if (CXX_SUPPORTS_WALL)
-    add_definitions ("-Wall")
+
+# Do not enable Wall on WIN32 -- it's really ALL warnings. However, set the
+# _CRT_DISABLE_SECURE_WARNINGS which is currently VERY verbose on RTT, boost and
+# others
+if (WIN32)
+    add_definitions("-D_CRT_SECURE_NO_WARNINGS")
+else()
+    CHECK_CXX_COMPILER_FLAG("-Wall" CXX_SUPPORTS_WALL)
+    if (CXX_SUPPORTS_WALL)
+        add_definitions ("-Wall")
+    endif()
 endif()
 CHECK_CXX_COMPILER_FLAG("-Wno-unused-local-typedefs" CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
 if (CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
