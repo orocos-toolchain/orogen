@@ -1,4 +1,5 @@
 #include <rtt/Component.hpp>
+#include <rtt/rtt-config.h>
 
 <% deployable_tasks = project.self_tasks.find_all { |t| !t.abstract? } %>
 <% deployable_tasks.each do |task| %>
@@ -13,7 +14,7 @@ ORO_LIST_COMPONENT_TYPE( <%= task.name %> );
 namespace orogen
 {
 <% deployable_tasks.each do |task| %>
-    RTT::TaskContext* create_<%= task.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name)
+    RTT_EXPORT RTT::TaskContext* create_<%= task.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name)
     {
         return new <%= task.name %>(instance_name);
     }

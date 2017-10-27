@@ -10,7 +10,7 @@ namespace Typelib {
 }
 
 namespace orogen_typekits {
-    class <%= typekit.name %>TypekitPlugin
+    class RTT_API <%= typekit.name %>TypekitPlugin
         : public RTT::types::TypekitPlugin
     {
         Typelib::Registry* m_registry;

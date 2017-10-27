@@ -10,6 +10,8 @@ include_directories(${OrocosCORBA_INCLUDE_DIRS})
 add_definitions(${OrocosCORBA_CFLAGS_OTHER})
 link_directories(${OrocosCORBA_LIBRARY_DIRS})
 
+add_definitions(-DRTT_DLL_EXPORT)
+
 <%= Generation.cmake_pkgconfig_require(typekit_deps, 'corba') %>
 
 # Set up generation of IDL files for CORBA support
@@ -43,6 +45,9 @@ endif()
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit-${OROCOS_TARGET}
     ${OrocosCORBA_LIBRARIES})
+if (WIN32)
+    target_link_libraries(${libname_corba} winmm)
+endif()
 if(WITH_RPATH AND APPLE)
   set_target_properties( ${libname_corba} PROPERTIES
     INSTALL_NAME_DIR "@rpath")
@@ -57,6 +62,7 @@ SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transp
 CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
 
 install(TARGETS ${libname_corba}
+    RUNTIME DESTINATION bin
     ARCHIVE DESTINATION lib/orocos${OROCOS_PKG_DIR}/types
     LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES ${PKG_CONFIG_FILE_CORBA} DESTINATION lib/pkgconfig)

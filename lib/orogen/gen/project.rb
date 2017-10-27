@@ -120,6 +120,8 @@ module OroGen
             def linux?; orocos_target == 'gnulinux' end
             # True if the orocos target is xenomai
             def xenomai?; orocos_target == 'xenomai' end
+            # True if the orocos target is Win32
+            def win32?; orocos_target == 'win32' end
 
             def enable_namespace(value); @disabled_namespaces.delete(value) end
             def disable_namespace(value); @disabled_namespaces << value end

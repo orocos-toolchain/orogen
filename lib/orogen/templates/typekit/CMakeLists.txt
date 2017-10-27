@@ -55,6 +55,8 @@ ADD_CUSTOM_TARGET(regen
 # END if typekit.standalone?
 ##
 
+add_definitions(-DRTT_DLL_EXPORT)
+
 orogen_create_symlink(
     "${PROJECT_BINARY_DIR}/__typekit_dir__/<%= typekit.name %>/typekit"
     "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -121,7 +123,11 @@ add_library(${libname} SHARED
     ${TOOLKIT_ADDITIONAL_SOURCES})
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
-target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+target_link_libraries(${libname} ${OrocosRTT_LIBRARIES}
+    ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+if (WIN32)
+    target_link_libraries(${libname} winmm)
+endif()
 set_target_properties(${libname} PROPERTIES LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES ${OrocosRTT_LIBRARIES})
 if(WITH_RPATH AND APPLE)
@@ -133,6 +139,7 @@ set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OR
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
 install(TARGETS ${libname}
+    RUNTIME DESTINATION bin
     ARCHIVE DESTINATION lib/orocos${OROCOS_PKG_DIR}/types
     LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES Types.hpp Opaques.hpp

@@ -6,6 +6,10 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/.orogen/typekit/__include_dir__
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__typekit_dir__)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__transports_dir__)
 
+if(WIN32)
+    add_definitions(-DBOOST_ALL_DYN_LINK)
+endif()
+
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
 
