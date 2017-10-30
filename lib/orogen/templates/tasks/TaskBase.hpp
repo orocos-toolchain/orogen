@@ -20,20 +20,26 @@
 <% task.self_properties.sort_by(&:name).each do |p| %>
 <%   type = p.type %>
 <%=  project.typekit.cxx_gen_includes(*project.typekit.include_for_type(type)) %>
+<% if !project.win32? %>
 extern template class RTT::Property< <%= type.cxx_name %> >;
+<% end %>
 <% end %>
 
 <% task.self_attributes.sort_by(&:name).each do |a| %>
 <%   type = a.type %>
 <%=  project.typekit.cxx_gen_includes(*project.typekit.include_for_type(type)) %>
+<% if !project.win32? %>
 extern template class RTT::Attribute< <%= type.cxx_name %> >;
+<% end %>
 <% end %>
 
 <% task.self_ports.sort_by(&:name).each do |p| %>
 <%   type = p.type %>
 <%=  project.typekit.cxx_gen_includes(*project.typekit.include_for_type(type)) %>
+<% if !project.win32? %>
 extern template class <%= p.orocos_class %>< <%= type.cxx_name %> >;
 extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;
+<% end %>
 <% end %>
 
 <% types = task.self_dynamic_ports.
@@ -41,8 +47,10 @@ extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;
         compact %>
 <% types.each do |orocos_class, type| %>
 <%=    project.typekit.cxx_gen_includes(*project.typekit.include_for_type(type)) %>
+<% if !project.win32? %>
 extern template class <%= orocos_class %>< <%= type.cxx_name %> >;
 extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;
+<% end %>
 <% end %>
 
 <% task.self_operations.sort_by(&:name).each do |op| %>

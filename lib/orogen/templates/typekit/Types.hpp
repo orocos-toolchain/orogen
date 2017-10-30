@@ -11,6 +11,7 @@
 #include <<%= tk.name %>/typekit/Types.hpp>
 <% end %>
 
+<% if !project.win32? %>
 <% interface_types.each do |type| %>
 #ifdef ORO_CHANNEL_ELEMENT_HPP
     extern template class RTT::base::ChannelElement< <%= type.cxx_name %> >;
@@ -34,6 +35,7 @@
 #ifdef ORO_CORELIB_ATTRIBUTE_HPP
     extern template class RTT::Attribute< <%= type.cxx_name %> >;
 #endif
+<% end %>
 <% end %>
 
 #endif
