@@ -155,14 +155,23 @@ install(FILES
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
 
-<% (public_header_files + typekit.included_files).each do |inc|
-    full_path = Pathname.new(typekit.automatic_dir).join('types', inc)
-    next if !full_path.exist?
-    target_dir = File.dirname(inc)
-    if full_path.symlink?
-       full_path = full_path.readlink
-    end
-    source_file = full_path.relative_path_from(Pathname.new(typekit.automatic_dir)) %>
+<% automatic_public_header_dir = Pathname.new(typekit.automatic_public_header_dir)
+   automatic_dir = Pathname.new(typekit.automatic_dir) %>
+
+<% public_header_files.each do |full_path|
+      full_path  = Pathname.new(full_path)
+      target_dir = full_path.dirname.relative_path_from(automatic_public_header_dir)
+      if full_path.symlink?
+         full_path = full_path.readlink
+      end
+      source_file = full_path.relative_path_from(automatic_dir) %>
+install(FILES <%= source_file.to_path %>
+    DESTINATION include/orocos/<%= target_dir.to_path %>)
+<% end %>
+
+<% typekit.local_loads_symlinks.each do |full_path, include_statement|
+    source_file = Pathname.new(full_path).relative_path_from(automatic_dir)
+    target_dir = File.dirname(include_statement) %>
 install(FILES <%= source_file.to_path %>
     DESTINATION include/orocos/<%= target_dir %>)
 <% end %>

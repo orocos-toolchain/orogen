@@ -1125,8 +1125,8 @@ module OroGen
             attr_reader :local_loads_symlinks
 
             # Handle a load that points to a file in this typekit's source tree
-            def handle_local_load(file)
-                rel = Pathname.new(file).relative_path_from(Pathname.new(base_dir))
+            def handle_local_load(file, relative_path_from: base_dir)
+                rel = Pathname.new(file).relative_path_from(Pathname.new(relative_path_from))
                 return file if rel.each_filename.first == ".."
 
                 # If the type is within a subdirectory called as the
@@ -1166,11 +1166,7 @@ module OroGen
             # the exact offsets for all the fields in the structures).
             #
             # @raises LoadError if the file does not exist
-	    def load(file, add = true, user_options = Hash.new)
-                if !user_options.respond_to?(:to_hash) 
-                    raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
-                end
-
+	    def load(file, add = true, relative_path_from: base_dir, **user_options)
                 if match = /(\w+)\/Types\.hpp$/.match(file)
                     project_name = match[1]
                     if project.has_typekit?(project_name) || project.name == project_name
@@ -1184,7 +1180,7 @@ module OroGen
                 # Get the full path for +file+
                 if File.file?(file) # Local file
                     file = File.expand_path(file)
-                    include_statement = handle_local_load(file)
+                    include_statement = handle_local_load(file, relative_path_from: relative_path_from)
                 else # File from used libraries/task libraries
                     dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
                     if !dir
@@ -1808,7 +1804,7 @@ module OroGen
                         render_template 'typekit', 'marshalling_types.hpp', binding
 
                     path = save_automatic_public_header "m_types", "#{type.method_name(true)}.hpp", marshalling_code
-                    self.load(path, true, options)
+                    self.load(path, true, relative_path_from: automatic_public_header_dir, **options)
 
                     m_type = intermediate_type_for(type)
                     copy_metadata_to_intermediate_type(type.metadata, m_type.metadata)
