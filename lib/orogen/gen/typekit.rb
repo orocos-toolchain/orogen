@@ -1435,14 +1435,16 @@ module OroGen
             end
 
             def make_load_options(pending_loads, user_options)
+                user_options = user_options.dup
                 options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
                 options[:define] = ["OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
 
-                options[:include] = self.include_dirs.dup
-                options[:include] << automatic_public_header_dir
+                options[:include] = (user_options.delete(:include) || Set.new).to_set |
+                    self.include_dirs |
+                    [automatic_public_header_dir]
                 options = options.merge(user_options) do |key, a, b|
                     if a.respond_to?(:to_ary)
                         if b.respond_to?(:to_ary)
