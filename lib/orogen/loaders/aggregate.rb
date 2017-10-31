@@ -34,6 +34,21 @@ module OroGen
                 @loaders.delete loader
             end
 
+            def project_model_text_from_name(name)
+                OroGen::Loaders.debug "Aggregate: resolving #{name} on #{loaders.map(&:to_s).join(",")}"
+                loaders.each do |l|
+                    begin
+                        # We assume that the sub-loaders are created with self
+                        # as root loader. They will therefore register
+                        # themselves on self
+                        return l.project_model_text_from_name(name)
+                    rescue ProjectNotFound => e
+                        Loaders.debug "  not available on #{l}: #{e}"
+                    end
+                end
+                raise ProjectNotFound, "there is no project named #{name} on #{self}"
+            end
+
             def project_model_from_name(name)
                 if project = loaded_projects[name]
                     return project
