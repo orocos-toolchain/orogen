@@ -591,9 +591,6 @@ module OroGen
             # Changes the typekit base directory
             def base_dir=(path)
                 @base_dir = path
-                if path
-                    include_dirs << path
-                end
             end
 
             INCLUDE_DIR_NAME = 'types'
@@ -803,7 +800,7 @@ module OroGen
                 end
 
             rescue Typelib::NotFound => e
-                if !pending_loads.empty?
+                if has_pending_loads?
                     perform_pending_loads
                     retry
                 end
@@ -1135,7 +1132,7 @@ module OroGen
                 if elements.first != self.name
                     elements.unshift self.name
                 end
-                link = File.join(self.name, INCLUDE_DIR_NAME, *elements)
+                link = File.join(*elements)
                 @local_loads_symlinks << [file, link]
                 link
             end
@@ -1181,15 +1178,18 @@ module OroGen
                 if File.file?(file) # Local file
                     file = File.expand_path(file)
                     include_statement = handle_local_load(file, relative_path_from: relative_path_from)
+                    # Local loads are inserted in a normalized install path at
+                    # loading and build time. They have no full path until then
+                    full_path = nil
                 else # File from used libraries/task libraries
                     dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
                     if !dir
                         raise LoadError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
                     end
                     loaded_files_dirs << dir
-                    file = File.join(dir, file)
+                    full_path = File.join(dir, file)
                     include_path = include_dirs.map { |d| Pathname.new(d) }
-                    include_statement = resolve_full_include_path_to_relative(file, include_path)
+                    include_statement = resolve_full_include_path_to_relative(full_path, include_path)
                 end
 
                 included_files << include_statement
@@ -1203,7 +1203,7 @@ module OroGen
                 end
 
                 @pending_load_options = this_options
-                pending_loads << file
+                pending_loads << [full_path, include_statement]
             end
 
             def filter_unsupported_types(registry)
@@ -1430,9 +1430,9 @@ module OroGen
                 return preprocessed, owners
             end
 
-            def make_load_options(pending_loads, user_options)
+            def make_load_options(required_files, user_options)
                 user_options = user_options.dup
-                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
+                options = { opaques_ignore: true, merge: false, required_files: required_files }
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
@@ -1475,9 +1475,7 @@ module OroGen
             end
 
             def perform_pending_loads
-                return if pending_loads.empty?
-                loads = pending_loads.dup
-                pending_loads.clear
+                return if !has_pending_loads?
 
                 fake_include_dir = Dir.mktmpdir
                 @local_loads_symlinks.each do |target, link|
@@ -1485,20 +1483,24 @@ module OroGen
                     FileUtils.cp target, File.join(fake_include_dir, link)
                 end
 
+                pending_loads_to_relative = Hash.new
+                loads = pending_loads.map do |full_path, include_statement|
+                    full_path ||= File.join(fake_include_dir, include_statement)
+                    pending_loads_to_relative[full_path] = include_statement
+                    full_path
+                end
+                pending_loads.clear
+
                 add, user_options = *pending_load_options
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
                 preprocess_options, options = make_load_options(loads, user_options)
+                options[:include] << fake_include_dir
                 preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
 
                 include_paths = options[:include].map { |p| Pathname.new(p) }
-                pending_loads_to_relative = loads.inject(Hash.new) do |map, path|
-                    map[path] = resolve_full_include_path_to_relative(path, include_paths)
-                    map
-                end
-
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end

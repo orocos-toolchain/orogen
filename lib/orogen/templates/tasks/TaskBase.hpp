@@ -14,7 +14,7 @@
 #include <rtt/Port.hpp>
 <% end %>
 <% if task.extended_state_support? %>
-#include <<%= project.typekit.name %>/TaskStates.hpp>
+#include <<%= project.typekit.name %>/typekit/types/TaskStates.hpp>
 <% end %>
 
 <% task.self_properties.sort_by(&:name).each do |p| %>

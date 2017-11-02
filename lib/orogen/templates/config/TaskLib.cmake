@@ -30,7 +30,9 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 <% if project.typekit %>
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/typekit)
+include_directories(${PROJECT_SOURCE_DIR}/.orogen/typekit/__include_dir__/)
+include_directories(${PROJECT_BINARY_DIR}/.orogen/typekit/__include_dir__/<%= project.name %>/types)
+include_directories(${PROJECT_BINARY_DIR}/.orogen/typekit/__include_dir__/)
 list(APPEND <%= project.name.upcase %>_TASKLIB_DEPENDENT_LIBRARIES 
     <%= project.name %>-typekit-${OROCOS_TARGET})
 <% end %>

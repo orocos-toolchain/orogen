@@ -88,8 +88,6 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC
 <% if project.typekit %>
 # Take care of the typekit
 ADD_SUBDIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
 if (NOT DISABLE_REGEN_CHECK)
 add_dependencies(check-uptodate check-typekit-uptodate)
 endif()

@@ -684,9 +684,9 @@ module OroGen
                 if self_tasks.any?(&:extended_state_support?)
                     state_types = Generation.render_template(
                         "tasks", "TaskStates.hpp", binding)
-                    header = Generation.save_automatic(
-                        'typekit', 'types', project.name, "TaskStates.hpp", state_types)
-                    typekit(true).load(header)
+                    header = typekit(true).save_automatic_public_header(
+                        'types', "TaskStates.hpp", state_types)
+                    typekit(true).load(header, relative_path_from: typekit.automatic_public_header_dir)
                 end
 
 		if typekit
