@@ -6,7 +6,7 @@
 #include <rtt/types/TransportPlugin.hpp>
 
 namespace orogen_typekits {
-    class <%= typekit.name %>CorbaTransportPlugin
+    class RTT_API <%= typekit.name %>CorbaTransportPlugin
         : public RTT::types::TransportPlugin
     {
     public:

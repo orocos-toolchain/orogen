@@ -591,9 +591,6 @@ module OroGen
             # Changes the typekit base directory
             def base_dir=(path)
                 @base_dir = path
-                if path
-                    include_dirs << path
-                end
             end
 
             INCLUDE_DIR_NAME = 'types'
@@ -601,15 +598,6 @@ module OroGen
             # Change the directory into which the code generation should be done
             def automatic_dir=(path)
                 @automatic_dir = path
-                if path
-                    include_dirs << File.join(automatic_dir, INCLUDE_DIR_NAME)
-                end
-            end
-
-            # Full path to the directory in which includes are either generated
-            # or symlinked
-            def includes_dir
-                File.join(automatic_dir, INCLUDE_DIR_NAME)
             end
 
             # The directory in which generated files that are meant to not be
@@ -812,7 +800,7 @@ module OroGen
                 end
 
             rescue Typelib::NotFound => e
-                if !pending_loads.empty?
+                if has_pending_loads?
                     perform_pending_loads
                     retry
                 end
@@ -840,6 +828,7 @@ module OroGen
 
                 @include_dirs = Set.new
                 @included_files = Array.new
+                @local_loads_symlinks = Array.new
 
                 @plugins = []
                 plugins << (TypekitMarshallers::TypeInfo::Plugin.new(self))
@@ -1130,25 +1119,22 @@ module OroGen
                 self_opaques.any? { |op| op.generate_templates? }
             end
 
+            attr_reader :local_loads_symlinks
+
             # Handle a load that points to a file in this typekit's source tree
-            def handle_local_load(file)
-                rel = Pathname.new(file).relative_path_from(Pathname.new(base_dir))
+            def handle_local_load(file, relative_path_from: base_dir)
+                rel = Pathname.new(file).relative_path_from(Pathname.new(relative_path_from))
                 return file if rel.each_filename.first == ".."
 
-                local_type_dir = Pathname.new(includes_dir)
-                rel_to_type_dir = Pathname.new(file).relative_path_from(local_type_dir)
-                if rel_to_type_dir.each_filename.first == ".."
-                    # If the type is within a subdirectory called as the
-                    # typekit, remove the duplicate
-                    elements = rel.each_filename.to_a
-                    if elements.first != self.name
-                        elements.unshift self.name
-                    end
-                    target = File.join(includes_dir, *elements)
-                    Generation.create_or_update_symlink(file, target)
-                    target
-                else file
+                # If the type is within a subdirectory called as the
+                # typekit, remove the duplicate
+                elements = rel.each_filename.to_a
+                if elements.first != self.name
+                    elements.unshift self.name
                 end
+                link = File.join(*elements)
+                @local_loads_symlinks << [file, link]
+                link
             end
 
             # call-seq:
@@ -1177,11 +1163,7 @@ module OroGen
             # the exact offsets for all the fields in the structures).
             #
             # @raises LoadError if the file does not exist
-	    def load(file, add = true, user_options = Hash.new)
-                if !user_options.respond_to?(:to_hash) 
-                    raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
-                end
-
+	    def load(file, add = true, relative_path_from: base_dir, **user_options)
                 if match = /(\w+)\/Types\.hpp$/.match(file)
                     project_name = match[1]
                     if project.has_typekit?(project_name) || project.name == project_name
@@ -1189,29 +1171,28 @@ module OroGen
                     end
                 end
 
-                include_dirs = self.include_dirs
+                include_dirs = self.include_dirs.dup
+                include_dirs << automatic_public_header_dir
 
                 # Get the full path for +file+
-                file =
-                    if File.file?(file) # Local file
-                        File.expand_path(file)
-                    else # File from used libraries/task libraries
-                        dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
-                        if !dir
-                            raise LoadError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
-                        end
-                        loaded_files_dirs << dir
-                        File.join(dir, file)
+                if File.file?(file) # Local file
+                    file = File.expand_path(file)
+                    include_statement = handle_local_load(file, relative_path_from: relative_path_from)
+                    # Local loads are inserted in a normalized install path at
+                    # loading and build time. They have no full path until then
+                    full_path = nil
+                else # File from used libraries/task libraries
+                    dir = include_dirs.find { |dir| File.file?(File.join(dir, file)) }
+                    if !dir
+                        raise LoadError, "cannot find #{file} in #{include_dirs.to_a.join(":")}"
                     end
+                    loaded_files_dirs << dir
+                    full_path = File.join(dir, file)
+                    include_path = include_dirs.map { |d| Pathname.new(d) }
+                    include_statement = resolve_full_include_path_to_relative(full_path, include_path)
+                end
 
-                # If it is a local header, symlink it to the "right" place in
-                # typekit/types and load that
-                file = handle_local_load(file)
-
-                # And resolve it to an include statement
-                include_path = include_dirs.map { |d| Pathname.new(d) }
-                inc = resolve_full_include_path_to_relative(file, include_path)
-                included_files << inc
+                included_files << include_statement
                 user_options[:rawflags] = self.used_libraries.
                     map { |lib| lib.raw_cflags_only_other }.
                     flatten.uniq
@@ -1222,7 +1203,7 @@ module OroGen
                 end
 
                 @pending_load_options = this_options
-                pending_loads << file
+                pending_loads << [full_path, include_statement]
             end
 
             def filter_unsupported_types(registry)
@@ -1449,14 +1430,17 @@ module OroGen
                 return preprocessed, owners
             end
 
-            def make_load_options(pending_loads, user_options)
-                options = { :opaques_ignore => true, :merge => false, :required_files => pending_loads.to_a }
+            def make_load_options(required_files, user_options)
+                user_options = user_options.dup
+                options = { opaques_ignore: true, merge: false, required_files: required_files }
                 # GCCXML can't parse vectorized code, and the Typelib internal
                 # parser can't parse eigen at all. It is therefore safe to do it
                 # here
                 options[:define] = ["OROCOS_TARGET=#{RTT_CPP.orocos_target}", '__orogen2']
 
-                options[:include] = self.include_dirs.dup
+                options[:include] = (user_options.delete(:include) || Set.new).to_set |
+                    self.include_dirs |
+                    [automatic_public_header_dir]
                 options = options.merge(user_options) do |key, a, b|
                     if a.respond_to?(:to_ary)
                         if b.respond_to?(:to_ary)
@@ -1491,29 +1475,32 @@ module OroGen
             end
 
             def perform_pending_loads
-                return if pending_loads.empty?
-                loads = pending_loads.dup
+                return if !has_pending_loads?
+
+                fake_include_dir = Dir.mktmpdir
+                @local_loads_symlinks.each do |target, link|
+                    FileUtils.mkdir_p File.join(fake_include_dir, File.dirname(link))
+                    FileUtils.cp target, File.join(fake_include_dir, link)
+                end
+
+                pending_loads_to_relative = Hash.new
+                loads = pending_loads.map do |full_path, include_statement|
+                    full_path ||= File.join(fake_include_dir, include_statement)
+                    pending_loads_to_relative[full_path] = include_statement
+                    full_path
+                end
                 pending_loads.clear
 
                 add, user_options = *pending_load_options
-
-                include_dirs = self.include_dirs.to_a
-                if automatic_dir
-                    include_dirs << File.join(automatic_dir, "types")
-                end
 
                 file_registry = Typelib::Registry.new
                 file_registry.merge opaque_registry
 
                 preprocess_options, options = make_load_options(loads, user_options)
+                options[:include] << fake_include_dir
                 preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
 
-                include_path = include_dirs.map { |d| Pathname.new(d) }
-                pending_loads_to_relative = loads.inject(Hash.new) do |map, path|
-                    map[path] = resolve_full_include_path_to_relative(path, include_path)
-                    map
-                end
-
+                include_paths = options[:include].map { |p| Pathname.new(p) }
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
@@ -1538,6 +1525,10 @@ module OroGen
 
                 if add
                     self.loads.concat(loads.to_a)
+                end
+            ensure
+                if fake_include_dir
+                    FileUtils.remove_entry fake_include_dir
                 end
 	    end
 
@@ -1814,8 +1805,8 @@ module OroGen
                     marshalling_code = Generation.
                         render_template 'typekit', 'marshalling_types.hpp', binding
 
-                    path = Generation.save_automatic 'typekit', 'types', self.name, "m_types", "#{type.method_name(true)}.hpp", marshalling_code
-                    self.load(path, true, options)
+                    path = save_automatic_public_header "m_types", "#{type.method_name(true)}.hpp", marshalling_code
+                    self.load(path, true, relative_path_from: automatic_public_header_dir, **options)
 
                     m_type = intermediate_type_for(type)
                     copy_metadata_to_intermediate_type(type.metadata, m_type.metadata)
@@ -1914,10 +1905,14 @@ module OroGen
 
             attr_reader :template_instanciation_files
 
+            def automatic_public_header_dir
+                File.join(automatic_dir, '__include_dir__')
+            end
+
             def save_automatic_public_header(*args)
                 rel = File.join(self.name, 'typekit', *args[0..-2])
-                Generation.save_generated(true, automatic_dir, INCLUDE_DIR_NAME, rel, args[-1])
-                rel
+                Generation.save_generated(true, automatic_public_header_dir, rel, args[-1])
+                File.join(automatic_public_header_dir, rel)
             end
 
             def save_automatic(*args)
@@ -1972,25 +1967,14 @@ module OroGen
                 types.map { |t| find_type(t) }.to_set
             end
 
+            def relative_path_from_automatic(path)
+                auto = Pathname.new(automatic_dir)
+                Pathname.new(path).relative_path_from(auto).to_s
+            end
+
 	    def generate
 		typekit = self
-
                 FileUtils.mkdir_p automatic_dir
-
-                # Populate a fake installation directory so that the include
-                # files can be referred to as <project_name>/header.h
-                fake_install_dir = File.join(automatic_dir, name)
-
-                # Upgrade from directory to symlink
-                if !File.symlink?(fake_install_dir)
-                    FileUtils.rm_rf fake_install_dir
-                end
-                Generation.create_or_update_symlink(automatic_dir, fake_install_dir)
-
-                if standalone?
-                    fake_typekit_dir = File.join(automatic_dir, "typekit")
-                    Generation.create_or_update_symlink(automatic_dir, fake_typekit_dir)
-                end
 
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
@@ -2167,10 +2151,6 @@ module OroGen
                         save_user("Opaques.hpp", user_hh)
                         implementation_files <<
                             save_user("Opaques.cpp", user_cc)
-
-                        Generation.create_or_update_symlink(
-                            File.join(user_dir, "Opaques.hpp"),
-                            File.join(automatic_dir, INCLUDE_DIR_NAME, self.name, 'typekit', "Opaques.hpp"))
                     end
                 end
 

@@ -1,10 +1,21 @@
 # Task files could be using headers in tasks/ so add the relevant directory in
 # our include path
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/<%= project.name %>)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__include_tree__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/.orogen/typekit/__include_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/.orogen/typekit/__include_dir__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__typekit_dir__)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/__transports_dir__)
+
+if(WIN32)
+    add_definitions(-DBOOST_ALL_DYN_LINK)
+endif()
 
 <% dependencies = deployer.dependencies %>
 <%= Generation.cmake_pkgconfig_require(dependencies) %>
+
+<%= if deployer.corba_enabled?
+Generation.cmake_pkgconfig_require(dependencies, 'corba')
+end %>
 
 # Link directories need to be set before(!) providing the target
 orogen_pkg_check_modules(service_discovery service_discovery)
@@ -65,8 +76,10 @@ install(TARGETS <%= deployer.name %>
     RUNTIME DESTINATION bin)
 <% end %>
 
+if (NOT DISABLE_REGEN_CHECK)
 add_dependencies(<%= deployer.name %>
     check-uptodate)
+endif()
 
 configure_file(<%= Generation::AUTOMATIC_AREA_NAME %>/<%= deployer.name %>.pc.in
     orogen-<%= deployer.name %>.pc @ONLY)

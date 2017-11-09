@@ -100,7 +100,9 @@ configure_file(<%= typekit.name %>-transport-ros.pc.in ${PKG_CONFIG_FILE_ROS} @O
 
 # Needed to generate the config.cmake file
 configure_file(<%= ros_pkg_name %>-config.cmake.in <%= ros_pkg_name %>-config.cmake @ONLY)
-install(TARGETS ${libname_ros} LIBRARY DESTINATION lib/orocos/types)
+install(TARGETS ${libname_ros}
+    ARCHIVE DESTINATION lib/orocos/types
+    LIBRARY DESTINATION lib/orocos/types)
 install(FILES ${PKG_CONFIG_FILE_ROS} DESTINATION lib/pkgconfig)
 install(FILES <%= rosmap %> DESTINATION share/orogen/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/<%= ros_pkg_name %>-config.cmake DESTINATION share/<%= ros_pkg_name %>/cmake)

@@ -1,4 +1,4 @@
-include(OrogenPkgCheckModules)
+include(OroGenTools)
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
     <%= ruby_bin %> -S orogen <%= RTT_CPP.command_line_options.join(" ") %> <%= project.deffile %>
@@ -10,21 +10,33 @@ add_custom_command(
     COMMENT "oroGen specification file changed. Run make regen first."
     COMMAND /bin/false)
 
+option(DISABLE_REGEN_CHECK "disable the check that verifies whether regen should be run" OFF)
+
+if (NOT DISABLE_REGEN_CHECK)
 <% if File.file?(project.deffile) %>
 add_custom_target(check-uptodate ALL
     DEPENDS "${PROJECT_SOURCE_DIR}/<%= RTT_CPP::AUTOMATIC_AREA_NAME %>/<%= File.basename(project.deffile) %>")
 <% else %>
 add_custom_target(check-uptodate ALL)
 <% end %>
+endif()
 
 # In Orogen project, the build target is specified at generation time
 set(OROCOS_TARGET "<%= project.orocos_target %>")
 
 # Enable -Wall for compilers that know it
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-Wall" CXX_SUPPORTS_WALL)
-if (CXX_SUPPORTS_WALL)
-    add_definitions ("-Wall")
+
+# Do not enable Wall on WIN32 -- it's really ALL warnings. However, set the
+# _CRT_DISABLE_SECURE_WARNINGS which is currently VERY verbose on RTT, boost and
+# others
+if (WIN32)
+    add_definitions("-D_CRT_SECURE_NO_WARNINGS")
+else()
+    CHECK_CXX_COMPILER_FLAG("-Wall" CXX_SUPPORTS_WALL)
+    if (CXX_SUPPORTS_WALL)
+        add_definitions ("-Wall")
+    endif()
 endif()
 CHECK_CXX_COMPILER_FLAG("-Wno-unused-local-typedefs" CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
 if (CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
@@ -76,9 +88,9 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC
 <% if project.typekit %>
 # Take care of the typekit
 ADD_SUBDIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit )
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
+if (NOT DISABLE_REGEN_CHECK)
 add_dependencies(check-uptodate check-typekit-uptodate)
+endif()
 <% end %>
 
 # Take care of the task library

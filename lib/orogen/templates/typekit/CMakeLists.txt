@@ -51,10 +51,19 @@ ADD_CUSTOM_TARGET(regen
        typegen_bin = 'typegen' %>
    <%= typegen_bin %> <%= RTT_CPP.command_line_options.join(" ") %>
    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/<%= RTT_CPP.relative_generation_directory %>)
-
 <% end %>
 # END if typekit.standalone?
 ##
+
+add_definitions(-DRTT_DLL_EXPORT)
+
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__typekit_dir__/<%= typekit.name %>/typekit"
+    "${CMAKE_CURRENT_SOURCE_DIR}")
+
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__transports_dir__/<%= typekit.name %>/transports"
+    "${CMAKE_CURRENT_BINARY_DIR}/transports")
 
 # Manually define '-DIS_ROS_PACKAGE' or include the UseOrocos.cmake file to automatically detect&set this flag.
 if ( IS_ROS_PACKAGE )
@@ -62,12 +71,25 @@ if ( IS_ROS_PACKAGE )
     set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/lib/orocos${OROCOS_SUFFIX}/types)
 endif( IS_ROS_PACKAGE ) 
 
-execute_process(COMMAND cmake -E create_symlink
-    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>)
+# NOTE: CMAKE_CURRENT_SOURCE_DIR / CMAKE_CURRENT_BINARY_DIR in this file refer
+# to the typekit's #automatic_dir. Use #automatic2user_dir to go to the user dir
+<% if typekit.has_opaques_with_templates? %>
+orogen_create_symlink(
+    "${PROJECT_BINARY_DIR}/__include_dir__/<%= typekit.name %>/typekit/Opaques.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.relative_path_from_automatic(typekit.user_dir) %>/Opaques.hpp")
+<% end %>
 
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/types)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+<% typekit.local_loads_symlinks.each do |target, link|
+     target = typekit.relative_path_from_automatic(target) %>
+orogen_create_symlink("${CMAKE_CURRENT_BINARY_DIR}/__include_dir__/<%= link %>" "<%= target %>")
+<% end %>
+
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__typekit_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__transports_dir__)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/__include_dir__)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${OrocosRTT_INCLUDE_DIRS})
 add_definitions(${OrocosRTT_CFLAGS_OTHER})
@@ -101,7 +123,11 @@ add_library(${libname} SHARED
     ${TOOLKIT_ADDITIONAL_SOURCES})
 
 <%= Generation.cmake_pkgconfig_link_noncorba('${libname}', typekit_deps) %>
-target_link_libraries(${libname} ${OrocosRTT_LIBRARIES} ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+target_link_libraries(${libname} ${OrocosRTT_LIBRARIES}
+    ${TYPEKIT_ADDITIONAL_LIBRARIES} ${TOOLKIT_ADDITIONAL_LIBRARIES})
+if (WIN32)
+    target_link_libraries(${libname} winmm)
+endif()
 set_target_properties(${libname} PROPERTIES LINK_INTERFACE_LIBRARIES ${OrocosRTT_LIBRARIES})
 set_target_properties(${libname} PROPERTIES INTERFACE_LINK_LIBRARIES ${OrocosRTT_LIBRARIES})
 if(WITH_RPATH AND APPLE)
@@ -112,7 +138,10 @@ endif()
 set(PKG_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-typekit-${OROCOS_TARGET}.pc)
 configure_file(<%= typekit.name %>-typekit.pc.in ${PKG_CONFIG_FILE} @ONLY)
 
-install(TARGETS ${libname} LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
+install(TARGETS ${libname}
+    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION lib/orocos${OROCOS_PKG_DIR}/types
+    LIBRARY DESTINATION lib/orocos${OROCOS_PKG_DIR}/types)
 install(FILES Types.hpp Opaques.hpp
     DESTINATION include/orocos/<%= typekit.name %>)
 install(FILES
@@ -126,14 +155,23 @@ install(FILES
 	relatives.sort.join("\n    ") %>
     DESTINATION include/orocos/<%= typekit.name %>/typekit)
 
-<% (public_header_files + typekit.included_files).each do |inc|
-    full_path = Pathname.new(typekit.automatic_dir).join('types', inc)
-    next if !full_path.exist?
-    target_dir = File.dirname(inc)
-    if full_path.symlink?
-       full_path = full_path.readlink
-    end
-    source_file = full_path.relative_path_from(Pathname.new(typekit.automatic_dir)) %>
+<% automatic_public_header_dir = Pathname.new(typekit.automatic_public_header_dir)
+   automatic_dir = Pathname.new(typekit.automatic_dir) %>
+
+<% public_header_files.each do |full_path|
+      full_path  = Pathname.new(full_path)
+      target_dir = full_path.dirname.relative_path_from(automatic_public_header_dir)
+      if full_path.symlink?
+         full_path = full_path.readlink
+      end
+      source_file = full_path.relative_path_from(automatic_dir) %>
+install(FILES <%= source_file.to_path %>
+    DESTINATION include/orocos/<%= target_dir.to_path %>)
+<% end %>
+
+<% typekit.local_loads_symlinks.each do |full_path, include_statement|
+    source_file = Pathname.new(full_path).relative_path_from(automatic_dir)
+    target_dir = File.dirname(include_statement) %>
 install(FILES <%= source_file.to_path %>
     DESTINATION include/orocos/<%= target_dir %>)
 <% end %>
@@ -165,6 +203,9 @@ add_custom_command(
     DEPENDS ${TYPEKIT_SOURCE_HEADERS}
     COMMENT "Typekit input changed. Run make regen in your build directory first"
     COMMAND /bin/false)
+
+if (NOT DISABLE_REGEN_CHECK)
 add_custom_target(check-typekit-uptodate ALL DEPENDS "${TK_STAMP}")
 add_dependencies(${libname} check-typekit-uptodate)
+endif()
 

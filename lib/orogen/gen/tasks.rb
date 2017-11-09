@@ -577,15 +577,6 @@ EOF
                 validate_constructors(file_cpp, basename)
                 validate_constructors(file_hpp, basename)
 
-                fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
-                FileUtils.mkdir_p fake_install_dir
-                FileUtils.mkdir_p File.join(fake_install_dir, basepath)
-
-                FileUtils.ln_sf File.join(project.base_dir, "tasks",basepath, "#{basename}.hpp"),
-                    File.join(fake_install_dir, basepath, "#{basename}.hpp")
-                FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks",basepath, "#{basename}Base.hpp"),
-                    File.join(fake_install_dir, basepath ,"#{basename}Base.hpp")
-
 		self
 	    end
 

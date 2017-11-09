@@ -33,6 +33,9 @@ parser = OptionParser.new do |opt|
     opt.on("--[no-]extended-states", "disable or enable extended states for all tasks defined in this project (enabled by default)") do |flag|
         project.extended_states = flag
     end
+    opt.on("--[no-]default-deployment", "disable or enable generating a default deployment for the non-abstract oroGen tasks") do |flag|
+        project.define_default_deployments = flag
+    end
 
     opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         no_transports = true
@@ -62,7 +65,7 @@ parser = OptionParser.new do |opt|
 
     opt.on("--target=TARGET", "set the orocos build target (gnulinux or xenomai)") do |target|
         target = target.to_s
-        if target !~ /^(gnulinux|xenomai)$/
+        if target !~ /^(gnulinux|xenomai|win32)$/
             STDERR.puts "unknown target '#{target}', possible values are gnulinux and xenomai"
             exit 1
         end

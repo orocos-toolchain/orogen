@@ -1,4 +1,5 @@
 #include <rtt/os/main.h>
+#include <rtt/rtt-config.h>
 
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -75,7 +76,7 @@ QApplication *qapp;
 namespace orogen
 {
 <% task_activities.each do |task| %>
-    extern RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name);
+    extern RTT_API RTT::TaskContext* create_<%= task.task_model.name.gsub(/[^\w]/, '_') %>(std::string const& instance_name);
 <% end %>
 }
 
@@ -215,6 +216,7 @@ int ORO_main(int argc, char* argv[])
        <% end %>
    <% end %>
 
+<% if !project.win32? %>
    RTT::types::TypekitRepository::Import( new RTT::types::RealTimeTypekitPlugin );
    <% if deployer.transports.include?('corba') %>
    RTT::types::TypekitRepository::Import( new RTT::corba::CorbaLibPlugin );
@@ -222,6 +224,7 @@ int ORO_main(int argc, char* argv[])
    <% if deployer.transports.include?('mqueue') %>
    RTT::types::TypekitRepository::Import( new RTT::mqueue::MQLibPlugin );
    <% end %>
+<% end %>
 
 <% if deployer.corba_enabled? %>
     RTT::corba::ApplicationServer::InitOrb(argc, argv);
@@ -400,6 +403,8 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     }
 
 <% if deployer.corba_enabled? %>
+
+<% if !deployer.project.win32? %>
     /** Setup shutdown procedure on SIGINT. We use a pipe-based channel to do
         so, as we can't shutdown the ORB from the signal handler */
     if (pipe(sigint_com) == -1)
@@ -425,6 +430,7 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
+<% end %>
     <% if has_realtime %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
     <% else %>
