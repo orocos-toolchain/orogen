@@ -9,8 +9,8 @@ module OroGen
 	    attr_reader :templates
 	end
 
-        # Returns the directory where Orogen's lib part sits (i.e. where
-        # autobuild.rb and autobuild/ are)
+        # Returns the directory where oroGen's lib part sits, i.e.
+        # base_dir is defined by the directory where orogen.rb resides
         def self.base_dir
 	    File.expand_path(File.join('..', '..'), File.dirname(__FILE__))
         end

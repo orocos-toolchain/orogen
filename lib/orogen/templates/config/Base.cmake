@@ -30,6 +30,7 @@ CHECK_CXX_COMPILER_FLAG("-Wno-unused-local-typedefs" CXX_SUPPORTS_WUNUSED_LOCAL_
 if (CXX_SUPPORTS_WUNUSED_LOCAL_TYPEDEFS)
     add_definitions ("-Wno-unused-local-typedefs")
 endif()
+check_cxx_compiler_flag("-Wunused-variable" CXX_SUPPORTS_WUNUSED_VARIABLE)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     message(STATUS "running on Linux, implementing the __orogen_getTID() operation on all tasks")

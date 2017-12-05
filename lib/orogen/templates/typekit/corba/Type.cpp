@@ -43,7 +43,11 @@ namespace RTT
 
             static CORBA::Any_ptr createAny( BaseType const& tp )
             {
+#if __cplusplus < 201103L
                 std::auto_ptr< CORBA::Any > ret( new CORBA::Any() );
+#else
+                std::unique_ptr< CORBA::Any > ret( new CORBA::Any() );
+#endif
                 if (!updateAny(tp, *ret))
                     return 0;
                 return ret.release();
@@ -61,7 +65,11 @@ namespace RTT
                     return false;
                 any <<= corba;
                 <% else %>
+#if __cplusplus < 201103L
                 std::auto_ptr<CorbaType> corba( new CorbaType );
+#else
+                std::unique_ptr<CorbaType> corba( new CorbaType );
+#endif
                 if (!orogen_typekits::toCORBA(*corba, value))
                     return false;
                 any <<= corba.release();

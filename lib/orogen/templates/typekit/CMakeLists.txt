@@ -83,6 +83,7 @@ set(PKG_CFLAGS ${OrocosRTT_CFLAGS})
 set(PKG_CFLAGS ${PKG_CFLAGS} ${<%= dep_def.var_name %>_CFLAGS})
         <% end %>
     <% end %>
+list(REMOVE_DUPLICATES PKG_CFLAGS)
 string(REPLACE ";" "\" \"" PKG_CFLAGS "\"${PKG_CFLAGS}\"")
 
 # Generate the base typekit shared library

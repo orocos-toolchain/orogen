@@ -159,10 +159,10 @@ void <%= task.basename %>Base::exception()
 <%= (is_boolean ? 'bool' : 'void') %> <%= task.basename %>Base::<%= hook_name %>Hook()
 {
     <% if is_boolean %>
-    if (! <%= task.superclass.name %>::<%= hook_name %>Hook())
+    if (! ::<%= task.superclass.name %>::<%= hook_name %>Hook())
         return false;
     <% else %>
-    <%= task.superclass.name %>::<%= hook_name %>Hook();
+    ::<%= task.superclass.name %>::<%= hook_name %>Hook();
     <% end %>
 
     <% snippets.each do |code| %>

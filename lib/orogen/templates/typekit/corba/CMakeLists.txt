@@ -32,6 +32,10 @@ set(libname_corba <%= typekit.name %>-transport-corba)
 orocos_typekit(${libname_corba}
     <%= impl.join("\n    ") %>
     ${CORBA_FILES})
+if (CXX_SUPPORTS_WUNUSED_VARIABLE)
+    set_source_files_properties(${CORBA_FILES} TARGET_COMPILE_OPTIONS "-Wno-unused-variable")
+endif()
+
 target_link_libraries(${libname_corba}
     <%= typekit.name %>-typekit ${OROCOS-RTT_CORBA_LIBRARIES})
 

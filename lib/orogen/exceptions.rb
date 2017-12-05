@@ -3,6 +3,8 @@ module OroGen
 
     class ProjectNotFound < NotFound; end
     class TypekitNotFound < NotFound; end
+    class TransportNotFound < NotFound; end
+    class LibraryNotFound < NotFound; end
     class DefinitionTypekitNotFound < TypekitNotFound; end
     class TaskModelNotFound < NotFound; end
     class TaskLibraryNotFound < NotFound; end

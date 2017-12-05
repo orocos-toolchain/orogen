@@ -13,13 +13,16 @@ module OroGen
         # common methods
         class TaskModelExtension
             attr_reader :name
+            attr_reader :task
 
             def initialize(name = nil)
                 @name = name
             end
 
             def supercall(default, m, *args, &block)
-                if self.name && @super_ext || (@super_ext = task.superclass.find_extension(self.name))
+                if !task.superclass
+                    default
+                elsif self.name && @super_ext || (@super_ext = task.superclass.find_extension(self.name))
                     @super_ext.send(m, *args, &block)
                 else
                     default
@@ -30,6 +33,7 @@ module OroGen
             #
             # @param [TaskContext]
             def registered_on(task_context)
+                @task = task_context
             end
         end
 
@@ -99,7 +103,7 @@ module OroGen
             # if there is already one.
             def register_extension(obj)
                 if (old = find_extension(obj.name, false)) && old != obj
-                    raise ArgumentError, "there is already an extension called #{name}: #{old}"
+                    raise ArgumentError, "there is already an extension called #{obj.name}: #{old}"
                 else
                     extensions << obj
                     obj.registered_on(self)
@@ -115,7 +119,7 @@ module OroGen
 
                 seen = Set.new
                 klass = self
-                while klass
+                begin
                     klass.extensions.each do |ext|
                         if !seen.include?(ext.name)
                             seen << ext.name
@@ -123,7 +127,7 @@ module OroGen
                         end
                     end
                     klass = klass.superclass
-                end
+                end while (klass && with_subclasses)
             end
 
             # Returns the extension named +name+, or nil if there is none
@@ -176,8 +180,10 @@ module OroGen
             # scope of the enclosing Project object -- i.e. either defined in
             # it, or imported by a Project#using_task_library call.
             def subclasses(task_context)
+                OroGen.warn_deprecated __method__, "in #{project.name}: use task_context \"Name\", subclasses: \"Parent\" do .. end instead"
+
                 if task_context.respond_to?(:to_str)
-                    if @superclass != project.default_task_superclass
+                    if @superclass && (@superclass != project.default_task_superclass)
                         raise OroGen::ConfigError, "#{@name} tries to subclass #{task_context} "+
                             "while there is already #{@superclass.name}"
                     end
@@ -185,11 +191,12 @@ module OroGen
                 else
                     @superclass = task_context
                 end
-                @default_activity  = @superclass.default_activity.dup
-                @required_activity = @superclass.required_activity?
                 if !superclass
                     raise ArgumentError, "no such task context #{task_context}"
                 end
+
+                @default_activity  = @superclass.default_activity.dup
+                @required_activity = @superclass.required_activity?
             end
 
             # Declares that this task context is a root model and
@@ -310,16 +317,30 @@ module OroGen
 	    #
 	    # TaskContext objects should not be created directly. You should
 	    # use {Project#task_context} for that.
-	    def initialize(project, name = nil)
+            def initialize(project, name = nil, subclasses: project.default_task_superclass)
                 @project  = project
 
-                @superclass = project.default_task_superclass
+                if subclasses
+                    @superclass =
+                        if subclasses.respond_to?(:to_str)
+                            project.task_model_from_name subclasses
+                        else
+                            subclasses
+                        end
+                    @default_activity  = @superclass.default_activity.dup
+                    @required_activity = @superclass.required_activity?
+                else
+                    @superclass = false
+                    default_activity 'triggered'
+                    @required_activity = false
+                end
+
                 @implemented_classes = []
 		@name = name
+
                 # This is an array, as we don't want to have it reordered
                 # unnecessarily
                 @states = Array.new
-                default_activity 'triggered'
 
 		@properties = Hash.new
 		@attributes = Hash.new
@@ -623,7 +644,7 @@ module OroGen
                     raise ArgumentError, "unknown state type #{type.inspect}"
                 end
 
-                if !extended_state_support?
+                if !extended_state_support? && (type != :toplevel)
                     extended_state_support
                 end
 
@@ -633,7 +654,9 @@ module OroGen
                     end
                 else
                     @states << [name, type]
-                    @states = @states.sort_by { |n, _| n }
+                    if type != :toplevel
+                        @states = @states.sort_by { |n, _| n }
+                    end
                 end
             end
 
@@ -687,25 +710,34 @@ module OroGen
             end
 
             # Enumerates each state defined on this task context.
-            def each_state(&block)
-                if block_given?
-                    superclass.each_state(&block) if superclass
-                    @states.each(&block)
-                else
-                    enum_for(:each_state)
+            #
+            # @param [Boolean] with_superclass whether only states defined on
+            #   this level of the task hierarchy should be enumerated, or the
+            #   states from the superclass too.
+            # @yieldparam [String] name the state name
+            # @yieldparam [Symbol] type the state type, one of {STATE_TYPES}
+            def each_state(with_superclass: true, &block)
+                return enum_for(__method__) if !block
+
+                if superclass && with_superclass
+                    superclass.each_state(&block)
                 end
+                @states.each(&block)
             end
 
-            # call-seq:
-            #   states -> set of states
-            #
-            # Declares a toplevel state. It should be used only to declare RTT's
-            # TaskContext states.
+            # @deprecated use {toplevel_state} to define toplevel states on root
+            #   models, and {#each_state} to enumerate the states
             def states(*state_names) # :nodoc:
                 if state_names.empty?
                     return @states
                 end
 
+                toplevel_states(*state_names)
+            end
+
+            # Define the state machine's toplevel states, usually used only on a
+            # root model
+            def toplevel_states(*state_names)
                 state_names.each do |name|
                     define_state(name, :toplevel)
                 end
@@ -1368,6 +1400,21 @@ module OroGen
                     attributes: each_attribute.map(&:to_h),
                     operations: each_operation.map(&:to_h)
                 ]
+            end
+
+            # Enumerate all the types that are used on this component's
+            # interface
+            def each_interface_type
+                return enum_for(__method__) if !block_given?
+
+                seen = Set.new
+                (all_properties + all_attributes + all_operations + all_ports + all_dynamic_ports).
+                    each do |obj|
+                        if !seen.include?(obj)
+                            obj.each_interface_type { |t| yield(t) }
+                            seen << obj
+                        end
+                    end
             end
 	end
     end
