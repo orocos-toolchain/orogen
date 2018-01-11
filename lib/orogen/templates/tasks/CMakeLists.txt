@@ -3,10 +3,6 @@
 include(<%= project.name %>TaskLib)
 ADD_LIBRARY(${<%= project.name.upcase %>_TASKLIB_NAME} SHARED 
     ${<%= project.name.upcase %>_TASKLIB_SOURCES})
-<% if project.typekit %>
-add_dependencies(${<%= project.name.upcase %>_TASKLIB_NAME}
-    regen-typekit)
-<% end %>
 
 <% if self_tasks.any?{|t| t.uses_qt?} %>
 find_package(Qt4 REQUIRED)

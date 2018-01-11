@@ -96,7 +96,7 @@ module OroGen
         def self.cmake_pkgconfig_link(context, target, depspec)
             depspec.inject([]) do |result, s|
                 if s.in_context?(context, 'link')
-                    result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
+                    result << "target_link_libraries(#{target} PRIVATE ${#{s.var_name}_LIBRARIES})"
                 end
                 result
             end.join("\n") + "\n"

@@ -23,36 +23,36 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_definitions(-DRTT_COMPONENT)
 add_executable(<%= deployer.name %> ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/main-<%= deployer.name %>.cpp)
 <% if project.typekit %>
-target_link_libraries(<%= deployer.name %> <%= project.name %>-typekit-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> PUBLIC <%= project.name %>-typekit-${OROCOS_TARGET})
 <% deployer.transports.each do |transport_name| %>
-target_link_libraries(<%= deployer.name %> <%= project.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> PUBLIC <%= project.name %>-transport-<%= transport_name %>-${OROCOS_TARGET})
 <% end %>
 <% end %>
 
 if(service_discovery_FOUND)
-    target_link_libraries(<%= deployer.name %> ${service_discovery_LIBRARIES})
+    target_link_libraries(<%= deployer.name %> PUBLIC ${service_discovery_LIBRARIES})
 endif()
 
-target_link_libraries(<%= deployer.name %> ${Boost_PROGRAM_OPTIONS_LIBRARIES} ${Boost_SYSTEM_LIBRARIES})
+target_link_libraries(<%= deployer.name %> PUBLIC ${Boost_PROGRAM_OPTIONS_LIBRARIES} ${Boost_SYSTEM_LIBRARIES})
 
 <% if uses_qt? %>
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${QT_INCLUDE_DIR})
 link_directories(${QT_LIBRARY_DIR})
-target_link_libraries(<%= deployer.name %> ${QT_LIBRARIES})
+target_link_libraries(<%= deployer.name %> PUBLIC ${QT_LIBRARIES})
 set(CMAKE_AUTOMOC true)
 <% end %>
 
 
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)
-target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-typekit_LIBRARY})
+target_link_libraries(<%= deployer.name %> PUBLIC ${RTT_PLUGIN_rtt-typekit_LIBRARY})
 <% deployer.rtt_transports.each do |transport_name| %>
-target_link_libraries(<%= deployer.name %> ${RTT_PLUGIN_rtt-transport-<%= transport_name %>_LIBRARY})
+target_link_libraries(<%= deployer.name %> PUBLIC ${RTT_PLUGIN_rtt-transport-<%= transport_name %>_LIBRARY})
 <% end %>
 <% if !project.self_tasks.empty? %>
-target_link_libraries(<%= deployer.name %> <%= project.name %>-tasks-${OROCOS_TARGET})
+target_link_libraries(<%= deployer.name %> PUBLIC <%= project.name %>-tasks-${OROCOS_TARGET})
 <% end %>
 <%= Generation.cmake_pkgconfig_link_noncorba(deployer.name, dependencies) %>
 
