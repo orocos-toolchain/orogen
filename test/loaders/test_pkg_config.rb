@@ -37,7 +37,7 @@ describe OroGen::Loaders::PkgConfig do
             :deffile => deffile,
             :type_registry => type_registry,
             :task_models => task_models.join(","),
-            :deployed_tasks => deployed_tasks.join(","),
+            :deployed_tasks2 => deployed_tasks.join(","),
             :binfile => "/path/to/binfile/#{name}")
         stub_pkgconfig_package("orogen-project-#{name}", pkg)
         stub_pkgconfig_package("#{name}-typekit-oroarch", pkg)
@@ -104,7 +104,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks => "",
+                :deployed_tasks2 => "",
                 :path => "bla")
             stub_pkgconfig_package("base-typekit-oroarch", pkg)
             stub_orogen_pkgconfig_final
@@ -116,7 +116,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks => "",
+                :deployed_tasks2 => "",
                 :path => "bla")
             stub_pkgconfig_package("orogen-project-base", pkg)
             stub_pkgconfig_package("base-typekit-oroarch", pkg)
@@ -146,11 +146,31 @@ describe OroGen::Loaders::PkgConfig do
 
     describe "#each_available_deployment_name" do
         it "enumerates the deployments" do
-            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", "deployment2"]
-            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", "deployment3"]
+            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", 'base::Task', "deployment2", 'base::Task']
+            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", 'test::Task', "deployment3", 'test::Task']
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
             assert_equal Set['base', 'test'], loader.each_available_deployment_name.to_set
+        end
+    end
+
+    describe "#each_available_deployed_task" do
+        it "enumerates the deployments" do
+            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", 'base::Task', "deployment2", 'test::Task']
+            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", 'test::Task', "deployment3", 'base::Task']
+            stub_orogen_pkgconfig_final
+            expected = [
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment1', 'base', 'base::Task', 'base'),
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment1', 'test', 'test::Task', 'test'),
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment2', 'base', 'test::Task', 'base'),
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment3', 'test', 'base::Task', 'test')
+            ]
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            assert_equal expected, loader.each_available_deployed_task.to_a.sort_by { |t| [t.task_name, t.deployment_name] }
         end
     end
 
@@ -270,7 +290,7 @@ describe OroGen::Loaders::PkgConfig do
             :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
             :type_registry => nil,
             :task_models => "",
-            :deployed_tasks => "",
+            :deployed_tasks2 => "",
             :path => "bla")
         stub_pkgconfig_package("base-tasks-oroarch", pkg)
         stub_orogen_pkgconfig_final
@@ -284,7 +304,7 @@ describe OroGen::Loaders::PkgConfig do
                 :project_name => 'base',
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :task_models => "base::Task,base::other::Task",
-                :deployed_tasks => "",
+                :deployed_tasks2 => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
             stub_pkgconfig_package("base-tasks-oroarch", pkg)
@@ -316,18 +336,18 @@ describe OroGen::Loaders::PkgConfig do
 
     describe "#find_deployments_from_deployed_task_name" do
         it "resolves the deployments that provide the corresponding task name" do
-            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", "deployment2"]
-            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", "deployment3"]
+            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", 'base::Task', "deployment2", 'base::Task']
+            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", 'test::Task', "deployment3", 'test::Task']
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
             assert_equal 'base', loader.find_project_from_deployment_name('base')
-            assert_equal ['base', 'test'].to_set, loader.find_deployments_from_deployed_task_name('deployment1')
-            assert_equal ['base'].to_set, loader.find_deployments_from_deployed_task_name('deployment2')
+            assert_equal ['base', 'test'].to_set, loader.find_deployments_from_deployed_task_name('deployment1').to_set
+            assert_equal ['base'], loader.find_deployments_from_deployed_task_name('deployment2')
 
             flexmock(Utilrb::PkgConfig).should_receive(:get).never
             assert_equal 'base', loader.find_project_from_deployment_name('base')
-            assert_equal ['base', 'test'].to_set, loader.find_deployments_from_deployed_task_name('deployment1')
-            assert_equal ['base'].to_set, loader.find_deployments_from_deployed_task_name('deployment2')
+            assert_equal ['base', 'test'].to_set, loader.find_deployments_from_deployed_task_name('deployment1').to_set
+            assert_equal ['base'], loader.find_deployments_from_deployed_task_name('deployment2')
         end
 
         it "ignores deployments whose project does not exist" do
@@ -336,7 +356,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks => "",
+                :deployed_tasks2 => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
             stub_pkgconfig_package("orogen-base", pkg)
@@ -349,7 +369,7 @@ describe OroGen::Loaders::PkgConfig do
 
     describe "find_deployment_binfile" do
         it "returns the binary file of a known deployment" do
-            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", "deployment2"]
+            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", 'base::Task', "deployment2", 'base::Task']
             stub_orogen_pkgconfig_final
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
             assert_equal '/path/to/binfile/base', loader.find_deployment_binfile('base')
