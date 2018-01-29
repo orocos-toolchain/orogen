@@ -8,7 +8,7 @@ project_name=<%= project.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(project.deffile) %>
 typekits=<%= project.name if project.typekit %> <%= deployer.used_typekits.map { |tk| tk.name }.join(" ") %>
 deployed_tasks=<%= deployer.task_activities.map(&:name).sort.join(",") %>
-deployed_tasks2=<%= deployer.task_activities.
+deployed_tasks_with_models=<%= deployer.task_activities.
     map { |t| [t.name, t.task_model.name ] }.sort_by(&:first).
     flatten.join(",") %>
 

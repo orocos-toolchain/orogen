@@ -276,7 +276,7 @@ module OroGen
                     project_name = pkg.project_name
                     deployment_name = pkg_name.gsub(/^orogen-/, '')
 
-                    if !pkg.deployed_tasks2
+                    if !pkg.deployed_tasks_with_models
                         # oroGen has a bug, in which it installed the pkg-config
                         # file for deployments that were not meant to be
                         # installed.
@@ -287,7 +287,7 @@ module OroGen
                         next
                     end
 
-                    pkg.deployed_tasks2.split(',').each_slice(2) do |task_name, task_model_name|
+                    pkg.deployed_tasks_with_models.split(',').each_slice(2) do |task_name, task_model_name|
                         available_deployed_tasks[task_name] ||= Set.new
                         available_deployed_tasks[task_name] <<
                             AvailableDeployedTask.new(
@@ -444,6 +444,17 @@ module OroGen
                         yield(task)
                     end
                 end
+            end
+
+            # Returns basic information about a deployed task
+            #
+            # @param [String] task_name
+            # @return [AvailableDeployedTask,nil]
+            def find_basic_deployed_task_info(task_name)
+                if available_deployed_tasks.empty?
+                    load_available_deployed_tasks
+                end
+                available_deployed_tasks[task_name]
             end
 
             # Enumerate the types available on this system

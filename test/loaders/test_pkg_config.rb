@@ -37,7 +37,7 @@ describe OroGen::Loaders::PkgConfig do
             :deffile => deffile,
             :type_registry => type_registry,
             :task_models => task_models.join(","),
-            :deployed_tasks2 => deployed_tasks.join(","),
+            :deployed_tasks_with_models => deployed_tasks.join(","),
             :binfile => "/path/to/binfile/#{name}")
         stub_pkgconfig_package("orogen-project-#{name}", pkg)
         stub_pkgconfig_package("#{name}-typekit-oroarch", pkg)
@@ -104,7 +104,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks2 => "",
+                :deployed_tasks_with_models => "",
                 :path => "bla")
             stub_pkgconfig_package("base-typekit-oroarch", pkg)
             stub_orogen_pkgconfig_final
@@ -116,7 +116,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks2 => "",
+                :deployed_tasks_with_models => "",
                 :path => "bla")
             stub_pkgconfig_package("orogen-project-base", pkg)
             stub_pkgconfig_package("base-typekit-oroarch", pkg)
@@ -171,6 +171,27 @@ describe OroGen::Loaders::PkgConfig do
             ]
             loader = OroGen::Loaders::PkgConfig.new('oroarch')
             assert_equal expected, loader.each_available_deployed_task.to_a.sort_by { |t| [t.task_name, t.deployment_name] }
+        end
+    end
+
+    describe "#find_basic_deployed_task_info" do
+        it "returns nil if the task name does not exist" do
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            assert_nil loader.find_basic_deployed_task_info('does_not_exist')
+        end
+        it "returns the task info of the matching deployed tasks" do
+            stub_orogen_pkgconfig 'base', ["base::Task"], ["deployment1", 'base::Task', "deployment2", 'test::Task']
+            stub_orogen_pkgconfig 'test', ["test::Task"], ["deployment1", 'test::Task', "deployment3", 'base::Task']
+            stub_orogen_pkgconfig_final
+            loader = OroGen::Loaders::PkgConfig.new('oroarch')
+            expected = Set[
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment1', 'base', 'base::Task', 'base'),
+                OroGen::Loaders::PkgConfig::AvailableDeployedTask.new(
+                    'deployment1', 'test', 'test::Task', 'test'),
+            ]
+            assert_equal expected, loader.
+                find_basic_deployed_task_info('deployment1')
         end
     end
 
@@ -290,7 +311,7 @@ describe OroGen::Loaders::PkgConfig do
             :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
             :type_registry => nil,
             :task_models => "",
-            :deployed_tasks2 => "",
+            :deployed_tasks_with_models => "",
             :path => "bla")
         stub_pkgconfig_package("base-tasks-oroarch", pkg)
         stub_orogen_pkgconfig_final
@@ -304,7 +325,7 @@ describe OroGen::Loaders::PkgConfig do
                 :project_name => 'base',
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :task_models => "base::Task,base::other::Task",
-                :deployed_tasks2 => "",
+                :deployed_tasks_with_models => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
             stub_pkgconfig_package("base-tasks-oroarch", pkg)
@@ -356,7 +377,7 @@ describe OroGen::Loaders::PkgConfig do
                 :deffile => File.join(fixtures_prefix, 'deffile', "base.orogen"),
                 :type_registry => nil,
                 :task_models => "",
-                :deployed_tasks2 => "",
+                :deployed_tasks_with_models => "",
                 :path => "bla",
                 :binfile => '/path/to/binfile')
             stub_pkgconfig_package("orogen-base", pkg)
