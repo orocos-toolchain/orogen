@@ -145,10 +145,10 @@ module OroGen
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
                 if result = opaques.find { |opaque_def| opaque_def.type.eql? type }
-		    result
-		else
-		    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
-		end
+                    result
+                else
+                    raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
+                end
             end
 
             # Finds the opaque (or opaque-containing) type for which the given
@@ -213,7 +213,7 @@ module OroGen
                         path.map! do |p|
                             p.gsub(/[<>\[\], \/]/, '_')
                         end
-			"/" + path.join("/") + "_m"
+                        "/" + path.join("/") + "_m"
                     end
                 else type.name
                 end

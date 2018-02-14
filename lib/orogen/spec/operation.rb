@@ -31,11 +31,11 @@ module OroGen
         #
         # will require the user-visible part to define
         #   double move(double x, double y);
-	class Operation
-	    # The TaskContext instance this operation is part of
-	    attr_reader :task
-	    # The operation name
-	    attr_reader :name
+        class Operation
+            # The TaskContext instance this operation is part of
+            attr_reader :task
+            # The operation name
+            attr_reader :name
             # True if this operation runs its associated C++ method in caller
             # thread (default is false)
             #
@@ -44,21 +44,21 @@ module OroGen
 
             RTT_ARGUMENT_COUNT_LIMIT = 4
 
-	    def initialize(task, name)
+            def initialize(task, name)
                 name = name.to_s
-		if name !~ /^\w+$/
+                if name !~ /^\w+$/
                     raise ArgumentError, "#{self.class.name.downcase} names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
-		end
+                end
 
-		@task = task
-		@name = name
+                @task = task
+                @name = name
                 @return_type = [nil, 'void', ""]
-		@arguments = []
+                @arguments = []
                 @in_caller_thread = false
                 @doc = nil
 
                 super()
-	    end
+            end
 
             def each_interface_type
                 return enum_for(__method__) if !block_given?
@@ -88,18 +88,18 @@ module OroGen
                 self
             end
 
-	    # call-seq:
-	    #	doc new_doc -> self
-            #	doc ->  current_doc
-	    #
-	    # Gets/sets a string describing this object
-	    dsl_attribute(:doc) { |value| value.to_s }
+            # call-seq:
+            #   doc new_doc -> self
+            #   doc ->  current_doc
+            #
+            # Gets/sets a string describing this object
+            dsl_attribute(:doc) { |value| value.to_s }
 
-	    # The set of arguments of this operation, as an array of [name, type,
-	    # doc] elements. The +type+ objects are Typelib::Type instances.
+            # The set of arguments of this operation, as an array of [name, type,
+            # doc] elements. The +type+ objects are Typelib::Type instances.
             # 
             # See #argument
-	    attr_reader :arguments
+            attr_reader :arguments
 
             # This version of find_interface_type returns both a Typelib::Type object and
             # a normalized version for +name+. It does accept const and
@@ -110,7 +110,7 @@ module OroGen
                 end
                 type_name = OroGen.unqualified_cxx_type(qualified_type)
                 typelib_type_name = ::Typelib::GCCXMLLoader.cxx_to_typelib(type_name)
-		type      = task.project.find_interface_type(typelib_type_name)
+                type      = task.project.find_interface_type(typelib_type_name)
                 OroGen.validate_toplevel_type(type)
                 return type, qualified_type.gsub(type_name, type.cxx_name)
             end
@@ -125,33 +125,33 @@ module OroGen
             # Note that RTT does not support having more than 4
             # arguments for an operation, and trying that will therefore raise an
             # error
-	    def argument(name, qualified_type, doc = "")
+            def argument(name, qualified_type, doc = "")
                 if arguments.size >= RTT_ARGUMENT_COUNT_LIMIT
                     raise ArgumentError, "RTT does not support having more than #{RTT_ARGUMENT_COUNT_LIMIT} arguments for an operation"
                 end
 
                 type, qualified_type = find_interface_type(qualified_type)
-		arguments << [name, type, doc, qualified_type]
-		self
-	    end
+                arguments << [name, type, doc, qualified_type]
+                self
+            end
 
             # Shortcut for #arg
             def arg(*args, &block)
                 argument(*args, &block)
             end
 
-	    # The return type of this operation, as a [type_object,
+            # The return type of this operation, as a [type_object,
             # qualified_cxx_type] pair.
             #
             # See #returns
-	    attr_reader :return_type
+            attr_reader :return_type
 
             # Sets the return type for this operation. +type+ can either be the
             # type name or a Typelib::Type object. In both cases, the required
             # type must be defined in the underlying project, either because it
             # is part of its own typekit or because it has been imported by a
             # Project#load_typekit call.
-	    def returns(type, doc = "")
+            def returns(type, doc = "")
                 @return_type =
                     if type
                         type, qualified_type = find_interface_type(type)
@@ -159,8 +159,8 @@ module OroGen
                     else [nil, 'void', doc]
                     end
 
-		self
-	    end
+                self
+            end
 
             # Returns true if this operation's signature is not void
             def has_return_value?
@@ -215,7 +215,7 @@ module OroGen
                 end
                 result
             end
-	end
+        end
     end
 end
 

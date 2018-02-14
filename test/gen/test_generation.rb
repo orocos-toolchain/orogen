@@ -11,7 +11,7 @@ class TC_GenerationErrorCases < Minitest::Test
     def test_simple_typelib; test_simple('typelib') end
 
     def test_generation_requires_name_and_orogen
-	project = Project.new
+        project = Project.new
 
         # Should raise because there is no name
         assert_raises(ArgumentError) { project.generate }

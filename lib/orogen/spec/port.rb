@@ -2,13 +2,13 @@ module OroGen
     module Spec
         # Generic representation of ports. The actual ports are either
         # instance of InputPort or OutputPort
-	class Port
-	    # The port task
-	    attr_reader :task
-	    # The port name
-	    attr_reader :name
-	    # The port type. It can be nil for dynamic ports
-	    attr_reader :type
+        class Port
+            # The port task
+            attr_reader :task
+            # The port name
+            attr_reader :name
+            # The port type. It can be nil for dynamic ports
+            attr_reader :type
             # The port type name
             def type_name; type.name end
             # The port name as it is registered on RTT
@@ -87,7 +87,7 @@ module OroGen
             # True if this is a dynamic port model, false otherwise
             def dynamic?; false end
 
-	    def initialize(task, name, type, options = Hash.new)
+            def initialize(task, name, type, options = Hash.new)
                 if !name.kind_of?(Regexp)
                     name = name.to_s
                     if name !~ /^\w+$/
@@ -104,19 +104,19 @@ module OroGen
                         Spec.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
                     end
                 end
-		@task, @name, @type = task, name, type
+                @task, @name, @type = task, name, type
 
                 @doc = nil
                 @max_sizes = Hash.new
                 keep_last_written_value :initial
-	    end
+            end
 
-	    # call-seq:
-	    #	doc new_doc -> self
-            #	doc ->  current_doc
-	    #
-	    # Gets/sets a string describing this object
-	    dsl_attribute(:doc) { |value| value.to_s }
+            # call-seq:
+            #   doc new_doc -> self
+            #   doc ->  current_doc
+            #
+            # Gets/sets a string describing this object
+            dsl_attribute(:doc) { |value| value.to_s }
 
             def self.resolve_max_size_path(type, name)
                 resolved_type = name.split('.').inject(type) do |resolved_type, element|
@@ -295,7 +295,7 @@ module OroGen
                 resolved_type = task.project.intermediate_type_for(type)
                 OutputPort.compute_max_marshalling_size(resolved_type, max_sizes)
             end
-	end
+        end
     end
 end
 

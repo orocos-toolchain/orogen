@@ -11,15 +11,15 @@ module OroGen
                 end
 
                 def dependencies
-		    result = []
-		    typekit.used_libraries.each do |pkg|
-			needs_link = typekit.linked_used_libraries.include?(pkg)
-			result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
-			    in_context('typelib', 'include')
-			if needs_link
-			    result.last.in_context('typelib', 'link')
-			end
-		    end
+                    result = []
+                    typekit.used_libraries.each do |pkg|
+                        needs_link = typekit.linked_used_libraries.include?(pkg)
+                        result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
+                            in_context('typelib', 'include')
+                        if needs_link
+                            result.last.in_context('typelib', 'link')
+                        end
+                    end
                     result
                 end
 

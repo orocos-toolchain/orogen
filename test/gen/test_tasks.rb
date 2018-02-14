@@ -28,64 +28,64 @@ class TC_GenerationTasks < Minitest::Test
         end
 
         create_wc("tasks/property")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_operation_sets_the_method_name_to_the_op_name_with_a_lower_first_character
-	meth = task.operation("Method_name")
-	assert_equal("method_name", meth.method_name)
+        meth = task.operation("Method_name")
+        assert_equal("method_name", meth.method_name)
     end
 
     def test_operation_empty_signature
-	meth = task.operation("methodName")
-	assert(meth.arguments.empty?)
-	assert_equal("void methodName()", meth.signature)
-	assert_equal("void()", meth.signature(false))
-	assert_equal("void foobar()", meth.signature { "foobar" })
+        meth = task.operation("methodName")
+        assert(meth.arguments.empty?)
+        assert_equal("void methodName()", meth.signature)
+        assert_equal("void()", meth.signature(false))
+        assert_equal("void foobar()", meth.signature { "foobar" })
     end
 
     def test_operation_can_override_the_method_name
-	meth = task.operation("method_name")
+        meth = task.operation("method_name")
         meth.method_name "method_name"
-	assert_equal("void method_name()", meth.signature)
+        assert_equal("void method_name()", meth.signature)
     end
 
     def test_operation_returns
-	meth = task.operation("methodName")
-	assert_same(meth, meth.returns("/int"))
-	assert_equal("boost::int32_t methodName()", meth.signature)
+        meth = task.operation("methodName")
+        assert_same(meth, meth.returns("/int"))
+        assert_equal("boost::int32_t methodName()", meth.signature)
         meth.returns nil
-	assert_equal("void methodName()", meth.signature)
+        assert_equal("void methodName()", meth.signature)
     end
 
     def test_operation_argument_add_one_argument
-	meth = task.operation("methodName")
+        meth = task.operation("methodName")
         ret = meth.argument("arg1", "/std/string", "first argument").
             returns('int32_t')
-	assert_same(meth, ret)
-	assert_equal("boost::int32_t methodName(::std::string const & arg1)", meth.signature(true))
-	assert_equal("boost::int32_t(::std::string const &)", meth.signature(false))
-	expected_arguments = [
+        assert_same(meth, ret)
+        assert_equal("boost::int32_t methodName(::std::string const & arg1)", meth.signature(true))
+        assert_equal("boost::int32_t(::std::string const &)", meth.signature(false))
+        expected_arguments = [
             ["arg1", project.registry.get('std/string'), "first argument", "::std::string"]
         ]
-	assert_equal(expected_arguments, meth.arguments)
+        assert_equal(expected_arguments, meth.arguments)
     end
 
     def test_operation_argument_add_two_arguments
-	meth = task.operation("method_name")
-	meth.argument("arg1", "/std/string", "first argument")
-	meth.argument "arg2", "double", "second argument"
-	assert_equal("void method_name(::std::string const & arg1, double arg2)", meth.signature(true))
-	assert_equal("void(::std::string const &, double)", meth.signature(false))
-	expected_arguments = [
+        meth = task.operation("method_name")
+        meth.argument("arg1", "/std/string", "first argument")
+        meth.argument "arg2", "double", "second argument"
+        assert_equal("void method_name(::std::string const & arg1, double arg2)", meth.signature(true))
+        assert_equal("void(::std::string const &, double)", meth.signature(false))
+        expected_arguments = [
             ["arg1", project.registry.get('std/string'), "first argument", "::std::string"],
             ["arg2", project.registry.get('double'), "second argument", "double"]
         ]
-	assert_equal(expected_arguments, meth.arguments)
+        assert_equal(expected_arguments, meth.arguments)
     end
 
     def test_operation_argument_raises_ArgumentError_if_more_than_RTT_OPERATIONS_ARGUMENT_COUNT_LIMIT_arguments_are_set
-	meth = task.operation("method_name")
+        meth = task.operation("method_name")
         OroGen::Spec::Operation::RTT_ARGUMENT_COUNT_LIMIT.times do |i|
             meth.argument "arg#{i}", "double"
         end
@@ -93,7 +93,7 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_generation_of_operations
-	task.operation("MethodName").
+        task.operation("MethodName").
             argument("arg1", "/std/string", "first argument").
             argument("arg2", "double", "second argument").
             argument("arg3", "double", "third argument").
@@ -107,33 +107,33 @@ class TC_GenerationTasks < Minitest::Test
             doc "this method runs in caller thread"
 
         create_wc("tasks/method")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_input_port_sets_the_orocos_class_properly
-	p = task.input_port 'r', 'int'
-	assert_equal("RTT::InputPort", p.orocos_class)
+        p = task.input_port 'r', 'int'
+        assert_equal("RTT::InputPort", p.orocos_class)
     end
 
     def test_output_port_sets_the_orocos_class_properly
-	p = task.output_port 'r', 'int'
-	assert_equal("RTT::OutputPort", p.orocos_class)
+        p = task.output_port 'r', 'int'
+        assert_equal("RTT::OutputPort", p.orocos_class)
     end
 
     def test_generation_of_input_and_output_ports
-	task.input_port 'r', 'int'
-	task.output_port 'w', 'int'
+        task.input_port 'r', 'int'
+        task.output_port 'w', 'int'
 
         create_wc("tasks/ports")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_task_ports_driven
-	task.input_port 'r', 'int'
+        task.input_port 'r', 'int'
         task.port_driven 'r'
 
         create_wc("tasks/port_driven")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_it_can_generate_tasks_with_a_default_activity
@@ -141,7 +141,7 @@ class TC_GenerationTasks < Minitest::Test
         deployment = project.deployment 'test'
         deployment.task 'test', task
         create_wc("tasks/default_activity")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_needs_configuration
@@ -153,7 +153,7 @@ class TC_GenerationTasks < Minitest::Test
         task.dynamic_input_port(/r$/, "/int")
         task.dynamic_output_port(/w$/, "/double")
         create_wc("tasks/dynamic_ports")
-	compile_wc(project)
+        compile_wc(project)
     end
 
     def test_state_type_definitions(*transports)

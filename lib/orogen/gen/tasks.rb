@@ -137,7 +137,7 @@ EOF
         module OutputPortGeneration
             # Returns the name of the RTT class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
-	    def orocos_class; "RTT::OutputPort" end
+            def orocos_class; "RTT::OutputPort" end
 
             def register_for_generation
                 super
@@ -168,7 +168,7 @@ EOF
         module InputPortGeneration
             # Returns the name of the RTT class for this port (i.e.  one of
             # ReadDataPort, WriteDataPort, DataPort, ReadBufferPort, ...)
-	    def orocos_class; "RTT::InputPort" end
+            def orocos_class; "RTT::InputPort" end
 
             def register_for_generation
                 super
@@ -186,22 +186,22 @@ EOF
             dsl_attribute(:base_body) { |value| value.to_s }
 
             def initialize
-		@method_name = self.name.dup
-		method_name[0, 1] = method_name[0, 1].downcase
+                @method_name = self.name.dup
+                method_name[0, 1] = method_name[0, 1].downcase
             end
 
             # Returns the C++ signature for this operation. Used in code
             # generation only.
-	    def signature(with_names = true)
-		result = return_type[1].dup
+            def signature(with_names = true)
+                result = return_type[1].dup
                 if with_names
                     result << " " <<
                         if block_given? then yield
                         else method_name
                         end
                 end
-		result << "(" << argument_signature(with_names) << ")"
-	    end
+                result << "(" << argument_signature(with_names) << ")"
+            end
 
             # Returns the set of types that this operation uses, as a
             # Set of Typelib::Type classes.
@@ -209,9 +209,9 @@ EOF
                 each_interface_type.to_a
             end
 
-	    # Returns the argument part of the C++ signature for this callable
-	    def argument_signature(with_names = true, with_types = true)
-		arglist = arguments.map do |name, type, doc, qualified_type|
+            # Returns the argument part of the C++ signature for this callable
+            def argument_signature(with_names = true, with_types = true)
+                arglist = arguments.map do |name, type, doc, qualified_type|
                     # Auto-add const-ref for non-trivial types
                     arg =
                         if type.cxx_name == qualified_type && !(type < Typelib::NumericType)
@@ -220,20 +220,20 @@ EOF
                             qualified_type
                         end
 
-		    ("#{arg if with_types} #{name if with_names}").strip
-		end
+                    ("#{arg if with_types} #{name if with_names}").strip
+                end
 
-		arglist.join(", ")
-	    end
+                arglist.join(", ")
+            end
 
-	    # call-seq:
-	    #	method_name new_name -> self
-            #	method_name -> current_name
-	    #
+            # call-seq:
+            #   method_name new_name -> self
+            #   method_name -> current_name
+            #
             # Gets or sets the name of the C++ method which is to be called to
             # serve this operation. It default to the method name with the
             # first character set to lowercase (MyMethod becomes myMethod).
-	    dsl_attribute(:method_name) { |value| value.to_s }
+            dsl_attribute(:method_name) { |value| value.to_s }
 
             # Called to register methods/hook code and so on on the task context
             def register_for_generation
@@ -306,7 +306,7 @@ EOF
         # will cause a <tt>OutputPort<double></tt> attribute named
         # <tt>_time</tt> to be added to the generated class (more specifically,
         # to the +Base+ subclass).
-	module TaskContextGeneration
+        module TaskContextGeneration
 
             # This method generates the relative basepath for generation of all files
             def basepath
@@ -410,16 +410,16 @@ EOF
                 state_name.upcase
             end
 
-	    # The set of task libraries that are required by this task context
+            # The set of task libraries that are required by this task context
             #
             # This is the set of task libraries that implement our superclasses
-	    def used_task_libraries
-		project.used_task_libraries.find_all do |tasklib|
-		    tasklib.self_tasks.any? do |task|
-			implements?(task.name)
-		    end
-		end
-	    end
+            def used_task_libraries
+                project.used_task_libraries.find_all do |tasklib|
+                    tasklib.self_tasks.any? do |task|
+                        implements?(task.name)
+                    end
+                end
+            end
 
             # Returns the set of types that are used to define this task
             # context, as an array of subclasses of Typelib::Type.
@@ -484,14 +484,14 @@ EOF
             end
 
 
-	    # Generate the code files for this task. This builds to classes:
-	    #
-	    # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
-	    #   which is the automatically generated part of the task.
-	    # * a #{task.name} class in tasks/#{task.name}.{cpp,hpp} which is
-	    #   the user-provided part of the task. This class is a public
-	    #   subclass of the Base class.
-	    def generate
+            # Generate the code files for this task. This builds to classes:
+            #
+            # * a #{task.name}Base class in .orogen/tasks/#{task.name}Base.{cpp,hpp}
+            #   which is the automatically generated part of the task.
+            # * a #{task.name} class in tasks/#{task.name}.{cpp,hpp} which is
+            #   the user-provided part of the task. This class is a public
+            #   subclass of the Base class.
+            def generate
                 return if external_definition?
                 
 
@@ -554,8 +554,8 @@ EOF
                     end
                 end
 
-		# Make this task be available in templates as 'task'
-		task = self
+                # Make this task be available in templates as 'task'
+                task = self
 
                 extensions.each do |ext|
                     if ext.respond_to?(:post_generation_hook)
@@ -563,15 +563,15 @@ EOF
                     end
                 end
 
-		base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
-		base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
-		Generation.save_automatic "tasks",basepath, "#{basename}Base.cpp", base_code_cpp
-		Generation.save_automatic "tasks",basepath, "#{basename}Base.hpp", base_code_hpp
+                base_code_cpp = Generation.render_template 'tasks', 'TaskBase.cpp', binding
+                base_code_hpp = Generation.render_template 'tasks', 'TaskBase.hpp', binding
+                Generation.save_automatic "tasks",basepath, "#{basename}Base.cpp", base_code_cpp
+                Generation.save_automatic "tasks",basepath, "#{basename}Base.hpp", base_code_hpp
 
-		code_cpp = Generation.render_template "tasks", "Task.cpp", binding
-		code_hpp = Generation.render_template "tasks", "Task.hpp", binding
-		file_cpp = Generation.save_user "tasks",basepath, "#{basename}.cpp", code_cpp
-		file_hpp = Generation.save_user "tasks",basepath, "#{basename}.hpp", code_hpp
+                code_cpp = Generation.render_template "tasks", "Task.cpp", binding
+                code_hpp = Generation.render_template "tasks", "Task.hpp", binding
+                file_cpp = Generation.save_user "tasks",basepath, "#{basename}.cpp", code_cpp
+                file_hpp = Generation.save_user "tasks",basepath, "#{basename}.hpp", code_hpp
 
                 # Validate constructors of old task files
                 validate_constructors(file_cpp, basename)
@@ -586,8 +586,8 @@ EOF
                 FileUtils.ln_sf File.join(project.base_dir, AUTOMATIC_AREA_NAME, "tasks",basepath, "#{basename}Base.hpp"),
                     File.join(fake_install_dir, basepath ,"#{basename}Base.hpp")
 
-		self
-	    end
+                self
+            end
 
             # Internal helper that validates +string+, +block+ as a single code
             # object
@@ -960,7 +960,7 @@ EOF
             def add_base_destruction(kind, name, code)
                 add_base_member(kind, name).destructor(code, &block)
             end
-	end
+        end
     end
     end
 end

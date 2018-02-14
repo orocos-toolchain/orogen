@@ -348,9 +348,9 @@ module OroGen
             # @return [Set<Spec::Typekit>] the list of typekits
             # @raise [DefinitionTypekitNotFound] if no typekits define this type
             def imported_typekits_for(typename, definition_typekits: true)
-		if typename.respond_to?(:name)
-		    typename = typename.name
-		end
+                if typename.respond_to?(:name)
+                    typename = typename.name
+                end
                 if typekits = typekits_by_type_name[typename]
                     if definition_typekits
                         definition_typekits = typekits.find_all { |tk| tk.include?(typename) }

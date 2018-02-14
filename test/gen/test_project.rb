@@ -3,30 +3,30 @@ require 'orogen/gen/test'
 class TC_GenerationProject < Minitest::Test
     def test_project_generate
         create_wc "base"
-	in_wc do
+        in_wc do
             # No name, no orogen file
-	    project = RTT_CPP::Project.new
-	    assert_raises(ArgumentError) { project.generate }
+            project = RTT_CPP::Project.new
+            assert_raises(ArgumentError) { project.generate }
 
             # No orogen file
-	    project = RTT_CPP::Project.new
-	    project.name "cmp"
-	    assert_raises(ArgumentError) { project.generate } 
+            project = RTT_CPP::Project.new
+            project.name "cmp"
+            assert_raises(ArgumentError) { project.generate } 
             
             # No name
-	    project = RTT_CPP::Project.new
-	    project.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
-	    assert_raises(ArgumentError) { project.generate } 
+            project = RTT_CPP::Project.new
+            project.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
+            assert_raises(ArgumentError) { project.generate } 
 
             # OK
-	    project = RTT_CPP::Project.new
-	    project.load(File.join(path_to_data, "empty_component.orogen"))
-	    project.generate
-	end
+            project = RTT_CPP::Project.new
+            project.load(File.join(path_to_data, "empty_component.orogen"))
+            project.generate
+        end
     end
 
     def test_generation_requires_name_and_orogen
-	project = Project.new
+        project = Project.new
 
         # Should raise because there is no name
         assert_raises(ArgumentError) { project.generate }
