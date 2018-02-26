@@ -14,7 +14,6 @@ DEFAULT_EXTENSIONS = %w{}
 rtt_cpp = OroGen::Gen::RTT_CPP
 
 verbosity = 0
-extended_states = true
 project = rtt_cpp::Project.new
 OroGen::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = true
 
