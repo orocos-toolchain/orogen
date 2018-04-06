@@ -104,7 +104,7 @@ module OroGen
                 register_project_model(project)
                 project
             end
-            
+
             # Registers a callback that should be called with newly registered
             # projects
             #
@@ -300,7 +300,7 @@ module OroGen
                     interface_typelist << type.name
                 end
             end
-            
+
             # Registers a callback that should be called with newly registered
             # typekits
             #
@@ -499,6 +499,14 @@ module OroGen
             # @return [Boolean]
             def has_project?(name)
                 loaded_projects.has_key?(name)
+            end
+
+            # Tests if a typekit with that name has been loaded
+            #
+            # @param [String] name the typekit name
+            # @return [Boolean]
+            def has_loaded_typekit?(name)
+                loaded_typekits.has_key?(name)
             end
 
             # Tests if a typekit with that name exists
