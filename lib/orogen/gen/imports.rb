@@ -278,7 +278,7 @@ module OroGen
                 end
             end
 
-            def task_context(name, &block) # :nodoc:
+            def task_context(name, **options, &block) # :nodoc:
                 task = super
                 if !task
                     #Task might not be created because it's namespace is disabled
