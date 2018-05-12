@@ -61,7 +61,7 @@ FOREACH(COMPONENT ${RTTPlugin_FIND_COMPONENTS})
     if(RTTPlugin_FIND_QUIET)
         set(RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_FIND_QUIET TRUE)
     endif()
-    
+
     libfind_process( RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET} )
 
     # Since libfind_process does not deal correctly with "optimized" and "debug" keywords,
@@ -74,11 +74,11 @@ FOREACH(COMPONENT ${RTTPlugin_FIND_COMPONENTS})
             debug ${RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}D_LIBRARY}
             optimized ${RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_LIBRARY})
     else()
-        set(RTT_PLUGIN_${COMPONENT}_LIBRARIES "") 
+        set(RTT_PLUGIN_${COMPONENT}_LIBRARIES "")
         set(RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_LIBRARIES "")
     endif()
 
-    if ( NOT "RTT_PLUGIN_${COMPONENT}_LIBRARIES" STREQUAL "RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_LIBRARIES" )
+    if ( NOT "${RTT_PLUGIN_${COMPONENT}_LIBRARIES}" STREQUAL "${RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_LIBRARIES}" )
       # Avoid worst case and disable the generic case:
       message("[FindRTTPlugin] Forcing RTT_PLUGIN_${COMPONENT}_LIBRARIES to ${OROCOS_TARGET} since your are switching OROCOS_TARGETs")
       set( RTT_PLUGIN_${COMPONENT}_LIBRARIES ${RTT_PLUGIN_${COMPONENT}_${OROCOS_TARGET}_LIBRARIES})
