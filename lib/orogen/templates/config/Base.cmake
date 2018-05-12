@@ -1,4 +1,5 @@
 include(OrogenPkgCheckModules)
+
 ADD_CUSTOM_TARGET(regen
     <% ruby_bin   = RbConfig::CONFIG['RUBY_INSTALL_NAME'] %>
     <%= ruby_bin %> -S orogen <%= RTT_CPP.command_line_options.join(" ") %> <%= project.deffile %>
@@ -79,6 +80,9 @@ ADD_SUBDIRECTORY( ${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAM
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit")
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/<%= Generation::AUTOMATIC_AREA_NAME %>/typekit/types")
 add_dependencies(check-uptodate check-typekit-uptodate)
+# For backward compatibility
+add_custom_target(regen-typekit)
+add_dependencies(regen-typekit check-typekit-uptodate)
 <% end %>
 
 # Take care of the task library
@@ -114,4 +118,3 @@ if (EXISTS ${PROJECT_SOURCE_DIR}/scripts/roby.rb)
         DESTINATION share/orocos/roby
         RENAME <%= project.name %>.rb)
 endif()
-
