@@ -197,8 +197,8 @@ module OroGen
             def initialize(name, task_model)
                 @name     = name
                 @task_model  = task_model
-		@realtime = false
-		@priority = :lowest
+                @realtime = false
+                @priority = :lowest
                 @max_overruns = -1
                 @master = nil
                 @slaves = Array.new
@@ -217,22 +217,22 @@ module OroGen
                     end
             end
             
-	    # Make this task as being of the highest priority allowed by the
-	    # underlying OS
-	    def highest_priority; @priority = :highest; self end
-	    # Make this task as being of the lowest priority allowed by the
-	    # underlying OS
-	    def lowest_priority;  @priority = :lowest; self end
-	    # call-seq:
-	    #	priority prio -> new_prio
-            #	priority -> current_priority
-	    #
-	    # Sets the task priority as an integer value. Allowed values are
-	    # OS-specific, and for now the allowed range is unfortunately not
-	    # available from Ruby.
+            # Make this task as being of the highest priority allowed by the
+            # underlying OS
+            def highest_priority; @priority = :highest; self end
+            # Make this task as being of the lowest priority allowed by the
+            # underlying OS
+            def lowest_priority;  @priority = :lowest; self end
+            # call-seq:
+            #   priority prio -> new_prio
+            #   priority -> current_priority
+            #
+            # Sets the task priority as an integer value. Allowed values are
+            # OS-specific, and for now the allowed range is unfortunately not
+            # available from Ruby.
             #
             # See also #highest_priority and #lowest_priority
-	    dsl_attribute(:priority) { |value| Integer(value) }
+            dsl_attribute(:priority) { |value| Integer(value) }
 
             # The Project object this task is part of
             def project; task_model.project end
@@ -311,7 +311,7 @@ module OroGen
                 self
             end
 
-	    # Returns the task period, or nil if the task is not periodic. Call
+            # Returns the task period, or nil if the task is not periodic. Call
             # #periodic to define a periodic task and one of the other
             # triggering methods otherwise.
             attr_reader :period
@@ -322,8 +322,8 @@ module OroGen
                     activity_type.name != 'Periodic'
             end
 
-	    # call-seq:
-	    #	periodic(period_in_seconds) -> self
+            # call-seq:
+            #   periodic(period_in_seconds) -> self
             #
             # Sets this task as being periodic. Call #period to return the
             # current task's period (or nil if the task is not periodic), and
@@ -360,7 +360,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 
             # Marks this task as being explicitely triggered (the default). To
             # make it periodic, call #period with the required period
-	    def triggered
+            def triggered
                 activity_type 'Triggered', 'RTT::Activity', 'rtt/Activity.hpp'
                 activity_setup do
                    result = <<-EOD
@@ -454,11 +454,11 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             # True if this task should be deployed using a realtime scheduler,
             # and false otherwise
             def realtime?; @realtime end
-	    # Marks this task as being part of the realtime scheduling class
-	    def realtime; @realtime = true; self end
-	    # Marks this task as being part of the non-realtime scheduling
-	    # class (the default)
-	    def non_realtime; @realtime = false; self end
+            # Marks this task as being part of the realtime scheduling class
+            def realtime; @realtime = true; self end
+            # Marks this task as being part of the non-realtime scheduling
+            # class (the default)
+            def non_realtime; @realtime = false; self end
 
             def to_s
                 "#<#{self.class} name=#{name} model=#{task_model}>"
@@ -512,17 +512,17 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
         # instanciated and associated with specific Activity classes.
         #
         class Deployment
-	    # The deployment name
-	    attr_reader :name
+            # The deployment name
+            attr_reader :name
             # The underlying Project object
             attr_reader :project
             # The set of tasks that need to be deployed
             attr_reader :task_activities
 
-	    # Do not install that deployment
-	    def do_not_install; @install = false end
-	    # True if this deployment should be installed
-	    def install?; !!@install end
+            # Do not install that deployment
+            def do_not_install; @install = false end
+            # True if this deployment should be installed
+            def install?; !!@install end
 
             # True if we are generating for Linux
             def linux?;     project.linux? end
@@ -531,12 +531,12 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
 
             def initialize(project = nil, name = nil)
                 @project       = project
-		@name		 = name
+                @name            = name
 
-		@install	 = true
+                @install         = true
                 @task_activities = Array.new
                 @file_reporters  = Hash.new
-                @loggers	 = Hash.new
+                @loggers         = Hash.new
                 @connections     = Array.new
                 @tcp_reporters   = Hash.new
                 @peers           = Set.new

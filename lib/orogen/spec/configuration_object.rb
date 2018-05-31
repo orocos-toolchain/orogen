@@ -4,15 +4,15 @@ require 'set'
 module OroGen
     module Spec
         # Representation of a task's attribute or property
-	class ConfigurationObject
+        class ConfigurationObject
             # The task on which this property is attached
             attr_accessor :task
-	    # The property name
-	    attr_reader :name
+            # The property name
+            attr_reader :name
 
-	    # The property type, as a Typelib::Type object from the underlying
-	    # project's type registry
-	    attr_reader :type
+            # The property type, as a Typelib::Type object from the underlying
+            # project's type registry
+            attr_reader :type
 
             #If this property coudl be set Dynamic this returns true
             def dynamic?; !!@setter_operation end
@@ -32,23 +32,23 @@ module OroGen
                 type.name
             end
 
-	    # The property's default value
-	    attr_reader :default_value
+            # The property's default value
+            attr_reader :default_value
 
-	    # Create a new property with the given name, type and default value
-	    def initialize(task, name, type, default_value)
+            # Create a new property with the given name, type and default value
+            def initialize(task, name, type, default_value)
                 name = name.to_s
-		if name !~ /^\w+$/
+                if name !~ /^\w+$/
                     raise ArgumentError, "property names need to be valid C++ identifiers, i.e. contain only alphanumeric characters and _ (got #{name})"
-		end
+                end
 
                 type = task.project.find_interface_type(type)
                 OroGen.validate_toplevel_type(type)
                 @dynamic = false
-		@task, @name, @type, @default_value = task, name, type, default_value
+                @task, @name, @type, @default_value = task, name, type, default_value
                 @setter_operation = nil
                 @doc = nil
-	    end
+            end
 
             def dynamic
                 @setter_operation = task.find_operation("__orogen_set#{name.capitalize}")
@@ -84,12 +84,12 @@ module OroGen
                 yield type
             end
 
-	    # call-seq:
-	    #	doc new_doc -> self
-            #	doc ->  current_doc
-	    #
-	    # Gets/sets a string describing this object
-	    dsl_attribute(:doc) { |value| value.to_s }
+            # call-seq:
+            #   doc new_doc -> self
+            #   doc ->  current_doc
+            #
+            # Gets/sets a string describing this object
+            dsl_attribute(:doc) { |value| value.to_s }
 
             # Converts this model into a representation that can be fed to e.g.
             # a JSON dump, that is a hash with pure ruby key / values.
@@ -119,7 +119,7 @@ module OroGen
                 end
                 result
             end
-	end
+        end
     end
 end
 

@@ -29,15 +29,15 @@ module OroGen
                 build_dep.in_context('corba', 'link')
                 result << build_dep
             end
-	    typekit.used_libraries.each do |pkg|
-		needs_link = typekit.linked_used_libraries.include?(pkg)
-		result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
-		    in_context('corba', 'include')
-		if needs_link
-		    result.last.in_context('corba', 'link')
-		end
-	    end
-	    result
+            typekit.used_libraries.each do |pkg|
+                needs_link = typekit.linked_used_libraries.include?(pkg)
+                result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
+                    in_context('corba', 'include')
+                if needs_link
+                    result.last.in_context('corba', 'link')
+                end
+            end
+            result
         end
 
         def separate_cmake?; true end
@@ -107,9 +107,9 @@ module OroGen
                 "#{corba_namespace}::#{normalize_cxxname(basename.gsub(/[^\w]/, '_'))}"
             end
         end
-	def corba_namespace
-	    "orogen#{namespace('::')}Corba"
-	end
+        def corba_namespace
+            "orogen#{namespace('::')}Corba"
+        end
 
         def to_corba_signature(typekit, options = Hash.new)
             target_type = typekit.intermediate_type_for(self)
@@ -157,9 +157,9 @@ module OroGen
 
     module NumericType
         def corba_name
-	    if integer?
-		if name == "/bool"
-		    "CORBA::Boolean"
+            if integer?
+                if name == "/bool"
+                    "CORBA::Boolean"
                 elsif size == 1
                     if unsigned?
                         "CORBA::Octet"
@@ -174,8 +174,8 @@ module OroGen
                     "CORBA::#{'U' if unsigned?}LongLong"
                 else
                     raise "unexpected integer size #{size}"
-		end
-	    else
+                end
+            else
                 if size == 4
                     "CORBA::Float"
                 elsif size == 8
@@ -183,7 +183,7 @@ module OroGen
                 else
                     raise "unexpected floating-point size #{size}"
                 end
-	    end
+            end
         end
     end
 
@@ -233,16 +233,16 @@ module OroGen
 
     module ContainerType
         def corba_name
-	    container_kind = self.container_kind.gsub /.*\//, ''
-	    element_name   = deference.name.gsub(/[^\w]/, "_")
-	    typedef_name = container_kind + "_" + element_name
+            container_kind = self.container_kind.gsub /.*\//, ''
+            element_name   = deference.name.gsub(/[^\w]/, "_")
+            typedef_name = container_kind + "_" + element_name
 
-	    if deference.corba_name !~ /^orogen::/
-		# This type is mapped into the root namespace
-		"orogen::Corba::#{typedef_name}_"
-	    else
-	    	"#{corba_namespace}::#{typedef_name}_"
-	    end
+            if deference.corba_name !~ /^orogen::/
+                # This type is mapped into the root namespace
+                "orogen::Corba::#{typedef_name}_"
+            else
+                "#{corba_namespace}::#{typedef_name}_"
+            end
         end
         def corba_arg_type; "#{corba_name} const&" end
         def corba_ref_type; "#{corba_name}&" end
@@ -283,7 +283,7 @@ module OroGen
                     result << "#{indent}}\n";
                 end
             end
-	    result
+            result
         end
         def from_corba(typekit, result, indent)
             collection_name, element_type = container_kind, deference.name
@@ -318,12 +318,12 @@ module OroGen
                     result << "#{indent}}\n";
                 end
             end
-	    result
+            result
         end
     end
 
     module EnumType
-	def to_corba(typekit, result, indent)
+        def to_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = namespace('::')
             result << indent << "switch(value) {\n"
@@ -341,8 +341,8 @@ module OroGen
 #{indent}    return false;
 EOT
             result << indent << "}\n"
-	end
-	def from_corba(typekit, result, indent)
+        end
+        def from_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = namespace('::')
             result << indent << "switch(corba) {\n"
@@ -360,7 +360,7 @@ EOT
 #{indent}    return false;
 EOT
             result << indent << "}\n"
-	end
+        end
     end
 
     module CompoundType

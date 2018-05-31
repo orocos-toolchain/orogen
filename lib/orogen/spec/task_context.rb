@@ -41,11 +41,11 @@ module OroGen
         #
         # The corresponding code generation support is done in
         # {Gen::RTT_CPP::TaskContextGeneration}
-	class TaskContext
-	    # The oroGen project this task is part of
+        class TaskContext
+            # The oroGen project this task is part of
             #
             # @return [Project]
-	    attr_reader :project
+            attr_reader :project
             # The loader that has been used to load this task context
             #
             # @return [Loaders::Base]
@@ -151,8 +151,8 @@ module OroGen
             def to_s; "#<OroGen::Spec::TaskContext: #{name}>" end
             def inspect; to_s end
 
-	    # The task name
-	    attr_reader :name
+            # The task name
+            attr_reader :name
             # The subclass of TaskContext which should be used to define this
             # class
             attr_reader :superclass
@@ -311,12 +311,12 @@ module OroGen
                 TaskContext.new(project, name)
             end
 
-	    # Create a new task context in the given project and with
-	    # the given name. If a block is given, it is evaluated
-	    # in the context of the newly created TaskContext object.
-	    #
-	    # TaskContext objects should not be created directly. You should
-	    # use {Project#task_context} for that.
+            # Create a new task context in the given project and with
+            # the given name. If a block is given, it is evaluated
+            # in the context of the newly created TaskContext object.
+            #
+            # TaskContext objects should not be created directly. You should
+            # use {Project#task_context} for that.
             def initialize(project, name = nil, subclasses: project.default_task_superclass)
                 @project  = project
 
@@ -336,17 +336,17 @@ module OroGen
                 end
 
                 @implemented_classes = []
-		@name = name
+                @name = name
 
                 # This is an array, as we don't want to have it reordered
                 # unnecessarily
                 @states = Array.new
 
-		@properties = Hash.new
-		@attributes = Hash.new
-		@operations = Hash.new
-		@output_ports = Hash.new
-		@input_ports  = Hash.new
+                @properties = Hash.new
+                @attributes = Hash.new
+                @operations = Hash.new
+                @output_ports = Hash.new
+                @input_ports  = Hash.new
                 @dynamic_ports = Array.new
                 @event_ports = Hash.new
                 @initial_state = 'Stopped'
@@ -363,7 +363,7 @@ module OroGen
                 if block_given?
                     instance_eval(&proc)
                 end
-	    end
+            end
 
             def initialize_copy(from)
             end
@@ -394,8 +394,8 @@ module OroGen
                 pp.breakable
             end
 
-	    def pretty_print(pp)
-		pp.text "------- #{name} ------"
+            def pretty_print(pp)
+                pp.text "------- #{name} ------"
                 pp.breakable
                 if doc
                     first_line = true
@@ -438,23 +438,23 @@ module OroGen
                         ext.pretty_print(pp)
                     end
                 end
-	    end
+            end
 
-	    # Raises ArgumentError if an object named +name+ is already present
-	    # in the set attribute +set_name+. 
-	    #
-	    # This is an internal helper method
-	    def check_uniqueness(name) # :nodoc:
+            # Raises ArgumentError if an object named +name+ is already present
+            # in the set attribute +set_name+. 
+            #
+            # This is an internal helper method
+            def check_uniqueness(name) # :nodoc:
                 obj = find_input_port(name) ||
                     find_output_port(name) ||
                     find_operation(name) ||
                     find_property(name) ||
                     find_attribute(name)
 
-		if obj
-		    raise ArgumentError, "#{name} is already used in the interface of #{self.name}, as a #{obj.class}"
-		end
-	    end
+                if obj
+                    raise ArgumentError, "#{name} is already used in the interface of #{self.name}, as a #{obj.class}"
+                end
+            end
 
             # Add in +self+ the ports of +other_model+ that don't exist.
             #
@@ -524,11 +524,11 @@ module OroGen
             # @example
             #   attribute('device_name', '/std/string/, '').
             #       doc 'the device name to connect to'
-	    def attribute(name, type, default_value = nil)
-		@attributes[name] = att = configuration_object(Attribute, name, type, default_value)
+            def attribute(name, type, default_value = nil)
+                @attributes[name] = att = configuration_object(Attribute, name, type, default_value)
                 Spec.load_documentation(att, /attribute/)
                 att
-	    end
+            end
 
             def configuration_object(klass, name, type, default_value)
                 name = OroGen.verify_valid_identifier(name)
@@ -553,7 +553,7 @@ module OroGen
                     end
                 end
 
-		klass.new(self, name, type, default_value)
+                klass.new(self, name, type, default_value)
             end
 
             # Create a new property with the given name, type and default value
@@ -568,11 +568,11 @@ module OroGen
             # @example
             #   property('device_name', '/std/string/, '').
             #       doc 'the device name to connect to'
-	    def property(name, type, default_value = nil)
-		@properties[name] = prop = configuration_object(Property, name, type, default_value)
+            def property(name, type, default_value = nil)
+                @properties[name] = prop = configuration_object(Property, name, type, default_value)
                 Spec.load_documentation(prop, /property/)
                 prop
-	    end
+            end
 
             # True if this task has a property with that name
             def has_property?(name)
@@ -801,12 +801,12 @@ module OroGen
 
             # Create a new operation with the given name. Use the returned
             # Operation object to configure it further
-	    def operation(name)
+            def operation(name)
                 name = OroGen.verify_valid_identifier(name)
-		@operations[name] = op = Operation.new(self, name)
+                @operations[name] = op = Operation.new(self, name)
                 Spec.load_documentation(op, /operation/)
                 op
-	    end
+            end
 
             # Defines an operation whose implementation is in the Base class
             # (i.e. "hidden" from the user)
@@ -1023,14 +1023,14 @@ module OroGen
                 end
             end
 
-	    # call-seq:
-	    #	output_port 'name', '/type'
-	    #
+            # call-seq:
+            #   output_port 'name', '/type'
+            #
             # Add a new write port with the given name and type, and returns the
             # corresponding OutputPort object.
-	    #
-	    # See also #input_port
-	    def output_port(name, type, options = Hash.new)
+            #
+            # See also #input_port
+            def output_port(name, type, options = Hash.new)
                 name = OroGen.verify_valid_identifier(name)
                 check_uniqueness(name)
                 options = Kernel.validate_options options,
@@ -1039,16 +1039,16 @@ module OroGen
                 @output_ports[name] = port = options[:class].new(self, name, type)
                 Spec.load_documentation(port, /output_port/)
                 port
-	    end
+            end
 
-	    # call-seq:
-	    #	input_port 'name', '/type'
-	    #
+            # call-seq:
+            #   input_port 'name', '/type'
+            #
             # Add a new write port with the given name and type, and returns the
             # corresponding InputPort object.
-	    #
-	    # See also #output_port
-	    def input_port(name, type, options = Hash.new)
+            #
+            # See also #output_port
+            def input_port(name, type, options = Hash.new)
                 name = OroGen.verify_valid_identifier(name)
                 check_uniqueness(name)
                 options = Kernel.validate_options options,
@@ -1416,7 +1416,7 @@ module OroGen
                         end
                     end
             end
-	end
+        end
     end
 end
 
