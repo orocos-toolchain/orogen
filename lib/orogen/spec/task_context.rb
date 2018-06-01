@@ -103,7 +103,8 @@ module OroGen
             # if there is already one.
             def register_extension(obj)
                 if (old = find_extension(obj.name, false)) && old != obj
-                    raise ArgumentError, "there is already an extension called #{obj.name}: #{old}"
+                    puts "there is already an extension called #{obj.name}: #{old}"
+                    old.registered_on(self)
                 else
                     extensions << obj
                     obj.registered_on(self)
