@@ -7,7 +7,7 @@ self.extended_states = <%= RTT_CPP.extended_states_enabled? %>
 self.disable_namespace "<%= d %>"
 <% end %>
 
-Spec::TaskContext.disable_default_extensions
+Spec::TaskContext.push_default_extensions_state(false)
 
 <% used_typekits.each do |tk| %>
 <%   if !tk.virtual? %>
@@ -24,4 +24,4 @@ find_task_context("<%= task_context.name %>").<%= ext %>
 <%    end %>
 <% end %>
 
-Spec::TaskContext.enable_default_extensions
+Spec::TaskContext.pop_default_extensions_state

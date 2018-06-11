@@ -64,25 +64,32 @@ module OroGen
                 #   the newly created task at creation time. This is meant to
                 #   register some default extensions automatically
                 attr_reader :default_extensions
-                attr_reader :extensions_disabled
 
-                def disable_default_extensions
-                    @extensions_disabled = true
+                def push_default_extensions_state(enabled)
+                    @default_extensions_state.push(enabled)
                 end
 
-                def enable_default_extensions
-                    @extensions_disabled = false
+                def pop_default_extensions_state
+                    @default_extensions_state.pop
+                end
+
+                def default_extensions_enabled?
+                    if @default_extensions_state.empty?
+                        true
+                    else
+                        @default_extensions_state.last
+                    end
                 end
 
                 def apply_default_extensions(task_context)
-                    if !extensions_disabled
-                        default_extensions.each do |ext|
-                            task_context.send(ext)
-                        end
+                    return unless default_extensions_enabled?
+
+                    default_extensions.each do |ext|
+                        task_context.send(ext)
                     end
                 end
             end
-            @extensions_disabled = false
+            @default_extensions_state = Array.new
             @default_extensions = Array.new
 
             enumerate_inherited_map 'default_extension', 'default_extensions'
