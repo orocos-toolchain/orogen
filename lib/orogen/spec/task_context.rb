@@ -60,39 +60,39 @@ module OroGen
             dsl_attribute :doc
 
             class << self
-                # @return [Symbol] set of method names that should be called on
-                #   the newly created task at creation time. This is meant to
-                #   register some default extensions automatically
-                attr_reader :default_extensions
-
-                def push_default_extensions_state(enabled)
-                    @default_extensions_state.push(enabled)
+                # Make the given list of extensions the default until the next
+                # {#pop_default_extensions_state}
+                #
+                # Default extensions are the extensions that are enabled when a
+                # task context is created. This method allows to locally
+                # override the set of extensions
+                #
+                # @param [Array<String>] extensions
+                def push_default_extensions_state(extensions)
+                    @default_extensions_state.push(extensions.dup)
                 end
 
+                # Pop the extensions enabled at this level, reverting to the
+                # list before the last call to {#push_default_extensions_state}
                 def pop_default_extensions_state
-                    @default_extensions_state.pop
+                    @default_extensions_state.pop if @default_extensions_state.size > 1
                 end
 
-                def default_extensions_enabled?
-                    if @default_extensions_state.empty?
-                        true
-                    else
-                        @default_extensions_state.last
-                    end
+                # The set of extensions that should be applied when a task
+                # context is created
+                def default_extensions
+                    @default_extensions_state.last
                 end
 
+                # Apply the currently enabled default extension on the given
+                # task context model
                 def apply_default_extensions(task_context)
-                    return unless default_extensions_enabled?
-
                     default_extensions.each do |ext|
                         task_context.send(ext)
                     end
                 end
             end
-            @default_extensions_state = Array.new
-            @default_extensions = Array.new
-
-            enumerate_inherited_map 'default_extension', 'default_extensions'
+            @default_extensions_state = [[]]
 
             # Set of extensions registered for this task
             #
