@@ -7,7 +7,13 @@ self.extended_states = <%= RTT_CPP.extended_states_enabled? %>
 self.disable_namespace "<%= d %>"
 <% end %>
 
-Spec::TaskContext.disable_default_extensions
+# We want this file to apply the default extensions as they were defined during
+# generation, *not* the ones that are currently setup for the given project. 
+#
+# So, override the list of default extensions by the ones that were used at
+# generation. Revert with pop_default_extensions_state at the end of the file
+defaults = %w[<%= Spec::TaskContext.default_extensions.join(" ") %>]
+Spec::TaskContext.push_default_extensions_state(defaults)
 
 <% used_typekits.each do |tk| %>
 <%   if !tk.virtual? %>
@@ -17,11 +23,4 @@ using_typekit "<%= tk.name %>"
 
 <%= File.read(project.deffile) %>
 
-
-<% self_tasks.each do |task_context| %>
-<%    Spec::TaskContext.default_extensions.each do |ext| %>
-find_task_context("<%= task_context.name %>").<%= ext %>
-<%    end %>
-<% end %>
-
-Spec::TaskContext.enable_default_extensions
+Spec::TaskContext.pop_default_extensions_state
