@@ -19,8 +19,8 @@
     <depend package="metaruby" />
     <depend_optional package="hoe-yard" />
     <depend_optional package="kramdown" />
-    <depend name="rake" />
-    <depend name="ruby" />
+    <depend package="rake" />
+    <depend package="ruby" />
 
     <test_depend package="minitest" />
     <test_depend package="flexmock" />

@@ -32,14 +32,14 @@ module OroGen
                     raise Gen::RTT_CPP::ConfigError, "the MQueue transport for the #{tk.name} typekit cannot be found. It is needed to build the MQueue transport for this project"
                 end
             end
-	    typekit.used_libraries.each do |pkg|
-		needs_link = typekit.linked_used_libraries.include?(pkg)
-		result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
-		    in_context('mqueue', 'include')
-		if needs_link
-		    result.last.in_context('mqueue', 'link')
-		end
-	    end
+            typekit.used_libraries.each do |pkg|
+                needs_link = typekit.linked_used_libraries.include?(pkg)
+                result << Gen::RTT_CPP::BuildDependency.new(pkg.name.upcase, pkg.name).
+                    in_context('mqueue', 'include')
+                if needs_link
+                    result.last.in_context('mqueue', 'link')
+                end
+            end
             result
         end
 

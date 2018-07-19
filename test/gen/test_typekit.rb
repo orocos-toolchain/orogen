@@ -27,7 +27,7 @@ class TC_GenerationTypekit < Minitest::Test
     end
 
     def test_typekit_load_should_raise_LoadError_if_the_file_does_not_exist
-	project = Project.new
+        project = Project.new
         project.name 'test_typekit_load'
         project.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
@@ -40,7 +40,7 @@ class TC_GenerationTypekit < Minitest::Test
     end
 
     def test_typekit_load_should_raise_ArgumentError_if_the_file_has_errors
-	project = Project.new
+        project = Project.new
         project.name 'test_typekit_load'
         project.deffile = File.join(path_to_wc_root, 'test_typekit_load', 'test_typekit_load.orogen')
 
@@ -102,7 +102,7 @@ INSTALL(TARGETS test RUNTIME DESTINATION bin)
             if transports.include?('corba')
                 cmake << "\ntarget_link_libraries(test ${OrocosCORBA_LIBRARIES} omniDynamic4)"
             end
-	end
+        end
 
         #check_output_file('modules/typekit_opaque', 'opaque.xml')
         #check_output_file('modules/typekit_opaque', 'opaque.cpf')

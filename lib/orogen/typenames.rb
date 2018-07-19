@@ -89,21 +89,21 @@ module Typelib
         end
     end
     class NumericType
-	def self.cxx_name
-	    if integer?
-		if name == "/bool"
-		    "bool"
+        def self.cxx_name
+            if integer?
+                if name == "/bool"
+                    "bool"
                 elsif name == "/char"
                     "char"
                 elsif name == "/unsigned char"
                     "unsigned char"
-		else
-		    "boost::#{'u' if unsigned?}int#{size * 8}_t"
-		end
-	    else
-		basename
-	    end
-	end
+                else
+                    "boost::#{'u' if unsigned?}int#{size * 8}_t"
+                end
+            else
+                basename
+            end
+        end
 
     end
     class ContainerType

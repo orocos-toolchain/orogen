@@ -14,7 +14,6 @@ DEFAULT_EXTENSIONS = %w{}
 rtt_cpp = OroGen::Gen::RTT_CPP
 
 verbosity = 0
-extended_states = true
 project = rtt_cpp::Project.new
 OroGen::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = true
 
@@ -171,7 +170,7 @@ begin
     end
 
     project.generate
-rescue LoadError, ConfigError, ArgumentError => e
+rescue Typelib::NotFound, LoadError, ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/

@@ -4,7 +4,7 @@ module OroGen
         # Returns the directory where Orogen's lib part sits (i.e. where
         # autobuild.rb and autobuild/ are)
         def self.base_dir
-	    File.expand_path(File.join('..', '..'), File.dirname(__FILE__))
+            File.expand_path(File.join('..', '..'), File.dirname(__FILE__))
         end
 
         # call-seq:
@@ -17,33 +17,33 @@ module OroGen
             generated_files << path
         end
 
-	# Returns the C++ code which changes the current namespace from +old+
-	# to +new+. +indent_size+ is the count of indent spaces between
-	# namespaces.
-	def self.adapt_namespace(old, new, indent_size = 4)
-	    old = old.split('/').delete_if { |v| v.empty? }
-	    new = new.split('/').delete_if { |v| v.empty? }
-	    indent = old.size * indent_size
+        # Returns the C++ code which changes the current namespace from +old+
+        # to +new+. +indent_size+ is the count of indent spaces between
+        # namespaces.
+        def self.adapt_namespace(old, new, indent_size = 4)
+            old = old.split('/').delete_if { |v| v.empty? }
+            new = new.split('/').delete_if { |v| v.empty? }
+            indent = old.size * indent_size
 
-	    result = ""
+            result = ""
 
-	    while !old.empty? && old.first == new.first
-		old.shift
-		new.shift
-	    end
-	    while !old.empty?
-		indent -= indent_size
-		result << " " * indent + "}\n"
-		old.shift
-	    end
-	    while !new.empty?
-		result << "#{" " * indent}namespace #{new.first} {\n"
-		indent += indent_size
-		new.shift
-	    end
+            while !old.empty? && old.first == new.first
+                old.shift
+                new.shift
+            end
+            while !old.empty?
+                indent -= indent_size
+                result << " " * indent + "}\n"
+                old.shift
+            end
+            while !new.empty?
+                result << "#{" " * indent}namespace #{new.first} {\n"
+                indent += indent_size
+                new.shift
+            end
 
-	    result
-	end
+            result
+        end
 
         class BuildDependency
             attr_reader :var_name
@@ -86,9 +86,9 @@ module OroGen
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
                     result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
                 end
-		if s.in_context?(context, 'link')
+                if s.in_context?(context, 'link')
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
-		end
+                end
                 result
             end.join("\n") + "\n"
         end

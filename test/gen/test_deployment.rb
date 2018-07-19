@@ -2,9 +2,9 @@ require 'orogen/gen/test'
 
 class TC_GenerationDeployment < Minitest::Test
     def test_all_activity_types
-	project = Project.new 
-	project.name 'test_all_activity_types'
-	project.task_context "task"
+        project = Project.new 
+        project.name 'test_all_activity_types'
+        project.task_context "task"
         deployment = project.deployment "test"
 
         master = deployment.task("master", "task")

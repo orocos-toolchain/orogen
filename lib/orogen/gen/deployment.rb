@@ -25,23 +25,23 @@ module OroGen
             # Returns the scheduler constant name for this task's scheduler
             # class. Call #realtime and #non_realtime to change the task
             # scheduling class
-	    def rtt_scheduler
-		if @realtime then 'ORO_SCHED_RT'
-		else 'ORO_SCHED_OTHER'
-		end
-	    end
+            def rtt_scheduler
+                if @realtime then 'ORO_SCHED_RT'
+                else 'ORO_SCHED_OTHER'
+                end
+            end
 
-	    # Returns the Orocos value for this task's priority
-	    def rtt_priority
-		case @priority
-		when :highest
-		    'RTT::os::HighestPriority'
-		when :lowest
-		    'RTT::os::LowestPriority'
-		when Integer
-		    @priority
-		end
-	    end
+            # Returns the Orocos value for this task's priority
+            def rtt_priority
+                case @priority
+                when :highest
+                    'RTT::os::HighestPriority'
+                when :lowest
+                    'RTT::os::LowestPriority'
+                when Integer
+                    @priority
+                end
+            end
 
             def method_missing(*args, &block)
                 if project.deffile && File.file?(project.deffile)
@@ -204,8 +204,8 @@ module OroGen
                     OroGen.warn "the deployment #{name} will do nothing. Either generate with --transports=corba or use the 'browse' statement"
                 end
 
-		main = Generation.render_template 'main.cpp', binding
-		Generation.save_automatic "main-#{name}.cpp", main
+                main = Generation.render_template 'main.cpp', binding
+                Generation.save_automatic "main-#{name}.cpp", main
                 pkg = if install?
                           Generation.render_template 'deployment.pc', binding
                       else

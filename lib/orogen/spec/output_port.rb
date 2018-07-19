@@ -23,10 +23,10 @@ module OroGen
             # pushed at once to this port.
             dsl_attribute(:sample_size) { |value| Integer(value) }
 
-	    # call-seq:
-	    #	period new_period -> self
-            #	period ->  current_period
-	    #
+            # call-seq:
+            #   period new_period -> self
+            #   period ->  current_period
+            #
             # Sets the period for this output port, in cycles. The port period
             # should be the minimal amount of execution cycles (calls to
             # updateHook) between two updates of this port.
@@ -37,9 +37,9 @@ module OroGen
             # The default is one.
             dsl_attribute(:period) { |value| Integer(value) }
 
-	    # call-seq:
-	    #	burst count, period -> self
-	    #
+            # call-seq:
+            #   burst count, period -> self
+            #
             # Declares that a burst of data can occasionally be written to this
             # port. +count+ is the maximal number of samples that are pushed to
             # this port at once, and +period+ how often this burst can happen.

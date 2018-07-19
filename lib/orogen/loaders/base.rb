@@ -104,7 +104,7 @@ module OroGen
                 register_project_model(project)
                 project
             end
-            
+
             # Registers a callback that should be called with newly registered
             # projects
             #
@@ -300,7 +300,7 @@ module OroGen
                     interface_typelist << type.name
                 end
             end
-            
+
             # Registers a callback that should be called with newly registered
             # typekits
             #
@@ -348,9 +348,9 @@ module OroGen
             # @return [Set<Spec::Typekit>] the list of typekits
             # @raise [DefinitionTypekitNotFound] if no typekits define this type
             def imported_typekits_for(typename, definition_typekits: true)
-		if typename.respond_to?(:name)
-		    typename = typename.name
-		end
+                if typename.respond_to?(:name)
+                    typename = typename.name
+                end
                 if typekits = typekits_by_type_name[typename]
                     if definition_typekits
                         definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
@@ -499,6 +499,14 @@ module OroGen
             # @return [Boolean]
             def has_project?(name)
                 loaded_projects.has_key?(name)
+            end
+
+            # Tests if a typekit with that name has been loaded
+            #
+            # @param [String] name the typekit name
+            # @return [Boolean]
+            def has_loaded_typekit?(name)
+                loaded_typekits.has_key?(name)
             end
 
             # Tests if a typekit with that name exists

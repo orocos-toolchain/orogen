@@ -273,20 +273,28 @@ module OroGen
 
                 Utilrb::PkgConfig.each_package(/^orogen-\w+$/) do |pkg_name|
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
+                    project_name = pkg.project_name
                     deployment_name = pkg_name.gsub(/^orogen-/, '')
 
-                    if !pkg.deployed_tasks
+                    if !pkg.deployed_tasks_with_models
                         # oroGen has a bug, in which it installed the pkg-config
                         # file for deployments that were not meant to be
                         # installed.
                         #
                         # Workaround
                         next
+                    elsif !has_project?(project_name)
+                        next
                     end
 
-                    pkg.deployed_tasks.split(',').each do |deployed_task_name|
-                        available_deployed_tasks[deployed_task_name] ||= Set.new
-                        available_deployed_tasks[deployed_task_name] << deployment_name
+                    pkg.deployed_tasks_with_models.split(',').each_slice(2) do |task_name, task_model_name|
+                        available_deployed_tasks[task_name] ||= Set.new
+                        available_deployed_tasks[task_name] <<
+                            AvailableDeployedTask.new(
+                                task_name, deployment_name,
+                                task_model_name, project_name)
+                        available_deployments[deployment_name] =
+                            DeploymentInfo.new(project_name, pkg.binfile)
                     end
                 end
             end
@@ -297,7 +305,7 @@ module OroGen
                 end
 
                 if available_deployed_tasks.has_key?(name)
-                    return available_deployed_tasks[name]
+                    return available_deployed_tasks[name].map(&:deployment_name)
                 else return Set.new
                 end
             end
@@ -407,17 +415,46 @@ module OroGen
                 end
             end
 
+            # @deprecated use {#each_available_deployed_task} instead
             def each_available_deployed_task_name(&block)
+                return enum_for(__method__) if !block_given?
+
+                each_available_deployed_task do |task|
+                    yield(task.task_name, task.deployment_name)
+                end
+            end
+
+            AvailableDeployedTask = Struct.new \
+                :task_name, :deployment_name,
+                :task_model_name, :project_name
+
+            # Enumerate information about the available deployments on this
+            # system
+            #
+            # @yieldparam [AvailableDeployedTask]
+            def each_available_deployed_task(&block)
                 return enum_for(__method__) if !block_given?
 
                 if available_deployed_tasks.empty?
                     load_available_deployed_tasks
                 end
+
                 available_deployed_tasks.each do |deployed_task_name, deployments|
-                    deployments.each do |deployment_name|
-                        yield(deployed_task_name, deployment_name)
+                    deployments.each do |task|
+                        yield(task)
                     end
                 end
+            end
+
+            # Returns basic information about a deployed task
+            #
+            # @param [String] task_name
+            # @return [AvailableDeployedTask,nil]
+            def find_basic_deployed_task_info(task_name)
+                if available_deployed_tasks.empty?
+                    load_available_deployed_tasks
+                end
+                available_deployed_tasks[task_name]
             end
 
             # Enumerate the types available on this system

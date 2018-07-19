@@ -142,13 +142,13 @@ module OroGen
             def using_library(*args); end
             def using_typekit(*args); end
 
-	    def find_type(type)
-		if type.respond_to?(:name)
-		    registry.get(type.name)
-		else
-		    registry.get(type)
-		end
-	    end
+            def find_type(type)
+                if type.respond_to?(:name)
+                    registry.get(type.name)
+                else
+                    registry.get(type)
+                end
+            end
 
             def includes?(type)
                 typename = if type.respond_to?(:name) then type.name
@@ -205,9 +205,9 @@ module OroGen
                 @pkg = pkg
                 super()
 
-		if pkg && main_project && main_project.has_typekit?(name)
+                if pkg && main_project && main_project.has_typekit?(name)
                     using_typekit pkg.project_name
-		end
+                end
             end
 
             def include_dirs
@@ -278,7 +278,7 @@ module OroGen
                 end
             end
 
-            def task_context(name, &block) # :nodoc:
+            def task_context(name, **options, &block) # :nodoc:
                 task = super
                 if !task
                     #Task might not be created because it's namespace is disabled

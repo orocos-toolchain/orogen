@@ -78,13 +78,13 @@ module OroGen
         # call is actually a call to #task_context.
         #
         # An existing orogen file can be loaded with Project.load
-	class Project
+        class Project
             # A set of TaskContext instances listing all the tasks whose
             # definition is available in this project. This includes the task
             # definitions imported from other task libraries.
             #
             # See #self_tasks for the set of tasks defined in this project.
-	    attr_reader :tasks
+            attr_reader :tasks
 
             # A set of TaskContext instances listing the tasks defined in this
             # project. 
@@ -95,7 +95,7 @@ module OroGen
 
             # The Typelib::Registry object holding all known types defined in
             # this project
-	    attr_reader :registry
+            attr_reader :registry
 
             # If true, #find_type will create a new Null type when unknown types
             # are found. This is used to use orogen specifications before
@@ -127,19 +127,19 @@ module OroGen
 
             # :method: version
             #
-	    # The version number of this project. Defaults to "0.0"
+            # The version number of this project. Defaults to "0.0"
 
             # :method: version 'new_version'
             #
             # Sets the version number of this project. The default is "0.0"
 
-	    dsl_attribute(:version) do |name|
-		name = name.to_s
-		if name !~ /^\d/
-		    raise ArgumentError, "version strings must start with a number (had: #{name})"
-		end
-		name
-	    end
+            dsl_attribute(:version) do |name|
+                name = name.to_s
+                if name !~ /^\d/
+                    raise ArgumentError, "version strings must start with a number (had: #{name})"
+                end
+                name
+            end
 
             # The set of pkg-config dependencies we depend on
             attr_reader :used_libraries
@@ -246,9 +246,9 @@ module OroGen
             # deployment name to the Spec::Deployment instance that describes it
             attr_reader :loaded_deployments
 
-	    def initialize
+            def initialize
                 @tasks = Hash.new
-		Project.standard_tasks.each do |t|
+                Project.standard_tasks.each do |t|
                     @tasks[t.name] = t
                 end
                 @orogen_project = true
@@ -257,8 +257,8 @@ module OroGen
                 @known_projects = Hash.new
 
                 @name    = nil
-		@version = "0.0"
-		@used_typekits  = []
+                @version = "0.0"
+                @used_typekits  = []
                 @used_libraries = []
                 @typekit_libraries = []
                 @used_task_libraries = Set.new
@@ -272,17 +272,17 @@ module OroGen
                 @opaques = Array.new
                 @loaded_deployments = Hash.new
 
-		# Load orocos-specific types which cannot be used in the
-		# project-defined typekit but can be used literally in argument
-		# lists or property types
-		@registry = Typelib::Registry.new
+                # Load orocos-specific types which cannot be used in the
+                # project-defined typekit but can be used literally in argument
+                # lists or property types
+                @registry = Typelib::Registry.new
                 @opaque_registry = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(registry)
                 Project.using_rtt_typekit(self)
 
                 @max_sizes = Hash.new { |h, k| h[k] = Hash.new }
                 @disabled_namespaces = ['test']
-	    end
+            end
 
             def self.using_rtt_typekit(obj)
                 OroGen::Loaders::RTT.standard_typekits.each do |tk|
@@ -443,9 +443,9 @@ module OroGen
             # The deployment modes that are required for this generation
             attr_reader :deployers
 
-	    # The set of typekits that are to be used in this project. This is
+            # The set of typekits that are to be used in this project. This is
             # a set of ImportedTypekit instances.
-	    attr_reader :used_typekits
+            attr_reader :used_typekits
 
             # The Typelib::Registry object with only opaque definitions. This
             # does include the opaques defined in our own typekit
@@ -488,7 +488,7 @@ module OroGen
             #   PREFIX/lib/pkgconfig
             #
             # must be listed in the PKG_CONFIG_PATH environment variable.
-	    def using_typekit(typekit)
+            def using_typekit(typekit)
                 if typekit.respond_to?(:to_str)
                     if tk = used_typekits.find { |tk| tk.name == typekit }
                         return tk
@@ -498,7 +498,7 @@ module OroGen
                     return typekit
                 end
 
-		used_typekits << typekit
+                used_typekits << typekit
                 if ours = self.typekit
                     ours.using_typekit(typekit)
                 end
@@ -511,7 +511,7 @@ module OroGen
                 opaque_registry.merge(typekit.opaque_registry)
                 opaques.concat(typekit.opaques)
                 typekit
-	    end
+            end
 
             attr_reader :opaques
 
@@ -523,9 +523,9 @@ module OroGen
 
             # Returns the typekit object that defines this type
             def imported_typekits_for(typename)
-		if typename.respond_to?(:name)
-		    typename = typename.name
-		end
+                if typename.respond_to?(:name)
+                    typename = typename.name
+                end
                 return used_typekits.find_all { |tk| tk.includes?(typename) }
             end
 
@@ -569,20 +569,20 @@ module OroGen
             def resolve_type(typename)
                 find_type(typename)
             end
-	    
+            
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
             # type must have been defined either by the project's own typekit
             # or by the ones imported by #using_typekit
-	    def find_type(typename, is_normalized = false)
-		if typename
-		    if typename.kind_of?(Class) && typename <= Typelib::Type
+            def find_type(typename, is_normalized = false)
+                if typename
+                    if typename.kind_of?(Class) && typename <= Typelib::Type
                         type = typename
                         typename = type.name
                         is_normalized = true
                     end
 
-		    if typename.respond_to?(:to_str)
+                    if typename.respond_to?(:to_str)
                         typename = typename.gsub('::', '/')
                         if !is_normalized
                             typename = Typelib::Type.normalize_typename(typename)
@@ -603,9 +603,9 @@ module OroGen
                         end
                         return found_type
                     else
-			raise ArgumentError, "expected a type name or a type object, got #{typename}"
-		    end
-		end
+                        raise ArgumentError, "expected a type name or a type object, got #{typename}"
+                    end
+                end
 
             rescue Typelib::NotFound => e
                 if define_dummy_types?
@@ -615,17 +615,17 @@ module OroGen
                     retry
                 end
                 raise e.class, e.message, e.backtrace
-	    end
+            end
 
             def extended_state_support?
                 self_tasks.any? { |t| t.extended_state_support? }
             end
 
             # Generate the project's source files
-	    def generate
-		unless name
-		    raise ArgumentError, "you must set a name for this project"
-		end
+            def generate
+                unless name
+                    raise ArgumentError, "you must set a name for this project"
+                end
 
                 if name !~ /^[a-z][a-z0-9\_]+$/
                     raise ConfigError, "invalid name '#{name}': names must be all lowercase, can contain alphanumeric characters and underscores and start with a letter"
@@ -634,8 +634,8 @@ module OroGen
                     raise ArgumentError, "there is no orogen file for this project, cannot generate"
                 end
 
-		# For consistency in templates
-		project = self
+                # For consistency in templates
+                project = self
 
                 # First, generate a to-be-installed version of the orogen file.
                 # We do that to add command-line options like corba
@@ -652,12 +652,12 @@ module OroGen
                     FileUtils.touch(File.join(dir, File.basename(deffile)))
                 end
 
-		# The typekit and the task libraries populate a fake
-		# installation directory .orogen/<project_name> so that the
-		# includes can be referred to as <project_name>/taskNameBase.hpp.
+                # The typekit and the task libraries populate a fake
+                # installation directory .orogen/<project_name> so that the
+                # includes can be referred to as <project_name>/taskNameBase.hpp.
                 #
-		# We have first to remove the way orogen was doing it before,
-		# and then let typekit and task library do what they have to do
+                # We have first to remove the way orogen was doing it before,
+                # and then let typekit and task library do what they have to do
                 fake_install_dir = File.join(project.base_dir, AUTOMATIC_AREA_NAME, project.name)
                 if File.symlink?(fake_install_dir)
                     FileUtils.rm_f fake_install_dir
@@ -671,11 +671,11 @@ module OroGen
                 #
                 # (I know, this is ugly)
                 # typelib_marshaller = Generation.render_template "typekit/TypelibMarshaller.hpp", binding
-		# Generation.save_automatic("typekit/TypelibMarshaller.hpp", typelib_marshaller)
+                # Generation.save_automatic("typekit/TypelibMarshaller.hpp", typelib_marshaller)
                 # typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.hpp", binding
-		# Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
+                # Generation.save_automatic("TypelibMarshallerBase.hpp", typelib_marshaller)
                 # typelib_marshaller = Generation.render_template "typekit/TypelibMarshallerBase.cpp", binding
-		# Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
+                # Generation.save_automatic("typekit/TypelibMarshallerBase.cpp", typelib_marshaller)
 
                 # Generate the state enumeration types for each of the task
                 # contexts, and load it
@@ -687,22 +687,22 @@ module OroGen
                     typekit(true).load(header)
                 end
 
-		if typekit
-		    typekit.generate
-		end
+                if typekit
+                    typekit.generate
+                end
                 validate_max_sizes_spec
 
                 pc = Generation.render_template "project.pc", binding
                 Generation.save_automatic "orogen-project-#{name}.pc.in", pc
 
-		if !self_tasks.empty?
-		    self_tasks.each { |t| t.generate }
+                if !self_tasks.empty?
+                    self_tasks.each { |t| t.generate }
 
-		    deployer = Generation.render_template "tasks", "DeployerComponent.cpp", binding
-		    Generation.save_automatic "tasks", "DeployerComponent.cpp", deployer
-		    pc = Generation.render_template "tasks", "tasks.pc", binding
-		    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
-		end
+                    deployer = Generation.render_template "tasks", "DeployerComponent.cpp", binding
+                    Generation.save_automatic "tasks", "DeployerComponent.cpp", deployer
+                    pc = Generation.render_template "tasks", "tasks.pc", binding
+                    Generation.save_automatic "tasks", "#{name}-tasks.pc.in", pc
+                end
 
                 ignorefile = Generation.render_template "gitignore", binding
                 Generation.save_user ".gitignore", ignorefile
@@ -714,18 +714,18 @@ module OroGen
                     deployers.each { |t| t.generate }
                 end
 
-		generate_build_system
+                generate_build_system
                 Generation.cleanup_dir(Generation::AUTOMATIC_AREA_NAME)
-		self
-	    end
+                self
+            end
 
             CMAKE_GENERATED_CONFIG = %w{Base.cmake TaskLib.cmake}
 
             # Generate the CMake build system for this project
-	    def generate_build_system # :nodoc:
-		project = self
+            def generate_build_system # :nodoc:
+                project = self
 
-		FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
+                FileUtils.mkdir_p File.join(Generation::AUTOMATIC_AREA_NAME, 'config')
                 target_dir = Generation::AUTOMATIC_AREA_NAME
                 Dir.glob File.join(Generation.template_path('config'), '*') do |path|
                     basename    = File.basename(path)
@@ -734,7 +734,7 @@ module OroGen
                     end
                 end
 
-		# Generate the automatic part of the root cmake configuration
+                # Generate the automatic part of the root cmake configuration
                 CMAKE_GENERATED_CONFIG.each do |file|
                     cmake = Generation.render_template "config", file, binding
                     Generation.save_automatic "config", "#{name}#{file}", cmake
@@ -747,7 +747,7 @@ module OroGen
 
                 cmake = Generation.render_template 'CMakeLists.txt', binding
                 Generation.save_user("CMakeLists.txt", cmake)
-	    end
+            end
 
             # Computes the set of task libraries that our own task library
             # depends on
@@ -806,21 +806,21 @@ module OroGen
                 result.to_set.to_a.sort_by { |dep| dep.var_name }
             end
 
-	    # call-seq:
-	    #   name(new_name) => self
+            # call-seq:
+            #   name(new_name) => self
             #   name => current_name
-	    #
-	    # Sets the project name for this generation
-	    dsl_attribute :name do |new|
+            #
+            # Sets the project name for this generation
+            dsl_attribute :name do |new|
                 if !new.respond_to?(:to_str)
                     raise ArgumentError, 'name should be a string'
                 end
 
-		if typekit && !typekit.name
-		    typekit.name = new
-		end
-		new
-	    end
+                if typekit && !typekit.name
+                    typekit.name = new
+                end
+                new
+            end
 
             # Returns true if the following pkg-config package is available on
             # this system
@@ -889,23 +889,23 @@ module OroGen
                 end
             end
 
-	    def register_typekit(name, registry_xml, typelist)
-	    	@known_typekits[name] = [nil, registry_xml, typelist]
-	    end
+            def register_typekit(name, registry_xml, typelist)
+                @known_typekits[name] = [nil, registry_xml, typelist]
+            end
 
-	    # call-seq:
-	    #   project.typekit do
-	    #      ... typekit setup ...
-	    #   end => typekit
-	    #   project.typekit => current typekit or nil
-	    #
+            # call-seq:
+            #   project.typekit do
+            #      ... typekit setup ...
+            #   end => typekit
+            #   project.typekit => current typekit or nil
+            #
             # The first form associates a type typekit for project, as a
             # Typekit intance. The given block can set up this Typekit instance
             # by calling any instance method defined on it.
-	    #
+            #
             # The second form returns a Typekit object if one is defined, and
             # nil otherwise.
-	    def typekit(create = nil, &block)
+            def typekit(create = nil, &block)
                 if create.nil?
                     create = true if block_given?
                 end
@@ -940,13 +940,13 @@ module OroGen
                     end
                 end
 
-		if !block_given?
-		    return @typekit
+                if !block_given?
+                    return @typekit
                 else
                     @typekit.instance_eval(&block)
                     nil
-		end
-	    end
+                end
+            end
 
             # Sets or reads the typekit's type export policy.
             #
@@ -1001,7 +1001,7 @@ module OroGen
             #
             # Task contexts are represented as instances of TaskContext. See
             # the documentation of that class for more details.
-	    def task_context(name, **options, &block)
+            def task_context(name, **options, &block)
                 if namespace_disabled?(name.split("::")[0..-2].join("::"))
                     return nil
                 end
@@ -1037,26 +1037,26 @@ module OroGen
                 end
 
                 task
-	    end
+            end
 
             # Declares a task context that is being imported, not defined
             #
             # @options options [Class] type (Spec::TaskContext) the
             #   class of the created task context
             def external_task_context(name, **options, &block)
-		if has_task_context?(name)
-		    raise ArgumentError, "there is already a #{name} task"
+                if has_task_context?(name)
+                    raise ArgumentError, "there is already a #{name} task"
                 elsif has_namespace?(name)
-		    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
-		end
+                    raise ArgumentError, "there is already a namespace called #{name}, this is not supported by orogen"
+                end
 
                 klass = options.fetch(:class, Spec::TaskContext)
-		new_task = klass.new(self, "#{self.name}::#{name}", **options)
+                new_task = klass.new(self, "#{self.name}::#{name}", **options)
                 Spec.load_documentation(new_task, /^task_context/)
-		new_task.instance_eval(&block) if block_given?
-		tasks[new_task.name] = new_task
+                new_task.instance_eval(&block) if block_given?
+                tasks[new_task.name] = new_task
                 self_tasks << new_task
-		new_task
+                new_task
             end
 
             # Loads the oroGen project +name+
@@ -1242,13 +1242,13 @@ module OroGen
                 tasklib
             end
 
-	    # DEPRECATED. Use #deployment instead
+            # DEPRECATED. Use #deployment instead
             def static_deployment(&block)
                 OroGen::Gen::RTT_CPP.warn "static_deployment is deprecated, use #deployment(name) instead"
                 OroGen::Gen::RTT_CPP.warn "static_deployment now generates a deployment called test_#{name} that is *not* part of the installation"
-		deployment = deployment("test_#{name}", &block)
-		deployment.do_not_install
-		deployment
+                deployment = deployment("test_#{name}", &block)
+                deployment.do_not_install
+                deployment
             end
 
             # True if there is a deployment with the given name in this oroGen
@@ -1262,15 +1262,15 @@ module OroGen
             #       specification
             #   end
             #
-	    # Defines a deployment, i.e. an Unix executable in which a certain
-	    # number of TaskContext are instanciated, associated with threads
-	    # and triggers and (optionally) connected to each other and/or
-	    # started.
-	    #
+            # Defines a deployment, i.e. an Unix executable in which a certain
+            # number of TaskContext are instanciated, associated with threads
+            # and triggers and (optionally) connected to each other and/or
+            # started.
+            #
             # The statements in the given block are method calls to a
             # StaticDeployment instance, so see the documentation of that class
             # for more information.
-	    def deployment(name, &block) # :yield:
+            def deployment(name, &block) # :yield:
                 # If we have a typekit, resolve all pending loads
                 if typekit
                     typekit.perform_pending_loads
@@ -1300,7 +1300,7 @@ module OroGen
 
                 @deployers << deployer
                 deployer
-	    end
+            end
 
             # Returns the deployment model with the given name
             #
@@ -1401,7 +1401,7 @@ module OroGen
                 end
             end
 
-	end
+        end
     end
     end
 end

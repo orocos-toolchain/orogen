@@ -23,11 +23,11 @@ module OroGen
         # If TEST_DONT_CLEAN is set, the module's working directory is not
         # cleaned. It speeds up the testing process when the test files don't
         # change but orogen does change.
-	module SelfTest
+        module SelfTest
             include OroGen::Gen
             include OroGen::Gen::RTT_CPP
 
-	    attr_reader :working_directory
+            attr_reader :working_directory
 
             def prefix_directory
                 File.join(path_to_wc_root, "prefix", *subdir)
@@ -35,50 +35,50 @@ module OroGen
 
             attr_reader :subdir
 
-	    def setup
+            def setup
                 @subdir = Array.new
                 @old_pkg_config = ENV['PKG_CONFIG_PATH'].dup if ENV['PKG_CONFIG_PATH']
-		super if defined? super
-	    end
+                super if defined? super
+            end
 
-	    def teardown
+            def teardown
                 clear_wc
                 ENV['PKG_CONFIG_PATH'] = @old_pkg_config
                 Utilrb::PkgConfig.clear_cache
-		super if defined? super
+                super if defined? super
                 flexmock_teardown
-	    end
-
-	    def create_wc(*subdir)
-                required_wc = File.join(path_to_test, 'wc', *subdir)
-		if working_directory != required_wc
-		    @working_directory = required_wc
-		    FileUtils.mkdir_p working_directory
-                    @subdir = subdir
-		end
-	    end
-
-            def clear_wc
-		if ENV['TEST_KEEP_WC'] != '1' && ENV['TEST_DONT_CLEAN'] != '1'
-		    if File.directory?(path_to_wc_root)
-			FileUtils.rm_rf path_to_wc_root
-                        @working_directory = nil
-		    end
-		end
             end
 
-	    def copy_in_wc(file, destination = nil)
-		if destination
-		    destination = File.expand_path(destination, working_directory)
-		    FileUtils.mkdir_p destination
-		end
+            def create_wc(*subdir)
+                required_wc = File.join(path_to_test, 'wc', *subdir)
+                if working_directory != required_wc
+                    @working_directory = required_wc
+                    FileUtils.mkdir_p working_directory
+                    @subdir = subdir
+                end
+            end
 
-		FileUtils.cp File.expand_path(file, path_to_test), (destination || working_directory)
-	    end
+            def clear_wc
+                if ENV['TEST_KEEP_WC'] != '1' && ENV['TEST_DONT_CLEAN'] != '1'
+                    if File.directory?(path_to_wc_root)
+                        FileUtils.rm_rf path_to_wc_root
+                        @working_directory = nil
+                    end
+                end
+            end
 
-	    def in_wc(*subdir, &block)
-		Dir.chdir(File.join(working_directory, *subdir), &block)
-	    end
+            def copy_in_wc(file, destination = nil)
+                if destination
+                    destination = File.expand_path(destination, working_directory)
+                    FileUtils.mkdir_p destination
+                end
+
+                FileUtils.cp File.expand_path(file, path_to_test), (destination || working_directory)
+            end
+
+            def in_wc(*subdir, &block)
+                Dir.chdir(File.join(working_directory, *subdir), &block)
+            end
 
             def redirect_to_logfile
                 Hash[[STDOUT,STDERR] => [logfile, 'a']]
@@ -109,8 +109,8 @@ module OroGen
                 File.join(working_directory, 'test.log')
             end
 
-	    def compile_wc(project = nil, *subdir)
-		in_wc(*subdir) do
+            def compile_wc(project = nil, *subdir)
+                in_wc(*subdir) do
                     if project
                         unless project.deffile
                             project.deffile = File.join(working_directory, "#{project.name}.orogen")
@@ -118,15 +118,15 @@ module OroGen
                         project.generate
                     end
 
-		    yield if block_given?
+                    yield if block_given?
 
-		    FileUtils.mkdir('build') unless File.directory?('build')
-		    Dir.chdir('build') do
-			assert(system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..", redirect_to_logfile), "failed to configure, see #{logfile} for more details")
+                    FileUtils.mkdir('build') unless File.directory?('build')
+                    Dir.chdir('build') do
+                        assert(system("cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=#{prefix_directory} ..", redirect_to_logfile), "failed to configure, see #{logfile} for more details")
                         assert(call_make, "failed to build, see #{logfile} for more details")
-		    end
-		end
-	    end
+                    end
+                end
+            end
 
             def call_make(*args)
                 make_cmd = ["make"]
@@ -212,7 +212,7 @@ module OroGen
                     assert(system(test_bin, redirect_to_logfile), "failed to run test program #{test_bin}, see #{logfile} for output")
                 end
             end
-	end
+        end
     end
     end
     Minitest::Test.include OroGen::Gen::RTT_CPP::SelfTest

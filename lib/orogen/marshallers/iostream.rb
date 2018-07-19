@@ -32,7 +32,7 @@ module Typelib
                     result << "#{indent}    toStream(\"\", *it, io);\n"
                 end
                 result << "#{indent}}\n"
-	    end
+            end
             result << indent << "io << \" ]\";\n"
         end
 
@@ -51,7 +51,7 @@ module Typelib
             result << indent << "io << \"{ \";\n"
 
             first_field = true
-	    each_field do |field_name, field_type|
+            each_field do |field_name, field_type|
                 unless first_field
                     result << "#{indent}  io << \", \";\n";
                 end
@@ -65,7 +65,7 @@ module Typelib
                 else
                     result << "#{indent}  toStream(basename + \".#{field_name}\", value.#{field_name}, io);\n"
                 end
-	    end
+            end
             result << indent << "io << \" }\";\n"
         end
     end
@@ -94,7 +94,7 @@ module Typelib
                     result << "#{indent}    toStream(\"\", value[#{i}], io);\n"
                 end
                 result << "#{indent}}\n"
-	    end
+            end
             result << indent << "io << \" ]\";\n"
         end
     end
