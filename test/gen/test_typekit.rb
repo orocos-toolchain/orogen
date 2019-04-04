@@ -222,6 +222,18 @@ install(TARGETS test RUNTIME DESTINATION bin)
         assert_equal ['/unsigned int'], typelist
         assert_equal [], interface_typelist
     end
+    def test_defines
+        typekit = OroGen::Gen::RTT_CPP::Typekit.new
+        assert_equal typekit.defines, Hash.new
+        typekit.define("TEST",2)
+        assert_equal typekit.defines, {"TEST"=>2}
+
+        assert_raises(Exception) do
+            typekit.define("TEST",3)
+        end
+        typekit.define("TEST","new_value", override: true)
+        assert_equal typekit.defines, {"TEST"=>"new_value"}
+    end
 end
 
 

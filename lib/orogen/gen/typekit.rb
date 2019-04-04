@@ -629,6 +629,8 @@ module OroGen
             attr_accessor :include_dirs
             # The array of includes that have been loaded
             attr_reader :included_files
+            # The hash containing the defines for this typekit
+            attr_reader :defines
 
             # The three possible type export policies. See #type_export_policy
             # and #export_types
@@ -840,6 +842,7 @@ module OroGen
 
                 @include_dirs = Set.new
                 @included_files = Array.new
+                @defines = Hash.new
 
                 @plugins = []
                 plugins << (TypekitMarshallers::TypeInfo::Plugin.new(self))
@@ -2253,6 +2256,28 @@ module OroGen
                 includes.to_set.map do |inc|
                     "#include <#{inc}>"
                 end.sort.join("\n") + "\n"
+            end
+
+            # Adds a define to the typekit that permits to
+            # add conditionals in user code sections
+            # @param [String] key Name of the define
+            # @param [Object] value Value of the define
+            # @param [Bool] override True when existing values should
+            #                 be overriden false otherwise
+            def define(key,value, override: false)
+                if @defines.has_key?(key)
+                    existing_value = @defines[key]
+                    if existing_value != value
+                        if override
+                            @defines[key] = value
+                        else
+                            raise "cannot redefine #{key} to #{value} - existing
+                            value is: '#{existing_value}'"
+                        end
+                    end
+                else
+                    @defines[key] = value
+                end
             end
         end
     end
