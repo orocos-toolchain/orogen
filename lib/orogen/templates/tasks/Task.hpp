@@ -39,13 +39,6 @@ namespace <%= space %>{
          */
         <%= task.basename %>(std::string const& name = "<%= task.name %>"<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
 
-        /** TaskContext constructor for <%= task.basename %>
-         * \param name Name of the task. This name needs to be unique to make it identifiable for nameservices.
-         * \param engine The RTT Execution engine to be used for this task, which serialises the execution of all commands, programs, state machines and incoming events for a task.
-         * <%= "\\param initial_state The initial TaskState of the TaskContext. Default is Stopped state." unless task.fixed_initial_state? %>
-         */
-        <%= task.basename %>(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState initial_state = Stopped" unless task.fixed_initial_state? %>);
-
         /** Default deconstructor of <%= task.basename %>
          */
 	~<%= task.basename %>();
