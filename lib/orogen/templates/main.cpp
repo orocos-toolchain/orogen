@@ -293,9 +293,19 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
     <% if task.realtime? %>
+#if RTT_VERSION_GTE(2,8,99)
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherScheduler", ORO_SCHED_RT);
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherPriority", RTT::os::LowestPriority);
+#else
     RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+#endif
     <% else %>
+#if RTT_VERSION_GTE(2,8,99)
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherScheduler", ORO_SCHED_OTHER);
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherPriority", RTT::os::LowestPriority);
+#else
     RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
+#endif
     <% end %>
     <% end %>
 
