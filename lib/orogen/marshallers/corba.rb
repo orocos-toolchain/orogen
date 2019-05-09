@@ -419,7 +419,7 @@ EOT
             spec        = typekit.opaque_specification(self.name)
             target_type = typekit.intermediate_type_for(self)
             result << typekit.code_toIntermediate(target_type, spec.needs_copy?, "    ")
-            result << "#{indent} if (!toCORBA(corba, intermediate)) return false;"
+            result << "#{indent}if (!toCORBA(corba, intermediate)) return false;"
         end
 
         def from_corba(typekit, result, indent)
@@ -427,17 +427,17 @@ EOT
             target_type = typekit.intermediate_type_for(self)
             if spec.needs_copy?
                 result << <<-EOCODE
-#{target_type.cxx_name} intermediate;
-if (!fromCORBA(intermediate, corba))
-    return false;
-#{typekit.code_fromIntermediate(target_type, true, "    ")}
+#{indent}#{target_type.cxx_name} intermediate;
+#{indent}if (!fromCORBA(intermediate, corba))
+#{indent}    return false;
+#{typekit.code_fromIntermediate(target_type, true, indent)}
                 EOCODE
             else
                 result << <<-EOCODE
-std::auto_ptr< #{target_type.cxx_name} > intermediate(new #{target_type.cxx_name});
-if (!fromCORBA(*intermediate, corba))
-    return false;
-#{typekit.code_fromIntermediate(target_type, false, "    ")}
+#{indent}std::auto_ptr< #{target_type.cxx_name} > intermediate(new #{target_type.cxx_name});
+#{indent}if (!fromCORBA(*intermediate, corba))
+#{indent}    return false;
+#{typekit.code_fromIntermediate(target_type, false, indent)}
                 EOCODE
             end
         end
