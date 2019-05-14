@@ -39,11 +39,11 @@ using namespace <%= task.full_namespace%>;
 
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name, RTT::ExecutionEngine* engine<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
-    : ::<%= task.superclass.name %>(name, engine)
+    : ::<%= task.superclass.name %>(name)
 <% elsif task.needs_configuration? %>
-    : ::<%= task.superclass.name %>(name, engine, TaskCore::PreOperational)
+    : ::<%= task.superclass.name %>(name, TaskCore::PreOperational)
 <% else %>
-    : ::<%= task.superclass.name %>(name, engine, state)
+    : ::<%= task.superclass.name %>(name, state)
 <% end %>
 <%= initializer_list %>
 {
