@@ -1,6 +1,6 @@
 # oroGen: easy component building for Orocos/RTT
 
-* http://www.rock-robotics.org/stable/documentation/orogen
+* https://www.rock-robotics.org/documentation/orogen
 
 ## What is oroGen ?
 
@@ -17,10 +17,10 @@ implementing the actual functionality.
 The remaining of this readme is about oroGen installation. See the user's guide
 for more in-depth usage information:
 
-* [oroGen documentation](http://www.rock-robotics.org/stable/documentation/orogen)
+* [oroGen documentation](https://www.rock-robotics.org/documentation/orogen)
 
 ## Installation
 
 oroGen is part of the Robot Construction Kit. Check out
-[rock-robotics.org](http://rock-robotics.org) for installation instructions.
+[rock-robotics.org](https://rock-robotics.org) for installation instructions.
 
