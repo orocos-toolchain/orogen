@@ -22,7 +22,7 @@ module OroGen
                     # to handle following patterns:
                     # /string
                     # /unsigned char[8]
-                    # /unsigned char[8] 0 
+                    # /unsigned char[8] 0
                     if decl =~ /^(.*) (\d)$/
                         type, is_interface = $1, ($2 == '1')
                     else

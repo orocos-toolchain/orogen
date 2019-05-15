@@ -280,7 +280,7 @@ module OroGen
             result << "#{indent}corba.length(value.size());\n"
             # Special case for array of bytes, we can do a simple memcpy
             # (maybe extend that later)
-            if collection_name == "/std/vector" && 
+            if collection_name == "/std/vector" &&
                 element_type < NumericType &&
                 element_type.integer? &&
                 element_type.size == 1
@@ -319,7 +319,7 @@ module OroGen
                 result << "#{indent}size_t const size_#{element_idx} = corba.length();\n"
                 result << "#{indent}value.resize(size_#{element_idx});\n"
 
-                if collection_name == "/std/vector" && 
+                if collection_name == "/std/vector" &&
                     element_type < NumericType
 
                     result << "if (!value.empty()) #{indent}memcpy(&value[0], &corba[0], size_#{element_idx});"
@@ -411,7 +411,7 @@ EOT
             element_type = registry.build(element_type)
 
             # Special case for array of numerics, we can do a simple memcpy
-            if  element_type < NumericType 
+            if  element_type < NumericType
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(corba, value, array_size);"
             else
@@ -425,7 +425,7 @@ EOT
             element_type = registry.build(element_type)
 
             # Special case for array of numerics, we can do a simple memcpy
-            if  element_type < NumericType 
+            if  element_type < NumericType
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(value, corba, array_size);"
             else

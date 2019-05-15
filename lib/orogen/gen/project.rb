@@ -70,7 +70,7 @@ module OroGen
         #
         # Toplevel statements in the .orogen files are instance methods on a
         # Project instance. For instance, the
-        #   
+        #
         #   task_context "Name" do
         #      ...
         #   end
@@ -87,7 +87,7 @@ module OroGen
             attr_reader :tasks
 
             # A set of TaskContext instances listing the tasks defined in this
-            # project. 
+            # project.
             #
             # See #tasks for the set of all task definitions available in the
             # project.
@@ -569,7 +569,7 @@ module OroGen
             def resolve_type(typename)
                 find_type(typename)
             end
-            
+
             # Find the Typelib::Type object for +name+. +name+ can be either a
             # Typelib::Type object directly, or a type name. In both cases, the
             # type must have been defined either by the project's own typekit
@@ -868,7 +868,7 @@ module OroGen
                 end
                 self
             rescue Utilrb::PkgConfig::NotFound => e
-                if e.name == name 
+                if e.name == name
                     raise ConfigError, "no library named '#{name}' available", e.backtrace
                 else
                     raise ConfigError, "a dependency of library '#{name}' is not available: library '#{e.name}' could not be found", e.backtrace
@@ -1104,10 +1104,10 @@ module OroGen
                 end
                 loaded_deployments[name] = deployment
             end
-            
+
             # Called to store a loaded project for reuse later
             def register_loaded_project(name, obj)
-                OroGen.info "registering oroGen project #{name}" 
+                OroGen.info "registering oroGen project #{name}"
                 loaded_orogen_projects[name] = obj
             end
 
