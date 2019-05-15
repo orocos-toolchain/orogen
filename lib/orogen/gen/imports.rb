@@ -100,8 +100,14 @@ module OroGen
                 pkg.name
             end
             def perform_pending_loads; end
+            def transport_pkg(transport_name)
+                pkg_name = pkg.name.gsub(
+                    /typekit-(\w+)$/, "transport-#{transport_name}-\\1"
+                )
+                Utilrb::PkgConfig.new(pkg_name)
+            end
             def pkg_transport_name(transport_name)
-                Utilrb::PkgConfig.new(pkg.name.gsub('typekit', "transport-#{transport_name}")).name
+                transport_pkg(transport_name).name
             end
             def pkg_corba_name
                 pkg_transport_name('corba')

@@ -1127,7 +1127,11 @@ module OroGen
                 end
                 tasklib
             end
-            
+
+            def orogen_typekit_package(name)
+                Utilrb::PkgConfig.new("#{name}-typekit-#{orocos_target}")
+            end
+
             # Returns the description information for the given typekit
             def orogen_typekit_description(name)
                 if description = @known_typekits[name]
@@ -1135,7 +1139,7 @@ module OroGen
                 end
 
                 pkg = begin
-                          Utilrb::PkgConfig.new("#{name}-typekit-#{orocos_target}")
+                          orogen_typekit_package(name)
                       rescue Utilrb::PkgConfig::NotFound => e
                           raise ConfigError, "no typekit named '#{name}' is available (could not load pkg-config info #{name}-typekit-#{orocos_target} in #{ENV['PKG_CONFIG_PATH']})"
                       end

@@ -42,7 +42,29 @@ module OroGen
 
         def separate_cmake?; true end
 
+        # Complete list of typekits whose include path must be provided for IDL
+        # generation
+        #
+        # OroGen generates one IDL file per typekit, which means that during IDL
+        # generation, include paths should be transitive, including typekits
+        # whose types are not directly used by this typekit
+        #
+        # For this to happen, orogen saves the complete list of dependent
+        # typekits in the corba transport's pkg-config file, under the corba
+        # variable. This method computes a merged list.
+        #
+        # @return [Set<String>]
+        def corba_idl_requires
+            used_typekits = typekit.used_typekits.find_all { |tk| !tk.virtual? }
+            used_typekits.each_with_object(Set.new) do |tk, all|
+                all << tk.name
+                pkg = tk.transport_pkg('corba')
+                all.merge(pkg.corba_idl_requires.split(','))
+            end
+        end
+
         def generate(typesets)
+            corba_plugin = self
             headers, impl = [], []
 
             idl_registry = typesets.minimal_registry.dup
@@ -53,7 +75,7 @@ module OroGen
                 idl_registry.remove(t)
             end
             idl_registry.clear_aliases
-            
+
             idl = Gen::RTT_CPP.render_template "typekit", "corba", "Types.idl", binding
             idl_file = typekit.save_automatic("transports", "corba",
                 "#{typekit.name}Types.idl", idl)
