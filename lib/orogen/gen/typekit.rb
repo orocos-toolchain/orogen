@@ -1490,8 +1490,20 @@ module OroGen
                 !pending_loads.empty?
             end
 
+            # @api private
+            #
+            # Shelling out to CastXML is expensive, if only because it (and
+            # then, typelib) needs to parse headers over and over again. C++
+            # headers, as everyone knows, can be 10000s of lines long which we
+            # basically throw away afterwards.
+            #
+            # To save time, orogen tries to regroup loads until they are actually
+            # needed - which usually is when the types are needed. {#load} puts
+            # loaded headers in {#pending_loads}. This method ({#perform_pending_loads})
+            # is then called when needed to actually load the headers.
             def perform_pending_loads
                 return if pending_loads.empty?
+
                 loads = pending_loads.dup
                 pending_loads.clear
 
@@ -1994,7 +2006,13 @@ module OroGen
 
                 # Generate opaque-related stuff first, so that we see them in
                 # the rest of the typelib-registry-manipulation code
+                #
+                # First make sure we've loaded everything
+                perform_pending_loads
                 handle_opaques_generation(registry)
+                # Make sure that any pending load added by
+                # handle_opaques_generation is actually loaded. We need a
+                # complete registry after this point
                 perform_pending_loads
 
                 # Do some registry mumbo-jumbo to remove unneeded types to the
