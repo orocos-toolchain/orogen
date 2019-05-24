@@ -355,7 +355,7 @@ module OroGen
                 end
                 pointed_to = File.readlink(target)
                 if pointed_to == target
-                    return 
+                    return
                 else
                     FileUtils.rm_f target
                 end
@@ -569,7 +569,7 @@ module OroGen
             def standalone?
                 !project
             end
-            
+
             # Register a new plugin class. The plugin name is taken from
             # klass.name
             def self.register_plugin(klass)
@@ -936,7 +936,7 @@ module OroGen
 
             # Ask to support a smart-pointer implementation on the given type.
             # For instance, after the call
-            #  
+            #
             #   smart_ptr "boost::smart_ptr", "int"
             #
             # You will be able to use the following type in your task
@@ -1035,7 +1035,7 @@ module OroGen
             # Orogen has a specific support for data held by smart pointers. See #smart_ptr.
             #
             # The following options are available:
-            # 
+            #
             # +:includes+ is an optional set of headers needed to define
             # +base_type+. For instance:
             #
@@ -1111,7 +1111,7 @@ module OroGen
                     opaque_type.metadata.add('orogen_include', "#{self.name}:#{inc}")
                 end
                 orogen_def  = OpaqueDefinition.new(opaque_type,
-                                                 intermediate_type, options, convert_code_generator) 
+                                                 intermediate_type, options, convert_code_generator)
                 orogen_def.caller = caller
                 @opaques << orogen_def
                 @opaques = opaques.
@@ -1161,7 +1161,7 @@ module OroGen
             # * <tt>std::vector< <i>type</i> ></tt>. You *have* to specify
             #   <tt>std::vector</tt> (and not simply +vector+, as the <tt>using
             #   namespace</tt> directive is not supported by orogen.
-            # 
+            #
             # Moreover, the orogen tool defines the <tt>__orogen</tt>
             # preprocessor symbol when it loads the file. It is therefore
             # possible to define constructors, destructors, operators and (more
@@ -1169,7 +1169,7 @@ module OroGen
             #   #ifndef __orogen
             #   ... C++ code not supported by orogen ...
             #   #endif
-            # 
+            #
             # <b>The use of virtual methods and inheritance is completely
             # forbidden</b>. The types need to remain "value types" without
             # inheritance. For those who want to know, this is needed so that
@@ -1178,7 +1178,7 @@ module OroGen
             #
             # @raises LoadError if the file does not exist
             def load(file, add = true, user_options = Hash.new)
-                if !user_options.respond_to?(:to_hash) 
+                if !user_options.respond_to?(:to_hash)
                     raise ArgumentError, "expected an option has as third argument, got #{user_options.inspect}"
                 end
 
@@ -1355,7 +1355,7 @@ module OroGen
                     end
                 end
             end
-            
+
             def compute_orogen_include_on_type(type, file_to_include)
                 if includes = orogen_include_of_type(type, file_to_include)
                     type.metadata.set('orogen_include', *includes)
@@ -1521,20 +1521,25 @@ module OroGen
                 preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
 
                 include_path = include_dirs.map { |d| Pathname.new(d) }
-                pending_loads_to_relative = loads.inject(Hash.new) do |map, path|
-                    map[path] = resolve_full_include_path_to_relative(path, include_path)
-                    map
-                end
+                pending_loads_to_relative =
+                    loads.each_with_object(Hash.new) do |path, map|
+                        map[path] = resolve_full_include_path_to_relative(path, include_path)
+                    end
 
                 include_mappings.each do |file, lines|
                     lines.map! { |inc| pending_loads_to_relative[inc] }
                 end
 
-                Tempfile.open(["orogen-pending-loads_",".hpp"]) do |io|
+                logger = OroGen::Gen::RTT_CPP.logger
+                Tempfile.open(['orogen-pending-loads_', '.hpp']) do |io|
                     io.write preprocessed
                     io.flush
 
                     begin
+                        logger.info "typekit: loading #{loads.size} headers"
+                        loads.each do |path|
+                            logger.info "typekit:  #{path}"
+                        end
                         file_registry.import(io.path, 'c', options)
                         filter_unsupported_types(file_registry)
                         resolve_registry_includes(file_registry, include_mappings)
@@ -1543,8 +1548,11 @@ module OroGen
                         if project
                             project.registry.merge(file_registry)
                         end
-                    rescue Exception => e
-                        raise ArgumentError, "cannot load one of the header files #{loads.join(", ")}: #{e.message}", e.backtrace
+                    rescue RuntimeError => e
+                        raise ArgumentError,
+                              'cannot load one of the header files '\
+                              "#{loads.join(", ")}: #{e.message}",
+                              e.backtrace
                     end
                 end
 
@@ -1652,7 +1660,7 @@ module OroGen
                 types.each do |type|
                     loop do
                         imported_typekits.each do |tk|
-                            if type < Typelib::ArrayType 
+                            if type < Typelib::ArrayType
                                 if tk.defines_array_of?(type.deference)
                                     result << tk
                                 end

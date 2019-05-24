@@ -10,6 +10,7 @@ project_name=<%= typekit.name %>
 deffile=${prefix}/share/orogen/<%= File.basename(typekit.project.deffile) %>
 <% end %>
 type_registry=${prefix}/share/orogen/<%= typekit.name %>.tlb
+corba_idl_requires=<%= corba_plugin.corba_idl_requires.to_a.sort.join(",") %>
 
 Name: <%= typekit.name %>CorbaTransport
 Version: <%= typekit.version %>

@@ -42,7 +42,29 @@ module OroGen
 
         def separate_cmake?; true end
 
+        # Complete list of typekits whose include path must be provided for IDL
+        # generation
+        #
+        # OroGen generates one IDL file per typekit, which means that during IDL
+        # generation, include paths should be transitive, including typekits
+        # whose types are not directly used by this typekit
+        #
+        # For this to happen, orogen saves the complete list of dependent
+        # typekits in the corba transport's pkg-config file, under the corba
+        # variable. This method computes a merged list.
+        #
+        # @return [Set<String>]
+        def corba_idl_requires
+            used_typekits = typekit.used_typekits.find_all { |tk| !tk.virtual? }
+            used_typekits.each_with_object(Set.new) do |tk, all|
+                all << tk.name
+                pkg = tk.transport_pkg('corba')
+                all.merge(pkg.corba_idl_requires.split(','))
+            end
+        end
+
         def generate(typesets)
+            corba_plugin = self
             headers, impl = [], []
 
             idl_registry = typesets.minimal_registry.dup
@@ -53,7 +75,7 @@ module OroGen
                 idl_registry.remove(t)
             end
             idl_registry.clear_aliases
-            
+
             idl = Gen::RTT_CPP.render_template "typekit", "corba", "Types.idl", binding
             idl_file = typekit.save_automatic("transports", "corba",
                 "#{typekit.name}Types.idl", idl)
@@ -258,7 +280,7 @@ module OroGen
             result << "#{indent}corba.length(value.size());\n"
             # Special case for array of bytes, we can do a simple memcpy
             # (maybe extend that later)
-            if collection_name == "/std/vector" && 
+            if collection_name == "/std/vector" &&
                 element_type < NumericType &&
                 element_type.integer? &&
                 element_type.size == 1
@@ -297,7 +319,7 @@ module OroGen
                 result << "#{indent}size_t const size_#{element_idx} = corba.length();\n"
                 result << "#{indent}value.resize(size_#{element_idx});\n"
 
-                if collection_name == "/std/vector" && 
+                if collection_name == "/std/vector" &&
                     element_type < NumericType
 
                     result << "if (!value.empty()) #{indent}memcpy(&value[0], &corba[0], size_#{element_idx});"
@@ -389,7 +411,7 @@ EOT
             element_type = registry.build(element_type)
 
             # Special case for array of numerics, we can do a simple memcpy
-            if  element_type < NumericType 
+            if  element_type < NumericType
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(corba, value, array_size);"
             else
@@ -403,7 +425,7 @@ EOT
             element_type = registry.build(element_type)
 
             # Special case for array of numerics, we can do a simple memcpy
-            if  element_type < NumericType 
+            if  element_type < NumericType
                 result << "#{indent}const int array_size = length * sizeof(#{element_type.cxx_name});\n"
                 result << "#{indent}memcpy(value, corba, array_size);"
             else
