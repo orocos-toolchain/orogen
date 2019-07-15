@@ -55,7 +55,7 @@ module OroGen
             # :call-seq:
             #   doc => string
             #   doc "documentation string"
-            #   
+            #
             # Gets or sets the documentation string for this task context
             dsl_attribute :doc
 
@@ -178,8 +178,45 @@ module OroGen
             # should not be deployed
             def abstract?; @abstract end
 
-            def use_qt; @uses_qt = true; end
-            def uses_qt?; @uses_qt; end
+            def use_qt
+                needs_global_initializer(:qt)
+            end
+
+            def uses_qt?
+                needs_global_initializer?(:qt)
+            end
+
+            # Specifies that deployments that use this task must run a global
+            # initializer in the global main
+            #
+            # @param [Symbol] key the initializer name. It must be previously
+            #   registered with {Spec::Deployment#register_global_initializer}.
+            def needs_global_initializer(key)
+                unless Spec::Deployment.has_global_initializer?(key)
+                    raise ArgumentError, "unknown global initializer '#{key}'"
+                end
+
+                @global_initializers << key
+            end
+
+            def needs_global_initializer?(key)
+                @global_initializers.include?(key) ||
+                    superclass&.needs_global_initializer?(key)
+            end
+
+            # Enumerates the global initializers this task required
+            #
+            # @see needs_global_initializer
+            def each_needed_global_initializer
+                return enum_for(__method__) unless block_given?
+
+                @global_initializers.each { |i| yield(i) }
+                unique = @global_initializers.dup
+
+                superclass&.each_needed_global_initializer do |i|
+                    yield(i) unless unique.include?(i)
+                end
+            end
 
             # Declares that this task context is a subclass of the following
             # TaskContext class. +task_context+ can either be a class name or a
@@ -306,7 +343,7 @@ module OroGen
             def periodic(period)
                 default_activity :periodic, period
             end
-            
+
             # True if this task context is defined by one of our dependencies.
             attr_predicate :external_definition?, true
 
@@ -360,6 +397,7 @@ module OroGen
                 @default_extensions = Array.new
                 @fixed_initial_state = false
                 @needs_configuration = false
+                @global_initializers = Set.new
 
                 ## WARN: this must be kept an array so that the generation order
                 ## WARN: is deterministic
@@ -448,7 +486,7 @@ module OroGen
             end
 
             # Raises ArgumentError if an object named +name+ is already present
-            # in the set attribute +set_name+. 
+            # in the set attribute +set_name+.
             #
             # This is an internal helper method
             def check_uniqueness(name) # :nodoc:
@@ -613,10 +651,10 @@ module OroGen
                 state_port = find_port("state")
                 if state_port
                     if state_port.kind_of?(InputPort)
-                        raise ArgumentError, 
+                        raise ArgumentError,
                             "there is already an input port called 'state', cannot enable extended state support"
                     elsif state_port.type != project.find_type("/int32_t")
-                        raise ArgumentError, 
+                        raise ArgumentError,
                             "there is already an output port called 'state', but it is not of type 'int' (found #{state_port.type_name}"
                     end
                 else
@@ -1182,7 +1220,7 @@ module OroGen
                 end
                 return false
             end
-            
+
             # Return true if this task interface has an dynamic property.
             def has_dynamic_attributes?
                 self_attributes.each do |p|
@@ -1330,7 +1368,7 @@ module OroGen
                     label << "  </TD></TR>\n"
                     label << "</TABLE>"
                 end
-                    
+
                 result = ""
                 result << "  node [shape=none,margin=0,height=.1];"
 

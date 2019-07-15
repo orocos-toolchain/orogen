@@ -65,6 +65,50 @@ module OroGen
                 super(name, task_context)
             end
 
+            GlobalInitializer = Struct.new(:global_scope, :init, :exit,
+                                           :tasks_cmake, :deployment_cmake)
+
+            @available_global_cpp_initializers = {}
+
+            # Register the C++ code generation for a given global initializer
+            #
+            # The method registers the initializer on {Spec::Deployment} to declare
+            # it to the spec loaders
+            #
+            # @param [Symbol] key the generator name, identical to the name used
+            #   in {Spec::TaskContext#needs_global_initializer}
+            def self.register_global_initializer(key,
+                                                 global_scope: '', init: '', exit: '',
+                                                 tasks_cmake: '', deployment_cmake: '')
+
+                Spec::Deployment.register_global_initializer(key)
+                @available_global_cpp_initializers[key] = GlobalInitializer.new(
+                    global_scope, init, exit, tasks_cmake, deployment_cmake
+                )
+            end
+
+            # Resolve a global initializer for the CPP code generator
+            def self.resolve_global_initializer(key)
+                unless (initializer = @available_global_cpp_initializers[key])
+                    raise ArgumentError, "cannot resolve global initializer '#{key}' "\
+                                         "in #{self.class}"
+                end
+
+                initializer
+            end
+
+            # Enumerate the C++-specific {GlobalInitializer} objects needed by
+            # this deployment
+            #
+            # @param [GlobalInitializer] initializer
+            def each_needed_global_cpp_initializer
+                return enum_for(__method__) unless block_given?
+
+                each_needed_global_initializer do |key|
+                    yield(Deployment.resolve_global_initializer(key))
+                end
+            end
+
             def dependencies
                 result = []
                 result << BuildDependency.new(
