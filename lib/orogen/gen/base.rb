@@ -80,17 +80,21 @@ module OroGen
         end
 
         def self.cmake_pkgconfig_require(depspec, context = 'core')
-            depspec.inject([]) do |result, s|
+            cmake_txt = "set(DEPS_CFLAGS_OTHER \"\")\n"
+            cmake_txt += depspec.inject([]) do |result, s|
                 result << "orogen_pkg_check_modules(#{s.var_name} REQUIRED #{s.pkg_name})"
                 if s.in_context?(context, 'include')
                     result << "include_directories(${#{s.var_name}_INCLUDE_DIRS})"
-                    result << "add_definitions(${#{s.var_name}_CFLAGS_OTHER})"
+                    result << "list(APPEND DEPS_CFLAGS_OTHER ${#{s.var_name}_CFLAGS_OTHER})"
                 end
                 if s.in_context?(context, 'link')
                     result << "link_directories(${#{s.var_name}_LIBRARY_DIRS})"
                 end
                 result
             end.join("\n") + "\n"
+            cmake_txt += "list(REMOVE_DUPLICATES DEPS_CFLAGS_OTHER)\n"
+            cmake_txt += "add_definitions(${DEPS_CFLAGS_OTHER})\n"
+            cmake_txt
         end
 
         def self.cmake_pkgconfig_link(context, target, depspec)
