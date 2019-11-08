@@ -1,6 +1,6 @@
 module OroGen
     module Spec
-    
+
         class << self
             # Default minimal latency value used for realtime scheduling
             #
@@ -10,7 +10,7 @@ module OroGen
             #
             # See TaskDeployment::worstcase_trigger_latency
             attr_accessor :default_rt_worstcase_trigger_latency
-            
+
             # Default minimal latency value used for non-realtime scheduling
             #
             # See TaskDeployment::minimal_trigger_latency
@@ -20,13 +20,13 @@ module OroGen
             # See TaskDeployment::worstcase_trigger_latency
             attr_accessor :default_nonrt_worstcase_trigger_latency
         end
-        
+
         @default_rt_minimal_trigger_latency = 0.001
         @default_rt_worstcase_trigger_latency = 0.005
-        
+
         @default_nonrt_minimal_trigger_latency = 0.005
         @default_nonrt_worstcase_trigger_latency = 0.020
-        
+
         class GenericObjectDeployment
             attr_reader :activity, :interface_object
             def initialize(activity, interface_object)
@@ -75,7 +75,7 @@ module OroGen
                 else
                     raise ArgumentError, "'type' can only be either :data or :buffer"
                 end
-                    
+
                 lock_policy = hash.delete(:lock_policy) || :lock_free
                 if lock_policy == :lock_free || lock_policy == :locked
                     policy.lock_policy = lock_policy
@@ -138,7 +138,7 @@ module OroGen
             #
             # See worstcase_trigger_latency
             attr_accessor :worstcase_trigger_latency
-            
+
             # If this task is deployed with a slave activity, this is the master task
             # @return [TaskDeployment]
             attr_accessor :master
@@ -216,7 +216,7 @@ module OroGen
                         instance_variable_set "@#{collection_name}", deployed_objects
                     end
             end
-            
+
             # Make this task as being of the highest priority allowed by the
             # underlying OS
             def highest_priority; @priority = :highest; self end
@@ -252,7 +252,7 @@ module OroGen
                 @period = nil
                 @activity_setup = nil
                 @stop_timeout = 10
-                
+
                 ActivityDefinition.new(type[0], type[1], type[2])
             end
 
@@ -502,7 +502,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                         end
                     end
                 end
-                
+
                 return super
             end
         end
@@ -547,6 +547,8 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @manually_loaded_types = Set.new
                 @lock_timeout_no_period = nil
                 @lock_timeout_period_factor =  nil
+
+                @global_initializers = Set.new
             end
 
             def initialize_copy(old)
@@ -573,10 +575,58 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             end
 
             def uses_qt?
-                task_activities.any?{|t| t.task_model.uses_qt?}
+                needs_global_initializer?(:qt)
             end
 
-            #Manually Request Loading of Types that are not Provided throught the task_contex typekit.
+            @available_global_initializers = Set.new
+
+            # Register the existence of a global initializer
+            #
+            # The actual global initializer registration and handling should be
+            # done on the code generation side, that is in e.g.
+            # {Gen::RTT_CPP::Deployment} The spec side only deals with
+            # generator names.
+            #
+            # @param [Symbol] key the generator name
+            def self.register_global_initializer(key)
+                @available_global_initializers << key
+            end
+
+            # Checks whether a given global initializer is available
+            def self.has_global_initializer?(key)
+                @available_global_initializers.include?(key)
+            end
+
+            # Register code that should be added to the deployment's main file
+            def add_global_initializer(key)
+                @global_initializers << key
+            end
+
+            # Enumerate the global initializers that are needed by this
+            # deployment
+            #
+            # @yieldparam [Symbol] key the initializer name as registered with
+            #   {.register_global_initializer}. The registration needed by the actual
+            #   code generation needs to be done with each separate code generator
+            def each_needed_global_initializer
+                return enum_for(__method__) unless block_given?
+
+                @global_initializers.each { |i| yield(i) }
+                unique = @global_initializers.dup
+                task_activities.each do |t|
+                    t.task_model.each_needed_global_initializer do |key|
+                        yield(key) if unique.add?(key)
+                    end
+                end
+            end
+
+            # Tests with a given global initializer is needed in this deployment
+            def needs_global_initializer?(key)
+                task_activities.any? { |t| t.task_model.needs_global_initializer?(key) }
+            end
+
+            # Manually request loading of types that are not provided throught
+            # the task_contex typekit.
             def load_type(typename)
                 if !project.imported_typekits_for(typename).map(&:name)[0]
                     raise ArgumentError, "cannot find a typekit defining #{typename}"
@@ -591,7 +641,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                     deployed_task.task_model.used_typekits.
                         map(&:name)
                 end.flatten.to_set
-               
+
                 @manually_loaded_types.each do |type|
                     tk = project.imported_typekits_for(type).map(&:name)[0]
                     if !tk
@@ -798,7 +848,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                 @lock_timeout_period_factor
             end
 
-            # Set the mutex timeout for a thread with a given period 
+            # Set the mutex timeout for a thread with a given period
             # by a factor of its period
             # if set, the minimum setting is factor 10 (times the period)
             def lock_timeout_period_factor(factor)

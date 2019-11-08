@@ -305,6 +305,27 @@ module OroGen
                 project.used_typekits.find { |tk| tk.name == typekit_name }
             end
 
+            # @api private
+            #
+            # Enumerate the global initializers needed by the tasks in this project
+            #
+            # This is used solely during code generation as global initializers can
+            # register code to be generated in the tasks's CMake
+            #
+            # @yieldparam [Deployment::GlobalInitializer]
+            def each_needed_global_cpp_initializer
+                return enum_for(__method__) unless block_given?
+
+                unique = Set.new
+                self_tasks.each do |task|
+                    task.each_needed_global_initializer do |key|
+                        if unique.add?(key)
+                            yield(Deployment.resolve_global_initializer(key))
+                        end
+                    end
+                end
+            end
+
             # Returns all subdirectores that task-extens want to add
             # This is used within the CMake-list generation to add
             # custom targets to the build process

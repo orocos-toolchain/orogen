@@ -20,6 +20,8 @@ require 'orogen/spec/dynamic_ports'
 require 'orogen/spec/task_context'
 require 'orogen/spec/deployment'
 
+OroGen::Spec::Deployment.register_global_initializer(:qt)
+
 require 'orogen/spec/typekit'
 require 'orogen/spec/project'
 

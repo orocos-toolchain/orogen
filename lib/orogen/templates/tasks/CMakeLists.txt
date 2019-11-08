@@ -1,21 +1,16 @@
 # Generated from orogen/lib/orogen/templates/tasks/CMakeLists.txt
 
 include(<%= project.name %>TaskLib)
-ADD_LIBRARY(${<%= project.name.upcase %>_TASKLIB_NAME} SHARED 
+ADD_LIBRARY(${<%= project.name.upcase %>_TASKLIB_NAME} SHARED
     ${<%= project.name.upcase %>_TASKLIB_SOURCES})
 <% if project.typekit %>
 add_dependencies(${<%= project.name.upcase %>_TASKLIB_NAME}
     regen-typekit)
 <% end %>
 
-<% if self_tasks.any?{|t| t.uses_qt?} %>
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR})
-link_directories(${QT_LIBRARY_DIR})
-set(CMAKE_AUTOMOC true)
+<% project.each_needed_global_cpp_initializer do |init| %>
+<%= ERB.new(init.tasks_cmake).result(binding) %>
 <% end %>
-
 
 TARGET_LINK_LIBRARIES(${<%= project.name.upcase %>_TASKLIB_NAME}
     ${OrocosRTT_LIBRARIES}

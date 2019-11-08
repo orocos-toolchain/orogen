@@ -42,3 +42,40 @@ OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::Corba:
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::MQueue::Plugin)
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::TypeInfo::Plugin)
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::TypelibMarshaller::Plugin)
+
+OroGen::Gen::RTT_CPP::Deployment.register_global_initializer(
+    :qt,
+    global_scope: <<~QT_GLOBAL_SCOPE,
+        #include <pthread.h>
+        #include <QApplication>
+        void* qt_thread_main(void* qapp)
+        {
+            reinterpret_cast<QCoreApplication*>(qapp)->exec();
+            return NULL;
+        }
+    QT_GLOBAL_SCOPE
+    init: <<~QT_INIT_CODE,
+        QApplication *qapp = new QApplication(argc,argv);
+        pthread_t qt_thread;
+        pthread_create(&qt_thread, NULL, qt_thread_main, qapp);
+    QT_INIT_CODE
+    exit: <<~QT_EXIT_CODE,
+        qapp->exit();
+        pthread_join(&qt_thread, NULL);
+    QT_EXIT_CODE
+    tasks_cmake: <<~QT_DEPLOYMENT_CMAKE,
+        find_package(Qt4 REQUIRED)
+        include(${QT_USE_FILE})
+        include_directories(${QT_INCLUDE_DIR})
+        link_directories(${QT_LIBRARY_DIR})
+        set(CMAKE_AUTOMOC true)
+    QT_DEPLOYMENT_CMAKE
+    deployment_cmake: <<~QT_DEPLOYMENT_CMAKE,
+        find_package(Qt4 REQUIRED)
+        include(${QT_USE_FILE})
+        include_directories(${QT_INCLUDE_DIR})
+        link_directories(${QT_LIBRARY_DIR})
+        target_link_libraries(<%= deployer.name %> ${QT_LIBRARIES})
+        set(CMAKE_AUTOMOC true)
+    QT_DEPLOYMENT_CMAKE
+)
