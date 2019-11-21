@@ -41,14 +41,16 @@ module OroGen
             end
 
             def initialize(loader)
+                @default_task_superclass = nil
                 @loader = loader
-                @tasks = Hash.new
-                @self_tasks = Hash.new
-                @deployers = Hash.new
+                @typekit = nil
+                @tasks = {}
+                @self_tasks = {}
+                @deployers = {}
                 @define_default_deployments = true
                 @enabled_transports = Set.new
-                @max_sizes = Hash.new
-                @disabled_namespaces = Array.new
+                @max_sizes = {}
+                @disabled_namespaces = []
             end
 
             def enable_namespace(value); @disabled_namespaces.delete(value) end

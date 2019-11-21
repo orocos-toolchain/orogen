@@ -441,7 +441,7 @@ module OroGen
                     if !user_converted_types.empty?
                         # We need to generate a user part with the convertion
                         # functions. Reuse the templates !
-                        
+
                         code  = Gen::RTT_CPP.render_template "typekit", "ros", "ROSConvertions.hpp", binding
                         headers << typekit.save_user("ROSConvertions.hpp", code)
                         code  = Gen::RTT_CPP.render_template "typekit", "ros", "ROSConvertions.cpp", binding

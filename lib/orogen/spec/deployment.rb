@@ -132,12 +132,12 @@ module OroGen
             # task
             #
             # See minimal_trigger_latency
-            attr_accessor :minimal_trigger_latency
+            attr_writer :minimal_trigger_latency
             # Overrides the default expected trigger latency for this particular
             # task
             #
             # See worstcase_trigger_latency
-            attr_accessor :worstcase_trigger_latency
+            attr_writer :worstcase_trigger_latency
 
             # If this task is deployed with a slave activity, this is the master task
             # @return [TaskDeployment]
@@ -165,9 +165,9 @@ module OroGen
                 if @minimal_trigger_latency
                     @minimal_trigger_latency
                 elsif @realtime
-                    Spec::default_rt_minimal_trigger_latency
+                    Spec.default_rt_minimal_trigger_latency
                 else
-                    Spec::default_nonrt_minimal_trigger_latency
+                    Spec.default_nonrt_minimal_trigger_latency
                 end
             end
 
@@ -187,9 +187,9 @@ module OroGen
                     if @worstcase_trigger_latency
                         @worstcase_trigger_latency
                     elsif @realtime
-                        Spec::default_rt_worstcase_trigger_latency
+                        Spec.default_rt_worstcase_trigger_latency
                     else
-                        Spec::default_nonrt_worstcase_trigger_latency
+                        Spec.default_nonrt_worstcase_trigger_latency
                     end
                 [computation_time, trigger_latency].max
             end
@@ -202,10 +202,12 @@ module OroGen
                 @max_overruns = -1
                 @master = nil
                 @slaves = Array.new
-                if task_model.default_activity
-                    send(*task_model.default_activity)
-                    @explicit_activity = task_model.required_activity?
-                end
+
+                @explicit_activity =
+                    if task_model.default_activity
+                        send(*task_model.default_activity)
+                        task_model.required_activity?
+                    end
 
                 { :properties  => PropertyDeployment,
                     :ports    => PortDeployment,
@@ -285,7 +287,7 @@ module OroGen
             def fd_driven
                 activity_type 'FileDescriptorActivity', 'RTT::extras::FileDescriptorActivity', 'rtt/extras/FileDescriptorActivity.hpp'
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="FileDescriptorActivity">
     <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
     <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
@@ -301,7 +303,7 @@ module OroGen
             def irq_driven
                 activity_type 'IRQActivity', 'RTT::extras::IRQActivity', 'rtt/extras/IRQActivity.hpp'
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="IRQActivity">
     <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
     <simple name="Scheduler" type="string"><value>#{rtt_scheduler}</value></simple>
@@ -332,7 +334,7 @@ module OroGen
             def periodic(value)
                 activity_type 'Periodic', 'RTT::Activity', 'rtt/Activity.hpp'
                 activity_setup do
-                   result = <<-EOD
+                   <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
     #{rtt_scheduler},
     #{rtt_priority},
@@ -345,7 +347,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                    EOD
                 end
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="Activity">
     <simple name="Period" type="double"><value>#{period}</value></simple>
     <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
@@ -363,7 +365,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             def triggered
                 activity_type 'Triggered', 'RTT::Activity', 'rtt/Activity.hpp'
                 activity_setup do
-                   result = <<-EOD
+                   <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(
     #{rtt_scheduler},
     #{rtt_priority},
@@ -373,7 +375,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
                    EOD
                 end
                 activity_xml do
-                    result = <<-EOD
+                    <<-EOD
 <struct name="#{name}" type="Activity">
     <simple name="Period" type="double"><value>0</value></simple>
     <simple name="Priority" type="short"><value>#{rtt_priority}</value></simple>
@@ -392,7 +394,7 @@ thread_#{name}->setMaxOverrun(#{max_overruns});
             def sequential
                 activity_type 'Sequential', 'RTT::extras::SequentialActivity', 'rtt/extras/SequentialActivity.hpp'
                 activity_setup do
-                    result = <<-EOD
+                    <<-EOD
 #{activity_type.class_name}* activity_#{name} = new #{activity_type.class_name}(task_#{name}->engine());
                     EOD
                 end

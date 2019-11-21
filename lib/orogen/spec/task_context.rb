@@ -46,10 +46,13 @@ module OroGen
             #
             # @return [Project]
             attr_reader :project
+
             # The loader that has been used to load this task context
             #
             # @return [Loaders::Base]
-            def loader; project.loader end
+            def loader
+                project.loader
+            end
 
             ## :method: doc
             # :call-seq:
@@ -104,7 +107,9 @@ module OroGen
             attr_reader :extensions
 
             # True if an extension with the given name has been registered
-            def has_extension?(name, with_subclasses = true); !!find_extension(name, with_subclasses) end
+            def has_extension?(name, with_subclasses = true)
+                find_extension(name, with_subclasses)
+            end
 
             # Registers an extension with the given name. Raises ArgumentError
             # if there is already one.
@@ -119,16 +124,14 @@ module OroGen
 
             # Enumerates the extensions registered on this task model, as (name,
             # extension_object) pairs
-            def each_extension(with_subclasses = true, &block)
-                if !block_given?
-                    return enum_for(:each_extension, with_subclasses)
-                end
+            def each_extension(with_subclasses = true)
+                return enum_for(:each_extension, with_subclasses) unless block_given?
 
                 seen = Set.new
                 klass = self
                 begin
                     klass.extensions.each do |ext|
-                        if !seen.include?(ext.name)
+                        unless seen.include?(ext.name)
                             seen << ext.name
                             yield(ext)
                         end
@@ -149,14 +152,19 @@ module OroGen
             # Returns the extension named +name+, or raises ArgumentError if
             # none is registered with that name
             def extension(name, with_subclasses = true)
-                if ext = find_extension(name, with_subclasses)
+                if (ext = find_extension(name, with_subclasses))
                     ext
                 else raise ArgumentError, "no extension registered under the name '#{name}'"
                 end
             end
 
-            def to_s; "#<OroGen::Spec::TaskContext: #{name}>" end
-            def inspect; to_s end
+            def to_s
+                "#<OroGen::Spec::TaskContext: #{name}>"
+            end
+
+            def inspect
+                to_s
+            end
 
             # The task name
             attr_reader :name
@@ -173,10 +181,15 @@ module OroGen
 
             # Call to declare that this task model is not meant to run in
             # practice
-            def abstract; @abstract = true; end
+            def abstract
+                @abstract = true
+            end
+
             # True if this task model is only meant to declare an interface, and
             # should not be deployed
-            def abstract?; @abstract end
+            def abstract?
+                @abstract
+            end
 
             def use_qt
                 needs_global_initializer(:qt)
@@ -362,7 +375,7 @@ module OroGen
             # TaskContext objects should not be created directly. You should
             # use {Project#task_context} for that.
             def initialize(project, name = nil, subclasses: project.default_task_superclass)
-                @project  = project
+                @project = project
 
                 if subclasses
                     @superclass =
@@ -381,27 +394,28 @@ module OroGen
 
                 @implemented_classes = []
                 @name = name
+                @abstract = false
 
                 # This is an array, as we don't want to have it reordered
                 # unnecessarily
-                @states = Array.new
+                @states = []
 
-                @properties = Hash.new
-                @attributes = Hash.new
-                @operations = Hash.new
-                @output_ports = Hash.new
-                @input_ports  = Hash.new
-                @dynamic_ports = Array.new
-                @event_ports = Hash.new
+                @properties = {}
+                @attributes = {}
+                @operations = {}
+                @output_ports = {}
+                @input_ports  = {}
+                @dynamic_ports = []
+                @event_ports = {}
                 @initial_state = 'Stopped'
-                @default_extensions = Array.new
+                @default_extensions = []
                 @fixed_initial_state = false
                 @needs_configuration = false
                 @global_initializers = Set.new
 
                 ## WARN: this must be kept an array so that the generation order
                 ## WARN: is deterministic
-                @extensions = Array.new
+                @extensions = []
 
                 super()
 

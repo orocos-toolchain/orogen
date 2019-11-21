@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module Loaders
         # Definition of the base loader API
@@ -49,26 +51,23 @@ module OroGen
 
             def initialize(root_loader = self)
                 @root_loader = root_loader || self
-                if root_loader != self
-                    root_loader.added_child(self)
-                end
-                @typekit_load_callbacks = Array.new
-                @project_load_callbacks = Array.new
+                root_loader.added_child(self) if root_loader != self
+                @typekit_load_callbacks = []
+                @project_load_callbacks = []
                 clear
             end
 
             def clear
-                @loaded_projects = Hash.new
-                @loaded_typekits = Hash.new
-                @loaded_task_models = Hash.new
-                @loaded_deployment_models = Hash.new
-                @typekits_by_type_name = Hash.new
+                @loaded_projects = {}
+                @loaded_typekits = {}
+                @loaded_task_models = {}
+                @loaded_deployment_models = {}
+                @typekits_by_type_name = {}
                 @registry = Typelib::Registry.new
                 @interface_typelist = Set.new
             end
 
-            def added_child(loader)
-            end
+            def added_child(loader); end
 
             # Returns the project model corresponding to the given name
             #
@@ -103,8 +102,10 @@ module OroGen
 
                 Loaders::Project.new(project).__eval__(path, text)
                 if name && (project.name != name)
-                    raise ArgumentError, "got project #{project.name} while loading #{name}"
+                    raise ArgumentError,
+                          "got project #{project.name} while loading #{name}"
                 end
+
                 register_project_model(project)
                 project
             end
@@ -142,7 +143,9 @@ module OroGen
             def task_library_model_from_name(name)
                 project = project_model_from_name(name)
                 if project.self_tasks.empty?
-                    raise ProjectNotFound, "there is an oroGen project called #{name}, but it defines no tasks"
+                    raise ProjectNotFound,
+                          "there is an oroGen project called #{name}, "\
+                          'but it defines no tasks'
                 end
                 project
             end
@@ -154,19 +157,22 @@ module OroGen
             # @raise [TaskModelNotFound] if there are no such model
             # @raise (see project_model_from_name)
             def task_model_from_name(name)
-                if model = loaded_task_models[name]
+                if (model = loaded_task_models[name])
                     return model
                 end
 
                 tasklib_name = find_task_library_from_task_model_name(name)
-                if !tasklib_name
+                unless tasklib_name
                     raise TaskModelNotFound, "no task model #{name} is registered"
                 end
 
                 tasklib = project_model_from_name(tasklib_name)
                 result = tasklib.tasks[name]
-                if !result
-                    raise InternalError, "while looking up model of #{name}: found project #{tasklib_name}, but this project does not actually have a task model called #{name}"
+                unless result
+                    raise InternalError,
+                          "while looking up model of #{name}: found project "\
+                          "#{tasklib_name}, but this project does not actually "\
+                          "have a task model called #{name}"
                 end
 
                 result
@@ -178,19 +184,23 @@ module OroGen
             # @return [OroGen::Spec::Deployment] the deployment model
             # @raise [DeploymentModelNotFound] if no deployment with that name exists
             def deployment_model_from_name(name)
-                if model = loaded_deployment_models[name]
+                if (model = loaded_deployment_models[name])
                     return model
                 end
 
                 project_name = find_project_from_deployment_name(name)
-                if !project_name
-                    raise DeploymentModelNotFound, "there is no deployment called #{name} on #{self}"
+                unless project_name
+                    raise DeploymentModelNotFound,
+                          "there is no deployment called #{name} on #{self}"
                 end
 
                 project = project_model_from_name(project_name)
                 deployment = project.deployers[name]
-                if !deployment
-                    raise InternalError, "cannot find the deployment called #{name} in #{project.name}. Candidates were #{project.deployers.map(&:name).sort.join(", ")}"
+                unless deployment
+                    raise InternalError,
+                          "cannot find the deployment called #{name} "\
+                          "in #{project.name}. Candidates were "\
+                          "#{project.deployers.map(&:name).sort.join(', ')}"
                 end
                 deployment
             end
@@ -198,34 +208,42 @@ module OroGen
             # Returns the deployed task model for the given name
             #
             # @param [String] name the deployed task name
-            # @param [String] deployment_name () the name of the deployment in which the
-            #   task is defined. It must be given only when more than one deployment
-            #   defines a task with the requested name
+            # @param [String] deployment_name () the name of the deployment in
+            #   which the task is defined. It must be given only when more than
+            #   one deployment defines a task with the requested name
             # @return [OroGen::Spec::TaskDeployment] the deployed task model
-            # @raise [DeployedTaskModelNotFound] if no deployed tasks with that name exists
-            # @raise [DeployedTaskModelNotFound] if deployment_name was given, but the requested
-            #   task is not defined in this deployment
-            # @raise [OroGen::AmbiguousName] if more than one task exists with that
-            #   name. In that case, you will have to provide the deployment name
-            #   explicitly using the second argument
+            # @raise [DeployedTaskModelNotFound] if no deployed tasks with that
+            #   name exists
+            # @raise [DeployedTaskModelNotFound] if deployment_name was given,
+            #   but the requested task is not defined in this deployment
+            # @raise [OroGen::AmbiguousName] if more than one task exists with
+            #   That name. In that case, you will have to provide the deployment
+            #   Name explicitly using the second argument
             def deployed_task_model_from_name(name, deployment_name = nil)
                 if deployment_name
                     deployment = deployment_model_from_name(deployment_name)
                 else
                     deployment_names = find_deployments_from_deployed_task_name(name)
                     if deployment_names.empty?
-                        raise DeployedTaskModelNotFound, "cannot find a deployed task called #{name}"
+                        raise DeployedTaskModelNotFound,
+                              "cannot find a deployed task called #{name}"
                     elsif deployment_names.size > 1
-                        raise AmbiguousName, "more than one deployment defines a deployed task called #{name}: #{deployment_names.map(&:name).sort.join(", ")}"
+                        raise AmbiguousName,
+                              'more than one deployment defines a deployed task called '\
+                              "#{name}: #{deployment_names.map(&:name).sort.join(', ')}"
                     end
                     deployment = deployment_model_from_name(deployment_names.first)
                 end
 
-                if !(task = deployment.find_task_by_name(name))
+                unless (task = deployment.find_task_by_name(name))
                     if deployment_name
-                        raise DeployedTaskModelNotFound, "deployment #{deployment_name} does not have a task called #{name}"
+                        raise DeployedTaskModelNotFound,
+                              "deployment #{deployment_name} does not have a task "\
+                              "called #{name}"
                     else
-                        raise InternalError, "deployment #{deployment_name} was supposed to have a task called #{name} but does not"
+                        raise InternalError,
+                              "deployment #{deployment_name} was supposed to have "\
+                              "a task called #{name} but does not"
                     end
                 end
                 task
@@ -246,9 +264,13 @@ module OroGen
                 end
 
                 registry_xml, typelist_txt = typekit_model_text_from_name(name)
-                typekit = Spec::Typekit.from_raw_data(root_loader, name, registry_xml, typelist_txt)
+                typekit = Spec::Typekit.from_raw_data(
+                    root_loader, name, registry_xml, typelist_txt
+                )
                 if typekit.name != name
-                    raise InternalError, "inconsistency: got typekit #{typekit.name} while loading #{name}"
+                    raise InternalError,
+                          "inconsistency: got typekit #{typekit.name} while "\
+                          "loading #{name}"
                 end
 
                 register_typekit_model(typekit)
@@ -260,14 +282,14 @@ module OroGen
             # Callbacks registered by {#on_typekit_load} gets called with the
             # new typekit as argument
             def register_typekit_model(typekit)
-                if loaded_typekits.has_key?(typekit.name)
-                    raise AlreadyRegistered, "there is already a typekit called #{typekit.name} registered on #{self}"
+                if loaded_typekits.key?(typekit.name)
+                    raise AlreadyRegistered,
+                          "there is already a typekit called #{typekit.name} "\
+                          "registered on #{self}"
                 end
 
                 loaded_typekits[typekit.name] = typekit
-                if root_loader != self
-                    return root_loader.register_typekit_model(typekit)
-                end
+                return root_loader.register_typekit_model(typekit) if root_loader != self
 
                 registry.merge typekit.registry
 
@@ -281,13 +303,14 @@ module OroGen
                     if type.contains_opaques?
                         intermediate_type_name = typekit.intermediate_type_name_for(type)
                         intermediate_type = registry.get(intermediate_type_name)
-                        self_type.metadata.add('orogen:intermediate_type',
-                                          intermediate_type_name)
-                        intermediate_type.metadata.add('orogen:intermediate_type_of',
-                                                       type.name)
-                        if !type.opaque?
-                            intermediate_type.metadata.set('orogen:generated_type',
-                                                           'true')
+                        self_type
+                            .metadata
+                            .add('orogen:intermediate_type', intermediate_type_name)
+                        intermediate_type
+                            .metadata.add('orogen:intermediate_type_of', type.name)
+                        unless type.opaque?
+                            intermediate_type
+                                .metadata.set('orogen:generated_type', 'true')
                         end
                     end
                 end
@@ -304,9 +327,7 @@ module OroGen
 
             def register_type_model(type, interface = true)
                 registry.merge type.registry.minimal(type.name)
-                if interface
-                    interface_typelist << type.name
-                end
+                interface_typelist << type.name if interface
             end
 
             # Registers a callback that should be called with newly registered
@@ -316,11 +337,11 @@ module OroGen
             #   called instantly with the typekits that have already been loaded
             def on_typekit_load(initial_events = true, &block)
                 typekit_load_callbacks << block
-                if initial_events
-                    current_set = loaded_typekits.values.dup
-                    current_set.each do |tk|
-                        block.call(tk)
-                    end
+                return unless initial_events
+
+                current_set = loaded_typekits.values.dup
+                current_set.each do |tk|
+                    block.call(tk)
                 end
             end
 
@@ -330,7 +351,7 @@ module OroGen
             # @return [Model<Typelib::Type>] the corresponding type in
             #   {#registry}
             # @raise Typelib::NotFound if the type cannot be found
-            def resolve_type(type, options = Hash.new)
+            def resolve_type(type, options = {})
                 typename =
                     if type.respond_to?(:name)
                         type.name
@@ -338,12 +359,13 @@ module OroGen
                     end
                 registry.get(typename)
             rescue Typelib::NotFound => e
-                if define_dummy_types? || options[:define_dummy_type]
-                    type = registry.create_null(typename)
-                    register_type_model(type, interface: true)
-                    return type
-                else raise e, "#{e.message} using #{self}", e.backtrace
+                unless define_dummy_types? || options[:define_dummy_type]
+                    raise e, "#{e.message} using #{self}", e.backtrace
                 end
+
+                type = registry.create_null(typename)
+                register_type_model(type, interface: true)
+                type
             end
 
             # Returns the typekit object that defines this type
@@ -356,21 +378,22 @@ module OroGen
             # @return [Set<Spec::Typekit>] the list of typekits
             # @raise [DefinitionTypekitNotFound] if no typekits define this type
             def imported_typekits_for(typename, definition_typekits: true)
-                if typename.respond_to?(:name)
-                    typename = typename.name
+                typename = typename.name if typename.respond_to?(:name)
+                unless (typekits = typekits_by_type_name[typename])
+                    raise DefinitionTypekitNotFound,
+                          "#{typename} is not defined by any typekits loaded so far"
                 end
-                if typekits = typekits_by_type_name[typename]
-                    if definition_typekits
-                        definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
-                        if definition_typekits.empty?
-                            raise DefinitionTypekitNotFound, "typekits #{typekits.map(&:name).sort.join(", ")} have #{typename} in their registries, but it seems that they got it from another typekit and I cannot find it. definition_typekits is true, I raise"
-                        end
-                        return definition_typekits.to_set
-                    else
-                        return typekits
-                    end
+
+                return typekits unless definition_typekits
+
+                definition_typekits = typekits.find_all { |tk| tk.include?(typename) }
+                if definition_typekits.empty?
+                    raise DefinitionTypekitNotFound,
+                          "typekits #{typekits.map(&:name).sort.join(', ')} have "\
+                          "#{typename} in their registries, but it seems that they "\
+                          'got it from another typekit that cannot be found'
                 end
-                raise DefinitionTypekitNotFound, "#{typename} is not defined by any typekits loaded so far"
+                definition_typekits.to_set
             end
 
             # Returns the type object for +typename+, validating that we can use
@@ -379,10 +402,14 @@ module OroGen
             def resolve_interface_type(typename)
                 type = resolve_type(typename)
                 if type < Typelib::ArrayType
-                    raise InvalidInterfaceType.new(type), "static arrays are not valid interface types. Use an array in a structure or a std::vector"
+                    raise InvalidInterfaceType.new(type),
+                          'static arrays are not valid interface types. '\
+                          'Use an array in a structure or a std::vector'
                 elsif !interface_type?(type)
                     typekits = imported_typekits_for(type.name)
-                    raise NotExportedType.new(type, typekits), "#{type.name}, defined in the #{typekits.map(&:name).join(", ")} typekits, is never exported"
+                    raise NotExportedType.new(type, typekits),
+                          "#{type.name}, defined in the "\
+                          "#{typekits.map(&:name).join(', ')} typekits, is never exported"
                 end
                 type
             end
@@ -440,14 +467,14 @@ module OroGen
 
             # Registers this project's subobjects
             def register_project_model(project)
-                if loaded_projects.has_key?(project.name)
-                    raise AlreadyRegistered, "there is already a project called #{project.name} registered on #{self}"
+                if loaded_projects.key?(project.name)
+                    raise AlreadyRegistered,
+                          "there is already a project called #{project.name} "\
+                          "registered on #{self}"
                 end
 
                 loaded_projects[project.name] = project
-                if root_loader != self
-                    return root_loader.register_project_model(project)
-                end
+                return root_loader.register_project_model(project) if root_loader != self
 
                 project.tasks.each do |_, task_model|
                     register_task_context_model(task_model)
@@ -461,7 +488,7 @@ module OroGen
             end
 
             def has_loaded_project?(name)
-                loaded_projects.has_key?(name)
+                loaded_projects.key?(name)
             end
 
             # Registers a new task model
@@ -487,7 +514,7 @@ module OroGen
             #   name.
             # @return [(String,String)] the model as text, as well as a path to
             #   the model file (or nil if there is no such file)
-            def project_model_text_from_name(name)
+            def project_model_text_from_name(_name)
                 raise NotImplementedError
             end
 
@@ -497,7 +524,7 @@ module OroGen
             # @raise [TypekitNotFound] if there is no typekit with that name
             # @return [(String,String)] the typekit registry as XML and the
             #   typekit's typelist
-            def typekit_model_text_from_name(name)
+            def typekit_model_text_from_name(_name)
                 raise NotImplementedError
             end
 
@@ -506,7 +533,7 @@ module OroGen
             # @param [String] name the project name
             # @return [Boolean]
             def has_project?(name)
-                loaded_projects.has_key?(name)
+                loaded_projects.key?(name)
             end
 
             # Tests if a typekit with that name has been loaded
@@ -514,7 +541,7 @@ module OroGen
             # @param [String] name the typekit name
             # @return [Boolean]
             def has_loaded_typekit?(name)
-                loaded_typekits.has_key?(name)
+                loaded_typekits.key?(name)
             end
 
             # Tests if a typekit with that name exists
@@ -522,7 +549,7 @@ module OroGen
             # @param [String] name the typekit name
             # @return [Boolean]
             def has_typekit?(name)
-                loaded_typekits.has_key?(name)
+                loaded_typekits.key?(name)
             end
 
             # Returns the task library name in which a task model is defined
@@ -545,42 +572,45 @@ module OroGen
             #
             # @param [String] deployment_name the deployment we are looking for
             # @return [String,nil]
-            def find_project_from_deployment_name(name)
-            end
+            def find_project_from_deployment_name(name); end
 
             # Returns the set of deployments that contain a certain task
             #
             # @param [String] name
             # @return [Set<String>]
-            def find_deployments_from_deployed_task_name(name)
-            end
+            def find_deployments_from_deployed_task_name(name); end
 
             # Enumerates the names of all available projects
             #
             # @yieldparam [String] project_name
             def each_available_project_name
-                return enum_for(__method__) if !block_given?
+                return enum_for(__method__) unless block_given?
+
                 nil
             end
 
             def typelib_type_for(t)
                 if t.respond_to?(:name)
-                    return t if !t.contains_opaques?
+                    return t unless t.contains_opaques?
+
                     t = t.name
                 end
 
-                if registry.include?(t)
-                    type = registry.get(t)
-                    if type.contains_opaques?
-                        intermediate_type_for(type)
-                    elsif type.null?
-                        # 't' is an opaque type and there are no typelib marshallers
-                        # to convert it to something we can manipulate, raise
-                        raise Typelib::NotFound, "#{t} is a null type and there are no typelib marshallers registered in RTT to convert it to a typelib-compatible type"
-                    else type
-                    end
-                else
-                    raise Typelib::NotFound, "#{t} cannot be found in the currently loaded registries"
+                unless registry.include?(t)
+                    raise Typelib::NotFound,
+                          "#{t} cannot be found in the currently loaded registries"
+                end
+
+                type = registry.get(t)
+                if type.contains_opaques?
+                    intermediate_type_for(type)
+                elsif type.null?
+                    # 't' is an opaque type and there are no typelib marshallers
+                    # to convert it to something we can manipulate, raise
+                    raise Typelib::NotFound,
+                          "#{t} is a null type and there are no typelib marshallers "\
+                          'registered in RTT to convert it to a typelib-compatible type'
+                else type
                 end
             end
 
