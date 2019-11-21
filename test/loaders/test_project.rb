@@ -28,6 +28,6 @@ describe OroGen::Loaders::Project do
         load(File.join(path_to_data, 'modules', 'load_documentation.orogen'))
         task = target.task_model_from_name('Task')
         assert_equal 'PROPERTY', task.find_property('test_empty_line_after_proper_comment').doc
-        assert_equal nil, task.find_property('test_empty_line').doc
+        assert_nil task.find_property('test_empty_line').doc
     end
 end
