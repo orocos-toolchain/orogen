@@ -97,6 +97,29 @@ describe OroGen::Loaders::Base do
         end
     end
 
+    describe '#find_task_library_from_task_model_name' do
+        it 'uses the orogen naming convention' do
+            name = @loader.find_task_library_from_task_model_name('prj::Task')
+            assert_equal 'prj', name
+        end
+
+        it 'supports namespaced tasks names' do
+            name = @loader.find_task_library_from_task_model_name('prj::test::Task')
+            assert_equal 'prj', name
+        end
+
+        it 'raises if the task does not seem to match the convention' do
+            e = assert_raises(ArgumentError) do
+                @loader.find_task_library_from_task_model_name('Task')
+            end
+            message =
+                "OroGen::Loaders::Base uses the default name-based resolution to "\
+                "resolve the task library from the task name 'Task', but 'Task' does "\
+                "not follow the expected convention ${project_name}::${task_name}"
+            assert_equal message, e.message
+        end
+    end
+
     describe "#register_typekit_model" do
         attr_reader :typekit, :loader
         before do
