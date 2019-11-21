@@ -63,26 +63,26 @@ describe OroGen::Loaders::Base do
     describe "#typekit_model_from_name" do
         attr_reader :typekit
         before do
-            tlb =<<-EOF
-<?xml version="1.0"?>
-<typelib>
-  <container name="/std/string" of="/int8_t" size="0" kind="/std/string" />
-  <alias name="/string" source="/std/string"/>
-</typelib>
-            EOF
-            typelist=<<-EOF
-            /string 1
-            EOF
-            loader.should_receive(:typekit_model_text_from_name).
-                with('test').and_return([tlb, typelist])
+            tlb = <<~TYPELIB_XML
+                <?xml version="1.0"?>
+                <typelib>
+                <container name="/std/string" of="/int8_t" size="0" kind="/std/string" />
+                <alias name="/string" source="/std/string"/>
+                </typelib>
+            TYPELIB_XML
+            typelist = <<-TYPELIST
+                /string 1
+            TYPELIST
+            loader.should_receive(:typekit_model_text_from_name)
+                  .with('test').and_return([tlb, typelist])
 
             @typekit = loader.typekit_model_from_name('test')
         end
 
-        it "should register the type-to-typekit mapping" do
+        it 'should register the type-to-typekit mapping' do
             assert_equal [typekit].to_set, loader.typekits_by_type_name['/string']
         end
-        it "should register all interface types" do
+        it 'should register all interface types' do
             assert_equal ['/string'].to_set, loader.interface_typelist
         end
     end
@@ -204,6 +204,34 @@ describe OroGen::Loaders::Base do
             end
         end
     end
+
+    describe 'the root/child relationship' do
+        before do
+            @root_loader = OroGen::Loaders::Base.new
+            @loader = OroGen::Loaders::Base.new(@root_loader)
+            @project = OroGen::Spec::Project.new(@loader)
+            @project.name 'test'
+            @typekit = OroGen::Spec::Typekit.new(@loader, 'test')
+        end
+
+        it 'registers a newly loaded project model on the root' do
+            @loader.register_project_model(@project)
+            assert_equal @project, @root_loader.project_model_from_name('test')
+        end
+
+        it 'returns a project model existing on the root if there is one' do
+            @root_loader.register_project_model(@project)
+            assert_equal @project, loader.project_model_from_name('test')
+        end
+
+        it 'registers a newly loaded typekit model on the root' do
+            @loader.register_typekit_model(@typekit)
+            assert_equal @typekit, @root_loader.typekit_model_from_name('test')
+        end
+
+        it 'returns a typekit model existing on the root if there is one' do
+            @root_loader.register_typekit_model(@typekit)
+            assert_equal @typekit, loader.typekit_model_from_name('test')
+        end
+    end
 end
-
-

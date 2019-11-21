@@ -77,7 +77,11 @@ module OroGen
             #   name.
             # @return [OroGen::Spec::Project]
             def project_model_from_name(name)
-                if project = loaded_projects[name]
+                if (project = loaded_projects[name])
+                    return project
+                elsif root_loader.has_loaded_project?(name)
+                    loaded_projects[name] = project =
+                        root_loader.project_model_from_name(name)
                     return project
                 end
 
@@ -233,7 +237,11 @@ module OroGen
             # @return [Spec::Typekit] the typekit
             # @raise [TypekitNotFound] if the typekit cannot be found
             def typekit_model_from_name(name)
-                if typekit = loaded_typekits[name]
+                if (typekit = loaded_typekits[name])
+                    return typekit
+                elsif root_loader.has_loaded_typekit?(name)
+                    loaded_typekits[name] = typekit =
+                        root_loader.typekit_model_from_name(name)
                     return typekit
                 end
 
