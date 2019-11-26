@@ -46,7 +46,7 @@ parser = OptionParser.new do |opt|
 	explicit_typekit_slice = true
         rtt_cpp.typekit_slice = slice_size
     end
-    
+
     opt.on('--extensions=NAME[,NAME]', "selects the extensions that should be enabled (by default, #{DEFAULT_EXTENSIONS.join(", ")} are enabled)") do |v|
         v.split(',').each do |name|
             extensions << name
@@ -138,7 +138,7 @@ if files.first == "create"
     Dir.glob(File.join(rtt_cpp.base_dir, "orogen", "templates", "new_project", "*")) do |input_file|
         output_file = File.basename(input_file.gsub('NAME', name))
         output_file = File.join(path, output_file)
-        
+
         content = File.read(input_file).gsub(/NAME/, name)
         File.open(output_file, 'w') do |io|
             io.write content
@@ -174,7 +174,7 @@ rescue Typelib::NotFound, LoadError, ConfigError, ArgumentError => e
     raise if verbosity > 0
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
-    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
+    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename
     STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
     exit 1
 rescue Exception => e

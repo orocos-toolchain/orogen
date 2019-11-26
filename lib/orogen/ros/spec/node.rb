@@ -8,7 +8,7 @@ module OroGen
             # @return [String] the name of the ROS package
             attr_accessor :ros_package
 
-            def initialize(project, name = nil)
+            def initialize(project, name = nil, subclasses: nil)
                 super
 
                 @ros_name = name

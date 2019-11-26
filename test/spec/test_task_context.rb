@@ -81,7 +81,7 @@ describe OroGen::Spec::TaskContext do
             property = task.property("p", '/double')
             assert_equal [property], task.self_properties
         end
-        
+
         it "should properly set the property attributes" do
             property = task.property("p", '/double').doc("property")
             assert_kind_of(OroGen::Spec::Property, property)
@@ -287,9 +287,12 @@ describe OroGen::Spec::TaskContext do
 
     describe "extension support" do
         before do
-            @supertask = OroGen::Spec::TaskContext.new(create_dummy_project, "test::SuperTask")
-            @task = OroGen::Spec::TaskContext.new(create_dummy_project, "test::Task")
-            @task.subclasses @supertask
+            @supertask = OroGen::Spec::TaskContext.new(
+                create_dummy_project, "test::SuperTask"
+            )
+            @task = OroGen::Spec::TaskContext.new(
+                create_dummy_project, 'test::Task', subclasses: @supertask
+            )
             @ext = OroGen::Spec::TaskModelExtension.new('test')
         end
 
