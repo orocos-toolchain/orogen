@@ -1,13 +1,15 @@
 #! /usr/bin/env ruby
-require 'pp'
+# frozen_string_literal: true
 
-require 'orogen'
+require "pp"
+
+require "orogen"
 
 Orocos.logger.level = Logger::INFO
 project = Orocos::Generation::Project.new
 ARGV.each do |project_name|
     begin
-        pkg, orogen_file_name = project.orogen_project_description(project_name)
+        pkg, = project.orogen_project_description(project_name)
     rescue Orocos::Generation::ConfigError
         Orocos.warn "could not find oroGen project #{project_name}"
         next

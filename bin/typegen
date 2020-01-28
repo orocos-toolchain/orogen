@@ -1,8 +1,10 @@
 #! /usr/bin/env ruby
-require 'orogen'
-require 'orogen/gen'
-require 'optparse'
-require 'pathname'
+# frozen_string_literal: true
+
+require "orogen"
+require "orogen/gen"
+require "optparse"
+require "pathname"
 
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
@@ -18,14 +20,14 @@ transports = DEFAULT_TRANSPORTS.dup.to_set
 
 parser = OptionParser.new do |opt|
     available_transports = rtt_cpp::Typekit.plugins.keys
-    available_transports.delete('type_info')
+    available_transports.delete("type_info")
     available_transports = available_transports.sort.join(", ")
     opt.banner = <<-EOF
 usage: typegen [--transports=NAME1,NAME2] [--output=output_dir] [--import=LIBRARY,TYPEKIT] name inputs
 this installation of typegen knows the following transports: #{available_transports}
     EOF
 
-    opt.on('-i LIBRARY', '--import=LIBRARY', String, "a library or typekit to get headers and/or types from, using its pkg-config name") do |name|
+    opt.on("-i LIBRARY", "--import=LIBRARY", String, "a library or typekit to get headers and/or types from, using its pkg-config name") do |name|
         begin
             pkg = Utilrb::PkgConfig.new(name)
             if pkg.type_registry
@@ -40,20 +42,20 @@ this installation of typegen knows the following transports: #{available_transpo
         end
     end
 
-    opt.on('-n NAME1,NAME1', '--notransports=NAME1,NAME2', String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |notransports|
-        notransports.split(',').each do |name|
+    opt.on("-n NAME1,NAME1", "--notransports=NAME1,NAME2", String, "list of transports to disable (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |notransports|
+        notransports.split(",").each do |name|
             transports.delete(name)
         end
     end
 
-    opt.on('-t NAME1,NAME2', '--transports=NAME1,NAME2', String, "list of transports to enable only (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |onlytransports|
+    opt.on("-t NAME1,NAME2", "--transports=NAME1,NAME2", String, "list of transports to enable only (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |onlytransports|
         transports.clear
-        onlytransports.split(',').each do |name|
+        onlytransports.split(",").each do |name|
             transports << name
         end
     end
 
-    opt.on('-o DIR', '--output=DIR', String, "the directory to which the generated typekit should be written") do |dir|
+    opt.on("-o DIR", "--output=DIR", String, "the directory to which the generated typekit should be written") do |dir|
         if dir.empty?
             STDERR.puts "you must give a non-empty path to the --output option"
             exit 1
@@ -62,7 +64,7 @@ this installation of typegen knows the following transports: #{available_transpo
     end
     opt.on("-v", "--verbose") { rtt_cpp.logger.level = Logger::INFO }
     opt.on("-d", "--debug")   { rtt_cpp.logger.level = Logger::DEBUG }
-    opt.on('--help') do
+    opt.on("--help") do
         puts opt
         exit(0)
     end
@@ -81,8 +83,8 @@ if remaining.size < 2
     exit(1)
 end
 
-typekit.name      = remaining.shift
-if !typekit.automatic_dir
+typekit.name = remaining.shift
+unless typekit.automatic_dir
     typekit.automatic_dir = typekit.name
 end
 rtt_cpp.generation_directory = Dir.pwd
@@ -111,7 +113,6 @@ remaining.each do |path|
 end
 
 typekit.automatic_dir ||=
-    File.join(typekit.base_dir, 'typekit')
+    File.join(typekit.base_dir, "typekit")
 
 typekit.generate
-

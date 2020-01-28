@@ -1,28 +1,30 @@
+# frozen_string_literal: true
+
 # simplecov must be loaded FIRST. Only the files required after it gets loaded
 # will be profiled !!!
-if ENV['TEST_ENABLE_COVERAGE'] == '1'
+if ENV["TEST_ENABLE_COVERAGE"] == "1"
     begin
-        require 'simplecov'
+        require "simplecov"
         SimpleCov.start
     rescue LoadError
-        require 'orogen'
+        require "orogen"
         OroGen.warn "coverage is disabled because the 'simplecov' gem cannot be loaded"
     rescue Exception => e
-        require 'orogen'
+        require "orogen"
         OroGen.warn "coverage is disabled: #{e.message}"
     end
 end
 
-require 'minitest/autorun'
-require 'flexmock/minitest'
-require 'minitest/spec'
-require 'orogen'
+require "minitest/autorun"
+require "flexmock/minitest"
+require "minitest/spec"
+require "orogen"
 
-if ENV['TEST_ENABLE_PRY'] != '0'
+if ENV["TEST_ENABLE_PRY"] != "0"
     begin
-        require 'pry'
-        if ENV['TEST_DEBUG'] == '1'
-            require 'pry-rescue/minitest'
+        require "pry"
+        if ENV["TEST_DEBUG"] == "1"
+            require "pry-rescue/minitest"
         end
     rescue Exception
         OroGen.warn "debugging is disabled because the 'pry' gem cannot be loaded"
@@ -31,9 +33,9 @@ end
 
 module OroGen
     module SelfTest
-        TEST_DIR = File.expand_path(File.join('..', '..', '..', 'test'), __FILE__)
-        TEST_DATA_DIR = File.join( TEST_DIR, 'data' )
-        WC_ROOT  = File.join(TEST_DIR, 'wc')
+        TEST_DIR = File.expand_path(File.join("..", "..", "..", "test"), __FILE__)
+        TEST_DATA_DIR = File.join(TEST_DIR, "data")
+        WC_ROOT = File.join(TEST_DIR, "wc")
 
         # Overload of {test_dir} for use in specs, as test_* is somewhat hidden
         # by minitest
@@ -74,4 +76,3 @@ module Minitest
         include OroGen::SelfTest
     end
 end
-

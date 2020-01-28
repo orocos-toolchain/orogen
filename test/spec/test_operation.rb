@@ -1,4 +1,6 @@
-require 'orogen/test'
+# frozen_string_literal: true
+
+require "orogen/test"
 
 describe OroGen::Spec::Operation do
     attr_reader :project, :loader, :task_model, :operation
@@ -6,9 +8,9 @@ describe OroGen::Spec::Operation do
         @loader = OroGen::Loaders::Files.new
         OroGen::Loaders::RTT.setup_loader(loader)
         @project = OroGen::Spec::Project.new(loader)
-        project.name 'base'
-        @task_model = project.task_context 'Task'
-        @operation = task_model.operation 'test'
+        project.name "base"
+        @task_model = project.task_context "Task"
+        @operation = task_model.operation "test"
     end
 
     describe "#doc" do
@@ -23,11 +25,11 @@ describe OroGen::Spec::Operation do
         attr_reader :task, :op
         before do
             @task = OroGen::Spec::TaskContext.new(project)
-            @op = task.operation('op')
+            @op = task.operation("op")
         end
 
         it "marshals the name" do
-            assert_equal 'op', op.to_h[:name]
+            assert_equal "op", op.to_h[:name]
         end
         it "marshals empty documentation as an empty string" do
             op.doc ""
@@ -42,9 +44,9 @@ describe OroGen::Spec::Operation do
         end
         it "marshals the typelib return type if the operation returns a value" do
             op.returns("/double")
-            double_t = task.project.find_type('/double')
+            double_t = task.project.find_type("/double")
             assert_equal double_t.to_h,
-                op.to_h[:returns][:type]
+                         op.to_h[:returns][:type]
         end
         it "sets an empty return type documentation if none is specified" do
             op.returns("/double")
@@ -58,14 +60,14 @@ describe OroGen::Spec::Operation do
             assert_equal [], op.to_h[:arguments]
         end
         it "marshals its arguments" do
-            op.argument('arg', '/double')
-            double_t = task.project.find_type('/double')
-            assert_equal [Hash[name: 'arg', type: double_t.to_h, doc: ""]], op.to_h[:arguments]
+            op.argument("arg", "/double")
+            double_t = task.project.find_type("/double")
+            assert_equal [Hash[name: "arg", type: double_t.to_h, doc: ""]], op.to_h[:arguments]
         end
         it "marshals its arguments documentation" do
-            op.argument('arg', '/double', 'arg documentation')
-            double_t = task.project.find_type('/double')
-            assert_equal [Hash[name: 'arg', type: double_t.to_h, doc: "arg documentation"]], op.to_h[:arguments]
+            op.argument("arg", "/double", "arg documentation")
+            double_t = task.project.find_type("/double")
+            assert_equal [Hash[name: "arg", type: double_t.to_h, doc: "arg documentation"]], op.to_h[:arguments]
         end
     end
 
@@ -74,23 +76,22 @@ describe OroGen::Spec::Operation do
         before do
             task = create_dummy_project.task_context "Task"
             @project = project
-            @op = OroGen::Spec::Operation.new(task, 'op')
+            @op = OroGen::Spec::Operation.new(task, "op")
         end
 
         it "should strip the qualifiers to resolve the type" do
-            type, _ = op.find_interface_type('double const&')
-            assert_equal type, op.task.project.find_type('/double')
+            type, _ = op.find_interface_type("double const&")
+            assert_equal type, op.task.project.find_type("/double")
         end
         it "should replace typelib typenames by C++ typenames in the signature" do
-            _, cxx_signature = op.find_interface_type('/double const&')
-            assert_equal cxx_signature, 'double const&'
+            _, cxx_signature = op.find_interface_type("/double const&")
+            assert_equal cxx_signature, "double const&"
         end
         it "should accept plain Typelib type objects" do
-            double_t = project.find_type('/double')
+            double_t = project.find_type("/double")
             type, cxx_signature = op.find_interface_type(double_t)
             assert_equal type, double_t
-            assert_equal cxx_signature, 'double'
+            assert_equal cxx_signature, "double"
         end
     end
 end
-

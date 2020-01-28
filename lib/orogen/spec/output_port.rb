@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 module OroGen
     module Spec
         # Specification for an output port
         class OutputPort < Port
             def initialize(*args)
                 super
-                @sample_size  = 1
+                @sample_size = 1
                 @period = 1
-                @burst_size   = 0
+                @burst_size = 0
                 @burst_period = 0
                 @port_triggers = Set.new
                 @triggered_on_update = nil
@@ -75,9 +77,10 @@ module OroGen
             # written for each call to updateHook too.
             def triggered_on(*input_ports)
                 input_ports = input_ports.to_set.map do |name|
-                    if !(p = task.find_input_port(name))
+                    unless (p = task.find_input_port(name))
                         raise ArgumentError, "#{name} is not an input port of #{self}"
                     end
+
                     p
                 end
 
@@ -131,5 +134,3 @@ module OroGen
         end
     end
 end
-
-

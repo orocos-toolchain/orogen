@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     # Toplevel module for all the functionality that allows to describe ROS
     # nodes using oroGen models
@@ -6,9 +8,8 @@ module OroGen
     end
 end
 
-require 'orogen/marshallers/ros'
-require 'orogen/ros/base'
-require 'orogen/ros/loader'
-require 'orogen/ros/default_loader'
-require 'orogen/ros/spec'
-
+require "orogen/marshallers/ros"
+require "orogen/ros/base"
+require "orogen/ros/loader"
+require "orogen/ros/default_loader"
+require "orogen/ros/spec"
