@@ -46,22 +46,25 @@ OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::Typeli
 OroGen::Gen::RTT_CPP::Deployment.register_global_initializer(
     :qt,
     global_scope: <<~QT_GLOBAL_SCOPE,
+        static int QT_ARGC = 1;
+        static char const* QT_ARGV[] = { "orogen", nullptr };
         #include <pthread.h>
         #include <QApplication>
-        void* qt_thread_main(void* qapp)
+        void* qt_thread_main(void*)
         {
+            QApplication *qapp = new QApplication(QT_ARGC, const_cast<char**>(QT_ARGV));
+            qapp->setQuitOnLastWindowClosed(false);
             reinterpret_cast<QCoreApplication*>(qapp)->exec();
             return NULL;
         }
     QT_GLOBAL_SCOPE
     init: <<~QT_INIT_CODE,
-        QApplication *qapp = new QApplication(argc,argv);
         pthread_t qt_thread;
-        pthread_create(&qt_thread, NULL, qt_thread_main, qapp);
+        pthread_create(&qt_thread, NULL, qt_thread_main, NULL);
     QT_INIT_CODE
     exit: <<~QT_EXIT_CODE,
-        qapp->exit();
-        pthread_join(&qt_thread, NULL);
+        QApplication::instance()->exit();
+        pthread_join(qt_thread, NULL);
     QT_EXIT_CODE
     tasks_cmake: <<~QT_DEPLOYMENT_CMAKE,
         find_package(Qt4 REQUIRED)
