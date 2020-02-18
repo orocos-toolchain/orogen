@@ -50,11 +50,17 @@ OroGen::Gen::RTT_CPP::Deployment.register_global_initializer(
         static char const* QT_ARGV[] = { "orogen", nullptr };
         #include <pthread.h>
         #include <QApplication>
+
         void* qt_thread_main(void*)
         {
             QApplication *qapp = new QApplication(QT_ARGC, const_cast<char**>(QT_ARGV));
             qapp->setQuitOnLastWindowClosed(false);
-            reinterpret_cast<QCoreApplication*>(qapp)->exec();
+            // NOTE: we do NOT need to explicitely synchronize with the QApplication
+            // startup. The only safe way to interact with parts of Qt that require
+            // an event loop is through postEvent, which is safe to use even before
+            // the QApplication gets created
+
+            qapp->exec();
             return NULL;
         }
     QT_GLOBAL_SCOPE
