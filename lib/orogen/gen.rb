@@ -46,22 +46,31 @@ OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::Typeli
 OroGen::Gen::RTT_CPP::Deployment.register_global_initializer(
     :qt,
     global_scope: <<~QT_GLOBAL_SCOPE,
+        static int QT_ARGC = 1;
+        static char const* QT_ARGV[] = { "orogen", nullptr };
         #include <pthread.h>
         #include <QApplication>
-        void* qt_thread_main(void* qapp)
+
+        void* qt_thread_main(void*)
         {
-            reinterpret_cast<QCoreApplication*>(qapp)->exec();
+            QApplication *qapp = new QApplication(QT_ARGC, const_cast<char**>(QT_ARGV));
+            qapp->setQuitOnLastWindowClosed(false);
+            // NOTE: we do NOT need to explicitely synchronize with the QApplication
+            // startup. The only safe way to interact with parts of Qt that require
+            // an event loop is through postEvent, which is safe to use even before
+            // the QApplication gets created
+
+            qapp->exec();
             return NULL;
         }
     QT_GLOBAL_SCOPE
     init: <<~QT_INIT_CODE,
-        QApplication *qapp = new QApplication(argc,argv);
         pthread_t qt_thread;
-        pthread_create(&qt_thread, NULL, qt_thread_main, qapp);
+        pthread_create(&qt_thread, NULL, qt_thread_main, NULL);
     QT_INIT_CODE
     exit: <<~QT_EXIT_CODE,
-        qapp->exit();
-        pthread_join(&qt_thread, NULL);
+        QApplication::instance()->exit();
+        pthread_join(qt_thread, NULL);
     QT_EXIT_CODE
     tasks_cmake: <<~QT_DEPLOYMENT_CMAKE,
         find_package(Qt4 REQUIRED)

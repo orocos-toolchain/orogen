@@ -266,6 +266,10 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
 RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
 <% end %>
 
+<% deployer.each_needed_global_cpp_initializer do |init| %>
+    <%= ERB.new(init.init).result(binding) %>
+<% end %>
+
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
 <% task_activities.each do |task| %>
     task_name = "<%= task.name %>";
@@ -427,15 +431,12 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
+
     <% if has_realtime %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
     <% else %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
-
-<% deployer.each_needed_global_cpp_initializer do |init| %>
-    <%= ERB.new(init.init).result(binding) %>
-<% end %>
 
     exiting = false;
     oro_thread(NULL);
