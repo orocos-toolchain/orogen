@@ -26,6 +26,34 @@ describe OroGen::Loaders::Base do
             assert_equal 'test', model.name
             assert model.self_tasks['test::Task']
         end
+        it 'handles disabled namespaces gracefully' do
+            orogen_model = <<~OROGEN_MODEL_RUBY
+                self.disable_namespace 'test'
+                name "pkg"
+                task_context "Task" do
+                end
+
+                # Some comment
+                task_context "test::Task" do
+                end
+            OROGEN_MODEL_RUBY
+
+            # This is a regression test ... loading was failing with disabled
+            # namespaces on documentation load
+            Tempfile.open 'pkg.orogen' do |io|
+                io.write orogen_model
+                io.flush
+
+                flexmock(loader)
+                    .should_receive(:project_model_text_from_name)
+                    .with('pkg').and_return([orogen_model, io.path])
+
+                model = loader.project_model_from_name('pkg')
+                assert_equal 'pkg', model.name
+                assert model.self_tasks['pkg::Task']
+                refute model.self_tasks['pkg::test::Task']
+            end
+        end
     end
 
     describe '#project_model_from_text' do
