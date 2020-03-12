@@ -111,7 +111,11 @@ module OroGen
                 model = super(*args) do
                     ::OroGen::Loaders::TaskContext.new(load_doc, self).instance_eval(&block)
                 end
-                if @load_doc
+
+                # model is nil if the task context's namespace is disabled.
+                # This really should be done at the loader level, but for now
+                # it's done at the spec level. So be it
+                if model && @load_doc
                     Spec.load_documentation(model, /^task_context/)
                 end
                 model
