@@ -45,7 +45,7 @@ module OroGen
             rescue ArgumentError
             rescue Utilrb::PkgConfig::NotFound
                 # Nothing installed, look into the pack_paths
-                packs.each do |dir|
+                (packs + search_path).each do |dir|
                     rosmap_path = File.join(dir, "#{name}.rosmap")
                     if File.file?(rosmap_path)
                         return OroGen::TypekitMarshallers::ROS.load_rosmap(rosmap_path)

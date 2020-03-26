@@ -28,6 +28,8 @@ end
 
 task default: :setup
 
+ENV['OROGEN_DISABLE_PLUGINS'] = '1'
+
 Rake::TestTask.new(:test) do |t|
     t.libs << 'lib'
     t.libs << 'test'

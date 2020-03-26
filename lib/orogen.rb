@@ -50,4 +50,6 @@ require 'orogen/plugins'
 require 'orogen/loaders'
 require 'orogen/spec'
 
-OroGen.load_orogen_plugins
+unless ENV['OROGEN_DISABLE_PLUGINS'] == '1'
+    OroGen.load_orogen_plugins
+end
