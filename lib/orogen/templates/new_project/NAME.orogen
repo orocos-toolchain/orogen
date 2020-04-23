@@ -2,6 +2,11 @@ name "NAME"
 # Optionally declare the version number
 # version "0.1"
 
+# If this project uses data types that are defined in other oroGen projects,
+# these projects should be imported first
+import_types_from "std"
+# import_types_from "base"
+
 # If new data types need to be defined, they have to be put in a separate C++
 # header, and this header will be loaded here
 import_types_from "NAMETypes.hpp"
@@ -12,11 +17,6 @@ import_types_from "NAMETypes.hpp"
 #
 # using_library "NAME"
 # import_types_from "NAME/CustomType.hpp"
-
-# If this project uses data types that are defined in other oroGen projects,
-# these projects should be imported there as well.
-import_types_from "std"
-# import_types_from "base"
 
 # Declare a new task context (i.e., a component)
 #
