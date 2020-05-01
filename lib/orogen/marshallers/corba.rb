@@ -119,18 +119,34 @@ module OroGen
         end
     end
 
+    module Utils
+        def strip_leading_underscore(name)
+            name.split("::", -1).map do |field|
+                field.gsub(/^_/, "")
+            end.join("::")
+        end
+    end
+
     module Type
+        include Utils
+
         def corba_name
             if inlines_code?
                 normalize_cxxname(basename)
             elsif contains_opaques?
-                "#{corba_namespace}::#{normalize_cxxname(basename.gsub(/[^\w]/, '_'))}_m"
+                "#{corba_namespace}::#{normalize_idl_name(basename)}_m"
             else
-                "#{corba_namespace}::#{normalize_cxxname(basename.gsub(/[^\w]/, '_'))}"
+                "#{corba_namespace}::#{normalize_idl_name(basename)}"
             end
         end
+
+
+        def normalize_idl_name(basename)
+            strip_leading_underscore(normalize_cxxname(basename.gsub(/[^\w]/, "_")))
+        end
+
         def corba_namespace
-            "orogen#{namespace('::')}Corba"
+            "orogen#{strip_leading_underscore(namespace('::'))}Corba"
         end
 
         def to_corba_signature(typekit, options = Hash.new)
@@ -345,16 +361,20 @@ module OroGen
     end
 
     module EnumType
+        include Utils
+
         def to_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = namespace('::')
+            stripped_namespace = strip_leading_underscore(namespace)
             result << indent << "switch(value) {\n"
             keys.each do |name, value|
                 next if seen_values.include?(value)
                 seen_values << value
 
+                stripped_name = strip_leading_underscore(name)
                 result << indent << "  case #{namespace}#{name}:\n"
-                result << indent << "    corba = orogen#{namespace}Corba::#{name};\n"
+                result << indent << "    corba = orogen#{stripped_namespace}Corba::#{stripped_name};\n"
                 result << indent << "    break;\n"
             end
             result << <<-EOT
@@ -367,12 +387,14 @@ EOT
         def from_corba(typekit, result, indent)
             seen_values = Set.new
             namespace = namespace('::')
+            stripped_namespace = strip_leading_underscore(namespace)
             result << indent << "switch(corba) {\n"
             keys.each do |name, value|
                 next if seen_values.include?(value)
                 seen_values << value
 
-                result << indent << "  case orogen#{namespace}Corba::#{name}:\n"
+                stripped_name = strip_leading_underscore(name)
+                result << indent << "  case orogen#{stripped_namespace}Corba::#{stripped_name}:\n"
                 result << indent << "    value = #{namespace}#{name};\n"
                 result << indent << "    break;\n"
             end
