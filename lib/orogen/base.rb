@@ -1,13 +1,15 @@
-require 'utilrb/module/dsl_attribute'
-require 'utilrb/module/include'
-require 'utilrb/logger'
-require 'fileutils'
-require 'erb'
-require 'typelib'
+# frozen_string_literal: true
 
-require 'fileutils'
-require 'set'
-require 'find'
+require "utilrb/module/dsl_attribute"
+require "utilrb/module/include"
+require "utilrb/logger"
+require "fileutils"
+require "erb"
+require "typelib"
+
+require "fileutils"
+require "set"
+require "find"
 
 class Module
     def enumerate_inherited_set(each_name, attribute_name = each_name) # :nodoc:
@@ -61,7 +63,6 @@ class Module
     end
 end
 
-
 module OroGen
     def self.beautify_loading_errors(filename)
         yield
@@ -95,6 +96,7 @@ module OroGen
         if name !~ /^[a-zA-Z0-9_:][a-zA-Z0-9_:]*$/
             raise ArgumentError, "task name '#{name}' invalid: it can contain only alphanumeric characters and '_', and cannot start with a number"
         end
+
         name
     end
 
@@ -106,10 +108,10 @@ module OroGen
 
     # Returns the unqualified version of +type_name+
     def self.unqualified_cxx_type(type_name)
-        type_name.
-            gsub(/(^|[^\w])const($|[^\w])/, '').
-            gsub(/&/, '').
-            strip
+        type_name
+            .gsub(/(^|[^\w])const($|[^\w])/, "")
+            .gsub(/&/, "")
+            .strip
     end
 
     def self.orocos_target=(target)
@@ -118,14 +120,13 @@ module OroGen
 
     @orocos_target = nil
     def self.orocos_target
-        user_target = ENV['OROCOS_TARGET']
+        user_target = ENV["OROCOS_TARGET"]
         if @orocos_target
             @orocos_target.dup
         elsif user_target && !user_target.empty?
             user_target
         else
-            'gnulinux'
+            "gnulinux"
         end
     end
 end
-

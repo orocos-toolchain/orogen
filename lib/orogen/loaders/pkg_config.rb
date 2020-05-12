@@ -2,20 +2,20 @@
 
 module OroGen
     module Loaders
-        @macos = RbConfig::CONFIG['host_os'] =~ /[Dd]arwin/
+        @macos = RbConfig::CONFIG["host_os"] =~ /[Dd]arwin/
         def self.macos?
             @macos
         end
 
-        @windows = RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|[Ww]indows/
+        @windows = RbConfig::CONFIG["host_os"] =~ /msdos|mswin|djgpp|mingw|[Ww]indows/
         def self.windows?
             @windows
         end
 
         def self.shared_library_suffix
-            if macos? then 'dylib'
-            elsif windows? then 'dll'
-            else 'so'
+            if macos? then "dylib"
+            elsif windows? then "dll"
+            else "so"
             end
         end
 
@@ -158,11 +158,11 @@ module OroGen
                     return available_task_models[model_name]
                 end
 
-                project_name = model_name.split('::').first
+                project_name = model_name.split("::").first
                 project_pkg = find_pkgconfig("#{project_name}-tasks-#{orocos_target}")
 
                 if project_pkg
-                    project_pkg.task_models.split(',').each do |project_task_name|
+                    project_pkg.task_models.split(",").each do |project_task_name|
                         available_task_models[project_task_name] = project_name
                     end
                 end
@@ -214,7 +214,7 @@ module OroGen
             rescue Utilrb::PkgConfig::NotFound
                 raise TransportNotFound,
                       "the '#{transport_name}' transport for the '#{typekit_name}' "\
-                      'typekit is not available to pkgconfig'
+                      "typekit is not available to pkgconfig"
             end
 
             # @api private
@@ -289,7 +289,7 @@ module OroGen
                 Utilrb::PkgConfig.each_package(/^orogen-\w+$/) do |pkg_name|
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
                     project_name = pkg.project_name
-                    deployment_name = pkg_name.gsub(/^orogen-/, '')
+                    deployment_name = pkg_name.gsub(/^orogen-/, "")
 
                     # oroGen has a bug, in which it installed the pkg-config
                     # file for deployments that were not meant to be
@@ -299,7 +299,7 @@ module OroGen
                     next unless pkg.deployed_tasks_with_models
                     next unless has_project?(project_name)
 
-                    pkg.deployed_tasks_with_models.split(',')
+                    pkg.deployed_tasks_with_models.split(",")
                        .each_slice(2) do |task_name, task_model_name|
                            available_deployed_tasks[task_name] ||= Set.new
                            available_deployed_tasks[task_name] <<
@@ -330,7 +330,7 @@ module OroGen
                     pkg = Utilrb::PkgConfig.get(pkg_name, minimal: true)
                     next unless pkg.type_registry
 
-                    typelist = pkg.type_registry.gsub(/tlb$/, 'typelist')
+                    typelist = pkg.type_registry.gsub(/tlb$/, "typelist")
                     typelist, typelist_exported =
                         OroGen::Spec::Typekit.parse_typelist(File.read(typelist))
                     typelist -= typelist_exported
@@ -386,11 +386,11 @@ module OroGen
                         raise NotExportedType.new(typename, typekits),
                               "the type #{typename} is registered in the "\
                               "#{typekits.map(&:name).sort.join(', ')} typekit, "\
-                              'but it is not exported to the RTT type system'
+                              "but it is not exported to the RTT type system"
                     rescue DefinitionTypekitNotFound
                         raise NotExportedType.new(typename, []),
                               "the type #{typename} is not exported to the RTT "\
-                              'type system'
+                              "type system"
                     end
                 else
                     typekit_model_from_name(typekit.name)
@@ -402,7 +402,7 @@ module OroGen
 
                 rx = /^orogen-project-/
                 Utilrb::PkgConfig.each_package(rx) do |pkg_name|
-                    yield(pkg_name.gsub(rx, ''))
+                    yield(pkg_name.gsub(rx, ""))
                 end
             end
 
@@ -411,7 +411,7 @@ module OroGen
 
                 rx = /-typekit-#{orocos_target}$/
                 Utilrb::PkgConfig.each_package(rx) do |pkg_name|
-                    yield(pkg_name.gsub(rx, ''))
+                    yield(pkg_name.gsub(rx, ""))
                 end
             end
 
@@ -426,7 +426,7 @@ module OroGen
                     rescue Utilrb::PkgConfig::NotFound
                         next
                     end
-                    pkg.task_models.split(',').each do |model_name|
+                    pkg.task_models.split(",").each do |model_name|
                         yield(model_name, project_name)
                     end
                 end
@@ -437,7 +437,7 @@ module OroGen
 
                 rx = /^orogen-\w+$/
                 Utilrb::PkgConfig.each_package(rx) do |pkg_name|
-                    yield(pkg_name.gsub(/^orogen-/, ''))
+                    yield(pkg_name.gsub(/^orogen-/, ""))
                 end
             end
 

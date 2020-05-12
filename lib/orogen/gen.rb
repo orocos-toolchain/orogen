@@ -1,4 +1,6 @@
-require 'orogen'
+# frozen_string_literal: true
+
+require "orogen"
 
 module OroGen
     module Gen
@@ -28,15 +30,15 @@ module OroGen
     Generation = Gen::RTT_CPP
 end
 
-require 'orogen/gen/enable'
-require 'orogen/gen/base'
-require 'orogen/gen/templates'
-require 'orogen/gen/typekit'
-require 'orogen/marshallers'
-require 'orogen/gen/deployment'
-require 'orogen/gen/tasks'
-require 'orogen/gen/project'
-require 'orogen/gen/imports'
+require "orogen/gen/enable"
+require "orogen/gen/base"
+require "orogen/gen/templates"
+require "orogen/gen/typekit"
+require "orogen/marshallers"
+require "orogen/gen/deployment"
+require "orogen/gen/tasks"
+require "orogen/gen/project"
+require "orogen/gen/imports"
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::ROS::Plugin)
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::Corba::Plugin)
 OroGen::Gen::RTT_CPP::Typekit.register_plugin(OroGen::TypekitMarshallers::MQueue::Plugin)

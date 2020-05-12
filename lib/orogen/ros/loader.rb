@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module ROS
         class Loader < OroGen::Loaders::Base
@@ -38,7 +40,9 @@ module OroGen
                 @ros_to_orogen_mappings = Hash.new
             end
 
-            def to_s; "#<#{self.class.name} packs=#{packs.inspect} search_path=#{search_path.inspect}>" end
+            def to_s
+                "#<#{self.class.name} packs=#{packs.inspect} search_path=#{search_path.inspect}>"
+            end
 
             def find_rosmap_by_package_name(name)
                 OroGen::TypekitMarshallers::ROS.load_rosmap_by_package_name(name)
@@ -56,7 +60,7 @@ module OroGen
 
             def load_rosmap_by_package_name(name)
                 rosmaps = find_rosmap_by_package_name(name)
-                return if !rosmaps
+                return unless rosmaps
 
                 rosmaps = [rosmaps, OroGen::TypekitMarshallers::ROS::DEFAULT_TYPE_TO_MSG]
                 rosmaps.each do |rosmap|
@@ -93,7 +97,7 @@ module OroGen
             #   name.
             # @return [OroGen::Spec::Project]
             def project_model_from_name(name)
-                if project = loaded_projects[name]
+                if (project = loaded_projects[name])
                     return project
                 end
 
@@ -115,10 +119,11 @@ module OroGen
 
             def project_model_text_from_name(name)
                 path = find_project_file_from_name(name)
-                if !path
+                unless path
                     raise OroGen::ProjectNotFound, "could not find an oroGen model for the ROS package #{name} in #{search_path.inspect}"
                 end
-                return File.read(path), path
+
+                [File.read(path), path]
             end
 
             def typekit_model_text_from_name(name)
@@ -135,7 +140,7 @@ module OroGen
             # Find the path of a ros package
             # @return [String] Path to the rospackage
             def rospack_find(package_name)
-                if path = package_paths[package_name]
+                if (path = package_paths[package_name])
                     return path
                 end
 
@@ -148,10 +153,11 @@ module OroGen
                     end
                 end
 
-                package_path = (`rospack find #{package_name}` || '').strip
+                package_path = (`rospack find #{package_name}` || "").strip
                 if package_path.empty?
                     raise ArgumentError, "rospack cannot find package #{package_name}"
                 end
+
                 package_paths[package_name] = package_path
             end
 
@@ -163,9 +169,9 @@ module OroGen
                 path = File.join(package_path, "launch", launchfile_name)
                 alternative_path = File.join(package_path, launchfile_name)
                 if File.file?(path)
-                    return path
+                    path
                 elsif File.file?(alternative_path)
-                    return alternative_path
+                    alternative_path
                 else raise ArgumentError, "package #{package_name} has no launch file #{launchfile_name} (looked for #{path} and #{alternative_path})"
                 end
             end
@@ -175,6 +181,7 @@ module OroGen
                 if orogen_types.empty?
                     raise ArgumentError, "there are not oroGen equivalent for #{message_type}"
                 end
+
                 orogen_types.first
             end
 
