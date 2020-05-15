@@ -478,7 +478,7 @@ EOT
                 EOCODE
             else
                 result << <<-EOCODE
-#{indent}std::auto_ptr< #{target_type.cxx_name} > intermediate(new #{target_type.cxx_name});
+#{indent}UNIQUE_PTR< #{target_type.cxx_name} > intermediate(new #{target_type.cxx_name});
 #{indent}if (!fromCORBA(*intermediate, corba))
 #{indent}    return false;
 #{typekit.code_fromIntermediate(target_type, false, indent)}
