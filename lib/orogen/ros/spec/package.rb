@@ -45,7 +45,9 @@ module OroGen
                 # the documentation of that class for more details
                 # @return [Node]
                 def ros_node(name, options = Hash.new, &block)
-                    task = external_task_context(name, Hash[:class => Spec::Node].merge(options), &block)
+                    task = external_task_context(
+                        name, class: Spec::Node, **options, &block
+                    )
                     self_tasks[task.name] = task
                 end
 

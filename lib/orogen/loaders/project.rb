@@ -116,10 +116,12 @@ module OroGen
                 super
             end
 
-            def task_context(*args, &block)
+            def task_context(*, **, &block)
                 load_doc = @load_doc
-                model = super(*args) do
-                    ::OroGen::Loaders::TaskContext.new(load_doc, self).instance_eval(&block)
+                model = super do
+                    ::OroGen::Loaders::TaskContext
+                        .new(load_doc, self)
+                        .instance_eval(&block)
                 end
 
                 # model is nil if the task context's namespace is disabled.
@@ -131,9 +133,9 @@ module OroGen
                 model
             end
 
-            def method_missing(m, *args, &block)
+            def method_missing(m, *args, **kw, &block)
                 if @spec.respond_to?(m)
-                    @spec.send(m, *args, &block)
+                    @spec.send(m, *args, **kw, &block)
                 end
             end
 

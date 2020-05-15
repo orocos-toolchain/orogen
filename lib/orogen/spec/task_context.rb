@@ -377,7 +377,11 @@ module OroGen
             #
             # TaskContext objects should not be created directly. You should
             # use {Project#task_context} for that.
-            def initialize(project, name = nil, subclasses: project.default_task_superclass)
+            def initialize(
+                project, name = nil,
+                subclasses: project.default_task_superclass,
+                &block
+            )
                 @project = project
 
                 if subclasses
@@ -422,9 +426,7 @@ module OroGen
 
                 super()
 
-                if block_given?
-                    instance_eval(&proc)
-                end
+                instance_eval(&block) if block_given?
             end
 
             def initialize_copy(from)
