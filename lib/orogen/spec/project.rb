@@ -353,10 +353,10 @@ module OroGen
             #
             # @yieldparam [Deployment] deployment
             # @return [void]
-            def each_deployment
+            def each_deployment(&block)
                 return enum_for(__method__) unless block_given?
 
-                deployers.each_value(&proc)
+                deployers.each_value(&block)
             end
 
             def to_s
