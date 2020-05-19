@@ -5,6 +5,12 @@
 // for error-messages in enum-converters "toCORBA()" and "fromCORBA()"
 #include <rtt/Logger.hpp>
 
+#if __cplusplus < 201103L
+#define UNIQUE_PTR std::auto_ptr
+#else
+#define UNIQUE_PTR std::unique_ptr
+#endif
+
 <% if typekit.has_opaques? %>
 #include <<%= typekit.name %>/typekit/OpaqueConvertions.hpp>
 <% end %>
