@@ -1531,7 +1531,6 @@ module OroGen
                     preprocess_options = Hash.new
                     preprocess_options[:rawflags]      = options.fetch(:rawflags, Array.new)
                     preprocess_options[:include]       = options.fetch(:include, Array.new)
-                    preprocess_options[:include_paths] = options.fetch(:include, Array.new)
                     preprocess_options[:define]        = options.fetch(:define, Array.new)
                     [preprocess_options, options]
                 end
