@@ -1892,7 +1892,9 @@ module OroGen
 
                         path = Generation.save_automatic "typekit", "types", name, "m_types", "#{type.method_name(true)}.hpp", marshalling_code
                         self.load(path, true, options)
+                    end
 
+                    to_generate.each do |type|
                         m_type = intermediate_type_for(type)
                         copy_metadata_to_intermediate_type(type.metadata, m_type.metadata)
                         if type.respond_to?(:field_metadata) && m_type.respond_to?(:field_metadata)
