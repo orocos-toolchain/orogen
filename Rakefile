@@ -60,8 +60,10 @@ Rake::TestTask.new(:test) do |t|
     minitest_set_options(t, "core")
     t.libs << "test"
     t.warning = false
-    t.test_files = FileList["test/**/test_*.rb"]
-                   .exclude("test/gen/**/*.rb")
+
+    t.test_files = FileList.new("test/**/test_*.rb") do |fl|
+        fl.exclude { |p| %r{^test/gen}.match?(p) && (p != "test/gen/test_base.rb") }
+    end
 end
 
 Rake::TestTask.new("test:gen") do |t|

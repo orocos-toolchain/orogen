@@ -23,6 +23,8 @@ transports = []
 extensions = []
 no_transports = false
 explicit_typekit_slice = false
+parallel_codegen_level = 1
+job_server_fds = nil
 
 parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
@@ -42,6 +44,12 @@ parser = OptionParser.new do |opt|
         if !explicit_typekit_slice && parallel_level > 2
             rtt_cpp.typekit_slice = 1
         end
+    end
+    opt.on("--parallel-codegen=NUMBER", Integer, "parallelize code generation to this level") do |value|
+        parallel_codegen_level = value
+    end
+    opt.on("--jobserver-auth=R,W", String, "job server file descriptors compatible with make's job server protocol") do |value|
+        job_server_fds = value.split(",").map(&:to_i)
     end
     opt.on("--typekit-slice=NUMBER", Integer) do |slice_size|
         explicit_typekit_slice = true
@@ -128,7 +136,20 @@ if !no_transports && transports.empty?
 end
 files.each { |path| original_options.delete(path) }
 rtt_cpp.generation_directory = Dir.pwd
-rtt_cpp.command_line_options = original_options
+# We really can't carry the `--jobserver-auth` argument, which is specific to
+# this very invocation.
+rtt_cpp.command_line_options = original_options.reject do |opt|
+    opt.start_with?("--jobserver-auth")
+end
+
+rtt_cpp.parallel_level = parallel_codegen_level
+rtt_cpp.job_server =
+    if job_server_fds
+        rtt_cpp::JobServer.from_fds(*job_server_fds)
+    else
+        # The current thread has a token (it is running !)
+        rtt_cpp::JobServer.standalone(parallel_codegen_level - 1)
+    end
 
 if files.first == "create"
     if files.size != 2
