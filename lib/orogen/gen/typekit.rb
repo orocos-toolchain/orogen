@@ -1459,8 +1459,8 @@ module OroGen
                     end
                 end
 
-                def resolve_toplevel_include_mapping(toplevel_files, options)
-                    preprocessed = Typelib::CXX.preprocess(toplevel_files, "c", options)
+                def resolve_toplevel_include_mapping(toplevel_files, **options)
+                    preprocessed = Typelib::CXX.preprocess(toplevel_files, "c", **options)
 
                     owners = Hash.new { |h, k| h[k] = Array.new }
                     current_file = [[]]
@@ -1592,7 +1592,9 @@ module OroGen
                             loads.each do |path|
                                 logger.info "typekit:  #{path}"
                             end
-                            file_registry.import(io.path, "c", options)
+                            file_registry.import(io.path, "c",
+                                                 parallel_level: RTT_CPP.parallel_level,
+                                                 job_server: RTT_CPP.job_server, **options)
                             filter_unsupported_types(file_registry)
                             resolve_registry_includes(file_registry, include_mappings)
                             validate_related_types(file_registry)
