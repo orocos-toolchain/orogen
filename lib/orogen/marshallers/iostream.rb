@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Typelib
     class Type
         def self.to_stream(typekit, result, indent)
@@ -10,11 +8,12 @@ module Typelib
 
     class ContainerType
         def self.to_stream(typekit, result, indent)
-            element_type = deference.name
+            collection_name, element_type = container_kind, deference.name
             element_type = registry.build(element_type)
 
             result << indent << "io << \"[ \";\n"
 
+            first_field = true
             allocate_index do |element_idx|
                 result << <<-EOT
 #{indent}bool first_field = true;
@@ -36,12 +35,13 @@ module Typelib
             end
             result << indent << "io << \" ]\";\n"
         end
+
     end
 
     class EnumType
         def self.to_stream(typekit, result, indent)
             to_string(typekit, result, indent)
-            result << "#{indent}io << enum_name;\n"
+            result << "#{indent}io << enum_name;\n";
             result
         end
     end
@@ -53,11 +53,11 @@ module Typelib
             first_field = true
             each_field do |field_name, field_type|
                 unless first_field
-                    result << "#{indent}  io << \", \";\n"
+                    result << "#{indent}  io << \", \";\n";
                 end
 
                 first_field = false
-                result << "#{indent}  io << basename << \".#{field_name} = \";\n"
+                result << "#{indent}  io << basename << \".#{field_name} = \";\n";
                 if field_type.inlines_code?
                     result << "#{indent}  io << value.#{field_name};\n"
                 elsif field_type < ArrayType
@@ -75,6 +75,7 @@ module Typelib
 
             result << indent << "io << \"[ \";\n"
 
+            first_field = true
             allocate_index do |i|
                 result << <<-EOT
 #{indent}bool first_field = true;
@@ -98,3 +99,4 @@ module Typelib
         end
     end
 end
+

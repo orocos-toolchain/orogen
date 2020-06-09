@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Loaders
         # A launcher that aggregates other launchers
@@ -20,14 +18,15 @@ module OroGen
 
             def clear
                 super
-                loaders.each(&:clear)
+                loaders.each do |l|
+                    l.clear
+                end
             end
 
             def add(loader)
                 if loaders.include?(loader)
                     raise DuplicateLoader, "#{loader} is already a child of #{self}"
                 end
-
                 @loaders << loader
             end
 
@@ -51,7 +50,7 @@ module OroGen
             end
 
             def project_model_from_name(name)
-                if (project = loaded_projects[name])
+                if project = loaded_projects[name]
                     return project
                 end
 
@@ -70,7 +69,7 @@ module OroGen
             end
 
             def task_model_from_name(name)
-                if (model = loaded_task_models[name])
+                if model = loaded_task_models[name]
                     return model
                 end
 
@@ -94,8 +93,8 @@ module OroGen
 
             def find_project_from_deployment_name(name)
                 loaders.each do |l|
-                    next unless l.respond_to?(:find_project_from_deployment_name)
-                    if (project_name = l.find_project_from_deployment_name(name))
+                    next if !l.respond_to?(:find_project_from_deployment_name)
+                    if project_name = l.find_project_from_deployment_name(name)
                         return project_name
                     end
                 end
@@ -104,8 +103,8 @@ module OroGen
 
             def find_deployments_from_deployed_task_name(name)
                 loaders.each do |l|
-                    next unless l.respond_to?(:find_deployments_from_deployed_task_name)
-                    if (deployment_name = l.find_deployments_from_deployed_task_name(name))
+                    next if !l.respond_to?(:find_deployments_from_deployed_task_name)
+                    if deployment_name = l.find_deployments_from_deployed_task_name(name)
                         return deployment_name
                     end
                 end
@@ -113,7 +112,7 @@ module OroGen
             end
 
             def typekit_model_from_name(name)
-                if (typekit = loaded_typekits[name])
+                if typekit = loaded_typekits[name]
                     return typekit
                 end
 
@@ -135,9 +134,9 @@ module OroGen
                            else type
                            end
 
-                if (typekits = typekits_by_type_name[typename])
+                if typekits = typekits_by_type_name[typename]
                     if exported
-                        if (export_tk = typekits.find_all { |tk| tk.interface_type?(typename) }.first)
+                        if export_tk = typekits.find_all { |tk| tk.interface_type?(typename) }.first
                             return export_tk
                         end
                     else
@@ -146,8 +145,7 @@ module OroGen
                 end
 
                 loaders.each do |l|
-                    next unless l.respond_to?(:typekit_for)
-
+                    next if !l.respond_to?(:typekit_for)
                     begin
                         return l.typekit_for(type, exported)
                     rescue NotExportedType, NotTypekitType
@@ -168,12 +166,11 @@ module OroGen
             #
             # @yieldparam [String] project_name
             def each_available_project_name
-                return enum_for(__method__) unless block_given?
-
+                return enum_for(__method__) if !block_given?
                 seen = Set.new
                 loaders.each do |l|
                     l.each_available_project_name do |name|
-                        unless seen.include?(name)
+                        if !seen.include?(name)
                             seen << name
                             yield(name)
                         end
@@ -183,7 +180,7 @@ module OroGen
             end
 
             def deployment_model_from_name(name)
-                if (deployment = loaded_deployment_models[name])
+                if deployment = loaded_deployment_models[name]
                     return deployment
                 end
 
@@ -210,3 +207,4 @@ module OroGen
         end
     end
 end
+

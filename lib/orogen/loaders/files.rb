@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Loaders
         class Files < Base
@@ -25,11 +23,11 @@ module OroGen
 
             def project_model_text_from_name(name)
                 path = available_projects[name]
-                unless path
+                if !path
                     raise ProjectNotFound, "no project called #{name} on #{self}"
                 end
 
-                [File.read(path), path]
+                return File.read(path), path
             end
 
             def has_project?(name)
@@ -48,20 +46,19 @@ module OroGen
 
             def typekit_model_text_from_name(name)
                 typelist, tlb = available_typekits[name]
-                unless typelist
+                if !typelist
                     raise TypekitNotFound, "#{self} has not typekit named #{name}"
                 end
-
-                [File.read(tlb), File.read(typelist)]
+                return File.read(tlb), File.read(typelist)
             end
 
             def deployment_model_from_name(name)
-                if (model = loaded_deployment_models[name])
+                if model = loaded_deployment_models[name]
                     return model
                 end
 
                 each_project do |project|
-                    if (m = project.find_deployment_by_name(name))
+                    if m = project.find_deployment_by_name(name)
                         loaded_deployment_models[name] = m
                         return m
                     end
@@ -69,12 +66,16 @@ module OroGen
                 raise DeploymentModelNotFound, "there is no deployment called #{name} on #{self}"
             end
 
-            def to_s
+            def has_typekit?(name)
+                available_typekits.has_key?(name)
+            end
+
+            def to_s;
                 "#<OroGen::Loaders::Files(#{object_id.to_s(16)}) projects=#{available_projects.keys.sort.join(",")} typekits=#{available_typekits.keys.sort.join(",")}>"
             end
 
             def each_project
-                return enum_for(__method__) unless block_given?
+                return enum_for(__method__) if !block_given?
 
                 available_projects.each_key do |project_name|
                     project = begin
@@ -108,16 +109,15 @@ module OroGen
             end
 
             def each_available_project_name(&block)
-                available_projects.each_key(&block)
+                return available_projects.each_key(&block)
             end
 
             def each_available_typekit_name(&block)
-                available_typekits.each_key(&block)
+                return available_typekits.each_key(&block)
             end
 
             def each_available_deployment_name(&block)
-                return enum_for(__method__) unless block_given?
-
+                return enum_for(__method__) if !block_given?
                 each_project do |project|
                     project.each_deployment do |spec|
                         yield(spec.name)
@@ -128,3 +128,4 @@ module OroGen
         end
     end
 end
+

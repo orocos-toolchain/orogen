@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module HTML
         # Rendering object that converts a Typelib type, along with the typekit
@@ -39,7 +37,7 @@ module OroGen
                 elsif type.convertion_to_ruby
                     return true
                 end
-                return unless recursive
+                return if !recursive
 
                 if type < Typelib::CompoundType
                     type.enum_for(:each_field).any? do |field_name, field_type|
@@ -48,19 +46,19 @@ module OroGen
                 elsif type < Typelib::EnumType
                     false
                 elsif type.respond_to?(:deference)
-                    has_convertions?(type.deference, false)
+                    return has_convertions?(type.deference, false)
                 else
                     false
                 end
             end
 
             def render_convertion_spec(base_type, convertion)
-                if (spec = convertion[0])
+                if spec = convertion[0]
                     if spec == Array
                         # The base type is most likely an array or a container.
                         # Display the element type as well ...
                         if base_type.respond_to?(:deference)
-                            if (subconv = base_type.deference.convertion_to_ruby)
+                            if subconv = base_type.deference.convertion_to_ruby
                                 return "Array(#{render_convertion_spec(base_type.deference, subconv)})"
                             else
                                 return "Array(#{page.link_to(base_type.deference)})"
@@ -76,12 +74,12 @@ module OroGen
 
             def render_type_convertion(type)
                 result = []
-                if (convertion = type.convertion_to_ruby)
+                if convertion = type.convertion_to_ruby
                     result << render_convertion_spec(type, convertion)
                 elsif type < Typelib::CompoundType
                     result << "<ul class=\"body-header-list\">"
                     type.each_field do |field_name, field_type|
-                        if (convertion = field_type.convertion_to_ruby)
+                        if convertion = field_type.convertion_to_ruby
                             result << page.render_item(field_name, render_convertion_spec(field_type, convertion))
                         else
                             result << page.render_item(field_name, page.link_to(field_type))
@@ -91,7 +89,7 @@ module OroGen
                 elsif type < Typelib::ArrayType
                     result << "<ul class=\"body-header-list\">"
                     deference =
-                        if (convertion = type.deference.convertion_to_ruby)
+                        if convertion = type.deference.convertion_to_ruby
                             render_convertion_spec(type.deference, convertion)
                         else
                             render_convertion_spec(type.deference, [Array])
@@ -101,7 +99,7 @@ module OroGen
                 elsif type < Typelib::ContainerType
                     result << "<ul class=\"body-header-list\">"
                     deference =
-                        if (convertion = type.deference.convertion_to_ruby)
+                        if convertion = type.deference.convertion_to_ruby
                             render_convertion_spec(type.deference, convertion)
                         else
                             page.link_to(type.deference)
@@ -153,3 +151,4 @@ module OroGen
         end
     end
 end
+

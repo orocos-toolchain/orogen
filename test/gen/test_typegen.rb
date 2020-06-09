@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-require "orogen/gen/test"
+require 'orogen/gen/test'
 
 class TC_GenerationTypegen < Minitest::Test
     def test_generate_and_install
@@ -20,9 +18,10 @@ class TC_GenerationTypegen < Minitest::Test
             end
             # Now, verify that we can run make regen and build fine
             Dir.chdir("build") do
-                assert call_make("regen")
+                assert call_make('regen')
                 assert call_make
             end
         end
     end
 end
+

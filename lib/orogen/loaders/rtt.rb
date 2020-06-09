@@ -1,9 +1,7 @@
-# frozen_string_literal: true
-
 module OroGen
     module Loaders
         class RTT < PkgConfig
-            DIR = File.join(File.expand_path(File.dirname(__FILE__)), "rtt")
+            DIR = File.join(File.expand_path(File.dirname(__FILE__)), 'rtt')
             STANDARD_PROJECT_SPECS = { "RTT" => DIR, "OCL" => DIR }
             STANDARD_TYPEKIT_SPECS = { "orocos" => DIR }
             def self.loader
@@ -17,12 +15,12 @@ module OroGen
                 loader
             end
 
-            def initialize(orocos_target = ENV["OROCOS_TARGET"], root_loader = self)
+            def initialize(orocos_target = ENV['OROCOS_TARGET'], root_loader = self)
                 super
             end
 
             def self.standard_projects
-                unless @standard_projects
+                if !@standard_projects
                     loader = self.loader
                     @standard_projects = STANDARD_PROJECT_SPECS.map do |name, dir|
                         loader.project_model_from_name(name)
@@ -32,21 +30,21 @@ module OroGen
             end
 
             def self.standard_typekits
-                unless @standard_typekits
+                if !@standard_typekits
                     loader = self.loader
                     @standard_typekits = STANDARD_TYPEKIT_SPECS.map do |name, _|
                         typekit = loader.typekit_model_from_name(name)
                         typekit.virtual = true
                         # Some fine-tuning :( Super-HACK
-                        if name == "orocos"
-                            type = typekit.registry.create_container "/std/string", "/std/string"
-                            type.metadata.set "orogen_include", "string"
-                            typekit.registry.alias "/string", "/std/string"
+                        if name == 'orocos'
+                            type = typekit.registry.create_container '/std/string', '/std/string'
+                            type.metadata.set 'orogen_include', 'string'
+                            typekit.registry.alias '/string', '/std/string'
                         end
                         typekit
                     end
                 end
-                @standard_typekits
+                return @standard_typekits
             end
 
             def self.setup_loader(loader)
@@ -72,3 +70,4 @@ module OroGen
         end
     end
 end
+

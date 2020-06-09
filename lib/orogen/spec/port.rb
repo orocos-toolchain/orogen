@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Spec
         # Generic representation of ports. The actual ports are either
@@ -12,18 +10,14 @@ module OroGen
             # The port type. It can be nil for dynamic ports
             attr_reader :type
             # The port type name
-            def type_name
-                type.name
-            end
-
+            def type_name; type.name end
             # The port name as it is registered on RTT
             def orocos_type_name
                 type.name
             end
 
             def each_interface_type
-                return enum_for(__method__) unless block_given?
-
+                return enum_for(__method__) if !block_given?
                 yield type
             end
 
@@ -40,12 +34,13 @@ module OroGen
             # @return [Hash]
             def to_h
                 Hash[
-                    direction: (kind_of?(OutputPort) ? "output" : "input"),
+                    direction: (if kind_of?(OutputPort) then 'output' else 'input' end),
                     name: name,
                     type: type.to_h,
                     doc: (doc || "")
                 ]
             end
+
 
             # Stores the policy for keeping last values. It can be nil, :initial or true
             #
@@ -55,10 +50,12 @@ module OroGen
             # on which huge data samples are going to be sent and/or ports for
             # which realtime communication is not required
             dsl_attribute :keep_last_written_value do |value|
-                unless [nil, true, false, :initial].include?(value)
+                case value
+                when NilClass, TrueClass, FalseClass
+                when :initial
+                else
                     raise ArgumentError, "keep_last_written_value can only be one of true, false/nil and :initial. Got #{value}"
                 end
-
                 value
             end
 
@@ -66,9 +63,7 @@ module OroGen
             # port, and false otherwise
             #
             # See #static for more details.
-            def static?
-                !!@static
-            end
+            def static?; !!@static end
 
             # Declares that this port can be connected/disconnected only when
             # the task context is in a non-running state.
@@ -77,26 +72,20 @@ module OroGen
             # connected/disconnected regardless of the task context's state.
             #
             # See also #dynamic
-            def static
-                @static = true
-            end
+            def static; @static = true end
 
             # Declares that this port can be connected/disconnected while the
             # task context is running. It is the opposite of #static.
             #
             # This is the default
-            def dynamic
-                @static = false
-            end
+            def dynamic; @static = false end
 
             def pretty_print(pp)
-                pp.text "[#{kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
+                pp.text "[#{self.kind_of?(InputPort) ? "in" : "out"}]#{name}:#{type_name}"
             end
 
             # True if this is a dynamic port model, false otherwise
-            def dynamic?
-                false
-            end
+            def dynamic?; false end
 
             def initialize(task, name, type, options = Hash.new)
                 if !name.kind_of?(Regexp)
@@ -115,9 +104,7 @@ module OroGen
                         Spec.warn "#{type.name} is used as the port type for #{name}, logging it will not be possible"
                     end
                 end
-                @task = task
-                @name = name
-                @type = type
+                @task, @name, @type = task, name, type
 
                 @doc = nil
                 @max_sizes = Hash.new
@@ -129,13 +116,13 @@ module OroGen
             #   doc ->  current_doc
             #
             # Gets/sets a string describing this object
-            dsl_attribute(:doc, &:to_s)
+            dsl_attribute(:doc) { |value| value.to_s }
 
             def self.resolve_max_size_path(type, name)
-                resolved_type = name.split(".").inject(type) do |resolved_type, element|
+                resolved_type = name.split('.').inject(type) do |resolved_type, element|
                     match_deference = element.match(/(\[\])*$/)
 
-                    unless match_deference.pre_match.empty?
+                    if !match_deference.pre_match.empty?
                         resolved_type = resolved_type[match_deference.pre_match]
                     end
 
@@ -145,10 +132,9 @@ module OroGen
                     resolved_type
                 end
 
-                unless resolved_type <= Typelib::ContainerType
+                if !(resolved_type <= Typelib::ContainerType)
                     raise ArgumentError, "#{name} resolves to the #{resolved_type.name} type in #{type.name}, which is not a variable size container"
                 end
-
                 resolved_type
             end
 
@@ -162,7 +148,7 @@ module OroGen
                         if values.size == 1
                             values[0].to_hash
                         elsif values.size == 2
-                            values[1].to_hash.merge("" => values[0])
+                            values[1].to_hash.merge('' => values[0])
                         end
                     elsif values.respond_to?(:to_hash)
                         # Direct call
@@ -190,7 +176,7 @@ module OroGen
 
                 if sample.kind_of?(Typelib::ContainerType)
                     max_size = max_sizes[path.join(".")]
-                    unless max_size
+                    if !max_size
                         return false
                     end
 
@@ -199,10 +185,10 @@ module OroGen
                     end
 
                     element = sample_t.deference.new
-                    unless initialize_max_size_sample(path, element, max_sizes)
+                    if !initialize_max_size_sample(path, element, max_sizes)
                         return false
                     end
-
+                    
                     Typelib.copy(sample, sample.class.of_size(max_size, element))
                     return true
 
@@ -211,7 +197,7 @@ module OroGen
                     else path[-1] = "#{path[-1]}[]"
                     end
                     element = sample_t.deference.new
-                    unless initialize_max_size_sample(path, element, max_sizes)
+                    if !initialize_max_size_sample(path, element, max_sizes)
                         return false
                     end
 
@@ -225,7 +211,7 @@ module OroGen
                     sample_t.each_field do |field_name, _|
                         field = sample.raw_get_field(field_name)
                         path[-1] = field_name
-                        unless initialize_max_size_sample(path, field, max_sizes)
+                        if !initialize_max_size_sample(path, field, max_sizes)
                             return false
                         end
                     end
@@ -312,3 +298,5 @@ module OroGen
         end
     end
 end
+
+

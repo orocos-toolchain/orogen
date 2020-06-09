@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     class NotFound < RuntimeError; end
 
@@ -13,7 +11,7 @@ module OroGen
     class DeploymentModelNotFound < NotFound; end
     class DeployedTaskModelNotFound < NotFound; end
     class TypeNotFound < Typelib::NotFound; end
-
+    
     class InvalidInterfaceType < RuntimeError
         attr_reader :type
 
@@ -21,7 +19,7 @@ module OroGen
             @type = type
         end
     end
-
+    
     # Exception thrown when a type will be used on a task context interface (to
     # create a port, property, ...), but it is exported by no typekit
     class NotExportedType < InvalidInterfaceType

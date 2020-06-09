@@ -3,9 +3,9 @@
 module Typelib
     class Type
         def self.normalize_typename(name)
-            "/" + Typelib.split_typename(name).map do |part|
+            '/' + Typelib.split_typename(name).map do |part|
                 normalize_typename_part(part)
-            end.join("/")
+            end.join('/')
         end
 
         TYPENAME_ARRAY_MATCH = /(.*)(\[\d+\]+)$/.freeze
@@ -19,10 +19,11 @@ module Typelib
 
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
             template_arguments.map! do |arg|
-                if arg !~ /^\d+$/ && arg[0, 1] != "/"
-                    "/#{arg}"
-                else arg
-                end
+                arg =
+                    if arg !~ /^\d+$/ && arg[0, 1] != '/'
+                        "/#{arg}"
+                    else arg
+                    end
             end
 
             if !template_arguments.empty?
@@ -42,7 +43,7 @@ module Typelib
                 name = $1
                 suffix = $2
             else
-                suffix = ""
+                suffix = ''
             end
 
             converted = Typelib.split_typename(name).map do |p|
@@ -51,14 +52,14 @@ module Typelib
             if converted.size == 1
                 "#{converted.first}#{suffix}"
             else
-                "::" + converted.join("::") + suffix
+                '::' + converted.join('::') + suffix
             end
         end
 
         def self.normalize_cxxname_part(name)
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
 
-            name = name.gsub("/", "::")
+            name = name.gsub('/', '::')
             if name =~ /^::(.*)/
                 name = $1
             end
@@ -85,7 +86,7 @@ module Typelib
         end
 
         def self.cxx_namespace
-            namespace("::")
+            namespace('::')
         end
 
         def self.contains_opaques?
@@ -98,12 +99,12 @@ module Typelib
     class NumericType
         def self.cxx_name
             if integer?
-                if name == "/bool"
-                    "bool"
-                elsif name == "/char"
-                    "char"
-                elsif name == "/unsigned char"
-                    "unsigned char"
+                if name == '/bool'
+                    'bool'
+                elsif name == '/char'
+                    'char'
+                elsif name == '/unsigned char'
+                    'unsigned char'
                 else
                     "boost::#{'u' if unsigned?}int#{size * 8}_t"
                 end
@@ -116,7 +117,7 @@ module Typelib
     class ContainerType
         def self.cxx_name
             if name =~ /</
-                normalize_cxxname(container_kind) + "< " + deference.cxx_name + " >"
+                normalize_cxxname(container_kind) + '< ' + deference.cxx_name + ' >'
             else
                 normalize_cxxname(container_kind)
             end
@@ -131,16 +132,16 @@ module Typelib
         # among the simple types -- only these can be used directly in
         # interfaces.
         def self.base_rtt_type?(type)
-            if type.name == "/std/string"
+            if type.name == '/std/string'
                 return true
             elsif !(type <= Typelib::NumericType)
                 return false
             end
 
             if type.integer?
-                type.name == "/bool" || type.size == 4
+                type.name == '/bool' || type.size == 4
             else
-                type.name == "/double"
+                type.name == '/double'
             end
         end
 
@@ -150,25 +151,25 @@ module Typelib
                 cxx_types = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(cxx_types)
                 @typelib_to_rtt_mappings = {
-                    cxx_types.get("bool") => "bool",
-                    cxx_types.get("int") => "int",
-                    cxx_types.get("unsigned int") => "uint",
-                    cxx_types.get("float") => "float",
-                    cxx_types.get("double") => "double",
-                    cxx_types.get("char") => "char"
+                    cxx_types.get('bool') => 'bool',
+                    cxx_types.get('int') => 'int',
+                    cxx_types.get('unsigned int') => 'uint',
+                    cxx_types.get('float') => 'float',
+                    cxx_types.get('double') => 'double',
+                    cxx_types.get('char') => 'char'
                 }
             end
 
-            if type.name == "/std/string"
-                return "string"
+            if type.name == '/std/string'
+                return 'string'
             elsif !(type <= Typelib::NumericType)
                 return type.name
             end
 
-            if type.name == "/bool"
-                "bool"
+            if type.name == '/bool'
+                'bool'
             elsif (mapped = @typelib_to_rtt_mappings.find { |typelib, _| typelib == type })
-                mapped[1]
+                return mapped[1]
             else
                 raise ArgumentError,
                       "#{type.name} is (probably) not registered on the RTT type system"

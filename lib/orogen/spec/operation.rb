@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Spec
         # Representation of a RTT operation. Instances of this object are
@@ -54,7 +52,7 @@ module OroGen
 
                 @task = task
                 @name = name
-                @return_type = [nil, "void", ""]
+                @return_type = [nil, 'void', ""]
                 @arguments = []
                 @in_caller_thread = false
                 @doc = nil
@@ -63,12 +61,10 @@ module OroGen
             end
 
             def each_interface_type
-                return enum_for(__method__) unless block_given?
-
-                if (ret = return_type.first)
+                return enum_for(__method__) if !block_given?
+                if ret = return_type.first
                     yield(ret)
                 end
-
                 arguments.each do |_, t, _|
                     yield(t)
                 end
@@ -97,11 +93,11 @@ module OroGen
             #   doc ->  current_doc
             #
             # Gets/sets a string describing this object
-            dsl_attribute(:doc, &:to_s)
+            dsl_attribute(:doc) { |value| value.to_s }
 
             # The set of arguments of this operation, as an array of [name, type,
             # doc] elements. The +type+ objects are Typelib::Type instances.
-            #
+            # 
             # See #argument
             attr_reader :arguments
 
@@ -114,9 +110,9 @@ module OroGen
                 end
                 type_name = OroGen.unqualified_cxx_type(qualified_type)
                 typelib_type_name = ::Typelib::GCCXMLLoader.cxx_to_typelib(type_name)
-                type = task.project.find_interface_type(typelib_type_name)
+                type      = task.project.find_interface_type(typelib_type_name)
                 OroGen.validate_toplevel_type(type)
-                [type, qualified_type.gsub(type_name, type.cxx_name)]
+                return type, qualified_type.gsub(type_name, type.cxx_name)
             end
 
             # Defines the next argument of this operation. +name+ is the argument
@@ -160,7 +156,7 @@ module OroGen
                     if type
                         type, qualified_type = find_interface_type(type)
                         [type, qualified_type, doc]
-                    else [nil, "void", doc]
+                    else [nil, 'void', doc]
                     end
 
                 self
@@ -174,13 +170,13 @@ module OroGen
             def pretty_print(pp)
                 pp.text name
                 pp.nest(2) do
-                    if doc
+                    if self.doc
                         pp.breakable
-                        pp.text doc
+                        pp.text self.doc
                     end
-                    unless return_type[2].empty?
+                    if !self.return_type[2].empty?
                         pp.breakable
-                        pp.text "Returns: #{return_type[2]}"
+                        pp.text "Returns: #{self.return_type[2]}"
                     end
                     arguments.map do |name, type, doc, qualified_type|
                         pp.breakable
@@ -212,7 +208,7 @@ module OroGen
             def to_h
                 result = Hash[name: name, doc: (doc || "")]
                 if has_return_value?
-                    result[:returns] = Hash[type: return_type[0].to_h, doc: return_type[2]]
+                    result[:returns] = Hash[type: self.return_type[0].to_h, doc: self.return_type[2]]
                 end
                 result[:arguments] = arguments.map do |name, type, doc, qualified_type|
                     Hash[name: name, type: type.to_h, doc: doc]
@@ -222,3 +218,5 @@ module OroGen
         end
     end
 end
+
+

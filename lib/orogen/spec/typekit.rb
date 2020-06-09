@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Spec
         # A typekit, i.e. a subpart of the system that handles a set of types
@@ -24,20 +22,17 @@ module OroGen
 
             def self.parse_typelist(typelist_txt)
                 raw_typelist = typelist_txt.split("\n").map(&:strip)
-                typekit_typelist = []
-                typekit_interface_typelist = []
+                typekit_typelist, typekit_interface_typelist = [], []
                 raw_typelist.each do |decl|
                     # using non greedy kleene star to match first expression: .*?
                     # to handle following patterns:
                     # /string
                     # /unsigned char[8]
-                    # /unsigned char[8] 0
+                    # /unsigned char[8] 0 
                     if decl =~ /^(.*) (\d)$/
-                        type = $1
-                        is_interface = ($2 == "1")
+                        type, is_interface = $1, ($2 == '1')
                     else
-                        type = decl
-                        is_interface = true
+                        type, is_interface = decl, true
                     end
 
                     typekit_typelist << type
@@ -45,7 +40,7 @@ module OroGen
                         typekit_interface_typelist << type
                     end
                 end
-                [typekit_typelist, typekit_interface_typelist]
+                return typekit_typelist, typekit_interface_typelist
             end
 
             class OpaqueInfoListener
@@ -59,18 +54,16 @@ module OroGen
                 end
 
                 def tag_start(name, attributes)
-                    return if name != "opaque"
-
-                    base_type_name  = attributes["name"]
-                    inter_type_name = attributes["marshal_as"]
-                    includes        = attributes["includes"]
-                    needs_copy      = attributes["needs_copy"]
+                    return if name != 'opaque'
+                    base_type_name  = attributes['name']
+                    inter_type_name = attributes['marshal_as']
+                    includes        = attributes['includes']
+                    needs_copy      = attributes['needs_copy']
                     opaques << OpaqueDefinition.new(
                         typekit_registry.get(base_type_name),
                         inter_type_name,
-                        Hash[include: includes.split(":"), needs_copy: (needs_copy == "1")],
-                        nil
-                    )
+                        Hash[include: includes.split(':'), needs_copy: (needs_copy == '1')],
+                        nil)
                     registry.merge(typekit_registry.minimal(base_type_name))
                 end
             end
@@ -81,7 +74,7 @@ module OroGen
                 typekit_registry.merge_xml(registry_xml)
 
                 typekit_typelist, typekit_interface_typelist = parse_typelist(typelist_txt)
-                typekit = new(loader, name,
+                typekit = self.new(loader, name,
                               typekit_registry,
                               typekit_typelist,
                               typekit_interface_typelist)
@@ -96,8 +89,7 @@ module OroGen
 
             def initialize(loader, name, registry = Typelib::Registry.new, typelist = [], interface_typelist = [])
                 @loader = loader
-                @name = name
-                @registry = registry
+                @name, @registry = name, registry
                 @typelist = typelist.to_set
                 @interface_typelist = interface_typelist.to_set
                 @opaques = Array.new
@@ -123,6 +115,7 @@ module OroGen
 
                 typelist.any? { |str| str =~ /#{Regexp.quote(typename)}(\[\d+\])+/ }
             end
+
 
             # @deprecated use {#include} instead
             def includes?(type)
@@ -151,8 +144,7 @@ module OroGen
                 type = resolve_type(type_def)
                 raise "#{type} is unknown" unless type
                 raise "#{type} is not opaque" unless type.opaque?
-
-                if (result = opaques.find { |opaque_def| opaque_def.type.eql? type })
+                if result = opaques.find { |opaque_def| opaque_def.type.eql? type }
                     result
                 else
                     raise InternalError, "#{self}#opaque_specification called for type #{type.name}, but could not find the corresponding opaque specification"
@@ -172,7 +164,7 @@ module OroGen
                         if @intermediate_to_opaque && (result = @intermediate_to_opaque[type.name])
                             result
                         elsif type.name =~ /_m$/
-                            resolve_type(type.name.gsub(/_m$/, ""))
+                            resolve_type(type.name.gsub(/_m$/, ''))
                         else raise Typelib::NotFound
                         end
                     rescue Typelib::NotFound
@@ -189,10 +181,10 @@ module OroGen
                         @intermediate_to_opaque[type.name]
                     end
                 elsif type <= Typelib::ContainerType
-                    if (opaque_deference = find_opaque_for_intermediate(type.deference))
+                    if opaque_deference = find_opaque_for_intermediate(type.deference)
                         resolve_type("#{type.container_kind}<#{opaque_deference.name}>")
                     end
-                elsif (opaque_def = opaques.find { |spec| resolve_type(spec.intermediate).eql?(type) })
+                elsif opaque_def = opaques.find { |spec| resolve_type(spec.intermediate).eql? type }
                     opaque_def.type
                 end
             end
@@ -219,7 +211,7 @@ module OroGen
                     else
                         path = Typelib.split_typename(type.name)
                         path.map! do |p|
-                            p.gsub(/[<>\[\], \/]/, "_")
+                            p.gsub(/[<>\[\], \/]/, '_')
                         end
                         "/" + path.join("/") + "_m"
                     end
@@ -246,7 +238,7 @@ module OroGen
             #   be found
             def intermediate_type_for(type_def)
                 typename = intermediate_type_name_for(type_def)
-                resolve_type(typename)
+                return resolve_type(typename)
             end
 
             # Gets the opaque type for a given type
@@ -268,6 +260,7 @@ module OroGen
             # Checks if a type is an oroGen-generated type used as an
             # intermediate
             def m_type?(type)
+                typename = type.name
                 if type.name =~ /_m$/
                     return true
                 end
@@ -291,7 +284,7 @@ module OroGen
             end
 
             def respond_to_missing?(m, include_private = false)
-                if super then super
+                if super then return super
                 elsif m.to_s =~ /^create_(interface_)?(\w+)$/
                     registry.respond_to?("create_#{$2}")
                 end
@@ -321,3 +314,4 @@ module OroGen
         end
     end
 end
+
