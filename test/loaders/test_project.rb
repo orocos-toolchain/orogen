@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-require "orogen/test"
+require 'orogen/test'
 
 describe OroGen::Loaders::Project do
     attr_reader :loader, :target
@@ -16,20 +14,20 @@ describe OroGen::Loaders::Project do
     end
 
     it "loads documentation for each task context object" do
-        load(File.join(path_to_data, "modules", "load_documentation.orogen"))
+        load(File.join(path_to_data, 'modules', 'load_documentation.orogen'))
 
-        task = target.task_model_from_name("Task")
-        assert_equal "TASKCONTEXT", task.doc
-        assert_equal "PROPERTY", task.find_property("p").doc
-        assert_equal "INPUTPORT", task.find_input_port("i").doc
-        assert_equal "OUTPUTPORT", task.find_output_port("o").doc
-        assert_equal "OPERATION", task.find_operation("op").doc
+        task = target.task_model_from_name('Task')
+        assert_equal 'TASKCONTEXT', task.doc
+        assert_equal 'PROPERTY', task.find_property('p').doc
+        assert_equal 'INPUTPORT', task.find_input_port('i').doc
+        assert_equal 'OUTPUTPORT', task.find_output_port('o').doc
+        assert_equal 'OPERATION', task.find_operation('op').doc
     end
 
     it "does not load after an empty line" do
-        load(File.join(path_to_data, "modules", "load_documentation.orogen"))
-        task = target.task_model_from_name("Task")
-        assert_equal "PROPERTY", task.find_property("test_empty_line_after_proper_comment").doc
-        assert_nil task.find_property("test_empty_line").doc
+        load(File.join(path_to_data, 'modules', 'load_documentation.orogen'))
+        task = target.task_model_from_name('Task')
+        assert_equal 'PROPERTY', task.find_property('test_empty_line_after_proper_comment').doc
+        assert_nil task.find_property('test_empty_line').doc
     end
 end

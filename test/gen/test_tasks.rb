@@ -1,21 +1,19 @@
-# frozen_string_literal: true
-
-require "orogen/gen/test"
+require 'orogen/gen/test'
 
 class TC_GenerationTasks < Minitest::Test
     attr_reader :task, :project
     def setup
         @project = OroGen::Gen::RTT_CPP::Project.new
-        project.name "test"
-        @task = project.task_context "Task"
+        project.name 'test'
+        @task = project.task_context 'Task'
         super
     end
 
     # Orogen should refuse to create a task context which has the same name than
     # one namespace of the type registry (that would not compile)
     def test_task_name_should_not_clash_with_namespace_name
-        project.deffile = File.join(path_to_data, "modules", "typekit_simple", "simple.orogen")
-        project.typekit(true).load File.join(path_to_data, "modules", "typekit_simple", "simple.h")
+        project.deffile = File.join(path_to_data, 'modules', 'typekit_simple', 'simple.orogen')
+        project.typekit(true).load File.join(path_to_data, 'modules', 'typekit_simple', 'simple.h')
         assert_raises(ArgumentError) { project.task_context("Test") {} }
     end
 
@@ -62,13 +60,13 @@ class TC_GenerationTasks < Minitest::Test
 
     def test_operation_argument_add_one_argument
         meth = task.operation("methodName")
-        ret = meth.argument("arg1", "/std/string", "first argument")
-                  .returns("int32_t")
+        ret = meth.argument("arg1", "/std/string", "first argument").
+            returns('int32_t')
         assert_same(meth, ret)
         assert_equal("boost::int32_t methodName(::std::string const & arg1)", meth.signature(true))
         assert_equal("boost::int32_t(::std::string const &)", meth.signature(false))
         expected_arguments = [
-            ["arg1", project.registry.get("std/string"), "first argument", "::std::string"]
+            ["arg1", project.registry.get('std/string'), "first argument", "::std::string"]
         ]
         assert_equal(expected_arguments, meth.arguments)
     end
@@ -80,13 +78,13 @@ class TC_GenerationTasks < Minitest::Test
         assert_equal("void method_name(::std::string const & arg1, double arg2)", meth.signature(true))
         assert_equal("void(::std::string const &, double)", meth.signature(false))
         expected_arguments = [
-            ["arg1", project.registry.get("std/string"), "first argument", "::std::string"],
-            ["arg2", project.registry.get("double"), "second argument", "double"]
+            ["arg1", project.registry.get('std/string'), "first argument", "::std::string"],
+            ["arg2", project.registry.get('double'), "second argument", "double"]
         ]
         assert_equal(expected_arguments, meth.arguments)
     end
 
-    def test_operation_argument_raises_ArgumentError_if_more_than_RTT_OPERATIONS_ARGUMENT_COUNT_LIMIT_arguments_are_set # rubocop:disable Naming/MethodName
+    def test_operation_argument_raises_ArgumentError_if_more_than_RTT_OPERATIONS_ARGUMENT_COUNT_LIMIT_arguments_are_set
         meth = task.operation("method_name")
         OroGen::Spec::Operation::RTT_ARGUMENT_COUNT_LIMIT.times do |i|
             meth.argument "arg#{i}", "double"
@@ -95,44 +93,44 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_generation_of_operations
-        task.operation("MethodName")
-            .argument("arg1", "/std/string", "first argument")
-            .argument("arg2", "double", "second argument")
-            .argument("arg3", "double", "third argument")
-            .argument("arg4", "double", "fourth argument")
-            .returns("/std/string")
+        task.operation("MethodName").
+            argument("arg1", "/std/string", "first argument").
+            argument("arg2", "double", "second argument").
+            argument("arg3", "double", "third argument").
+            argument("arg4", "double", "fourth argument").
+            returns('/std/string')
 
-        task.operation(:symbol_name)
-            .doc "this method's name is a symbol"
-        task.operation(:in_caller_thread)
-            .runs_in_caller_thread
-            .doc "this method runs in caller thread"
+        task.operation(:symbol_name).
+            doc "this method's name is a symbol"
+        task.operation(:in_caller_thread).
+            runs_in_caller_thread.
+            doc "this method runs in caller thread"
 
         create_wc("tasks/method")
         compile_wc(project)
     end
 
     def test_input_port_sets_the_orocos_class_properly
-        p = task.input_port "r", "int"
+        p = task.input_port 'r', 'int'
         assert_equal("RTT::InputPort", p.orocos_class)
     end
 
     def test_output_port_sets_the_orocos_class_properly
-        p = task.output_port "r", "int"
+        p = task.output_port 'r', 'int'
         assert_equal("RTT::OutputPort", p.orocos_class)
     end
 
     def test_generation_of_input_and_output_ports
-        task.input_port "r", "int"
-        task.output_port "w", "int"
+        task.input_port 'r', 'int'
+        task.output_port 'w', 'int'
 
         create_wc("tasks/ports")
         compile_wc(project)
     end
 
     def test_task_ports_driven
-        task.input_port "r", "int"
-        task.port_driven "r"
+        task.input_port 'r', 'int'
+        task.port_driven 'r'
 
         create_wc("tasks/port_driven")
         compile_wc(project)
@@ -140,14 +138,14 @@ class TC_GenerationTasks < Minitest::Test
 
     def test_it_can_generate_tasks_with_a_default_activity
         task.default_activity :periodic, 10
-        deployment = project.deployment "test"
-        deployment.task "test", task
+        deployment = project.deployment 'test'
+        deployment.task 'test', task
         create_wc("tasks/default_activity")
         compile_wc(project)
     end
 
     def test_needs_configuration
-        build_test_project("modules/with_configuration", [])
+        build_test_project('modules/with_configuration', [])
         install
     end
 
@@ -159,20 +157,23 @@ class TC_GenerationTasks < Minitest::Test
     end
 
     def test_state_type_definitions(*transports)
-        project = build_test_project("modules/extended_states", transports)
+        project = build_test_project('modules/extended_states', transports)
         install
+
+        parent = project.find_task_context "Parent"
+        child  = project.find_task_context "Child"
 
         parent_states = project.find_type "/extstate/Parent_STATES"
         child_states  = project.find_type "/extstate/Child_STATES"
 
         parent_values = parent_states.keys
         child_values  = child_states.keys
-        assert_equal parent_values["Parent_STATE1"], child_values["Child_STATE1"]
-        assert_equal parent_values["Parent_STATE2"], child_values["Child_STATE2"]
+        assert_equal parent_values['Parent_STATE1'], child_values['Child_STATE1']
+        assert_equal parent_values['Parent_STATE2'], child_values['Child_STATE2']
     end
 
     def test_default_values
-        project.deffile = File.join(path_to_wc_root, "test.orogen")
+        project.deffile = File.join(path_to_wc_root, 'test.orogen')
         Tempfile.open("orogen_test_default_values") do |io|
             io.puts <<-EOCODE
 enum TestEnum {
@@ -189,25 +190,26 @@ struct AStruct {
             project.typekit.perform_pending_loads
         end
 
-        assert_raises(ArgumentError) { task.property("str", "/std/string", 3) }
-        task.property("str", "/std/string", "3")
+        assert_raises(ArgumentError) { task.property('str', '/std/string', 3) }
+        task.property('str', '/std/string', "3")
+        
+        assert_raises(ArgumentError) { task.property('num', '/double', "3") }
+        task.property('num', '/double', 3)
+        
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', "3") }
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', 3) }
+        assert_raises(ArgumentError) { task.property('enum', '/TestEnum', "VALUE10") }
+        task.property('enum', '/TestEnum', :VALUE0)
+        task.property('enum1', '/TestEnum', 'VALUE0')
 
-        assert_raises(ArgumentError) { task.property("num", "/double", "3") }
-        task.property("num", "/double", 3)
+        assert_raises(ArgumentError) { task.property('struct', '/AStruct', "3") }
+        assert_raises(ArgumentError) { task.property('struct', '/AStruct', :bla => 3) }
 
-        assert_raises(ArgumentError) { task.property("enum", "/TestEnum", "3") }
-        assert_raises(ArgumentError) { task.property("enum", "/TestEnum", 3) }
-        assert_raises(ArgumentError) { task.property("enum", "/TestEnum", "VALUE10") }
-        task.property("enum", "/TestEnum", :VALUE0)
-        task.property("enum1", "/TestEnum", "VALUE0")
+        assert_raises(ArgumentError) { task.property('bool', '/int', "VALUE10") }
 
-        assert_raises(ArgumentError) { task.property("struct", "/AStruct", "3") }
-        assert_raises(ArgumentError) { task.property("struct", "/AStruct", :bla => 3) }
-
-        assert_raises(ArgumentError) { task.property("bool", "/int", "VALUE10") }
-
-        assert_raises(ArgumentError) { task.property("bool", "/bool", "VALUE10") }
-        task.property("bool", "/bool", true)
-        task.property("bool1", "/bool", false)
+        assert_raises(ArgumentError) { task.property('bool', '/bool', "VALUE10") }
+        task.property('bool', '/bool', true)
+        task.property('bool1', '/bool', false)
     end
 end
+

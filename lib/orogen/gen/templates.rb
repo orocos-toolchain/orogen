@@ -1,9 +1,7 @@
-# frozen_string_literal: true
-
 module OroGen
     module Gen
         module RTT_CPP # rubocop:disable Naming/ClassAndModuleCamelCase
-            AUTOMATIC_AREA_NAME = ".orogen"
+            AUTOMATIC_AREA_NAME = '.orogen'.freeze
 
             @templates = Hash.new
             class << self
@@ -14,7 +12,7 @@ module OroGen
             # Returns the directory where oroGen's lib part sits, i.e.
             # base_dir is defined by the directory where orogen.rb resides
             def self.base_dir
-                File.expand_path(File.join("..", ".."), File.dirname(__FILE__))
+                File.expand_path(File.join('..', '..'), File.dirname(__FILE__))
             end
 
             # call-seq:
@@ -29,7 +27,7 @@ module OroGen
                 if Pathname.new(File.join(*path)).absolute?
                     File.join(*path)
                 else
-                    reldir = File.join("orogen", "templates", *path)
+                    reldir = File.join('orogen', 'templates', *path)
                     File.expand_path(reldir, base_dir)
                 end
             end
@@ -44,18 +42,18 @@ module OroGen
             #
             # A template is only loaded once. See Generation.templates.
             def self.load_template(*path)
-                if (template = templates[path])
+                if template = templates[path]
                     template
                 else
-                    template_file = template_path(*path)
+                    template_file   = template_path(*path)
 
                     templates[path] =
                         begin
-                            ERB.new(File.read(template_file), nil, "<>",
-                                    path.join("_").downcase.gsub(%r{[\/\.-]}, "_"))
+                            ERB.new(File.read(template_file), nil, '<>',
+                                    path.join('_').downcase.gsub(%r{[\/\.-]}, '_'))
                         rescue Errno::ENOENT
                             raise ArgumentError, "template #{File.join(*path)} "\
-                                                 "does not exist"
+                                                 'does not exist'
                         end
                     templates[path].filename = template_file
                     templates[path]
@@ -109,7 +107,7 @@ module OroGen
                     debug "  creating #{file_path}"
                 end
 
-                File.open(file_path, "w") do |io|
+                File.open(file_path, 'w') do |io|
                     io.write data
                 end
                 file_path
@@ -155,7 +153,7 @@ module OroGen
                 dir_path = File.expand_path(File.join(*path))
 
                 Find.find(dir_path) do |file|
-                    cmakefiles_path = File.join(file, "CMakeFiles")
+                    cmakefiles_path = File.join(file, 'CMakeFiles')
                     is_generated = generated_files.include?(file)
                     if File.directory?(file) && File.directory?(cmakefiles_path)
                         # This looks like a build directory. Ignore
@@ -171,7 +169,7 @@ module OroGen
             def self.really_clean
                 # List all files in templates and compare them w.r.t.  the ones in
                 # the user-side of the project. Remove those that are identical
-                template_dir = Pathname.new("templates")
+                template_dir = Pathname.new('templates')
                 template_dir.find do |path|
                     next unless path.file?
 
@@ -182,7 +180,7 @@ module OroGen
                         user_data = File.read(relative.to_s)
                         if user_data == template_data
                             logger.info "removing #{relative} as it is the same "\
-                                        "than in template"
+                                        'than in template'
                             FileUtils.rm_f relative.to_s
                         end
                     end
@@ -194,9 +192,10 @@ module OroGen
 
             def self.clean
                 FileUtils.rm_rf Generation::AUTOMATIC_AREA_NAME
-                FileUtils.rm_rf "build"
-                FileUtils.rm_rf "templates"
+                FileUtils.rm_rf 'build'
+                FileUtils.rm_rf 'templates'
             end
         end
     end
 end
+

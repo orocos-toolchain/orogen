@@ -1,22 +1,20 @@
-# frozen_string_literal: true
-
-require "orogen/test"
-require "orogen/ros"
+require 'orogen/test'
+require 'orogen/ros'
 
 module ROSLoaderTestSetup
     def path_to_data
-        File.join(File.dirname(__FILE__), "models")
+        File.join(File.dirname(__FILE__),"models")
     end
 
     def create_ros_loader
         root = OroGen::Loaders::Aggregate.new
         typekit_loader = OroGen::Loaders::Files.new(root)
-        typekit_loader.register_typekit(path_to_data, "std")
-        typekit_loader.register_typekit(path_to_data, "base")
+        typekit_loader.register_typekit(path_to_data, 'std')
+        typekit_loader.register_typekit(path_to_data, 'base')
         ros_loader = OroGen::ROS::DefaultLoader.new(root)
         ros_loader.search_path << path_to_data
-        ros_loader.package_paths["manipulator_config"] = path_to_data
-        root.typekit_model_from_name("std")
+        ros_loader.package_paths['manipulator_config'] = path_to_data
+        root.typekit_model_from_name('std')
         root
     end
 
@@ -31,26 +29,26 @@ describe OroGen::ROS::Loader do
     include ROSLoaderTestSetup
 
     it "tells us if a given ROS package is available" do
-        assert loader.has_project?("artemis_state_publisher")
+        assert loader.has_project?('artemis_state_publisher')
     end
     it "tells us if a given ROS package is available" do
-        assert !loader.has_project?("bla")
+        assert !loader.has_project?('bla')
     end
     it "should load existing node descriptions" do
         project = loader.project_model_from_name("artemis_state_publisher")
-        node = project.task_model_from_name("artemis_state_publisher_node")
+        node = project.task_model_from_name('artemis_state_publisher_node')
         assert node.has_port?("joint_states_out")
         assert node.has_port?("joint_states_in")
         assert node.find_output_port("joint_states_out")
         assert node.find_input_port("joint_states_in")
     end
     it "should load project models as OroGen::ROS::Spec::Package" do
-        package = loader.project_model_from_name("joint_state_publisher")
+        package = loader.project_model_from_name('joint_state_publisher')
         assert_kind_of OroGen::ROS::Spec::Package, package
     end
     it "should load task models as OroGen::ROS::Spec::Node" do
-        package = loader.project_model_from_name("joint_state_publisher")
-        node = package.task_model_from_name("joint_state_publisher")
+        package = loader.project_model_from_name('joint_state_publisher')
+        node = package.task_model_from_name('joint_state_publisher')
         assert_kind_of OroGen::ROS::Spec::Node, node
     end
 end
@@ -65,14 +63,14 @@ describe OroGen::ROS::Spec::Package do
 
     it "lists the ROS nodes in self_tasks" do
         package = loader.project_model_from_name("artemis_state_publisher")
-        node = package.self_tasks["artemis_state_publisher::artemis_state_publisher_node"]
-        assert_equal "artemis_state_publisher::artemis_state_publisher_node", node.name
+        node = package.self_tasks['artemis_state_publisher::artemis_state_publisher_node']
+        assert_equal 'artemis_state_publisher::artemis_state_publisher_node', node.name
     end
 
     it "lists the ROS launchers in deployers" do
         package = loader.project_model_from_name("manipulator_config")
-        launcher = package.deployers["test"]
-        assert_equal "test", launcher.name
+        launcher = package.deployers['test']
+        assert_equal 'test', launcher.name
     end
 
     describe "normalize_name" do
@@ -89,11 +87,13 @@ describe OroGen::ROS::Spec::Package do
             n1 = OroGen::ROS::Spec::Node.new(project, "test")
             n2 = OroGen::ROS::Spec::Node.new(project, "test")
 
-            assert_equal n1, n1, "Node equality"
-            assert_equal n1, n2, "Node equality"
+            assert_equal n1,n1, "Node equality"
+            assert_equal n1,n2, "Node equality"
         end
     end
 
     describe "node superclass" do
     end
+
 end
+

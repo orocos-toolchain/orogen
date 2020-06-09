@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 module OroGen
     def self.each_orogen_plugin_path(&block)
-        (ENV["OROGEN_PLUGIN_PATH"] || "").split(":").each(&block)
+        (ENV['OROGEN_PLUGIN_PATH'] || "").split(':').each(&block)
     end
 
     def self.each_orogen_plugin_dir
@@ -18,7 +16,7 @@ module OroGen
             if File.file?(path)
                 yield(path)
             else
-                Dir.glob(File.join(path, type, "*.rb")).each do |file|
+                Dir.glob(File.join(path, type, '*.rb')).each do |file|
                     yield(file)
                 end
             end
@@ -45,6 +43,7 @@ module OroGen
             end
         end
         raise ArgumentError, "cannot load plugin #{path}: not found in #{ENV['OROGEN_PLUGIN_PATH']}"
+
     ensure
         if original_load_path
             $LOAD_PATH.clear
@@ -91,3 +90,4 @@ module OroGen
         registry
     end
 end
+

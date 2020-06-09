@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
 begin
-    require "typelib"
+    require 'typelib'
 rescue LoadError
     STDERR.puts "Cannot require 'typelib'"
     STDERR.puts "If you are using Rock, the 'typelib' package should have been installed automatically."
@@ -13,10 +11,10 @@ rescue LoadError
     exit 1
 end
 
-require "utilrb/logger"
+require 'utilrb/logger'
 
 module OroGen
-    OROGEN_LIB_DIR = File.expand_path("orogen", File.dirname(__FILE__))
+    OROGEN_LIB_DIR = File.expand_path('orogen', File.dirname(__FILE__))
     extend Logger::Root("OroGen", Logger::WARN)
 
     module Spec
@@ -37,21 +35,21 @@ module Orocos
     TypekitMarshallers = OroGen::TypekitMarshallers
 end
 
-require "utilrb/pkgconfig"
-require "metaruby/dsls/doc"
-require "orogen/typenames"
-require "rexml/streamlistener"
-require "rexml/document"
+require 'utilrb/pkgconfig'
+require 'metaruby/dsls/doc'
+require 'orogen/typenames'
+require 'rexml/streamlistener'
+require 'rexml/document'
 
-require "orogen/version"
-require "orogen/warn_deprecated"
-require "orogen/exceptions"
-require "orogen/base"
-require "orogen/check_for_stray_dots"
-require "orogen/plugins"
-require "orogen/loaders"
-require "orogen/spec"
+require 'orogen/version'
+require 'orogen/warn_deprecated'
+require 'orogen/exceptions'
+require 'orogen/base'
+require 'orogen/check_for_stray_dots'
+require 'orogen/plugins'
+require 'orogen/loaders'
+require 'orogen/spec'
 
-unless ENV["OROGEN_DISABLE_PLUGINS"] == "1"
+unless ENV['OROGEN_DISABLE_PLUGINS'] == '1'
     OroGen.load_orogen_plugins
 end

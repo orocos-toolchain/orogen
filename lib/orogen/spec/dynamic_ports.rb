@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module OroGen
     module Spec
         module DynamicPort
@@ -15,18 +13,15 @@ module OroGen
                 m
             end
 
-            def dynamic?
-                true
-            end
+            def dynamic?; true end
 
             def each_interface_type
-                return enum_for(__method__) unless block_given?
-
+                return enum_for(__method__) if !block_given?
                 super if type
             end
 
             def pretty_print(pp)
-                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{type ? type.name : "any type"}"
+                pp.text "[dyn,#{self.class < InputPort ? "in" : "out"}]#{name}:#{if type then type.name else "any type" end}"
             end
         end
 
@@ -37,7 +32,7 @@ module OroGen
         class DynamicOutputPort < OutputPort
             include DynamicPort
         end
-
+        
         # Specification for a dynamic input port.
         #
         # Dynamic ports are not statically present, but will be created at
@@ -51,3 +46,5 @@ module OroGen
         end
     end
 end
+
+
