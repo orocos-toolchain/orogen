@@ -1,4 +1,6 @@
-require 'orogen/gen/test'
+# frozen_string_literal: true
+
+require "orogen/gen/test"
 
 class TC_GenerationBuild < Minitest::Test
     def test_check_uptodate
@@ -14,7 +16,7 @@ class TC_GenerationBuild < Minitest::Test
             end
             # Now, verify that we can run make regen
             Dir.chdir("build") do
-                assert call_make('regen')
+                assert call_make("regen")
                 assert call_make
             end
         end
@@ -23,11 +25,11 @@ class TC_GenerationBuild < Minitest::Test
     def test_check_typekit_uptodate
         # Simulate an external library that define a particular type, which we
         # want to wrap with a typekit
-        lib_prefix = File.join(prefix_directory, 'build_regen_library')
+        lib_prefix = File.join(prefix_directory, "build_regen_library")
         FileUtils.mkdir_p prefix_directory
         FileUtils.rm_rf lib_prefix
-        FileUtils.cp_r File.join(path_to_data, 'build_regen_library'), lib_prefix
-        File.open(File.join(lib_prefix, 'build_regen_library.pc'), 'w') do |io|
+        FileUtils.cp_r File.join(path_to_data, "build_regen_library"), lib_prefix
+        File.open(File.join(lib_prefix, "build_regen_library.pc"), "w") do |io|
             io.puts <<-PKGFILE
 prefix=#{lib_prefix}
 
@@ -37,13 +39,13 @@ Version: 0
 Cflags: -I${prefix}/include -I${prefix}/include/project
             PKGFILE
         end
-        ENV['PKG_CONFIG_PATH'] = "#{lib_prefix}:#{ENV['PKG_CONFIG_PATH']}"
+        ENV["PKG_CONFIG_PATH"] = "#{lib_prefix}:#{ENV['PKG_CONFIG_PATH']}"
 
         build_test_project "modules/build_regen_typekit", []
 
         in_wc do
             # Add a new type to test.h
-            File.open('test.h', 'a') do |io|
+            File.open("test.h", "a") do |io|
                 io.puts <<-NEWDEF
 #ifndef BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
 #define BUILD_REGEN_TYPEKIT_TEST_H_NEW_TYPE
@@ -62,16 +64,16 @@ namespace Test {
             end
             # Now, verify that we can run make regen
             Dir.chdir("build") do
-                assert call_make('regen')
+                assert call_make("regen")
                 assert call_make
             end
 
-            registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
+            registry = Typelib::Registry.import(".orogen/typekit/regen.tlb")
             assert registry.get("Test/NewType")
         end
 
         Dir.chdir(lib_prefix) do
-            File.open('include/regen_lib.h', 'a') do |io|
+            File.open("include/regen_lib.h", "a") do |io|
                 io.puts <<-NEWDEF
 #ifndef BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
 #define BUILD_REGEN_LIBRARY_REGEN_LIB_H_NEW_TYPE
@@ -87,13 +89,12 @@ struct RegenLibNewType { int field; };
             end
             # Now, verify that we can run make regen
             Dir.chdir("build") do
-                assert call_make('regen')
+                assert call_make("regen")
                 assert call_make
             end
 
-            registry = Typelib::Registry.import('.orogen/typekit/regen.tlb')
+            registry = Typelib::Registry.import(".orogen/typekit/regen.tlb")
             assert registry.get("RegenLibNewType")
         end
     end
 end
-

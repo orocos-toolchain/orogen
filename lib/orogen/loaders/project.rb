@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module Loaders
         class TaskContext < BasicObject
@@ -24,6 +26,7 @@ module OroGen
                 end
                 model
             end
+
             def input_port(name, type, *args, &block)
                 model = super(name, __normalize_typename(type), *args, &block)
                 if @load_doc
@@ -31,6 +34,7 @@ module OroGen
                 end
                 model
             end
+
             def output_port(name, type, *args, &block)
                 model = super(name, __normalize_typename(type), *args, &block)
                 if @load_doc
@@ -38,6 +42,7 @@ module OroGen
                 end
                 model
             end
+
             def dynamic_input_port(name, type, *args, &block)
                 type = if type
                            __normalize_typename(type)
@@ -49,6 +54,7 @@ module OroGen
                 end
                 model
             end
+
             def dynamic_output_port(name, type, *args, &block)
                 type = if type
                            __normalize_typename(type)
@@ -60,6 +66,7 @@ module OroGen
                 end
                 model
             end
+
             def operation(*args, &block)
                 model = super
                 if @load_doc
@@ -67,9 +74,11 @@ module OroGen
                 end
                 model
             end
+
             def ro_ptr(typename)
                 super(__normalize_typename(typename))
             end
+
             def shared_ptr(typename)
                 super(__normalize_typename(typename))
             end
@@ -103,13 +112,16 @@ module OroGen
                 if typekit.respond_to?(:to_str) && !@spec.loader.has_typekit?(typekit)
                     return
                 end
+
                 super
             end
 
-            def task_context(*args, &block)
+            def task_context(*, **, &block)
                 load_doc = @load_doc
-                model = super(*args) do
-                    ::OroGen::Loaders::TaskContext.new(load_doc, self).instance_eval(&block)
+                model = super do
+                    ::OroGen::Loaders::TaskContext
+                        .new(load_doc, self)
+                        .instance_eval(&block)
                 end
 
                 # model is nil if the task context's namespace is disabled.
@@ -121,9 +133,9 @@ module OroGen
                 model
             end
 
-            def method_missing(m, *args, &block)
+            def method_missing(m, *args, **kw, &block)
                 if @spec.respond_to?(m)
-                    @spec.send(m, *args, &block)
+                    @spec.send(m, *args, **kw, &block)
                 end
             end
 
@@ -155,13 +167,14 @@ module OroGen
                 end
                 self
             rescue ::Exception => e
-                if true || verbose then ::Kernel.raise
+                if verbose
+                    ::Kernel.raise
                 else
                     this_level = ::Kernel.caller.size
-                    until_here = e.backtrace[-(this_level-1)..-1] || []
+                    until_here = e.backtrace[-(this_level - 1)..-1] || []
                     subcalls = e.backtrace[0, e.backtrace.size - this_level - 1] || []
                     subcalls.delete_if { |line| line =~ /eval|method_missing/ && line !~ /\.orogen/ }
-                    subcalls = subcalls.map { |line| line.gsub(/:in `(?:block in )?__eval__'/, '') }
+                    subcalls = subcalls.map { |line| line.gsub(/:in `(?:block in )?__eval__'/, "") }
                     ::Kernel.raise e, e.message, (subcalls + until_here)
                 end
             end

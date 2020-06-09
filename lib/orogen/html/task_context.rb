@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module HTML
         class TaskContext
@@ -23,4 +25,3 @@ module OroGen
         end
     end
 end
-
