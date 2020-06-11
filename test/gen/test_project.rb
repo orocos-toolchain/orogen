@@ -1,4 +1,6 @@
-require 'orogen/gen/test'
+# frozen_string_literal: true
+
+require "orogen/gen/test"
 
 class TC_GenerationProject < Minitest::Test
     def test_project_generate
@@ -11,12 +13,12 @@ class TC_GenerationProject < Minitest::Test
             # No orogen file
             project = RTT_CPP::Project.new
             project.name "cmp"
-            assert_raises(ArgumentError) { project.generate } 
-            
+            assert_raises(ArgumentError) { project.generate }
+
             # No name
             project = RTT_CPP::Project.new
             project.instance_variable_set(:@deffile, File.join(path_to_data, "empty_component.orogen"))
-            assert_raises(ArgumentError) { project.generate } 
+            assert_raises(ArgumentError) { project.generate }
 
             # OK
             project = RTT_CPP::Project.new
@@ -44,7 +46,7 @@ class TC_GenerationProject < Minitest::Test
     end
 
     def test_filter_backtrace
-        Tempfile.open('test') do |io|
+        Tempfile.open("test") do |io|
             io.puts "raise TypeError, \"custom exception\""
             io.sync
             io.flush
@@ -64,12 +66,14 @@ class TC_GenerationProject < Minitest::Test
         t = c.find_type "/int"
         assert_same c.registry.get("/int"), t
     end
+
     def test_find_type_should_build_arrays
         c = Project.new
         t = c.find_type "/int[12]"
         assert_same c.registry.get("/int[12]"), t
         assert !c.typekit
     end
+
     def test_find_type_should_create_containers
         c = Project.new
         t = c.find_type "/std/vector</int>"
@@ -80,7 +84,7 @@ class TC_GenerationProject < Minitest::Test
 
     def test_imported_typekits
         # Build the simple typekit first
-        build_test_project('modules/typekit_simple', [])
+        build_test_project("modules/typekit_simple", [])
 
         c = Project.new
         # Then try to load it
@@ -113,4 +117,3 @@ class TC_GenerationProject < Minitest::Test
         end
     end
 end
-

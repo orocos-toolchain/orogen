@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module Spec
         def self.load_documentation(object, defmethod)
@@ -7,4 +9,3 @@ module OroGen
         end
     end
 end
-

@@ -145,7 +145,7 @@ module OroGen
                 if project.self_tasks.empty?
                     raise ProjectNotFound,
                           "there is an oroGen project called #{name}, "\
-                          'but it defines no tasks'
+                          "but it defines no tasks"
                 end
                 project
             end
@@ -229,7 +229,7 @@ module OroGen
                               "cannot find a deployed task called #{name}"
                     elsif deployment_names.size > 1
                         raise AmbiguousName,
-                              'more than one deployment defines a deployed task called '\
+                              "more than one deployment defines a deployed task called "\
                               "#{name}: #{deployment_names.map(&:name).sort.join(', ')}"
                     end
                     deployment = deployment_model_from_name(deployment_names.first)
@@ -295,9 +295,9 @@ module OroGen
 
                 typekit.registry.each(with_aliases: false) do |type|
                     self_type = registry.get(type.name)
-                    self_type.metadata.add('orogen:typekits', typekit.name)
+                    self_type.metadata.add("orogen:typekits", typekit.name)
                     if typekit.include?(type.name)
-                        self_type.metadata.add('orogen:definition_typekits', typekit.name)
+                        self_type.metadata.add("orogen:definition_typekits", typekit.name)
                     end
 
                     if type.contains_opaques?
@@ -305,12 +305,12 @@ module OroGen
                         intermediate_type = registry.get(intermediate_type_name)
                         self_type
                             .metadata
-                            .add('orogen:intermediate_type', intermediate_type_name)
+                            .add("orogen:intermediate_type", intermediate_type_name)
                         intermediate_type
-                            .metadata.add('orogen:intermediate_type_of', type.name)
+                            .metadata.add("orogen:intermediate_type_of", type.name)
                         unless type.opaque?
                             intermediate_type
-                                .metadata.set('orogen:generated_type', 'true')
+                                .metadata.set("orogen:generated_type", "true")
                         end
                     end
                 end
@@ -391,7 +391,7 @@ module OroGen
                     raise DefinitionTypekitNotFound,
                           "typekits #{typekits.map(&:name).sort.join(', ')} have "\
                           "#{typename} in their registries, but it seems that they "\
-                          'got it from another typekit that cannot be found'
+                          "got it from another typekit that cannot be found"
                 end
                 definition_typekits.to_set
             end
@@ -403,8 +403,8 @@ module OroGen
                 type = resolve_type(typename)
                 if type < Typelib::ArrayType
                     raise InvalidInterfaceType.new(type),
-                          'static arrays are not valid interface types. '\
-                          'Use an array in a structure or a std::vector'
+                          "static arrays are not valid interface types. "\
+                          "Use an array in a structure or a std::vector"
                 elsif !interface_type?(type)
                     typekits = imported_typekits_for(type.name)
                     raise NotExportedType.new(type, typekits),
@@ -429,7 +429,7 @@ module OroGen
             # @return (see Spec::Typekit#intermediate_type?)
             def intermediate_type?(type)
                 type = resolve_type(type)
-                !type.metadata.get('orogen:intermediate_type_of').empty?
+                !type.metadata.get("orogen:intermediate_type_of").empty?
             end
 
             # Returns the opaque type that is paired with the given type
@@ -439,7 +439,7 @@ module OroGen
             # @return (see Spec::Typekit#opaque_type_for)
             def opaque_type_for(type)
                 type = resolve_type(type)
-                opaques = type.metadata.get('orogen:intermediate_type_of')
+                opaques = type.metadata.get("orogen:intermediate_type_of")
                 registry.get(opaques.first || type.name)
             end
 
@@ -450,7 +450,7 @@ module OroGen
             # @return (see Spec::Typekit#opaque_type_for)
             def intermediate_type_for(type)
                 type = resolve_type(type)
-                intermediates = type.metadata.get('orogen:intermediate_type')
+                intermediates = type.metadata.get("orogen:intermediate_type")
                 registry.get(intermediates.first || type.name)
             end
 
@@ -462,7 +462,7 @@ module OroGen
             # @return (see Spec::Typekit#m_type?)
             def m_type?(type)
                 type = resolve_type(type)
-                type.metadata.get('orogen:generated_type') == ['true']
+                type.metadata.get("orogen:generated_type") == ["true"]
             end
 
             # Registers this project's subobjects
@@ -565,7 +565,7 @@ module OroGen
                       "#{self.class} uses the default name-based resolution to "\
                       "resolve the task library from the task name '#{name}', but "\
                       "'#{name}' does not follow the expected convention "\
-                      '${project_name}::${task_name}'
+                      "${project_name}::${task_name}"
             end
 
             # Returns the project that defines the given deployment
@@ -609,7 +609,7 @@ module OroGen
                     # to convert it to something we can manipulate, raise
                     raise Typelib::NotFound,
                           "#{t} is a null type and there are no typelib marshallers "\
-                          'registered in RTT to convert it to a typelib-compatible type'
+                          "registered in RTT to convert it to a typelib-compatible type"
                 else type
                 end
             end

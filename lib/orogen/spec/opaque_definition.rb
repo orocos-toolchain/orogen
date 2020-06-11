@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module Spec
         # Data structure that represents the definition for an opaque type
@@ -24,20 +26,29 @@ module OroGen
                     raise ArgumentError, "trying to create an opaque definition with nil types"
                 end
 
-                @type, @intermediate, @options, @code_generator =
-                    type, intermediate, options, code_generator
+                @type = type
+                @intermediate = intermediate
+                @options = options
+                @code_generator = code_generator
             end
+
             # The set of paths that should be added to -I to the generated
             # +type+ to +intermediate+ convertion.
-            def includes; options[:include] end
+            def includes
+                options[:include]
+            end
+
             # If true, the opaque needs to be copied into the intermediate. If
             # false, the convertion does not require a copy.
-            def needs_copy?; !!options[:needs_copy] end
+            def needs_copy?
+                !!options[:needs_copy]
+            end
+
             # If true, the convertion function is provided by the user, and
             # orogen should therefore generate the corresponding templates.
-            def generate_templates?; !code_generator end
+            def generate_templates?
+                !code_generator
+            end
         end
     end
 end
-
-
