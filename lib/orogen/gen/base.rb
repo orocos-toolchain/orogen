@@ -99,12 +99,18 @@ module OroGen
                 cmake_txt
             end
 
-            def self.cmake_pkgconfig_link(context, target, depspec)
-                depspec.inject([]) do |result, s|
+            def self.each_pkgconfig_link_dependency(context, depspec)
+                return enum_for(:each_pkgconfig_link_dependency, context, depspec) unless block_given?
+                depspec.each do |s|
                     if s.in_context?(context, "link")
-                        result << "target_link_libraries(#{target} ${#{s.var_name}_LIBRARIES})"
+                        yield "${#{s.var_name}_LIBRARIES}"
                     end
-                    result
+                end
+            end
+
+            def self.cmake_pkgconfig_link(context, target, depspec)
+                each_pkgconfig_link_dependency(context, depspec).map do |dep|
+                    "target_link_libraries(#{target} #{dep})"
                 end.join("\n") + "\n"
             end
 
