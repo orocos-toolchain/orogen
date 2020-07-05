@@ -7,7 +7,7 @@
     thus offering an easy and fast development process.
   </description>
   <author>Sylvain Joyeux/sylvain.joyeux@m4x.org</author>
-  <maintainer email="orocos-dev@lists.mech.kuleuven.be">Orocos Developers</maintainer>
+  <maintainer email="orocos-dev@orocos.org">Orocos Developers</maintainer>
   <license>GPL v2 or later</license>
 
   <url>http://rock-robotics.org/documentation/orogen</url>
