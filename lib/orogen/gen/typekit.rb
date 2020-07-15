@@ -1567,7 +1567,8 @@ module OroGen
                     file_registry.merge opaque_registry
 
                     preprocess_options, options = make_load_options(loads, user_options)
-                    preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
+                    preprocessed, include_mappings =
+                        resolve_toplevel_include_mapping(loads, **preprocess_options)
 
                     include_path = include_dirs.map { |d| Pathname.new(d) }
                     pending_loads_to_relative =
