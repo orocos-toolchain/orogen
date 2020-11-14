@@ -1,4 +1,4 @@
-<package>
+<package format="3">
   <name>orogen</name>
   <version>2.9.0</version>
   <description>
@@ -13,17 +13,16 @@
   <url>http://rock-robotics.org/documentation/orogen</url>
 
   <buildtool_depend>cmake</buildtool_depend>
-  <run_depend>catkin</run_depend>
 
   <build_depend>ruby</build_depend>
 
-  <run_depend>rtt</run_depend>
-  <run_depend>typelib</run_depend>
-  <run_depend>rtt_typelib</run_depend>
-  <run_depend>utilrb</run_depend>
-  <run_depend>metaruby</run_depend>
-  <run_depend>rake</run_depend>
-  <run_depend>ruby</run_depend>
+  <exec_depend>rtt</exec_depend>
+  <exec_depend>typelib</exec_depend>
+  <exec_depend>rtt_typelib</exec_depend>
+  <exec_depend>utilrb</exec_depend>
+  <exec_depend>metaruby</exec_depend>
+  <exec_depend>rake</exec_depend>
+  <exec_depend>ruby</exec_depend>
 
   <export>
     <build_type>
