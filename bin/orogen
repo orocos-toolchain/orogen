@@ -1,9 +1,10 @@
 #! /usr/bin/env ruby
+# frozen_string_literal: true
 
-require 'orogen'
-require 'orogen/gen'
+require "orogen"
+require "orogen/gen"
 OroGen::Gen::RTT_CPP.enable
-require 'optparse'
+require "optparse"
 
 # Disable typelib plugin loading
 Typelib.load_type_plugins = false
@@ -27,34 +28,34 @@ parser = OptionParser.new do |opt|
     opt.banner = "Usage: orogen [options] <template file>"
 
     opt.on("--[no-]corba", "enables/disables corba support (deprecated, use --transports instead)") do |flag|
-        project.enable_transports('corba')
+        project.enable_transports("corba")
     end
     opt.on("--[no-]extended-states", "disable or enable extended states for all tasks defined in this project (enabled by default)") do |flag|
         project.extended_states = flag
     end
 
-    opt.on('--no-transports', "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
+    opt.on("--no-transports", "disables all transports (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
         no_transports = true
     end
-    opt.on('--parallel-build=NUMBER', Integer, "optimize generated code for parallel builds") do |parallel_level|
+    opt.on("--parallel-build=NUMBER", Integer, "optimize generated code for parallel builds") do |parallel_level|
         rtt_cpp.typekit_slice_minimum = parallel_level
-	if !explicit_typekit_slice && parallel_level > 2
-	    rtt_cpp.typekit_slice = 1
-	end
+        if !explicit_typekit_slice && parallel_level > 2
+            rtt_cpp.typekit_slice = 1
+        end
     end
-    opt.on('--typekit-slice=NUMBER', Integer) do |slice_size|
-	explicit_typekit_slice = true
+    opt.on("--typekit-slice=NUMBER", Integer) do |slice_size|
+        explicit_typekit_slice = true
         rtt_cpp.typekit_slice = slice_size
     end
-    
-    opt.on('--extensions=NAME[,NAME]', "selects the extensions that should be enabled (by default, #{DEFAULT_EXTENSIONS.join(", ")} are enabled)") do |v|
-        v.split(',').each do |name|
+
+    opt.on("--extensions=NAME[,NAME]", "selects the extensions that should be enabled (by default, #{DEFAULT_EXTENSIONS.join(", ")} are enabled)") do |v|
+        v.split(",").each do |name|
             extensions << name
         end
     end
 
-    opt.on('--transports=NAME[,NAME]', "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
-        transport_names.split(',').each do |name|
+    opt.on("--transports=NAME[,NAME]", "selects the transports that should be enabled (by default, #{DEFAULT_TRANSPORTS.join(", ")} are enabled)") do |transport_names|
+        transport_names.split(",").each do |name|
             transports << name
         end
     end
@@ -72,17 +73,23 @@ parser = OptionParser.new do |opt|
     opt.on('--type-export-policy=STRING", "sets the default type export policy. Must be either all or used') do |mode|
         rtt_cpp.default_type_export_policy = mode.to_sym
     end
-    opt.on('--import=NAME', 'import types from this typekit') do |tk_name|
+    opt.on("--import=NAME", "import types from this typekit") do |tk_name|
         imported_typekits << tk_name
     end
 
-    opt.on('--[no-]rtt-scripting', 'when generating the typekit, remove features needed for RTT scripting (speeds up compilation and reduces code size)') do |value|
+    opt.on("--[no-]rtt-scripting", "when generating the typekit, remove features needed for RTT scripting (speeds up compilation and reduces code size)") do |value|
         OroGen::TypekitMarshallers::TypeInfo::Plugin.rtt_scripting = value
     end
 
-    opt.on("-t", "--tests")   { project.enable_namespace "test"}
-    opt.on("-v", "--verbose") { rtt_cpp.logger.level = Logger::INFO; verbosity = 1 }
-    opt.on("-d", "--debug")   { rtt_cpp.logger.level = Logger::DEBUG; verbosity = 2 }
+    opt.on("-t", "--tests")   { project.enable_namespace "test" }
+    opt.on("-v", "--verbose") do
+        rtt_cpp.logger.level = Logger::INFO
+        verbosity = 1
+    end
+    opt.on("-d", "--debug") do
+        rtt_cpp.logger.level = Logger::DEBUG
+        verbosity = 2
+    end
     opt.on("-h", "--help", "this help message") do
         puts opt
         exit 0
@@ -136,11 +143,11 @@ if files.first == "create"
     end
     FileUtils.mkdir_p path
     Dir.glob(File.join(rtt_cpp.base_dir, "orogen", "templates", "new_project", "*")) do |input_file|
-        output_file = File.basename(input_file.gsub('NAME', name))
+        output_file = File.basename(input_file.gsub("NAME", name))
         output_file = File.join(path, output_file)
-        
+
         content = File.read(input_file).gsub(/NAME/, name)
-        File.open(output_file, 'w') do |io|
+        File.open(output_file, "w") do |io|
             io.write content
         end
     end
@@ -155,7 +162,7 @@ end
 
 ConfigError = OroGen::ConfigError
 begin
-    filename  = files.first
+    filename = files.first
     OroGen.beautify_loading_errors(filename) do
         project.enable_transports(*transports)
         project.enable_extension(extensions)
@@ -172,14 +179,14 @@ begin
     project.generate
 rescue Typelib::NotFound, LoadError, ConfigError, ArgumentError => e
     raise if verbosity > 0
+
     # Find the first stack frame on the orogen file
     file_pattern = /#{Regexp.quote(File.basename(filename))}/
-    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename 
+    error_line = e.backtrace.find { |line| line =~ file_pattern } || filename
     STDERR.puts "#{error_line}: #{e.message} (#{e.class})"
     exit 1
-rescue Exception => e
+rescue Exception
     STDERR.puts "===== Internal error ======="
     STDERR.puts "Please report the following error to the orogen developers"
     raise
 end
-

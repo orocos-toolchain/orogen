@@ -1,74 +1,92 @@
-require './lib/orogen/version'
-require 'shellwords'
+# frozen_string_literal: true
+
+require "./lib/orogen/version"
+require "shellwords"
+
+require "bundler/gem_tasks"
+require "rake/testtask"
 
 task :setup do
     begin
-        require 'typelib'
-        require 'orogen'
-        STDERR.puts "oroGen is ready to use"
-    rescue Exception => e
-        STDERR.puts "cannot load oroGen"
-        STDERR.puts "  did you install Typelib's Ruby bindings and update the RUBYLIB environment variable accordingly ?"
-        STDERR.puts "  did you add #{File.expand_path("lib", File.dirname(__FILE__))} to RUBYLIB ?"
-        STDERR.puts "the error is: #{e.message}"
+        require "typelib"
+        require "orogen"
+    rescue ScriptErrors => e
+        warn <<~MESSAGE
+            cannot load oroGen
+            - did you install Typelib\'s Ruby bindings and update the RUBYLIB environment
+            variable accordingly ?
+            - did you add #{File.expand_path('lib', __dir__)} to RUBYLIB ?
+
+            The error is: #{e.message}
+        MESSAGE
         e.backtrace.each do |line|
-            STDERR.puts "  #{line}"
+            warn "  #{line}"
         end
         exit(1)
     end
 end
 
-begin
-    require 'hoe'
-    Hoe::plugin :yard
-    Hoe::RUBY_FLAGS.gsub!(/-w/, '')
+task default: :setup
 
-    config = Hoe.spec 'orogen' do
-        self.developer "Sylvain Joyeux", "sylvain.joyeux@dfki.de"
+ENV["OROGEN_DISABLE_PLUGINS"] = "1"
 
-        self.summary = 'Component generation for Orocos::RTT'
-        self.description = paragraphs_of('README.markdown', 3..6).join("\n\n")
-        self.changes     = paragraphs_of('History.txt', 0..1).join("\n\n")
-        licenses << "GPLv2 or later"
+TESTOPTS = ENV.delete("TESTOPTS") || ""
 
-        extra_deps <<
-            ['utilrb',   '>= 1.3.4'] <<
-            ['rake',     '>= 0.8'] <<
-            ['hoe-yard', '>= 0.1.2']
+RUBOCOP_REQUIRED = (ENV["RUBOCOP"] == "1")
+USE_RUBOCOP = (ENV["RUBOCOP"] != "0")
+USE_JUNIT = (ENV["JUNIT"] == "1")
+REPORT_DIR = ENV["REPORT_DIR"] || File.expand_path("test_reports", __dir__)
 
-        extra_dev_deps <<
-            ['flexmock', '>= 0.8.6']
+def minitest_set_options(test_task, name)
+    minitest_options = []
+    if USE_JUNIT
+        minitest_options += [
+            "--junit", "--junit-jenkins",
+            "--junit-filename=#{REPORT_DIR}/#{name}.junit.xml"
+        ]
     end
 
-    Rake.clear_tasks(/^default$/)
-    namespace 'dist' do
-        Rake.clear_tasks(/dist:publish_docs/)
-        Rake.clear_tasks(/dist:(re|clobber_|)docs/)
-        task 'publish_docs' => 'redocs' do
-            if !system('doc/misc/update_github')
-                raise "cannot update the gh-pages branch for GitHub"
-            end
-            if !system('git', 'push', 'git@github.com:doudou/orogen.git', '+gh-pages')
-                raise "cannot push the documentation"
+    minitest_args =
+        if minitest_options.empty?
+            ""
+        else
+            "\"" + minitest_options.join("\" \"") + "\""
+        end
+    test_task.options = "#{TESTOPTS} #{minitest_args} -- --simplecov-name=#{name}"
+end
+
+Rake::TestTask.new(:test) do |t|
+    t.libs << "lib"
+    minitest_set_options(t, "core")
+    t.libs << "test"
+    t.warning = false
+    t.test_files = FileList["test/**/test_*.rb"]
+                   .exclude("test/gen/**/*.rb")
+end
+
+Rake::TestTask.new("test:gen") do |t|
+    t.libs << "lib"
+    minitest_set_options(t, "gen")
+    t.libs << "test"
+    t.warning = false
+    t.test_files = FileList["test/gen/**/test_*.rb"]
+end
+
+task "test:all" => ["test", "test:gen"]
+
+if USE_RUBOCOP
+    begin
+        require "rubocop/rake_task"
+        RuboCop::RakeTask.new do |t|
+            if USE_JUNIT
+                t.formatters << "junit"
+                t.options << "-o" << "#{REPORT_DIR}/rubocop.junit.xml"
             end
         end
-    end
-    config.test_globs = ['test/suite.rb']
-
-    task :doc => :yard
-rescue LoadError
-    STDERR.puts "cannot load the Hoe gem. Distribution is disabled"
-rescue Exception => e
-    if e.message !~ /\.rubyforge/
-        STDERR.puts "WARN: cannot load the Hoe gem, or Hoe fails. Publishing tasks are disabled"
-        STDERR.puts "WARN: error message is: #{e.message}"
+        task "test" => "rubocop"
+    rescue LoadError
+        raise if RUBOCOP_REQUIRED
     end
 end
 
-task :default => :setup
-
-require 'utilrb/doc/rake'
-Utilrb.doc :include => ['lib/**/*.rb'],
-    :title => 'oroGen',
-    :plugins => ['utilrb']
-
+task gem: :build

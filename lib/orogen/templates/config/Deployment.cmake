@@ -35,15 +35,9 @@ endif()
 
 target_link_libraries(<%= deployer.name %> ${Boost_PROGRAM_OPTIONS_LIBRARIES} ${Boost_SYSTEM_LIBRARIES})
 
-<% if uses_qt? %>
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR})
-link_directories(${QT_LIBRARY_DIR})
-target_link_libraries(<%= deployer.name %> ${QT_LIBRARIES})
-set(CMAKE_AUTOMOC true)
+<% deployer.each_needed_global_cpp_initializer do |init| %>
+<%= ERB.new(init.deployment_cmake).result(binding) %>
 <% end %>
-
 
 list(APPEND CMAKE_PREFIX_PATH ${OrocosRTT_PREFIX})
 find_package(RTTPlugin COMPONENTS rtt-typekit <%= deployer.rtt_transports.map { |transport_name| "rtt-transport-#{transport_name}" }.join(" ") %>)

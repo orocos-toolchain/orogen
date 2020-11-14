@@ -16,9 +16,7 @@
     <depend package="typelib" />
     <depend package="rtt_typelib" />
     <depend package="utilrb" />
-    <depend_optional package="hoe-yard" />
-    <depend_optional package="kramdown" />
-    <rosdep name="metaruby" />
+    <depend package="metaruby" />
     <rosdep name="rake" />
     <rosdep name="ruby" />
 

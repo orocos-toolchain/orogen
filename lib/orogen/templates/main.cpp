@@ -64,10 +64,8 @@
 #include <rtt/base/ActivityInterface.hpp>
 
 bool exiting;
-<% if uses_qt? %>
-#include <pthread.h>
-#include <QApplication>
-QApplication *qapp;
+<% deployer.each_needed_global_cpp_initializer do |init| %>
+<%= ERB.new(init.global_scope).result(binding) %>
 <% end %>
 
 #include <string.h>
@@ -113,7 +111,7 @@ public:
             (*sit)->stop();
             delete *sit;
         }
-#endif 
+#endif
 <% end %>
     }
 };
@@ -131,7 +129,7 @@ Deinitializer& operator << (Deinitializer& deinit, servicediscovery::avahi::Serv
     deinit.m_service_discoveries.push_back(&service_discovery);
     return deinit;
 }
-#endif 
+#endif
 <% end %>
 
 <% if deployer.corba_enabled? %>
@@ -161,18 +159,12 @@ void *oro_thread(void *p){
         if (read_count == 1)
             exiting=true;
     }
-<% if uses_qt? %>
-    qapp->exit();
-<% end %>
     return NULL;
 }
 
 int ORO_main(int argc, char* argv[])
 {
    po::options_description desc("Options");
-<% if uses_qt? %>
-    qapp = new QApplication(argc,argv);
-<% end %>
 
    desc.add_options()
         ("help", "show all available options supported by this deployment")
@@ -229,7 +221,7 @@ int ORO_main(int argc, char* argv[])
 
     std::string prefix = "";
 
-    if( vm.count("prefix")) 
+    if( vm.count("prefix"))
         prefix = vm["prefix"].as<std::string>();
 
     bool with_ros = false;
@@ -252,11 +244,11 @@ int ORO_main(int argc, char* argv[])
             size_t colon_pos = ren_str.find(':');
             if ( colon_pos == std::string::npos ) continue;
 
-            rename_map.insert( std::pair<std::string, std::string>( 
+            rename_map.insert( std::pair<std::string, std::string>(
                 ren_str.substr(0,colon_pos), ren_str.substr(colon_pos+1) ));
         }
-    }    
-   
+    }
+
 <% if lock_timeout = deployer.get_lock_timeout_no_period %>
     RTT::os::Thread::setLockTimeoutNoPeriod(<%= lock_timeout %>);
 <% end %>
@@ -272,6 +264,10 @@ int ORO_main(int argc, char* argv[])
 RTT::internal::GlobalEngine::Instance(ORO_SCHED_RT, RTT::os::LowestPriority);
 <% else %>
 RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
+<% end %>
+
+<% deployer.each_needed_global_cpp_initializer do |init| %>
+    <%= ERB.new(init.init).result(binding) %>
 <% end %>
 
 //First Create all Tasks to be able to set some (slave-) activities later on in the second loop
@@ -293,9 +289,19 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
     <% if deployer.corba_enabled? %>
     RTT::corba::TaskContextServer::Create( task_<%= task.name %>.get() );
     <% if task.realtime? %>
+#if RTT_VERSION_GTE(2,8,99)
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherScheduler", ORO_SCHED_RT);
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherPriority", RTT::os::LowestPriority);
+#else
     RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_RT, RTT::os::LowestPriority );
+#endif
     <% else %>
+#if RTT_VERSION_GTE(2,8,99)
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherScheduler", ORO_SCHED_OTHER);
+    task_<%= task.name %>.get()->addConstant<int>("CorbaDispatcherPriority", RTT::os::LowestPriority);
+#else
     RTT::corba::CorbaDispatcher::Instance( task_<%= task.name %>->ports(), ORO_SCHED_OTHER, RTT::os::LowestPriority );
+#endif
     <% end %>
     <% end %>
 
@@ -425,26 +431,25 @@ RTT::internal::GlobalEngine::Instance(ORO_SCHED_OTHER, RTT::os::LowestPriority);
         std::cerr << "failed to install SIGINT handler" << std::endl;
         return 1;
     }
+
     <% if has_realtime %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_RT, RTT::os::LowestPriority, 0);
     <% else %>
     RTT::corba::TaskContextServer::ThreadOrb(ORO_SCHED_OTHER, RTT::os::LowestPriority, 0);
     <% end %>
 
-    exiting= false;
-    <% if uses_qt? %>
-    pthread_t thr;
-    pthread_create(&thr,NULL, oro_thread,NULL);
-    qapp->exec();
-    <% else %>
+    exiting = false;
     oro_thread(NULL);
-    <% end %>
 
     RTT::corba::TaskContextServer::ShutdownOrb();
     RTT::corba::TaskContextServer::DestroyOrb();
 <% elsif deployer.browse %>
     OCL::TaskBrowser browser(task_<%= deployer.browse.name %>.get());
     browser.loop();
+<% end %>
+
+<% deployer.each_needed_global_cpp_initializer do |init| %>
+    <%= ERB.new(init.exit).result(binding) %>
 <% end %>
 
     return 0;

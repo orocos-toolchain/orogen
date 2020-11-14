@@ -1,4 +1,6 @@
-require 'orogen/test'
+# frozen_string_literal: true
+
+require "orogen/test"
 
 describe OroGen::Spec::TaskContext do
     attr_reader :project, :loader, :task
@@ -6,8 +8,8 @@ describe OroGen::Spec::TaskContext do
         @loader = OroGen::Loaders::Files.new
         OroGen::Loaders::RTT.setup_loader(loader)
         @project = OroGen::Spec::Project.new(loader)
-        project.name 'base'
-        @task = project.task_context 'Task'
+        project.name "base"
+        @task = project.task_context "Task"
     end
 
     describe "#task_model_from_name" do
@@ -15,8 +17,8 @@ describe OroGen::Spec::TaskContext do
         before do
             # Create another project
             dependency = OroGen::Spec::Project.new(loader)
-            dependency.name 'dependency'
-            @dependency_task = dependency.task_context 'Foo'
+            dependency.name "dependency"
+            @dependency_task = dependency.task_context "Foo"
             project.using_task_library dependency
         end
 
@@ -42,8 +44,8 @@ describe OroGen::Spec::TaskContext do
         before do
             # Create another project
             dependency = OroGen::Spec::Project.new(loader)
-            dependency.name 'dependency'
-            @dependency_task = dependency.task_context 'Foo'
+            dependency.name "dependency"
+            @dependency_task = dependency.task_context "Foo"
             project.using_task_library dependency
         end
 
@@ -78,16 +80,16 @@ describe OroGen::Spec::TaskContext do
         end
 
         it "should register the property in #self_properties" do
-            property = task.property("p", '/double')
+            property = task.property("p", "/double")
             assert_equal [property], task.self_properties
         end
-        
+
         it "should properly set the property attributes" do
-            property = task.property("p", '/double').doc("property")
+            property = task.property("p", "/double").doc("property")
             assert_kind_of(OroGen::Spec::Property, property)
             assert_equal("p", property.name)
-            assert_equal('/double', property.type.full_name)
-            assert_equal("property",  property.doc)
+            assert_equal("/double", property.type.full_name)
+            assert_equal("property", property.doc)
         end
     end
 
@@ -99,83 +101,84 @@ describe OroGen::Spec::TaskContext do
         end
         it "sets the operation name" do
             meth = task.operation("method_name")
-            assert_equal 'method_name', meth.name
+            assert_equal "method_name", meth.name
         end
         it "sets a default of 'returning nothing'" do
             meth = task.operation("method_name")
-            assert_equal([nil, 'void', ''], meth.return_type)
+            assert_equal([nil, "void", ""], meth.return_type)
         end
     end
 
     describe "#input_port" do
         it "raises ArgumentError if a port with the same name already exists" do
-            task.input_port 'i', 'int'
-            task.output_port 'o', 'int'
-            assert_raises(ArgumentError) { task.input_port 'i', 'int' }
-            assert_raises(ArgumentError) { task.input_port 'o', 'int' }
+            task.input_port "i", "int"
+            task.output_port "o", "int"
+            assert_raises(ArgumentError) { task.input_port "i", "int" }
+            assert_raises(ArgumentError) { task.input_port "o", "int" }
         end
     end
 
     describe "#output_port" do
         it "raises ArgumentError if a port with the same name already exists" do
-            task.input_port 'i', 'int'
-            task.output_port 'o', 'int'
-            assert_raises(ArgumentError) { task.output_port 'i', 'int' }
-            assert_raises(ArgumentError) { task.output_port 'o', 'int' }
+            task.input_port "i", "int"
+            task.output_port "o", "int"
+            assert_raises(ArgumentError) { task.output_port "i", "int" }
+            assert_raises(ArgumentError) { task.output_port "o", "int" }
         end
     end
 
     describe "#port_driven" do
         it "can handle a port by name" do
-            p = task.input_port 'r', 'int'
-            task.port_driven 'r'
+            p = task.input_port "r", "int"
+            task.port_driven "r"
             assert_equal [p], task.all_event_ports
         end
         it "raises ArgumentError if given a non-existing port" do
-            assert_raises(ArgumentError) { task.port_driven 'r' }
+            assert_raises(ArgumentError) { task.port_driven "r" }
         end
         it "raises ArgumentError if given an output port" do
-            task.output_port 'w', 'int'
-            assert_raises(ArgumentError) { task.port_driven 'w' }
+            task.output_port "w", "int"
+            assert_raises(ArgumentError) { task.port_driven "w" }
         end
     end
 
     describe "#state_kind" do
         it "returns the type of a given state" do
-            task.runtime_states 'TEST'
-            assert_equal :runtime, task.state_kind('TEST')
+            task.runtime_states "TEST"
+            assert_equal :runtime, task.state_kind("TEST")
         end
         it "returns nil if the state is not known" do
-            assert_nil task.state_kind('test')
+            assert_nil task.state_kind("test")
         end
     end
 
     describe "#define_state" do
         it "raises ArgumentError if the state type is not known" do
-            assert_raises(ArgumentError) { task.define_state 'TEST', :bla }
+            assert_raises(ArgumentError) { task.define_state "TEST", :bla }
         end
         it "raises ArgumentError if the state is already defined but with a different kind" do
-            task.define_state 'TEST', :runtime
-            assert_raises(ArgumentError) { task.define_state 'TEST', :error }
+            task.define_state "TEST", :runtime
+            assert_raises(ArgumentError) { task.define_state "TEST", :error }
         end
         it "does nothing if the state is already defined with the same type" do
-            task.define_state 'TEST', :runtime
-            task.define_state 'TEST', :runtime
+            task.define_state "TEST", :runtime
+            task.define_state "TEST", :runtime
         end
     end
 
     OroGen::Spec::TaskContext::STATE_TYPES.each do |type|
         next if type == :toplevel
+
         it "can define and enumerate #{type} states" do
             task.send("#{type}_states", "STATE0", "STATE1")
-            assert_equal ["STATE0", "STATE1"], task.send("each_#{type}_state").to_a
+            assert_equal %w[STATE0 STATE1], task.send("each_#{type}_state").to_a
         end
         it "can enumerate states from the superclass" do
             superclass = project.task_context "Base"
             superclass.send("#{type}_states", "STATE0")
-            task = project.task_context 'Subtask', subclasses: superclass
+            task = project.task_context "Subtask", subclasses: superclass
             task.send("#{type}_states", "STATE1")
-            assert_equal ["STATE0", "STATE1"], task.send("each_#{type}_state").to_a
+            assert_equal %w[STATE0 STATE1], task.send("each_#{type}_state").to_a
         end
     end
 
@@ -205,12 +208,12 @@ describe OroGen::Spec::TaskContext do
         end
         describe "#has_dynamic_input_port?" do
             it "returns false if #find_dynamic_input_ports returns an empty set" do
-                flexmock(task).should_receive(:find_dynamic_input_ports).with('name', '/type').and_return([])
-                assert !task.has_dynamic_input_port?('name', '/type')
+                flexmock(task).should_receive(:find_dynamic_input_ports).with("name", "/type").and_return([])
+                assert !task.has_dynamic_input_port?("name", "/type")
             end
             it "returns true if #find_dynamic_input_ports returns a non-empty set" do
-                flexmock(task).should_receive(:find_dynamic_input_ports).with('name', '/type').and_return([true])
-                assert task.has_dynamic_input_port?('name', '/type')
+                flexmock(task).should_receive(:find_dynamic_input_ports).with("name", "/type").and_return([true])
+                assert task.has_dynamic_input_port?("name", "/type")
             end
         end
         describe "#each_dynamic_output_port" do
@@ -232,12 +235,12 @@ describe OroGen::Spec::TaskContext do
         end
         describe "#has_dynamic_output_port?" do
             it "returns false if #find_dynamic_output_ports returns an empty set" do
-                flexmock(task).should_receive(:find_dynamic_output_ports).with('name', '/type').and_return([])
-                assert !task.has_dynamic_output_port?('name', '/type')
+                flexmock(task).should_receive(:find_dynamic_output_ports).with("name", "/type").and_return([])
+                assert !task.has_dynamic_output_port?("name", "/type")
             end
             it "returns true if #find_dynamic_output_ports returns a non-empty set" do
-                flexmock(task).should_receive(:find_dynamic_output_ports).with('name', '/type').and_return([true])
-                assert task.has_dynamic_output_port?('name', '/type')
+                flexmock(task).should_receive(:find_dynamic_output_ports).with("name", "/type").and_return([true])
+                assert task.has_dynamic_output_port?("name", "/type")
             end
         end
 
@@ -268,35 +271,38 @@ describe OroGen::Spec::TaskContext do
         end
         it "marshals the model in hash form" do
             task.runtime_states :TEST
-            port      = task.input_port('in_p', '/int')
-            property  = task.property('p', '/double')
-            attribute = task.attribute('a', '/double')
-            operation = task.operation('op')
+            port      = task.input_port("in_p", "/int")
+            property  = task.property("p", "/double")
+            attribute = task.attribute("a", "/double")
+            operation = task.operation("op")
             h = task.to_h
             assert_equal task.name, h[:name]
             assert_equal task.superclass.name, h[:superclass]
-            assert_equal [port.to_h, task.find_port('state').to_h], h[:ports]
+            assert_equal [port.to_h, task.find_port("state").to_h], h[:ports]
             assert_equal [property.to_h], h[:properties]
             assert_equal [attribute.to_h], h[:attributes]
             assert_equal [operation.to_h], h[:operations]
 
-            expected_states = task.superclass.each_state.to_a + [['TEST', :runtime]]
+            expected_states = task.superclass.each_state.to_a + [["TEST", :runtime]]
             assert_equal expected_states, h[:states]
         end
     end
 
     describe "extension support" do
         before do
-            @supertask = OroGen::Spec::TaskContext.new(create_dummy_project, "test::SuperTask")
-            @task = OroGen::Spec::TaskContext.new(create_dummy_project, "test::Task")
-            @task.subclasses @supertask
-            @ext = OroGen::Spec::TaskModelExtension.new('test')
+            @supertask = OroGen::Spec::TaskContext.new(
+                create_dummy_project, "test::SuperTask"
+            )
+            @task = OroGen::Spec::TaskContext.new(
+                create_dummy_project, "test::Task", subclasses: @supertask
+            )
+            @ext = OroGen::Spec::TaskModelExtension.new("test")
         end
 
         it "registers a new extension" do
             @task.register_extension @ext
-            assert_equal @ext, @task.find_extension('test')
-            assert @task.has_extension?('test')
+            assert_equal @ext, @task.find_extension("test")
+            assert @task.has_extension?("test")
         end
 
         it "allows to register the same extension twice" do
@@ -306,7 +312,7 @@ describe OroGen::Spec::TaskContext do
 
         it "does not allow to register two different extensions with the same name" do
             @task.register_extension @ext
-            ext = OroGen::Spec::TaskModelExtension.new('test')
+            ext = OroGen::Spec::TaskModelExtension.new("test")
             e = assert_raises(ArgumentError) do
                 @task.register_extension ext
             end
@@ -315,12 +321,12 @@ describe OroGen::Spec::TaskContext do
 
         it "gives access on self to extensions registered in the superclass by default" do
             @task.superclass.register_extension @ext
-            assert_equal @ext, @task.find_extension('test')
+            assert_equal @ext, @task.find_extension("test")
         end
 
         it "does not return extensionss registered in the superclass if find_extension's argument is false" do
             @task.superclass.register_extension @ext
-            assert_nil @task.find_extension('test', false)
+            assert_nil @task.find_extension("test", false)
         end
 
         it "enumerates extensions" do
@@ -345,7 +351,7 @@ describe OroGen::Spec::TaskContext do
 
         describe "#supercall" do
             it "calls the superclass' return value if it has the matching extension" do
-                super_ext = OroGen::Spec::TaskModelExtension.new('test')
+                super_ext = OroGen::Spec::TaskModelExtension.new("test")
                 @task.superclass.register_extension super_ext
                 @task.register_extension @ext
                 flexmock(super_ext).should_receive(:test_call).once.and_return(ret = flexmock)

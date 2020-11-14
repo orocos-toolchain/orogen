@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Typelib
     class Type
         def self.normalize_typename(name)
@@ -6,23 +8,25 @@ module Typelib
             end.join("/")
         end
 
+        TYPENAME_ARRAY_MATCH = /(.*)(\[\d+\]+)$/.freeze
+
         def self.normalize_typename_part(name)
             # Remove all trailing array modifiers first
-            if name =~ /(.*)(\[\d+\]+)$/
-                name, array_modifiers = $1, $2
+            if (m = TYPENAME_ARRAY_MATCH.match(name))
+                name = m[1]
+                array_modifiers = m[2]
             end
 
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
             template_arguments.map! do |arg|
-                arg =
-                    if arg !~ /^\d+$/ && arg[0, 1] != "/"
-                        "/#{arg}"
-                    else arg
-                    end
+                if arg !~ /^\d+$/ && arg[0, 1] != "/"
+                    "/#{arg}"
+                else arg
+                end
             end
 
             if !template_arguments.empty?
-                "#{name}<#{template_arguments.join(",")}>#{array_modifiers}"
+                "#{name}<#{template_arguments.join(',')}>#{array_modifiers}"
             else
                 "#{name}#{array_modifiers}"
             end
@@ -30,14 +34,15 @@ module Typelib
 
         def self.normalize_cxxname(name)
             if name =~ /::/
-                raise InternalError, "normalize_cxxname called with a C++ type name (#{name})"
+                raise InternalError,
+                      "normalize_cxxname called with a C++ type name (#{name})"
             end
 
             if name =~ /(.*)((?:\[\d+\])+)$/
                 name = $1
                 suffix = $2
             else
-                suffix = ''
+                suffix = ""
             end
 
             converted = Typelib.split_typename(name).map do |p|
@@ -53,7 +58,7 @@ module Typelib
         def self.normalize_cxxname_part(name)
             name, template_arguments = Typelib::GCCXMLLoader.parse_template(name)
 
-            name = name.gsub('/', '::')
+            name = name.gsub("/", "::")
             if name =~ /^::(.*)/
                 name = $1
             end
@@ -66,7 +71,7 @@ module Typelib
                     end
                 end
 
-                "#{name}< #{template_arguments.join(", ")} >"
+                "#{name}< #{template_arguments.join(', ')} >"
             else name
             end
         end
@@ -74,20 +79,22 @@ module Typelib
         def self.cxx_name
             normalize_cxxname(name)
         end
+
         def self.cxx_basename
             normalize_cxxname(basename)
         end
+
         def self.cxx_namespace
-            namespace('::')
+            namespace("::")
         end
 
         def self.contains_opaques?
-            if @contains_opaques.nil?
-                @contains_opaques = contains?(Typelib::OpaqueType)
-            end
-            @contains_opaques
+            return @contains_opaques unless @contains_opaques.nil?
+
+            @contains_opaques = contains?(Typelib::OpaqueType)
         end
     end
+
     class NumericType
         def self.cxx_name
             if integer?
@@ -104,8 +111,8 @@ module Typelib
                 basename
             end
         end
-
     end
+
     class ContainerType
         def self.cxx_name
             if name =~ /</
@@ -114,8 +121,8 @@ module Typelib
                 normalize_cxxname(container_kind)
             end
         end
-
     end
+
     class Registry
         # Returns true if +type+ is handled by the typekit that is included in
         # the RTT itself, and false otherwise.
@@ -139,16 +146,16 @@ module Typelib
 
         # Returns the typename used by RTT to register the given type
         def self.rtt_typename(type)
-            if !@typelib_to_rtt_mappings
+            unless @typelib_to_rtt_mappings
                 cxx_types = Typelib::Registry.new
                 Typelib::Registry.add_standard_cxx_types(cxx_types)
                 @typelib_to_rtt_mappings = {
-                    cxx_types.get('bool') => 'bool',
-                    cxx_types.get('int') => 'int',
-                    cxx_types.get('unsigned int') => 'uint',
-                    cxx_types.get('float') => 'float',
-                    cxx_types.get('double') => 'double',
-                    cxx_types.get('char') => 'char'
+                    cxx_types.get("bool") => "bool",
+                    cxx_types.get("int") => "int",
+                    cxx_types.get("unsigned int") => "uint",
+                    cxx_types.get("float") => "float",
+                    cxx_types.get("double") => "double",
+                    cxx_types.get("char") => "char"
                 }
             end
 
@@ -158,14 +165,14 @@ module Typelib
                 return type.name
             end
 
-            if type.name == "/bool" then return 'bool'
-            elsif mapped = @typelib_to_rtt_mappings.find { |typelib, rtt| typelib == type }
-                return mapped[1]
+            if type.name == "/bool"
+                "bool"
+            elsif (mapped = @typelib_to_rtt_mappings.find { |typelib, _| typelib == type })
+                mapped[1]
             else
-                raise ArgumentError, "#{type.name} is (probably) not registered on the RTT type system"
+                raise ArgumentError,
+                      "#{type.name} is (probably) not registered on the RTT type system"
             end
         end
     end
 end
-
-

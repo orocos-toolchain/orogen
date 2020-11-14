@@ -20,7 +20,9 @@ endif(CORBA_IMPLEMENTATION STREQUAL "OMNIORB")
 
 add_custom_command(OUTPUT ${CORBA_FILES}
     COMMAND ${OrocosCORBA_IDL} -Wbkeep_inc_path
-        <%= typekit.used_typekits.find_all { |tk| !tk.virtual? }.map { |tk| "-I" + File.join(tk.pkg.prefix, "include", "orocos") }.join(" ") %>
+        <%= corba_plugin.corba_idl_requires.to_a.sort
+                        .map { |name| typekit.project.orogen_typekit_package(name).prefix }
+                        .map { |prefix| "-I" + File.join(prefix, "include", "orocos") }.join(" ") %>
         ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>Types.idl
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/<%= typekit.name %>Types.idl)
 

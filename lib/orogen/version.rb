@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module OroGen
-    if !defined? ::OroGen::VERSION
+    unless defined? ::OroGen::VERSION
         VERSION = "1.1"
     end
 end
-

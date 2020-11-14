@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module OroGen
     module Spec
         # Representation of an oroGen project
@@ -29,9 +31,8 @@ module OroGen
             # The set of transport names that are enabled in this project
             # @return [Set<String>]
             attr_reader :enabled_transports
-            #returns all the disabled namespaces
+            # returns all the disabled namespaces
             attr_reader :disabled_namespaces
-
 
             def self.blank
                 loader = Loaders::Base.new
@@ -41,19 +42,29 @@ module OroGen
             end
 
             def initialize(loader)
+                @default_task_superclass = nil
                 @loader = loader
-                @tasks = Hash.new
-                @self_tasks = Hash.new
-                @deployers = Hash.new
+                @typekit = nil
+                @tasks = {}
+                @self_tasks = {}
+                @deployers = {}
                 @define_default_deployments = true
                 @enabled_transports = Set.new
-                @max_sizes = Hash.new
-                @disabled_namespaces = Array.new
+                @max_sizes = {}
+                @disabled_namespaces = []
             end
 
-            def enable_namespace(value); @disabled_namespaces.delete(value) end
-            def disable_namespace(value); @disabled_namespaces << value end
-            def namespace_disabled?(value); @disabled_namespaces.include?(value) end
+            def enable_namespace(value)
+                @disabled_namespaces.delete(value)
+            end
+
+            def disable_namespace(value)
+                @disabled_namespaces << value
+            end
+
+            def namespace_disabled?(value)
+                @disabled_namespaces.include?(value)
+            end
 
             # Gets or sets the project's name
             #
@@ -63,12 +74,12 @@ module OroGen
             #   @param [String] the name that should be set
             #   @return [self]
             dsl_attribute :name do |new|
-                if !new.respond_to?(:to_str)
-                    raise ArgumentError, 'name should be a string'
+                unless new.respond_to?(:to_str)
+                    raise ArgumentError, "name should be a string"
                 end
+
                 new
             end
-
 
             # Gets or sets the project's version
             #
@@ -83,6 +94,7 @@ module OroGen
                 if name !~ /^\d/
                     raise ArgumentError, "version strings must start with a number (had: #{name})"
                 end
+
                 name
             end
 
@@ -199,6 +211,7 @@ module OroGen
                 if typekit.respond_to?(:to_str) && !loader.has_typekit?(typekit)
                     return
                 end
+
                 using_typekit(typekit)
             end
 
@@ -282,7 +295,7 @@ module OroGen
             #   simple_deployment("task", "Task").
             #       periodic(0.001)
             def simple_deployment(name, klass)
-                has_logger = loader.has_project?('logger')
+                has_logger = loader.has_project?("logger")
                 if has_logger
                     using_task_library "logger"
                 end
@@ -299,7 +312,7 @@ module OroGen
 
             # Displays the content of this oroGen project in a nice form
             def pretty_print(pp) # :nodoc:
-                if !self_tasks.empty?
+                unless self_tasks.empty?
                     pp.text "  Task Contexts:"
                     pp.nest(4) do
                         pp.breakable
@@ -309,8 +322,8 @@ module OroGen
                     end
                 end
 
-                if !deployers.empty?
-                    pp.breakable if !self_tasks.empty?
+                unless deployers.empty?
+                    pp.breakable unless self_tasks.empty?
                     pp.text "  Deployers:"
                     pp.nest(4) do
                         pp.breakable
@@ -340,9 +353,10 @@ module OroGen
             #
             # @yieldparam [Deployment] deployment
             # @return [void]
-            def each_deployment
-                return enum_for(__method__) if !block_given?
-                deployers.each_value(&proc)
+            def each_deployment(&block)
+                return enum_for(__method__) unless block_given?
+
+                deployers.each_value(&block)
             end
 
             def to_s
