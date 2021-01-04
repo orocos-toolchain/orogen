@@ -287,4 +287,32 @@ describe OroGen::Gen::RTT_CPP::Typekit do
             end
         end
     end
+
+    describe "#remove_types" do
+        before do
+            @typekit = OroGen::Gen::RTT_CPP::Typekit.new
+            @typekit.base_dir = File.join(__dir__)
+            @typekit.load File.join(__dir__, "..", "data", "typekit", "remove_types.h")
+        end
+
+        it "removes a leaf type and its aliases" do
+            @typekit.remove_types "/Derived"
+            @typekit.perform_pending_loads
+            assert_raises(Typelib::NotFound) { @typekit.find_type "/Derived" }
+            assert_raises(Typelib::NotFound) { @typekit.find_type "/DerivedTypedef" }
+        end
+
+        it "keeps non-removed types and their aliases" do
+            @typekit.remove_types "/Derived"
+            @typekit.perform_pending_loads
+            assert @typekit.find_type "/Base"
+            assert @typekit.find_type "/BaseTypedef"
+        end
+
+        it "does not remove a type that is used by another" do
+            @typekit.remove_types "/std/vector</Field>"
+            @typekit.perform_pending_loads
+            assert @typekit.find_type "/std/vector</Field>"
+        end
+    end
 end

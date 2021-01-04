@@ -1321,11 +1321,14 @@ module OroGen
                     # Find the base include
                     include_candidates = include_path.map do |inc|
                         rel = file.relative_path_from(inc).cleanpath.to_path
-                        if rel !~ /^\.\.\//
-                            rel
-                        end
+                        rel if rel !~ /^\.\.\//
+                    end.compact
+
+                    if include_candidates.empty?
+                        file
+                    else
+                        include_candidates.compact.min_by(&:size)
                     end
-                    include_candidates.compact.min_by(&:size)
                 end
 
                 # Returns an existing orogen_include metadata entry for the given
@@ -2044,6 +2047,35 @@ module OroGen
                 # and converts all of them to the type coming from +registry+
                 def map_typeset_to_registry(registry, types)
                     types.map { |t| find_type(t) }.to_set
+                end
+
+                # Attempt to remove a set of types from the registry
+                #
+                # oroGen will generate a typekit that internally handles all types
+                # registered within the headers given to it. This is sometimes not
+                # what one wants, as e.g. if one type can be represented by typelib
+                # but not by one of its exporters (e.g. COEBA IDL)
+                #
+                # This attemptes to remove all the given types. It will however
+                # *not* remove them if another (not-removed) type depends on them
+                def remove_types(*typenames)
+                    perform_pending_loads
+                    typenames = typenames.map { |t| t.respond_to?(:name) ? t.name : t }
+
+                    result = Typelib::Registry.new
+                    registry.each(with_aliases: false) do |type|
+                        next if typenames.delete(type.name)
+
+                        result.merge(registry.minimal(type.name))
+                    end
+
+                    unless typenames.empty?
+                        raise ArgumentError,
+                              "could not find #{typenames.join(", ")} in registry"
+                    end
+
+                    @registry = result
+                    nil
                 end
 
                 def generate
