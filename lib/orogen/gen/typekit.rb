@@ -1459,8 +1459,8 @@ module OroGen
                     end
                 end
 
-                def resolve_toplevel_include_mapping(toplevel_files, options)
-                    preprocessed = Typelib::CXX.preprocess(toplevel_files, "c", options)
+                def resolve_toplevel_include_mapping(toplevel_files, **options)
+                    preprocessed = Typelib::CXX.preprocess(toplevel_files, "c", **options)
 
                     owners = Hash.new { |h, k| h[k] = Array.new }
                     current_file = [[]]
@@ -1534,7 +1534,6 @@ module OroGen
                     preprocess_options = Hash.new
                     preprocess_options[:rawflags]      = options.fetch(:rawflags, Array.new)
                     preprocess_options[:include]       = options.fetch(:include, Array.new)
-                    preprocess_options[:include_paths] = options.fetch(:include, Array.new)
                     preprocess_options[:define]        = options.fetch(:define, Array.new)
                     [preprocess_options, options]
                 end
@@ -1571,7 +1570,8 @@ module OroGen
                     file_registry.merge opaque_registry
 
                     preprocess_options, options = make_load_options(loads, user_options)
-                    preprocessed, include_mappings = resolve_toplevel_include_mapping(loads, preprocess_options)
+                    preprocessed, include_mappings =
+                        resolve_toplevel_include_mapping(loads, **preprocess_options)
 
                     include_path = include_dirs.map { |d| Pathname.new(d) }
                     pending_loads_to_relative =
@@ -1593,7 +1593,9 @@ module OroGen
                             loads.each do |path|
                                 logger.info "typekit:  #{path}"
                             end
-                            file_registry.import(io.path, "c", options)
+                            file_registry.import(io.path, "c",
+                                                 parallel_level: RTT_CPP.parallel_level,
+                                                 job_server: RTT_CPP.job_server, **options)
                             filter_unsupported_types(file_registry)
                             resolve_registry_includes(file_registry, include_mappings)
                             validate_related_types(file_registry)
@@ -1891,7 +1893,9 @@ module OroGen
 
                         path = Generation.save_automatic "typekit", "types", name, "m_types", "#{type.method_name(true)}.hpp", marshalling_code
                         self.load(path, true, options)
+                    end
 
+                    to_generate.each do |type|
                         m_type = intermediate_type_for(type)
                         copy_metadata_to_intermediate_type(type.metadata, m_type.metadata)
                         if type.respond_to?(:field_metadata) && m_type.respond_to?(:field_metadata)
