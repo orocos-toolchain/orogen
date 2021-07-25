@@ -121,6 +121,65 @@ module OroGen
             def self.cmake_pkgconfig_link_noncorba(target, depspec)
                 cmake_pkgconfig_link("core", target, depspec)
             end
+
+            class << self
+                attr_accessor :job_server
+                attr_accessor :parallel_level
+            end
+
+            # @api private
+            #
+            # Job server interface that does nothing (i.e. does not allocate tokens)
+            class NullJobServer
+                def get
+                    yield if block_given?
+                end
+
+                def put; end
+            end
+
+            @job_server = NullJobServer.new
+            @parallel_level = 1
+
+            # An implementation of the make job server "protocol"
+            class JobServer
+                def self.from_fds(pipe_r, pipe_w)
+                    pipe_r = IO.for_fd(pipe_r)
+                    pipe_w = IO.for_fd(pipe_w)
+                    pipe_w.sync = true
+                    new(pipe_r, pipe_w)
+                end
+
+                def self.standalone(parallel_level)
+                    pipe_r, pipe_w = IO.pipe
+                    # The current thread already has a token (this is the
+                    # general make job server protocol)
+                    pipe_w.write(" " * parallel_level)
+                    new(pipe_r, pipe_w)
+                end
+
+                def initialize(pipe_r, pipe_w)
+                    @pipe_r = pipe_r
+                    @pipe_w = pipe_w
+                end
+
+                # Wait for a work token to be available and acquired
+                def get
+                    @pipe_r.read(1)
+                    return unless block_given?
+
+                    begin
+                        yield
+                    ensure
+                        put
+                    end
+                end
+
+                # Put a work token back into the pool
+                def put
+                    @pipe_w.write(" ")
+                end
+            end
         end
     end
 end
