@@ -90,16 +90,22 @@ void <%= task.basename %>Base::error(States state)
     _state.write(state);
     TaskContext::error();
 }
+void <%= task.basename %>Base::error()
+{ return error(RUNTIME_ERROR); }
 void <%= task.basename %>Base::exception(States state)
 {
     _state.write(state);
     TaskContext::exception();
 }
+void <%= task.basename %>Base::exception()
+{ return exception(EXCEPTION); }
 void <%= task.basename %>Base::fatal(States state)
 {
     _state.write(state);
     TaskContext::fatal();
 }
+void <%= task.basename %>Base::fatal()
+{ return fatal(FATAL_ERROR); }
 <%= task.basename %>Base::States <%= task.basename %>Base::state() const
 {
     return static_cast<<%= task.basename %>Base::States>(_state.getLastWrittenValue());
@@ -157,12 +163,6 @@ bool <%= task.basename %>Base::cleanup()
     StateExporter exporter(*this, _state);
     return <%= superclass.name %>::cleanup();
 }
-void <%= task.basename %>Base::fatal()
-{ return fatal(FATAL_ERROR); }
-void <%= task.basename %>Base::error()
-{ return error(RUNTIME_ERROR); }
-void <%= task.basename %>Base::exception()
-{ return exception(EXCEPTION); }
 <% end %>
 
 <% task.base_hook_code.keys.sort.each do |hook_name| %>

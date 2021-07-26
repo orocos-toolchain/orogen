@@ -115,12 +115,13 @@ namespace <%= space %>{
         bool recover();
         bool stop();
         bool cleanup();
-        void error();
-        void fatal();
-        void exception();
         <% end %>
 
         <% if task.extended_state_support? %>
+        void error();
+        void fatal();
+        void exception();
+
         void report(States state);
         void state(States state);
         void error(States state);
