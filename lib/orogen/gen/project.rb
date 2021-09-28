@@ -814,6 +814,7 @@ module OroGen
                     result = self_tasks.inject(Set.new) do |set, task|
                         set | task.used_task_libraries
                     end
+                    result.merge(used_task_libraries)
                     result.to_a.sort_by(&:name)
                 end
 
