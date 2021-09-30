@@ -1,0 +1,6 @@
+name 'dependent_includes'
+
+using_task_library "cross_consumer"
+
+task_context "DependentIncludes"
+
