@@ -811,12 +811,8 @@ module OroGen
                 # Computes the set of task libraries that our own task library
                 # depends on
                 def tasklib_used_task_libraries
-                    result = self_tasks.inject(Set.new) do |set, task|
-                        set | task.used_task_libraries
-                    end
-                    result.merge(used_task_libraries)
-                    result.to_a.sort_by(&:name)
-                end
+                    used_task_libraries.to_a.sort_by(&:name)
+		end
 
                 # Returns a list of BuildDependency object that represent the
                 # dependencies for the task library
