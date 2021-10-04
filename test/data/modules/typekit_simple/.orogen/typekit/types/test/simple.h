@@ -1,1 +1,0 @@
-/opt/workspace/tools/orogen/test/data/modules/typekit_simple/simple.h
