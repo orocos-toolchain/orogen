@@ -812,7 +812,7 @@ module OroGen
                 # depends on
                 def tasklib_used_task_libraries
                     used_task_libraries.to_a.sort_by(&:name)
-		end
+                end
 
                 # Returns a list of BuildDependency object that represent the
                 # dependencies for the task library
