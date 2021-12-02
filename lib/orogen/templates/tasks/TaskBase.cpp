@@ -78,21 +78,12 @@ void <%= task.basename %>Base::setupComponentInterface()
 
 <% if task.extended_state_support? %>
 
-#ifdef RTT_HAS_STATE_CHANGE_HOOK
-void <%= task.basename %>Base::error()
-{ return <%= superclass.name %>::error(); }
-void <%= task.basename %>Base::exception()
-{ return <%= superclass.name %>::exception(); }
-void <%= task.basename %>Base::fatal()
-{ return <%= superclass.name %>::fatal(); }
-#else
 void <%= task.basename %>Base::error()
 { return error(RUNTIME_ERROR); }
 void <%= task.basename %>Base::exception()
 { return exception(EXCEPTION); }
 void <%= task.basename %>Base::fatal()
 { return fatal(FATAL_ERROR); }
-#endif
 
 void <%= task.basename %>Base::report(States state)
 {
