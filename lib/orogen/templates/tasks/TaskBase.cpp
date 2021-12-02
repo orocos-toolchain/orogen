@@ -14,7 +14,7 @@ using namespace <%= task.full_namespace%>;
 
 <% initializer_list = task.self_base_members.
         sort_by { |m| [m.kind, m.name] }.
-        map { |m| 
+        map { |m|
             ret = m.with_indent(4, :initializer)
             if(ret)
                 ", " + ret.strip
@@ -22,7 +22,7 @@ using namespace <%= task.full_namespace%>;
                   nil
             end
         }.
-        compact.join("\n    ") %> 
+        compact.join("\n    ") %>
 
 <%= task.basename %>Base::<%= task.basename %>Base(std::string const& name<%= ", TaskCore::TaskState state" unless task.fixed_initial_state? %>)
 <% if task.superclass.fixed_initial_state? %>
@@ -77,6 +77,23 @@ void <%= task.basename %>Base::setupComponentInterface()
         compact.join("\n") %>
 
 <% if task.extended_state_support? %>
+
+#ifdef RTT_HAS_STATE_CHANGE_HOOK
+void <%= task.basename %>Base::error()
+{ return <%= superclass.name %>::error(); }
+void <%= task.basename %>Base::exception()
+{ return <%= superclass.name %>::exception(); }
+void <%= task.basename %>Base::fatal()
+{ return <%= superclass.name %>::fatal(); }
+#else
+void <%= task.basename %>Base::error()
+{ return error(RUNTIME_ERROR); }
+void <%= task.basename %>Base::exception()
+{ return exception(EXCEPTION); }
+void <%= task.basename %>Base::fatal()
+{ return fatal(FATAL_ERROR); }
+#endif
+
 void <%= task.basename %>Base::report(States state)
 {
     _state.write(state);
@@ -90,29 +107,39 @@ void <%= task.basename %>Base::error(States state)
     _state.write(state);
     TaskContext::error();
 }
-void <%= task.basename %>Base::error()
-{ return error(RUNTIME_ERROR); }
 void <%= task.basename %>Base::exception(States state)
 {
     _state.write(state);
     TaskContext::exception();
 }
-void <%= task.basename %>Base::exception()
-{ return exception(EXCEPTION); }
 void <%= task.basename %>Base::fatal(States state)
 {
     _state.write(state);
     TaskContext::fatal();
 }
-void <%= task.basename %>Base::fatal()
-{ return fatal(FATAL_ERROR); }
 <%= task.basename %>Base::States <%= task.basename %>Base::state() const
 {
     return static_cast<<%= task.basename %>Base::States>(_state.getLastWrittenValue());
 }
+
+#ifdef RTT_HAS_STATE_CHANGE_HOOK
+bool <%= task.basename %>Base::start()
+{
+    <% task.self_ports.find_all { |p| p.kind_of?(InputPort) }.each do |port| %>
+    _<%= port.name %>.clear();
+    <% end %>
+
+    return <%= superclass.name %>::start();
+}
+
+<% unless task.superclass.extended_state_support? %>
+void <%= task.basename %>Base::setTaskState(TaskState state) {
+    <%= superclass.name %>::setTaskState(state);
+    _state.write(state);
+}
 <% end %>
 
-<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+#else
 struct StateExporter
 {
     RTT::TaskContext const& task;
@@ -125,11 +152,10 @@ struct StateExporter
         port.write(task.getTaskState());
     }
 };
-<% end %>
 
 bool <%= task.basename %>Base::start()
 {
-<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+<% unless task.superclass.extended_state_support? %>
     StateExporter exporter(*this, _state);
 <% end %>
     bool started = <%= superclass.name %>::start();
@@ -142,7 +168,7 @@ bool <%= task.basename %>Base::start()
     return true;
 }
 
-<% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+<% unless task.superclass.extended_state_support? %>
 bool <%= task.basename %>Base::configure()
 {
     StateExporter exporter(*this, _state);
@@ -164,6 +190,8 @@ bool <%= task.basename %>Base::cleanup()
     return <%= superclass.name %>::cleanup();
 }
 <% end %>
+#endif
+<% end # if task.extended_state_support? %>
 
 <% task.base_hook_code.keys.sort.each do |hook_name| %>
 <%    snippets = task.base_hook_code[hook_name] %>
@@ -193,4 +221,3 @@ bool <%= task.basename %>Base::cleanup()
 <% end %>
 
 <%= code_after.join("\n") %>
-

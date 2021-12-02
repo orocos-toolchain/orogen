@@ -109,12 +109,16 @@ namespace <%= space %>{
         bool start();
 
         <% if task.extended_state_support? && !task.superclass.extended_state_support? %>
+#ifdef RTT_HAS_STATE_CHANGE_HOOK
+        void setTaskState(TaskState state);
+#else
         // Reimplement TaskCore base methods to export the states to the outside
         // world
         bool configure();
         bool recover();
         bool stop();
         bool cleanup();
+#endif
         <% end %>
 
         <% if task.extended_state_support? %>
