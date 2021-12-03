@@ -124,8 +124,75 @@ bool <%= task.basename %>Base::start()
 }
 
 <% unless task.superclass.extended_state_support? %>
+typedef RTT::base::TaskCore::TaskState TaskState;
+typedef <%= task.basename %>Base::States OroGenStates;
+static bool isRuntimeErrorState(OroGenStates state) {
+    <% states = task.each_state.find_all { |_, type| type == :error } %>
+    <% if states.empty? %>
+    return false;
+    <% else %>
+    switch(state) {
+    <% states.each do |state_name, state_type| %>
+        case <%= task.state_global_value_name(state_name, state_type) %>:
+    <% end %>
+            return true;
+        default:
+            return false;
+    }
+    <% end %>
+}
+static bool isExceptionState(OroGenStates state) {
+    <% states = task.each_state.find_all { |_, type| type == :exception } %>
+    <% if states.empty? %>
+    return false;
+    <% else %>
+    switch(state) {
+    <% states.each do |state_name, state_type| %>
+        case <%= task.state_global_value_name(state_name, state_type) %>:
+    <% end %>
+            return true;
+        default:
+            return false;
+    }
+    <% end %>
+}
+static bool isFatalErrorState(OroGenStates state) {
+    <% states = task.each_state.find_all { |_, type| type == :fatal_error } %>
+    <% if states.empty? %>
+    return false;
+    <% else %>
+    switch(state) {
+    <% states.each do |state_name, state_type| %>
+        case <%= task.state_global_value_name(state_name, state_type) %>:
+    <% end %>
+            return true;
+        default:
+            return false;
+    }
+    <% end %>
+}
 void <%= task.basename %>Base::setTaskState(TaskState state) {
     <%= superclass.name %>::setTaskState(state);
+    States lastPublishedState = this->state();
+    switch(state) {
+        case TaskState::RunTimeError:
+            if (isRuntimeErrorState(lastPublishedState)) {
+                return;
+            }
+            break;
+        case TaskState::Exception:
+            if (isExceptionState(lastPublishedState)) {
+                return;
+            }
+            break;
+        case TaskState::FatalError:
+            if (isFatalErrorState(lastPublishedState)) {
+                return;
+            }
+            break;
+        default:
+            break;
+    }
     _state.write(state);
 }
 <% end %>
