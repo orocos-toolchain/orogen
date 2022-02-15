@@ -4,10 +4,12 @@
         Orocos Realtime Toolkit. Moreover, it generates the specified modules,
         thus offering an easy and fast development process.
     </description>
-    <maintainer>Sylvain Joyeux/sylvain.joyeux@m4x.org</maintainer>
+    <version>1.3.0</version>
+    <maintainer>Sylvain Joyeux/sylvain.joyeux@tidewise.io</maintainer>
     <copyright>
         DFKI/robotik@dfki.de
         Sylvain Joyeux/sylvain.joyeux@m4x.org
+        TideWise/sylvain.joyeux@tidewise.io
     </copyright>
     <license>GPL v2 or later</license>
     <url>http://rock-robotics.org/documentation/orogen</url>
