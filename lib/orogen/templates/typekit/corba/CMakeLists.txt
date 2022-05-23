@@ -52,8 +52,8 @@ if(WITH_RPATH AND APPLE)
 endif()
 
 <%= Generation.cmake_pkgconfig_link('corba', '${libname_corba}', typekit_deps) %>
-set_target_properties(${libname_corba} PROPERTIES LINK_INTERFACE_LIBRARIES ${OrocosCORBA_LIBRARIES})
-set_target_properties(${libname_corba} PROPERTIES INTERFACE_LINK_LIBRARIES ${OrocosCORBA_LIBRARIES})
+set_target_properties(${libname_corba} PROPERTIES LINK_INTERFACE_LIBRARIES "${OrocosCORBA_LIBRARIES}")
+set_target_properties(${libname_corba} PROPERTIES INTERFACE_LINK_LIBRARIES "${OrocosCORBA_LIBRARIES}")
 
 SET(PKG_CONFIG_FILE_CORBA ${CMAKE_CURRENT_BINARY_DIR}/<%= typekit.name %>-transport-corba-${OROCOS_TARGET}.pc)
 CONFIGURE_FILE(<%= typekit.name %>-transport-corba.pc.in ${PKG_CONFIG_FILE_CORBA} @ONLY)
